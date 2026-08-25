@@ -58,3 +58,12 @@ if (uniSdkDir.exists()) {
         }
     }
 }
+
+val secureStorageSdkDir = file("libs/secure-storage-sdk")
+if (secureStorageSdkDir.exists()) {
+    includeBuild(secureStorageSdkDir) {
+        dependencySubstitution {
+            substitute(module("com.anto426:secure-storage-sdk")).using(project(":"))
+        }
+    }
+}

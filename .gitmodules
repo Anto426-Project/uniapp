@@ -4,3 +4,6 @@
 [submodule "libs/uni-sdk"]
 	path = libs/uni-sdk
 	url = https://github.com/Anto426-Project/uni-sdk.git
+[submodule "libs/secure-storage-sdk"]
+	path = libs/secure-storage-sdk
+	url = https://github.com/Anto426-Project/secure-storage-sdk.git
