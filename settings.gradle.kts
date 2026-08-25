@@ -67,3 +67,12 @@ if (secureStorageSdkDir.exists()) {
         }
     }
 }
+
+val firebaseConnectorSdkDir = file("libs/firebase-connector-sdk")
+if (firebaseConnectorSdkDir.exists()) {
+    includeBuild(firebaseConnectorSdkDir) {
+        dependencySubstitution {
+            substitute(module("com.anto426:firebase-connector-sdk")).using(project(":"))
+        }
+    }
+}

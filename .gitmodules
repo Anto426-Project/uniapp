@@ -7,3 +7,6 @@
 [submodule "libs/secure-storage-sdk"]
 	path = libs/secure-storage-sdk
 	url = https://github.com/Anto426-Project/secure-storage-sdk.git
+[submodule "libs/firebase-connector-sdk"]
+	path = libs/firebase-connector-sdk
+	url = https://github.com/Anto426-Project/firebase-connector-sdk.git
