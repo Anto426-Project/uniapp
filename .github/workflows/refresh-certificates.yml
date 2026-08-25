@@ -1,0 +1,198 @@
+name: Refresh Runtime TLS Certificate Bundle
+
+on:
+  schedule:
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: self-hosted
+
+    env:
+      CERT_BUNDLE_REPOSITORY: Anto426-Project/UniappbundledTLScertificates
+
+    steps:
+      - name: Checkout app tooling
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: app
+
+      - name: Prepare certificate bundle repository
+        shell: bash
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_TOKEN}" ]; then
+            echo "DEPLOY_TOKEN secret is required."
+            exit 1
+          fi
+
+          rm -rf certificate-bundle
+          mkdir -p certificate-bundle
+          cd certificate-bundle
+
+          git init
+          git remote remove origin >/dev/null 2>&1 || true
+          git remote add origin "https://x-access-token:${DEPLOY_TOKEN}@github.com/${CERT_BUNDLE_REPOSITORY}.git"
+
+          if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
+            git reset --hard >/dev/null 2>&1 || true
+            git clean -fdx >/dev/null 2>&1 || true
+            git fetch --depth=1 origin main
+            git checkout -B main FETCH_HEAD
+          else
+            git reset --hard >/dev/null 2>&1 || true
+            git clean -fdx >/dev/null 2>&1 || true
+            git checkout --orphan main
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Materialize signing key
+        id: signing_key
+        shell: bash
+        env:
+          TLS_CERT_BUNDLE_SIGNING_PRIVATE_KEY: ${{ secrets.TLS_CERT_BUNDLE_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TLS_CERT_BUNDLE_SIGNING_PRIVATE_KEY}" ]; then
+            echo "TLS_CERT_BUNDLE_SIGNING_PRIVATE_KEY secret is required."
+            exit 1
+          fi
+
+          PRIVATE_KEY_PATH="${RUNNER_TEMP}/tls_bundle_signing_private_key.pem"
+          umask 077
+          printf '%s\n' "${TLS_CERT_BUNDLE_SIGNING_PRIVATE_KEY}" > "${PRIVATE_KEY_PATH}"
+          echo "private_key_path=${PRIVATE_KEY_PATH}" >> "${GITHUB_OUTPUT}"
+
+      - name: Refresh and sign TLS bundle
+        working-directory: app
+        run: |
+          python scripts/refresh_android_trust_anchors.py \
+            --output ../certificate-bundle/trusted_ca_bundle.pem \
+            --metadata-output ../certificate-bundle/trusted_ca_bundle_meta.json \
+            --manifest-output ../certificate-bundle/trusted_ca_bundle_manifest.json \
+            --public-key-output ../certificate-bundle/tls_bundle_signing_public_key.pem \
+            --private-key-file "${{ steps.signing_key.outputs.private_key_path }}"
+
+      - name: Verify signing key matches APK public key
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from pathlib import Path
+          app_public_key = Path("app/androidApp/src/main/res/raw/tls_bundle_signing_public_key.pem").read_text(encoding="utf-8").replace("\r\n", "\n").strip()
+          bundle_public_key = Path("certificate-bundle/tls_bundle_signing_public_key.pem").read_text(encoding="utf-8").replace("\r\n", "\n").strip()
+          if app_public_key != bundle_public_key:
+              raise SystemExit(
+                  "TLS_CERT_BUNDLE_SIGNING_PRIVATE_KEY does not match the public key embedded in the APK. "
+                  "Put the matching private key in the GitHub secret, or update the APK public key and rebuild."
+              )
+          PY
+
+      - name: Verify signed TLS bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          manifest_path = Path("certificate-bundle/trusted_ca_bundle_manifest.json")
+          bundle_path = Path("certificate-bundle/trusted_ca_bundle.pem")
+          public_key_path = Path("app/androidApp/src/main/res/raw/tls_bundle_signing_public_key.pem")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          bundle_text = bundle_path.read_text(encoding="utf-8")
+          if hashlib.sha256(bundle_text.encode("utf-8")).hexdigest().lower() != manifest["bundleSha256"].lower():
+              raise SystemExit("Signed TLS bundle hash does not match the generated manifest.")
+
+          hosts = manifest.get("hosts", [])
+          payload = "\n".join(
+              [
+                  "UniApp TLS certificate bundle manifest v1",
+                  f"schemaVersion={manifest['schemaVersion']}",
+                  f"bundlePath={manifest['bundlePath']}",
+                  f"metadataPath={manifest['metadataPath']}",
+                  f"bundleSha256={manifest['bundleSha256']}",
+                  f"metadataSha256={manifest['metadataSha256']}",
+                  f"certificateCount={manifest['certificateCount']}",
+                  f"generatedAt={manifest['generatedAt']}",
+                  f"expiresAt={manifest['expiresAt']}",
+                  f"keyId={manifest['keyId']}",
+                  f"signatureAlgorithm={manifest['signatureAlgorithm']}",
+                  f"hosts={','.join(str(host) for host in hosts)}",
+              ]
+          ) + "\n"
+          with tempfile.TemporaryDirectory() as temp_dir:
+              temp_dir = Path(temp_dir)
+              payload_path = temp_dir / "payload.txt"
+              signature_path = temp_dir / "signature.bin"
+              payload_path.write_text(payload, encoding="utf-8", newline="\n")
+              signature_path.write_bytes(base64.b64decode(manifest["signature"]))
+              result = subprocess.run(
+                  [
+                      "openssl",
+                      "dgst",
+                      "-sha384",
+                      "-verify",
+                      str(public_key_path),
+                      "-signature",
+                      str(signature_path),
+                      str(payload_path),
+                  ],
+                  capture_output=True,
+                  text=True,
+              )
+          if result.returncode != 0:
+              raise SystemExit(
+                  "Generated TLS bundle manifest signature is invalid for the APK public key.\n"
+                  + result.stdout
+                  + result.stderr
+              )
+          PY
+
+      - name: Detect certificate repository changes
+        id: cert_changes
+        working-directory: certificate-bundle
+        shell: bash
+        run: |
+          if [ -z "$(git status --porcelain -- trusted_ca_bundle.pem trusted_ca_bundle_meta.json trusted_ca_bundle_manifest.json tls_bundle_signing_public_key.pem)" ]; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Commit and push certificate bundle
+        if: steps.cert_changes.outputs.changed == 'true'
+        working-directory: certificate-bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            trusted_ca_bundle.pem \
+            trusted_ca_bundle_meta.json \
+            trusted_ca_bundle_manifest.json \
+            tls_bundle_signing_public_key.pem
+          git commit -m "chore: refresh signed TLS certificate bundle"
+          git push -u origin main

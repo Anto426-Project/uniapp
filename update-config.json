@@ -1,0 +1,18 @@
+{
+  "shared": {
+    "appEnabled": true,
+    "description": "Stanchi della vecchia app universitaria?\nScopri UniApp, l’app non ufficiale per gli studenti dell’Università degli Studi del Molise, sviluppata in autonomia da Anto426. Completamente riscritta in Kotlin nativo, utilizza le più recenti tecnologie Material 3 Design e Jetpack Compose per offrire un’esperienza moderna, fluida e intuitiva. Gestisci la tua carriera, consulta il libretto, prenota gli esami e accedi rapidamente alle informazioni più importanti, tutto in un’unica interfaccia veloce e curata."
+  },
+  "stable": {
+    "minSupportedVersion": "1.1.0",
+    "minSupportedVersionCode": 1,
+    "mandatory": false,
+    "notes": "Changelog 12 Mar 2026:\n- Bugs Fix"
+  },
+  "beta": {
+    "minSupportedVersion": "1.8.5-beta",
+    "minSupportedVersionCode": 195,
+    "mandatory": true,
+    "notes": "Changelog 25 May 2026:\n- Aggiunta la compilazione dei questionari con supporto a piu' pagine, domande obbligatorie e domande opzionali.\n- Gestiti piu' questionari per materia e collegata la nuova schermata di compilazione dalla lista questionari.\n- Corretto il QR studente usando il contenuto badge corretto e una generazione piu' vicina al badge ufficiale.\n- Aggiunto il pulsante per annullare gli appelli prenotati quando la prenotazione e' cancellabile.\n- Migliorate prenotazioni e cancellazioni dei trasporti, inclusa la selezione dei soli giorni feriali.\n- Uniformato il padding inferiore delle schermate di dettaglio e rifiniti toast e componenti comuni."
+  }
+}

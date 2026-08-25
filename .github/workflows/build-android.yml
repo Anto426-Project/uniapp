@@ -1,0 +1,243 @@
+name: Build Android (Signed APK)
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: self-hosted
+
+    env:
+      RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+      RELEASE_STORE_FILE: key/release.keystore
+      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+      UNIAPP_API_SHARED_SECRET: ${{ secrets.UNIAPP_API_SHARED_SECRET }}
+      ORG_GRADLE_PROJECT_UNIAPP_API_SHARED_SECRET: ${{ secrets.UNIAPP_API_SHARED_SECRET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize API secret for Gradle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          normalize_secret() {
+            local value="${1:-}"
+            value="${value//$'\r'/}"
+            value="${value//$'\n'/}"
+            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+            if [[ ${#value} -ge 2 && "$value" == \"* && "$value" == *\" ]]; then
+              value="${value:1:${#value}-2}"
+            fi
+            if [[ ${#value} -ge 2 && "$value" == \'* && "$value" == *\' ]]; then
+              value="${value:1:${#value}-2}"
+            fi
+
+            printf '%s' "$value"
+          }
+
+          NORMALIZED_SECRET="$(normalize_secret "${UNIAPP_API_SHARED_SECRET:-}")"
+          if [ -z "${NORMALIZED_SECRET}" ]; then
+            echo "❌ Missing UNIAPP_API_SHARED_SECRET"
+            exit 1
+          fi
+
+          if [ "${NORMALIZED_SECRET}" != "${UNIAPP_API_SHARED_SECRET:-}" ]; then
+            echo "⚠️ UNIAPP_API_SHARED_SECRET had wrapping quotes/whitespace; normalized before Gradle build"
+          fi
+
+          {
+            printf 'UNIAPP_API_SHARED_SECRET=%s\n' "${NORMALIZED_SECRET}"
+            printf 'ORG_GRADLE_PROJECT_UNIAPP_API_SHARED_SECRET=%s\n' "${NORMALIZED_SECRET}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Validate signing secrets
+        run: |
+          for v in RELEASE_KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD UNIAPP_API_SHARED_SECRET; do
+            if [ -z "${!v}" ]; then
+              echo "❌ Missing $v"
+              exit 1
+            fi
+          done
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Restore keystore
+        run: |
+          mkdir -p "$(dirname "${RELEASE_STORE_FILE}")"
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
+
+      - name: Build release APK (signed)
+        run: |
+          ./gradlew --no-daemon --stacktrace --max-workers=2 \
+            :androidApp:assembleRelease \
+            -PENABLE_ABI_SPLITS=true \
+            -PRELEASE_STORE_FILE="$RELEASE_STORE_FILE" \
+            -PRELEASE_STORE_PASSWORD="$RELEASE_STORE_PASSWORD" \
+            -PRELEASE_KEY_ALIAS="$RELEASE_KEY_ALIAS" \
+            -PRELEASE_KEY_PASSWORD="$RELEASE_KEY_PASSWORD"
+
+      - name: Verify API secret survives release build
+        shell: bash
+        run: |
+          BUILD_CONFIG_PATH="$(find androidApp/build/generated/source/buildConfig/release -name "BuildConfig.java" | head -n 1)"
+          if [ -z "${BUILD_CONFIG_PATH}" ] || [ ! -f "${BUILD_CONFIG_PATH}" ]; then
+            echo "❌ Release BuildConfig.java not found"
+            exit 1
+          fi
+          if grep -q 'UNIAPP_API_SHARED_SECRET = "";' "${BUILD_CONFIG_PATH}"; then
+            echo "❌ UNIAPP_API_SHARED_SECRET was compiled empty"
+            exit 1
+          fi
+          if grep -q 'UNIAPP_API_SHARED_SECRET = "\\\"' "${BUILD_CONFIG_PATH}"; then
+            echo "❌ UNIAPP_API_SHARED_SECRET was compiled with wrapping quotes"
+            exit 1
+          fi
+          if ! grep -q 'UNIAPP_API_SHARED_SECRET = "' "${BUILD_CONFIG_PATH}"; then
+            echo "❌ UNIAPP_API_SHARED_SECRET field missing from BuildConfig"
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import sys
+          import zipfile
+
+          secret = os.environ.get("UNIAPP_API_SHARED_SECRET", "")
+          secret = secret.strip().strip('"').strip("'").strip()
+          if not secret:
+              print("❌ UNIAPP_API_SHARED_SECRET is empty during APK verification")
+              sys.exit(1)
+
+          apks = sorted(pathlib.Path("androidApp/build/outputs/apk/release").glob("*.apk"))
+          if not apks:
+              print("❌ No release APKs found for API secret verification")
+              sys.exit(1)
+
+          needle = secret.encode("utf-8")
+          missing = []
+          for apk in apks:
+              with zipfile.ZipFile(apk) as archive:
+                  dex_entries = [
+                      name for name in archive.namelist()
+                      if pathlib.PurePosixPath(name).name.startswith("classes")
+                      and name.endswith(".dex")
+                  ]
+                  found = any(needle in archive.read(name) for name in dex_entries)
+
+              if found:
+                  print(f"✔ API secret present in final dex: {apk}")
+              else:
+                  missing.append(str(apk))
+
+          if missing:
+              print("❌ UNIAPP_API_SHARED_SECRET was not present in final dex for:")
+              for apk in missing:
+                  print(f" - {apk}")
+              sys.exit(1)
+          PY
+
+      - name: List generated APKs
+        run: |
+          echo "📦 APK generati:"
+          find androidApp/build/outputs/apk/release -type f -name "*.apk"
+
+      - name: Collect signed APKs
+        run: |
+          mkdir -p publish-input/release
+
+          APK_FILES=$(find androidApp/build/outputs/apk/release -type f -name "*release.apk")
+
+          if [ -z "$APK_FILES" ]; then
+            echo "❌ Nessun APK release trovato"
+            exit 1
+          fi
+
+          for apk in $APK_FILES; do
+            echo "✔ Copiando $apk"
+            cp "$apk" publish-input/release/
+          done
+
+          # Copia eventuale metadata di output prodotto da AGP
+          if [ -f "androidApp/build/outputs/apk/release/output-metadata.json" ]; then
+            echo "✔ Copiando output-metadata.json"
+            cp androidApp/build/outputs/apk/release/output-metadata.json publish-input/release/
+          fi
+
+      - name: Verify APK signature
+        run: |
+          for apk in publish-input/release/*.apk; do
+            echo "🔐 Verifica firma: $apk"
+            jarsigner -verify -verbose -certs "$apk"
+          done
+
+      # 📦 CONTEXT
+      - name: Detect release channel
+        id: release_context
+        run: |
+          BUILD_CONFIG_PATH=$(find androidApp/build/generated/source/buildConfig/release -name "BuildConfig.java" | head -n 1)
+
+          if grep -q "BETA_BUILD = true" "$BUILD_CONFIG_PATH"; then
+            echo "release_channel=beta" >> $GITHUB_OUTPUT
+          else
+            echo "release_channel=stable" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Save build context
+        run: |
+          mkdir -p publish-input/context
+          cat > publish-input/context/build-context.env <<EOF
+          RELEASE_CHANNEL=${{ steps.release_context.outputs.release_channel }}
+          RELEASE_ARTIFACT_DIR=${{ steps.release_context.outputs.release_channel }}
+          SOURCE_REPOSITORY=${GITHUB_REPOSITORY}
+          SOURCE_SHA=${GITHUB_SHA}
+          SOURCE_REF_NAME=${GITHUB_REF_NAME}
+          EOF
+
+      - name: Store artifact on runner filesystem
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
+          RUNNER_ARTIFACT_DIR="${RUNNER_ARTIFACTS_ROOT}/android-build-signed/${GITHUB_RUN_ID}"
+          mkdir -p "${RUNNER_ARTIFACT_DIR}"
+          cp -a publish-input/. "${RUNNER_ARTIFACT_DIR}/"
+
+          echo "Runner artifact saved in: ${RUNNER_ARTIFACT_DIR}"
+          find "${RUNNER_ARTIFACT_DIR}" -maxdepth 3 -type f | sort
+
+      - name: Cleanup old runner artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
+          ROOT="${RUNNER_ARTIFACTS_ROOT}/android-build-signed"
+          mkdir -p "${ROOT}"
+
+          find "${ROOT}" -mindepth 1 -maxdepth 1 -type d -mtime +14 -print -exec rm -rf {} +

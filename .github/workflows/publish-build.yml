@@ -1,0 +1,278 @@
+name: Publish Android Build
+
+on:
+  workflow_run:
+    workflows:
+      - Build Android (Signed APK)
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'ID of the Build Android workflow run (leave empty for latest successful)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    runs-on: self-hosted
+
+    env:
+      DEPLOY_REPO: Anto426-Project/UniappUpstream
+      DEPLOY_BRANCH: main
+      DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+      SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
+
+    steps:
+      - name: Checkout source repository at built commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Validate deploy secret
+        shell: bash
+        run: |
+          if [ -z "${DEPLOY_TOKEN}" ]; then
+            echo "Missing required secret: DEPLOY_TOKEN"
+            exit 1
+          fi
+
+      - name: Load signed Android artifact from runner filesystem
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
+          SOURCE_RUN_ID="${{ github.event.inputs.source_run_id || github.event.workflow_run.id }}"
+
+          if [ -z "${SOURCE_RUN_ID:-}" ]; then
+            echo "Searching for the latest successful run of 'Build Android (Signed APK)'..."
+            export GH_TOKEN="${DEPLOY_TOKEN}"
+            SOURCE_RUN_ID="$(gh run list --workflow 'Build Android (Signed APK)' --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+            if [ -z "${SOURCE_RUN_ID}" ] || [ "${SOURCE_RUN_ID}" = "null" ]; then
+              echo "❌ Could not find any successful run of Build Android"
+              exit 1
+            fi
+            echo "✔ Found latest run ID: ${SOURCE_RUN_ID}"
+          fi
+
+          echo "SOURCE_RUN_ID=${SOURCE_RUN_ID}" >> "${GITHUB_ENV}"
+          RUNNER_ARTIFACT_DIR="${RUNNER_ARTIFACTS_ROOT}/android-build-signed/${SOURCE_RUN_ID}"
+
+          if [ ! -d "${RUNNER_ARTIFACT_DIR}" ]; then
+            echo "❌ Runner artifact directory not found: ${RUNNER_ARTIFACT_DIR}"
+            echo "This usually means the publish workflow ran on a different self-hosted runner or the directory has been cleaned up."
+            exit 1
+          fi
+
+          mkdir -p incoming
+          cp -a "${RUNNER_ARTIFACT_DIR}/." incoming/
+
+      - name: Load build context
+        shell: bash
+        run: |
+          CONTEXT_FILE="incoming/context/build-context.env"
+          if [ ! -f "${CONTEXT_FILE}" ]; then
+            echo "Build context file not found: ${CONTEXT_FILE}"
+            exit 1
+          fi
+
+          set -a
+          source "${CONTEXT_FILE}"
+          set +a
+
+          if [ -z "${RELEASE_CHANNEL}" ] || [ -z "${RELEASE_ARTIFACT_DIR}" ] || [ -z "${SOURCE_SHA}" ]; then
+            echo "Invalid build context. Required values are missing."
+            exit 1
+          fi
+
+          if [ ! -f "incoming/release/output-metadata.json" ]; then
+            echo "Missing release metadata file: incoming/release/output-metadata.json"
+            exit 1
+          fi
+
+          APK_PATH="$(find incoming/release -type f -name '*.apk' | head -n 1)"
+          if [ -z "${APK_PATH}" ]; then
+            echo "No APK found in downloaded build artifact."
+            exit 1
+          fi
+
+          SOURCE_REF_NAME="${SOURCE_REF_NAME:-${{ github.event.workflow_run.head_branch || github.ref_name }}}"
+          SOURCE_REPOSITORY="${SOURCE_REPOSITORY:-${GITHUB_REPOSITORY}}"
+
+          echo "RELEASE_CHANNEL=${RELEASE_CHANNEL}" >> "${GITHUB_ENV}"
+          echo "RELEASE_ARTIFACT_DIR=${RELEASE_ARTIFACT_DIR}" >> "${GITHUB_ENV}"
+          echo "SOURCE_SHA=${SOURCE_SHA}" >> "${GITHUB_ENV}"
+          echo "SOURCE_REF_NAME=${SOURCE_REF_NAME}" >> "${GITHUB_ENV}"
+          echo "SOURCE_REPOSITORY=${SOURCE_REPOSITORY}" >> "${GITHUB_ENV}"
+          echo "APK_PATH=${APK_PATH}" >> "${GITHUB_ENV}"
+
+      - name: VirusTotal Scan
+        id: virustotal
+        uses: crazy-max/ghaction-virustotal@v4
+        if: env.APK_PATH != ''
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: |
+            ${{ env.APK_PATH }}
+
+      - name: Publish APK to deploy repository
+        shell: bash
+        run: |
+          git clone "https://x-access-token:${DEPLOY_TOKEN}@github.com/${DEPLOY_REPO}.git" deploy-repo
+          cd deploy-repo
+
+          git checkout "${DEPLOY_BRANCH}"
+
+          if ! command -v git-lfs >/dev/null 2>&1; then
+            if [ -z "${SUDO_PASSWORD}" ]; then
+              echo "git-lfs is not installed on the runner and SUDO_PASSWORD secret is not set."
+              echo "Set repository secret 'SUDO_PASSWORD' or install git-lfs on the self-hosted runner."
+              exit 1
+            fi
+            echo "${SUDO_PASSWORD}" | sudo -S apt-get update -y
+            echo "${SUDO_PASSWORD}" | sudo -S apt-get install -y git-lfs
+          fi
+          git lfs install --local
+          git lfs track "src/release/**/*.apk"
+
+          mkdir -p assets/screenshots
+          rm -rf "src/release/${RELEASE_ARTIFACT_DIR}"
+          mkdir -p "src/release/${RELEASE_ARTIFACT_DIR}"
+          cp -a ../incoming/release/. "src/release/${RELEASE_ARTIFACT_DIR}/"
+          cp ../androidApp/src/main/res/mipmap-xxxhdpi/ic_launcher.webp assets/uniapp-icon.webp
+
+          if [ -d "../assets/screenshots" ]; then
+            rm -rf assets/screenshots
+            cp -a ../assets/screenshots/. assets/screenshots/
+          fi
+
+          python3 ../scripts/generate_update_manifest.py \
+            --metadata ../incoming/release/output-metadata.json \
+            --manual-config ../update-config.json \
+            --existing update.json \
+            --deploy-repo "${DEPLOY_REPO}" \
+            --deploy-branch "${DEPLOY_BRANCH}" \
+            --release-channel "${RELEASE_CHANNEL}" \
+            --build-commit "${SOURCE_SHA}" \
+            --output update.json
+          python3 ../scripts/generate_deploy_readme.py \
+            --update-manifest update.json \
+            --metadata "src/release/${RELEASE_ARTIFACT_DIR}/output-metadata.json" \
+            --source-repo "${SOURCE_REPOSITORY}" \
+            --deploy-repo "${DEPLOY_REPO}" \
+            --release-channel "${RELEASE_CHANNEL}" \
+            --screenshots-dir "assets/screenshots" \
+            --virustotal-url "${{ steps.virustotal.outputs.analysis }}" \
+            --output README.md
+
+          git add .gitattributes src/release assets update.json README.md
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            echo "DEPLOY_HAS_CHANGES=false" >> "${GITHUB_ENV}"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: publish APK from ${SOURCE_REPOSITORY}@${SOURCE_SHA::7}"
+            echo "DEPLOY_HAS_CHANGES=true" >> "${GITHUB_ENV}"
+          fi
+
+      - name: Prepare GitHub release metadata
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          python3 scripts/generate_github_release_metadata.py \
+            --update-manifest deploy-repo/update.json \
+            --metadata incoming/release/output-metadata.json \
+            --output artifacts/github-release-notes.md \
+            --github-env-output "${GITHUB_ENV}" \
+            --source-repo "${SOURCE_REPOSITORY}" \
+            --deploy-repo "${DEPLOY_REPO}" \
+            --deploy-branch "${DEPLOY_BRANCH}" \
+            --github-sha "${SOURCE_SHA}" \
+            --release-channel "${RELEASE_CHANNEL}" \
+            --asset-path-prefix incoming/release
+
+      - name: Add VirusTotal link to release notes
+        shell: bash
+        if: steps.virustotal.outputs.analysis != ''
+        run: |
+          {
+            echo ""
+            echo "## Security Scan"
+            echo "Analysis report: [VirusTotal Scan Results](${{ steps.virustotal.outputs.analysis }})"
+            echo ""
+            echo "[![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan_Report-blue)](${{ steps.virustotal.outputs.analysis }})"
+          } >> artifacts/github-release-notes.md
+
+      - name: Publish GitHub release
+        shell: bash
+        run: |
+          export GH_TOKEN="${DEPLOY_TOKEN}"
+
+          mapfile -t release_assets < <(find incoming/release -maxdepth 1 -type f -name '*.apk' | sort)
+          if [ "${#release_assets[@]}" -eq 0 ]; then
+            echo "No release APK assets found in incoming/release."
+            exit 1
+          fi
+
+          if gh release view "${RELEASE_TAG_NAME}" --repo "${DEPLOY_REPO}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG_NAME}" "${release_assets[@]}" --clobber --repo "${DEPLOY_REPO}"
+
+            edit_args=(
+              "${RELEASE_TAG_NAME}"
+              "--repo" "${DEPLOY_REPO}"
+              "--title" "${RELEASE_TITLE}"
+              "--notes-file" "artifacts/github-release-notes.md"
+              "--target" "${DEPLOY_BRANCH}"
+            )
+            if [ "${RELEASE_IS_PRERELEASE}" = "true" ]; then
+              edit_args+=("--prerelease")
+            else
+              edit_args+=("--latest")
+            fi
+
+            gh release edit "${edit_args[@]}"
+          else
+            create_args=(
+              "${RELEASE_TAG_NAME}"
+              "${release_assets[@]}"
+              "--repo" "${DEPLOY_REPO}"
+              "--title" "${RELEASE_TITLE}"
+              "--notes-file" "artifacts/github-release-notes.md"
+              "--target" "${DEPLOY_BRANCH}"
+            )
+            if [ "${RELEASE_IS_PRERELEASE}" = "true" ]; then
+              create_args+=("--prerelease" "--latest=false")
+            else
+              create_args+=("--latest")
+            fi
+
+            gh release create "${create_args[@]}"
+          fi
+
+      - name: Push deploy repository
+        if: env.DEPLOY_HAS_CHANGES == 'true'
+        shell: bash
+        run: |
+          cd deploy-repo
+          git push origin "${DEPLOY_BRANCH}"
+
+      - name: Cleanup consumed runner artifact
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
+          RUNNER_ARTIFACT_DIR="${RUNNER_ARTIFACTS_ROOT}/android-build-signed/${{ env.SOURCE_RUN_ID }}"
+
+          if [ -d "${RUNNER_ARTIFACT_DIR}" ]; then
+            rm -rf "${RUNNER_ARTIFACT_DIR}"
+            echo "Removed ${RUNNER_ARTIFACT_DIR}"
+          fi

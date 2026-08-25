@@ -1,0 +1,6 @@
+[submodule "libs/liquid-monet"]
+	path = libs/liquid-monet
+	url = https://github.com/Anto426/Liquid-Monet.git
+[submodule "libs/uni-sdk"]
+	path = libs/uni-sdk
+	url = https://github.com/Anto426-Project/uni-sdk.git
