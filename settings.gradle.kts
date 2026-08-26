@@ -40,6 +40,7 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
+include(":androidApp")
 
 val liquidMonetDir = file("libs/liquid-monet")
 if (liquidMonetDir.exists()) {
