@@ -127,7 +127,7 @@ fun UniAppUpdateBanner(
                     .matchParentSize()
                     .layerBackdrop(artworkBackdrop)
             ) {
-                UniAppAgslBackground(alpha = 0.82f, onLongPress = { memorialVisible = true })
+                UniAppAgslBackground(alpha = 0.98f, onLongPress = { memorialVisible = true })
             }
 
             UpdateBannerBubbles(artworkBackdrop)
@@ -204,50 +204,27 @@ fun UniAppUpdateBanner(
 
 @Composable
 private fun BoxScope.UpdateBannerBubbles(artworkBackdrop: Backdrop) {
-    val palette = updateBannerPalette()
-
-    UpdateBannerBubble(
+    // The artwork has one continuous coloured backdrop and only two clear glass lenses. Their
+    // colour comes from refracting that backdrop, including where the lenses overlap.
+    UpdateBannerPureGlassLens(
         artworkBackdrop = artworkBackdrop,
-        tint = palette.cool.copy(alpha = 0.28f),
         modifier = Modifier
-            .size(300.dp)
+            .size(390.dp)
             .align(Alignment.TopStart)
-            .offset(x = (-70).dp, y = (-80).dp)
-            .alpha(0.74f)
+            .offset(x = (-146).dp, y = (-76).dp)
     )
-    UpdateBannerBubble(
+    UpdateBannerPureGlassLens(
         artworkBackdrop = artworkBackdrop,
-        tint = palette.violet.copy(alpha = 0.28f),
         modifier = Modifier
-            .size(280.dp)
-            .align(Alignment.TopEnd)
-            .offset(x = 50.dp, y = 10.dp)
-            .alpha(0.70f)
-    )
-    UpdateBannerBubble(
-        artworkBackdrop = artworkBackdrop,
-        tint = palette.warm.copy(alpha = 0.28f),
-        modifier = Modifier
-            .size(310.dp)
+            .size(470.dp)
             .align(Alignment.BottomCenter)
-            .offset(x = 15.dp, y = 90.dp)
-            .alpha(0.68f)
-    )
-    UpdateBannerBubble(
-        artworkBackdrop = artworkBackdrop,
-        tint = palette.glow.copy(alpha = 0.34f),
-        modifier = Modifier
-            .size(148.dp)
-            .align(Alignment.BottomStart)
-            .offset(x = (-48).dp, y = 58.dp)
-            .alpha(0.58f)
+            .offset(x = 112.dp, y = 228.dp)
     )
 }
 
 @Composable
-private fun UpdateBannerBubble(
+private fun UpdateBannerPureGlassLens(
     artworkBackdrop: Backdrop,
-    tint: Color,
     modifier: Modifier
 ) {
     LiquidGlass(
@@ -255,11 +232,26 @@ private fun UpdateBannerBubble(
         backdropState = artworkBackdrop,
         backdropPolicy = LiquidGlassBackdropPolicy.ExplicitFirst,
         shape = CircleShape,
-        blurRadius = 5.dp,
-        refractionHeight = 18.dp,
-        refractionAmount = 30.dp,
-        containerColor = tint
-    ) {}
+        blurRadius = 3.dp,
+        refractionHeight = 50.dp,
+        refractionAmount = 44.dp,
+        containerColor = Color.White.copy(alpha = 0.12f)
+    ) {
+        // Almost colourless highlight: this is a clear lens, not a coloured disc.
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRect(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.38f),
+                        Color.White.copy(alpha = 0.06f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.28f, size.height * 0.20f),
+                    radius = size.maxDimension * 0.94f
+                )
+            )
+        }
+    }
 }
 
 private const val UniAppCardShader = """
@@ -287,22 +279,24 @@ half4 main(float2 p) {
     float3 deepBase = baseColor.rgb;
     float3 content = contentColor.rgb;
 
-    float3 container = mix(deepBase, mix(primary, tertiary, 0.30), 0.64);
-    float3 primaryTone = mix(deepBase, primary, 0.68);
-    float3 secondaryTone = mix(deepBase, secondary, 0.68);
-    float3 tertiaryTone = mix(deepBase, tertiary, 0.68);
-    float3 glowTone = mix(deepBase, glow, 0.62);
-    float3 base = mix(deepBase, primaryTone, 0.06);
-    base = mix(base, primaryTone, softField(uv, float2(-0.08 + drift, 0.64), 0.82) * 0.34);
-    base = mix(base, tertiaryTone, softField(uv, float2(0.15, 0.93 - drift), 0.62) * 0.30);
-    base = mix(base, secondaryTone, softField(uv, float2(1.03 - drift, 0.18), 0.76) * 0.36);
-    base = mix(base, glowTone, softField(uv, float2(0.08, 0.90 + drift), 0.30) * 0.30);
+    float3 container = mix(deepBase, mix(primary, tertiary, 0.34), 0.78);
+    float3 primaryTone = mix(deepBase, primary, 0.92);
+    float3 secondaryTone = mix(deepBase, secondary, 0.90);
+    float3 tertiaryTone = mix(deepBase, tertiary, 0.92);
+    float3 glowTone = mix(deepBase, glow, 0.86);
+    float3 base = mix(deepBase, mix(tertiary, primary, 0.44), 0.36);
+    // Strong, broad colour fields reproduce the flowing red/blue/violet composition rather
+    // than leaving a mostly neutral card under the lenses.
+    base = mix(base, tertiaryTone, softField(uv, float2(-0.20 + drift, 0.52), 1.04) * 0.88);
+    base = mix(base, primaryTone, softField(uv, float2(1.10 - drift, 0.16), 1.00) * 0.86);
+    base = mix(base, secondaryTone, softField(uv, float2(0.70 + drift, 1.12), 0.90) * 0.82);
+    base = mix(base, glowTone, softField(uv, float2(0.02, 0.88 + drift), 0.42) * 0.58);
 
     float2 lowerCenter = float2(0.72 + drift, 1.19);
     float lowerDistance = length(uv - lowerCenter);
     float lowerBody = 1.0 - smoothstep(0.48, 0.76, lowerDistance);
-    float3 lowerColor = mix(container, secondaryTone, 0.64);
-    base = mix(base, lowerColor, lowerBody * 0.58);
+    float3 lowerColor = mix(container, primaryTone, 0.78);
+    base = mix(base, lowerColor, lowerBody * 0.78);
     float lowerRim = 1.0 - smoothstep(0.0, 0.012, abs(lowerDistance - 0.55));
     base = mix(base, content, lowerRim * 0.28);
 
@@ -311,8 +305,8 @@ half4 main(float2 p) {
     float ribbonGlow = 1.0 - smoothstep(0.018, 0.095, ribbonDistance);
     float ribbonCore = 1.0 - smoothstep(0.002, 0.016, ribbonDistance);
     float3 ribbonColor = mix(tertiaryTone, primaryTone, 0.42);
-    base = mix(base, ribbonColor, ribbonGlow * 0.32);
-    base = mix(base, content, ribbonCore * 0.40);
+    base = mix(base, ribbonColor, ribbonGlow * 0.52);
+    base = mix(base, content, ribbonCore * 0.58);
 
     float2 lensCenter = float2(0.86 + drift * 0.35, 0.52);
     float lensDistance = length(uv - lensCenter);
@@ -320,13 +314,13 @@ half4 main(float2 p) {
     float lensHalo = 1.0 - smoothstep(0.006, 0.032, abs(lensSignedDistance));
     float lensCore = 1.0 - smoothstep(0.0, 0.0045, abs(lensSignedDistance));
     float lensInterior = 1.0 - smoothstep(-0.035, 0.035, lensSignedDistance);
-    base = mix(base, tertiaryTone, lensHalo * 0.22);
-    base = mix(base, content, lensCore * 0.58);
-    base = mix(base, container, lensInterior * 0.07);
+    base = mix(base, tertiaryTone, lensHalo * 0.42);
+    base = mix(base, content, lensCore * 0.66);
+    base = mix(base, container, lensInterior * 0.18);
 
     float2 centered = (uv - 0.5) * float2(resolution.x / resolution.y, 1.0);
     float vignette = smoothstep(0.35, 0.86, length(centered));
-    base = mix(base, deepBase, vignette * 0.34);
+    base = mix(base, deepBase, vignette * 0.16);
 
     return half4(clamp(base, 0.0, 1.0), 0.88);
 }
