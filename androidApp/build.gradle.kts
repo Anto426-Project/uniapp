@@ -31,6 +31,7 @@ dependencies {
         exclude(group = "org.jetbrains.androidx")
     }
     implementation("com.anto426:antosdk")
+    implementation(libs.androidx.annotation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.activity.compose)
