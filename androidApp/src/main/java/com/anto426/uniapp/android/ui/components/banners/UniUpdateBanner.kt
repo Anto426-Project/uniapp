@@ -60,17 +60,19 @@ enum class UpdateState {
  */
 private data class UpdateBannerPalette(
     val cool: Color,
-    val vivid: Color,
-    val warm: Color
+    val violet: Color,
+    val warm: Color,
+    val glow: Color
 )
 
 @Composable
 private fun updateBannerPalette(): UpdateBannerPalette {
     val scheme = MaterialTheme.colorScheme
     return UpdateBannerPalette(
-        cool = lerp(scheme.primary, scheme.secondary, 0.28f),
-        vivid = lerp(scheme.secondary, scheme.tertiary, 0.74f),
-        warm = lerp(scheme.tertiary, scheme.error, 0.42f)
+        cool = lerp(scheme.primary, Color(0xFF3D8DFF), 0.74f),
+        violet = lerp(scheme.tertiary, Color(0xFFB85CFF), 0.64f),
+        warm = lerp(scheme.error, Color(0xFFFF6D54), 0.46f),
+        glow = lerp(scheme.secondary, Color(0xFFFFC857), 0.50f)
     )
 }
 
@@ -215,7 +217,7 @@ private fun BoxScope.UpdateBannerBubbles(artworkBackdrop: Backdrop) {
     )
     UpdateBannerBubble(
         artworkBackdrop = artworkBackdrop,
-        tint = palette.vivid.copy(alpha = 0.26f),
+        tint = palette.violet.copy(alpha = 0.28f),
         modifier = Modifier
             .size(280.dp)
             .align(Alignment.TopEnd)
@@ -224,12 +226,21 @@ private fun BoxScope.UpdateBannerBubbles(artworkBackdrop: Backdrop) {
     )
     UpdateBannerBubble(
         artworkBackdrop = artworkBackdrop,
-        tint = palette.warm.copy(alpha = 0.24f),
+        tint = palette.warm.copy(alpha = 0.28f),
         modifier = Modifier
             .size(310.dp)
             .align(Alignment.BottomCenter)
             .offset(x = 15.dp, y = 90.dp)
             .alpha(0.68f)
+    )
+    UpdateBannerBubble(
+        artworkBackdrop = artworkBackdrop,
+        tint = palette.glow.copy(alpha = 0.34f),
+        modifier = Modifier
+            .size(148.dp)
+            .align(Alignment.BottomStart)
+            .offset(x = (-48).dp, y = 58.dp)
+            .alpha(0.58f)
     )
 }
 
@@ -257,6 +268,7 @@ uniform float time;
 layout(color) uniform float4 primaryColor;
 layout(color) uniform float4 secondaryColor;
 layout(color) uniform float4 tertiaryColor;
+layout(color) uniform float4 glowColor;
 layout(color) uniform float4 baseColor;
 layout(color) uniform float4 contentColor;
 
@@ -271,6 +283,7 @@ half4 main(float2 p) {
     float3 primary = primaryColor.rgb;
     float3 secondary = secondaryColor.rgb;
     float3 tertiary = tertiaryColor.rgb;
+    float3 glow = glowColor.rgb;
     float3 deepBase = baseColor.rgb;
     float3 content = contentColor.rgb;
 
@@ -278,10 +291,12 @@ half4 main(float2 p) {
     float3 primaryTone = mix(deepBase, primary, 0.68);
     float3 secondaryTone = mix(deepBase, secondary, 0.68);
     float3 tertiaryTone = mix(deepBase, tertiary, 0.68);
+    float3 glowTone = mix(deepBase, glow, 0.62);
     float3 base = mix(deepBase, primaryTone, 0.06);
     base = mix(base, primaryTone, softField(uv, float2(-0.08 + drift, 0.64), 0.82) * 0.34);
     base = mix(base, tertiaryTone, softField(uv, float2(0.15, 0.93 - drift), 0.62) * 0.30);
     base = mix(base, secondaryTone, softField(uv, float2(1.03 - drift, 0.18), 0.76) * 0.36);
+    base = mix(base, glowTone, softField(uv, float2(0.08, 0.90 + drift), 0.30) * 0.30);
 
     float2 lowerCenter = float2(0.72 + drift, 1.19);
     float lowerDistance = length(uv - lowerCenter);
@@ -363,8 +378,9 @@ private fun UniAppAgslBackground(
                 runtimeShader.setFloatUniform("resolution", size.width, size.height)
                 runtimeShader.setFloatUniform("time", movement.value * 6.28318f)
                 runtimeShader.setColorUniform("primaryColor", palette.cool)
-                runtimeShader.setColorUniform("secondaryColor", palette.vivid)
+                runtimeShader.setColorUniform("secondaryColor", palette.violet)
                 runtimeShader.setColorUniform("tertiaryColor", palette.warm)
+                runtimeShader.setColorUniform("glowColor", palette.glow)
                 runtimeShader.setColorUniform("baseColor", baseColor)
                 runtimeShader.setColorUniform("contentColor", contentColor)
                 drawRect(brush = ShaderBrush(runtimeShader.asComposeShader()))
@@ -377,7 +393,7 @@ private fun UniAppAgslBackground(
         if (!shaderDrawn) {
             drawRect(
                 brush = Brush.linearGradient(
-                    colors = listOf(baseColor, palette.cool, palette.vivid, palette.warm),
+                    colors = listOf(baseColor, palette.cool, palette.violet, palette.warm, palette.glow),
                     start = Offset.Zero,
                     end = Offset(size.width, size.height)
                 ),
