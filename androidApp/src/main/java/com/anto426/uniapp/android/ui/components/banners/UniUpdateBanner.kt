@@ -54,6 +54,26 @@ enum class UpdateState {
     ERROR
 }
 
+/**
+ * Optical accents stay derived from Material tokens, while deliberately separating the hue of
+ * each lens so overlapping glass reads as a new colour instead of one uniform tint.
+ */
+private data class UpdateBannerPalette(
+    val cool: Color,
+    val vivid: Color,
+    val warm: Color
+)
+
+@Composable
+private fun updateBannerPalette(): UpdateBannerPalette {
+    val scheme = MaterialTheme.colorScheme
+    return UpdateBannerPalette(
+        cool = lerp(scheme.primary, scheme.secondary, 0.28f),
+        vivid = lerp(scheme.secondary, scheme.tertiary, 0.74f),
+        warm = lerp(scheme.tertiary, scheme.error, 0.42f)
+    )
+}
+
 @Composable
 private fun updateBannerBaseColor(): Color {
     val scheme = MaterialTheme.colorScheme
@@ -182,11 +202,11 @@ fun UniAppUpdateBanner(
 
 @Composable
 private fun BoxScope.UpdateBannerBubbles(artworkBackdrop: Backdrop) {
-    val scheme = MaterialTheme.colorScheme
+    val palette = updateBannerPalette()
 
     UpdateBannerBubble(
         artworkBackdrop = artworkBackdrop,
-        tint = scheme.primary.copy(alpha = 0.26f),
+        tint = palette.cool.copy(alpha = 0.28f),
         modifier = Modifier
             .size(300.dp)
             .align(Alignment.TopStart)
@@ -195,7 +215,7 @@ private fun BoxScope.UpdateBannerBubbles(artworkBackdrop: Backdrop) {
     )
     UpdateBannerBubble(
         artworkBackdrop = artworkBackdrop,
-        tint = scheme.secondary.copy(alpha = 0.24f),
+        tint = palette.vivid.copy(alpha = 0.26f),
         modifier = Modifier
             .size(280.dp)
             .align(Alignment.TopEnd)
@@ -204,7 +224,7 @@ private fun BoxScope.UpdateBannerBubbles(artworkBackdrop: Backdrop) {
     )
     UpdateBannerBubble(
         artworkBackdrop = artworkBackdrop,
-        tint = scheme.tertiary.copy(alpha = 0.22f),
+        tint = palette.warm.copy(alpha = 0.24f),
         modifier = Modifier
             .size(310.dp)
             .align(Alignment.BottomCenter)
@@ -302,7 +322,7 @@ private fun UniAppAgslBackground(
     alpha: Float = 1f,
     onLongPress: (() -> Unit)?
 ) {
-    val scheme = MaterialTheme.colorScheme
+    val palette = updateBannerPalette()
     val baseColor = updateBannerBaseColor()
     val contentColor = updateBannerContentColor()
     val transition = rememberInfiniteTransition(label = "updateBannerBackground")
@@ -342,9 +362,9 @@ private fun UniAppAgslBackground(
             try {
                 runtimeShader.setFloatUniform("resolution", size.width, size.height)
                 runtimeShader.setFloatUniform("time", movement.value * 6.28318f)
-                runtimeShader.setColorUniform("primaryColor", scheme.primary)
-                runtimeShader.setColorUniform("secondaryColor", scheme.secondary)
-                runtimeShader.setColorUniform("tertiaryColor", scheme.tertiary)
+                runtimeShader.setColorUniform("primaryColor", palette.cool)
+                runtimeShader.setColorUniform("secondaryColor", palette.vivid)
+                runtimeShader.setColorUniform("tertiaryColor", palette.warm)
                 runtimeShader.setColorUniform("baseColor", baseColor)
                 runtimeShader.setColorUniform("contentColor", contentColor)
                 drawRect(brush = ShaderBrush(runtimeShader.asComposeShader()))
@@ -357,7 +377,7 @@ private fun UniAppAgslBackground(
         if (!shaderDrawn) {
             drawRect(
                 brush = Brush.linearGradient(
-                    colors = listOf(baseColor, scheme.primary, scheme.tertiary, scheme.secondary),
+                    colors = listOf(baseColor, palette.cool, palette.vivid, palette.warm),
                     start = Offset.Zero,
                     end = Offset(size.width, size.height)
                 ),
@@ -620,12 +640,13 @@ private fun VersionText(
     fontSize: Int = 88
 ) {
     val scheme = MaterialTheme.colorScheme
+    val palette = updateBannerPalette()
     val firstDigitIndex = version.indexOfFirst { it.isDigit() }
     Text(
         text = buildAnnotatedString {
             version.forEachIndexed { index, character ->
                 if (index == firstDigitIndex) {
-                    withStyle(SpanStyle(color = scheme.primary)) {
+                    withStyle(SpanStyle(color = palette.warm)) {
                         append(character)
                     }
                 } else {
