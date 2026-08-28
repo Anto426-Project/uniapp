@@ -47,7 +47,7 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-            implementation("com.anto426:antosdk")
+            implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
         }
 
@@ -58,6 +58,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
 
+            implementation("com.anto426:antosdk")
             implementation("com.anto426:unisdk")
             implementation("com.anto426:secure-storage-sdk")
             implementation("com.anto426:firebase-connector-sdk")
