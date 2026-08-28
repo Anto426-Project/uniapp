@@ -105,11 +105,3 @@ docs/                       Documentazione del progetto
 ## Contributi e feedback
 
 Per segnalazioni, idee o problemi, consulta la [guida al feedback](./docs/feedback-gateway.md). Prima di aprire una segnalazione verifica che il problema sia riproducibile sull'ultima build disponibile.
-
-## Licenza
-
-Il client UI e gestionale di UniApp puo essere distribuito liberamente.
-
-Sono esclusi da questa distribuzione i moduli sensibili, le credenziali, i servizi backend e qualsiasi componente ottenuto tramite reverse engineering. Questi elementi restano riservati e non devono essere pubblicati o redistribuiti.
-
-Eventuali librerie o componenti esterni restano soggetti alle rispettive licenze e ai relativi termini d'uso.
