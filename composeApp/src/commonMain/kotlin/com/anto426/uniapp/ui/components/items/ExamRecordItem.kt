@@ -1,7 +1,14 @@
 package com.anto426.uniapp.ui.components.items
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -16,17 +23,18 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.ExamRecord
+import com.anto426.uniapp.model.didactics.ExamRecord
 import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
     val colorScheme = MaterialTheme.colorScheme
+
     LiquidCard(
         backdropState = backdropState,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
-        interactiveGelatin = false
+        interactiveGelatin = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -51,32 +59,39 @@ fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(14.dp))
 
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = exam.name,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
-                        fontSize = 15.sp,
-                        letterSpacing = (-0.3).sp
+                        style = MaterialTheme.typography.titleSmall,
+                        letterSpacing = (-0.2).sp
                     )
                     Text(
-                        text = "${exam.date} • ${exam.cfu}",
+                        text = buildString {
+                            if (exam.code.isNotBlank()) append("${exam.code} • ")
+                            append("${exam.date} • ${exam.cfu}")
+                        },
                         color = colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp
                     )
                 }
             }
 
+            Spacer(modifier = Modifier.width(12.dp))
+
             Box(contentAlignment = Alignment.Center) {
                 LiquidBadge(
                     text = exam.grade,
+                    containerColor = colorScheme.primaryContainer,
+                    contentColor = colorScheme.primary,
                     backdropState = backdropState,
                     modifier = Modifier.graphicsLayer {
-                        scaleX = 1.1f
-                        scaleY = 1.1f
+                        scaleX = 1.05f
+                        scaleY = 1.05f
                     }
                 )
             }

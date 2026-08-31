@@ -4,31 +4,33 @@ import androidx.compose.ui.graphics.Color
 import com.anto426.liquidmonet.components.cards.LiquidStatusType
 import com.anto426.liquidmonet.components.pickers.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.AttendanceData
-import com.anto426.uniapp.ui.models.ChangelogItemData
-import com.anto426.uniapp.ui.models.ChangelogVersionData
-import com.anto426.uniapp.ui.models.ContactData
-import com.anto426.uniapp.ui.models.CourseStatus
-import com.anto426.uniapp.ui.models.DeviceInfo
-import com.anto426.uniapp.ui.models.DeviceType
-import com.anto426.uniapp.ui.models.ExamRecord
-import com.anto426.uniapp.ui.models.ExamSession
-import com.anto426.uniapp.ui.models.GradeExam
-import com.anto426.uniapp.ui.models.GradeSimulationPreset
-import com.anto426.uniapp.ui.models.LanguageInfo
-import com.anto426.uniapp.ui.models.LegalSectionData
-import com.anto426.uniapp.ui.models.NewsItem
-import com.anto426.uniapp.ui.models.PastExam
-import com.anto426.uniapp.ui.models.QuestionnaireData
-import com.anto426.uniapp.ui.models.QuestionnaireStatus
-import com.anto426.uniapp.ui.models.QuickActionItem
-import com.anto426.uniapp.ui.models.ServiceData
-import com.anto426.uniapp.ui.models.StudyCourse
-import com.anto426.uniapp.ui.models.StudyYear
-import com.anto426.uniapp.ui.models.TaxPaymentData
-import com.anto426.uniapp.ui.models.TransportReservation
-import com.anto426.uniapp.ui.models.TransportRoute
-import com.anto426.uniapp.ui.models.TransportTicket
+import com.anto426.uniapp.model.didactics.AttendanceData
+import com.anto426.uniapp.model.didactics.CourseStatus
+import com.anto426.uniapp.model.didactics.ExamRecord
+import com.anto426.uniapp.model.didactics.ExamSession
+import com.anto426.uniapp.model.didactics.GradeExam
+import com.anto426.uniapp.model.didactics.GradeSimulationPreset
+import com.anto426.uniapp.model.didactics.PastExam
+import com.anto426.uniapp.model.didactics.QuestionnaireData
+import com.anto426.uniapp.model.didactics.QuestionnaireStatus
+import com.anto426.uniapp.model.didactics.StudyCourse
+import com.anto426.uniapp.model.didactics.StudyYear
+import com.anto426.uniapp.model.home.QuickActionItem
+import com.anto426.uniapp.model.legal.LegalSectionData
+import com.anto426.uniapp.model.news.NewsItem
+import com.anto426.uniapp.model.services.ContactCategory
+import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.model.services.ServiceData
+import com.anto426.uniapp.model.services.TaxPaymentData
+import com.anto426.uniapp.model.settings.DeviceInfo
+import com.anto426.uniapp.model.settings.DeviceType
+import com.anto426.uniapp.model.settings.LanguageInfo
+import com.anto426.uniapp.model.transport.TransportReservation
+import com.anto426.uniapp.model.transport.TransportRoute
+import com.anto426.uniapp.model.transport.TransportTicket
+import com.anto426.uniapp.model.transport.TripDirection
+import com.anto426.uniapp.model.updates.ChangelogItemData
+import com.anto426.uniapp.model.updates.ChangelogVersionData
 
 /** Static presentation data used until the screen ViewModels are connected to the backend. */
 object UiInitialData {
@@ -39,10 +41,22 @@ object UiInitialData {
     )
 
     val transcripts = listOf(
-        ExamRecord("Analisi Matematica I", "30", "12 CFU", "15/02/2025"),
-        ExamRecord("Programmazione I", "28", "9 CFU", "20/02/2025"),
-        ExamRecord("Architettura Elaboratori", "26", "9 CFU", "05/06/2025"),
-        ExamRecord("Inglese B2", "Idoneo", "6 CFU", "10/06/2025")
+        // 1° Anno
+        ExamRecord("Analisi Matematica I", "30", "12 CFU", "15/02/2025", year = 1, code = "MAT/05"),
+        ExamRecord("Programmazione I", "28", "9 CFU", "20/02/2025", year = 1, code = "INF/01"),
+        ExamRecord("Architettura Elaboratori", "26", "9 CFU", "05/06/2025", year = 1, code = "ING-INF/05"),
+        ExamRecord("Inglese B2", "Idoneo", "6 CFU", "10/06/2025", year = 1, code = "L-LIN/12"),
+        ExamRecord("Fisica Generale", "27", "9 CFU", "18/07/2025", year = 1, code = "FIS/01"),
+
+        // 2° Anno
+        ExamRecord("Algoritmi e Strutture Dati", "30L", "9 CFU", "14/02/2026", year = 2, code = "INF/01", lode = true),
+        ExamRecord("Basi di Dati", "29", "9 CFU", "26/02/2026", year = 2, code = "INF/01"),
+        ExamRecord("Sistemi Operativi", "28", "9 CFU", "12/06/2026", year = 2, code = "INF/01"),
+        ExamRecord("Reti di Calcolatori", "30", "9 CFU", "04/07/2026", year = 2, code = "ING-INF/05"),
+
+        // 3° Anno
+        ExamRecord("Ingegneria del Software", "30", "9 CFU", "18/01/2027", year = 3, code = "INF/01"),
+        ExamRecord("Sicurezza Informatica", "28", "6 CFU", "12/02/2027", year = 3, code = "INF/01")
     )
 
     val questionnaires = listOf(
@@ -53,31 +67,139 @@ object UiInitialData {
 
     val studyPlan = listOf(
         StudyYear(
-            "Primo Anno",
-            listOf(
+            yearNumber = 1,
+            yearName = "Primo Anno",
+            courses = listOf(
                 StudyCourse("1", "Analisi Matematica I", "12 CFU", CourseStatus.COMPLETED, "Enrico De Bernardis", "Lo studio delle funzioni di una variabile reale, limiti, derivate e integrali.", "Primo Semestre"),
                 StudyCourse("2", "Programmazione I", "9 CFU", CourseStatus.COMPLETED, "Luca Bianchi", "Fondamenti della programmazione procedurale e orientata agli oggetti.", "Primo Semestre"),
-                StudyCourse("3", "Fisica I", "9 CFU", CourseStatus.ACTIVE, "Maria Rossi", "Meccanica classica e termodinamica.", "Secondo Semestre"),
-                StudyCourse("4", "Chimica", "6 CFU", CourseStatus.PLANNED, "Anna Neri", "Fondamenti di chimica generale e inorganica.", "Secondo Semestre")
-            ),
-            LiquidIcons.Home
+                StudyCourse("3", "Architettura Elaboratori", "9 CFU", CourseStatus.COMPLETED, "Roberto Rossi", "Struttura hardware e organizzazione dei calcolatori elettronici.", "Secondo Semestre"),
+                StudyCourse("4", "Inglese B2", "6 CFU", CourseStatus.COMPLETED, "Sarah Jenkins", "Competenze linguistiche universitarie di livello B2.", "Secondo Semestre"),
+                StudyCourse("5", "Fisica Generale", "9 CFU", CourseStatus.COMPLETED, "Maria Rossi", "Meccanica classica, onde ed elettromagnetismo.", "Secondo Semestre"),
+                StudyCourse("6", "Algebra Lineare e Geometria", "9 CFU", CourseStatus.COMPLETED, "Marco Neri", "Spazi vettoriali, matrici e geometria analitica.", "Primo Semestre"),
+                StudyCourse("7", "Chimica", "6 CFU", CourseStatus.COMPLETED, "Anna Neri", "Fondamenti di chimica generale ed elettrochimica.", "Secondo Semestre")
+            )
         ),
         StudyYear(
-            "Secondo Anno",
-            listOf(
-                StudyCourse("5", "Algoritmi e Strutture Dati", "9 CFU", CourseStatus.PLANNED, "Elena Bianchi", "Analisi della complessità computazionale e strutture dati fondamentali.", "Primo Semestre"),
-                StudyCourse("6", "Sistemi Operativi", "9 CFU", CourseStatus.PLANNED, "Mario Rossi", "Architettura dei sistemi operativi, gestione processi e memoria.", "Primo Semestre"),
-                StudyCourse("7", "Basi di Dati", "9 CFU", CourseStatus.PLANNED, "Luigi Verdi", "Progettazione e gestione di basi di dati relazionali.", "Secondo Semestre")
-            ),
-            LiquidIcons.Star
+            yearNumber = 2,
+            yearName = "Secondo Anno",
+            courses = listOf(
+                StudyCourse("8", "Algoritmi e Strutture Dati", "9 CFU", CourseStatus.COMPLETED, "Elena Bianchi", "Analisi della complessità computazionale e strutture dati fondamentali.", "Primo Semestre"),
+                StudyCourse("9", "Basi di Dati", "9 CFU", CourseStatus.COMPLETED, "Luigi Verdi", "Progettazione concettuale, logica e gestione di DBMS relazionali.", "Primo Semestre"),
+                StudyCourse("10", "Sistemi Operativi", "9 CFU", CourseStatus.COMPLETED, "Mario Rossi", "Architettura dei sistemi operativi, processi, sincronizzazione e memoria.", "Secondo Semestre"),
+                StudyCourse("11", "Reti di Calcolatori", "9 CFU", CourseStatus.COMPLETED, "Davide Riva", "Architettura delle reti di telecomunicazione, protocolli TCP/IP.", "Secondo Semestre"),
+                StudyCourse("12", "Calcolo delle Probabilità", "6 CFU", CourseStatus.ACTIVE, "Fabio Conti", "Modelli probabilistici e inferenza statistica per l'ingegneria.", "Primo Semestre"),
+                StudyCourse("13", "Programmazione II", "9 CFU", CourseStatus.ACTIVE, "Luca Bianchi", "Programmazione avanzata, design patterns e programmazione funzionale.", "Secondo Semestre"),
+                StudyCourse("14", "Elettrotecnica", "9 CFU", CourseStatus.ACTIVE, "Gianni Greco", "Circuiti lineari in regime stazionario e sinusoidale.", "Secondo Semestre")
+            )
+        ),
+        StudyYear(
+            yearNumber = 3,
+            yearName = "Terzo Anno",
+            courses = listOf(
+                StudyCourse("15", "Ingegneria del Software", "9 CFU", CourseStatus.COMPLETED, "Paolo Gialli", "Metodologie agili, pattern architetturali e ciclo di vita del software.", "Primo Semestre"),
+                StudyCourse("16", "Sicurezza Informatica", "6 CFU", CourseStatus.COMPLETED, "Sara Moro", "Crittografia, sicurezza dei sistemi operativi e reti.", "Primo Semestre"),
+                StudyCourse("17", "Intelligenza Artificiale", "9 CFU", CourseStatus.PLANNED, "Alessio Leone", "Machine learning, reti neurali e ragionamento automatico.", "Secondo Semestre"),
+                StudyCourse("18", "Sistemi Distribuiti e Cloud", "9 CFU", CourseStatus.PLANNED, "Valerio Fontana", "Microservizi, containerizzazione, Kubernetes e cloud computing.", "Secondo Semestre"),
+                StudyCourse("19", "Tirocinio Formativo", "12 CFU", CourseStatus.PLANNED, "Tutor Aziendale", "Attività formativa professionalizzante presso azienda convenzionata.", "Annuale"),
+                StudyCourse("20", "Prova Finale / Tesi", "6 CFU", CourseStatus.PLANNED, "Relatore Accademico", "Svolgimento e discussione della tesi di laurea triennale.", "Secondo Semestre")
+            )
         )
     )
 
     val contacts = listOf(
-        ContactData("Mario Rossi", "Prof. Ordinario - Analisi Matematica", "MR", "mario.rossi@unimol.it", "+39 0874 123456"),
-        ContactData("Luigi Verdi", "Prof. Associato - Programmazione", "LV", "luigi.verdi@unimol.it", "+39 0874 654321"),
-        ContactData("Elena Bianchi", "Ricercatore - Basi di Dati", "EB", "elena.bianchi@unimol.it", "+39 0874 111222"),
-        ContactData("Anna Neri", "Segreteria Didattica", "AN", "anna.neri@unimol.it", "+39 0874 333444")
+        // Docenti
+        ContactData(
+            name = "Mario Rossi",
+            role = "Prof. Ordinario - Analisi Matematica",
+            initials = "MR",
+            email = "mario.rossi@unimol.it",
+            phone = "+39 0874 123456",
+            category = ContactCategory.TEACHERS,
+            department = "Dipartimento di Bioscienze e Territorio",
+            office = "Studio 204, Edificio III",
+            officeHours = "Martedì 11:00 - 13:00"
+        ),
+        ContactData(
+            name = "Luigi Verdi",
+            role = "Prof. Associato - Programmazione",
+            initials = "LV",
+            email = "luigi.verdi@unimol.it",
+            phone = "+39 0874 654321",
+            category = ContactCategory.TEACHERS,
+            department = "Dipartimento di Bioscienze e Territorio",
+            office = "Laboratorio Info 2, Edificio II",
+            officeHours = "Mercoledì 15:00 - 17:00"
+        ),
+        ContactData(
+            name = "Elena Bianchi",
+            role = "Ricercatore - Basi di Dati",
+            initials = "EB",
+            email = "elena.bianchi@unimol.it",
+            phone = "+39 0874 111222",
+            category = ContactCategory.TEACHERS,
+            department = "Dipartimento di Bioscienze e Territorio",
+            office = "Studio 112, Edificio I",
+            officeHours = "Lunedì 10:00 - 12:00"
+        ),
+        ContactData(
+            name = "Enrico De Bernardis",
+            role = "Prof. Ordinario - Ingegneria del Software",
+            initials = "ED",
+            email = "enrico.debernardis@unimol.it",
+            phone = "+39 0874 987654",
+            category = ContactCategory.TEACHERS,
+            department = "Dipartimento di Bioscienze e Territorio",
+            office = "Studio 301, Edificio III",
+            officeHours = "Giovedì 14:30 - 16:30"
+        ),
+
+        // Segreterie
+        ContactData(
+            name = "Segreteria Studenti Area Scientifica",
+            role = "Sportello Didattico e Immatricolazioni",
+            initials = "SS",
+            email = "segreteria.scienze@unimol.it",
+            phone = "+39 0874 404100",
+            category = ContactCategory.SECRETARIAT,
+            department = "Centro Servizi Studenti",
+            office = "Sportello 3, Piano Terra",
+            officeHours = "Lun-Ven 09:00 - 12:30"
+        ),
+        ContactData(
+            name = "Ufficio Tasse e Diritto allo Studio",
+            role = "Gestione Contributi e ISEE Universitario",
+            initials = "UT",
+            email = "tasse.studenti@unimol.it",
+            phone = "+39 0874 404220",
+            category = ContactCategory.SECRETARIAT,
+            department = "Direzione Didattica",
+            office = "Sportello 5, Piano Terra",
+            officeHours = "Mar e Gio 10:00 - 13:00"
+        ),
+
+        // Uffici & Servizi
+        ContactData(
+            name = "Ufficio Relazioni Internazionali ed Erasmus+",
+            role = "Mobilità Internazionale e Accordi Bilaterali",
+            initials = "ER",
+            email = "erasmus@unimol.it",
+            phone = "+39 0874 404350",
+            category = ContactCategory.SERVICES,
+            department = "Rettorato",
+            office = "Stanza 12, Piano 1",
+            officeHours = "Lun, Mer, Ven 10:00 - 12:00"
+        ),
+        ContactData(
+            name = "Helpdesk ICT e Servizi Digitali",
+            role = "Supporto Account, Wi-Fi e Posta Istituzionale",
+            initials = "HD",
+            email = "helpdesk@unimol.it",
+            phone = "+39 0874 404999",
+            category = ContactCategory.SERVICES,
+            department = "Centro Informatico di Ateneo",
+            office = "Blocco Tecnologico",
+            officeHours = "Lun-Ven 08:30 - 17:30"
+        )
     )
 
     val languages = listOf(
@@ -139,13 +261,83 @@ object UiInitialData {
     )
 
     val myTransportReservations = listOf(
-        TransportReservation("R1", "Linea A: Stazione -> Campus", "28 Ago 2026", "08:15", "Confermato", "UNIMOL-RES-12345"),
-        TransportReservation("R2", "Linea B: Centro -> Campus", "29 Ago 2026", "09:00", "In attesa", "UNIMOL-RES-67890")
+        // Oggi
+        TransportReservation(
+            id = "R1",
+            route = "Linea Campus: Stazione FS → Campus Vazzieri",
+            date = "Oggi, 28 Ago",
+            time = "08:15",
+            direction = TripDirection.ANDATA,
+            qrCodeData = "UNIMOL-BUS-2026-A1",
+            departureStop = "Stazione Centrale FS",
+            arrivalStop = "Campus Vazzieri - Edificio I",
+            busNumber = "Navetta 1"
+        ),
+        TransportReservation(
+            id = "R2",
+            route = "Linea Campus: Campus Vazzieri → Stazione FS",
+            date = "Oggi, 28 Ago",
+            time = "17:30",
+            direction = TripDirection.RITORNO,
+            qrCodeData = "UNIMOL-BUS-2026-R1",
+            departureStop = "Campus Vazzieri - Edificio I",
+            arrivalStop = "Stazione Centrale FS",
+            busNumber = "Navetta 2"
+        ),
+
+        // Domani
+        TransportReservation(
+            id = "R3",
+            route = "Linea Campus: Stazione FS → Campus Vazzieri",
+            date = "Domani, 29 Ago",
+            time = "09:00",
+            direction = TripDirection.ANDATA,
+            qrCodeData = "UNIMOL-BUS-2026-A2",
+            departureStop = "Stazione Centrale FS",
+            arrivalStop = "Campus Vazzieri - Edificio I",
+            busNumber = "Navetta 1"
+        ),
+        TransportReservation(
+            id = "R4",
+            route = "Linea Campus: Campus Vazzieri → Stazione FS",
+            date = "Domani, 29 Ago",
+            time = "18:15",
+            direction = TripDirection.RITORNO,
+            qrCodeData = "UNIMOL-BUS-2026-R2",
+            departureStop = "Campus Vazzieri - Edificio I",
+            arrivalStop = "Stazione Centrale FS",
+            busNumber = "Navetta 1"
+        ),
+
+        // Lunedì
+        TransportReservation(
+            id = "R5",
+            route = "Linea Centro: Piazza Prefettura → Campus Pesche",
+            date = "Lunedì, 31 Ago",
+            time = "08:30",
+            direction = TripDirection.ANDATA,
+            qrCodeData = "UNIMOL-BUS-2026-A3",
+            departureStop = "Piazza Prefettura",
+            arrivalStop = "Campus Pesche - Polo Didattico",
+            busNumber = "Linea 3"
+        ),
+        TransportReservation(
+            id = "R6",
+            route = "Linea Centro: Campus Pesche → Piazza Prefettura",
+            date = "Lunedì, 31 Ago",
+            time = "16:45",
+            direction = TripDirection.RITORNO,
+            qrCodeData = "UNIMOL-BUS-2026-R3",
+            departureStop = "Campus Pesche - Polo Didattico",
+            arrivalStop = "Piazza Prefettura",
+            busNumber = "Linea 3"
+        )
     )
 
     val studentServices = listOf(
         ServiceData("Trasporti", "Navette e Orari", LiquidIcons.Time),
         ServiceData("Tasse", "Pagamenti e Scadenze", LiquidIcons.Warning),
+        ServiceData("Statistiche", "Grafici e Andamento", LiquidIcons.Star),
         ServiceData("Rubrica", "Docenti e Uffici", LiquidIcons.AccountCircle),
         ServiceData("Segreteria", "Ticket e Supporto", LiquidIcons.Phone, badgeCount = 1)
     )
@@ -180,6 +372,7 @@ object UiInitialData {
 
     val allQuickActions = listOf(
         QuickActionItem("libretto", "Libretto", "Voti e CFU", LiquidIcons.Calendar),
+        QuickActionItem("statistiche", "Statistiche", "Grafici e andamento", LiquidIcons.Star),
         QuickActionItem("media", "Media", "Simulazione", LiquidIcons.Star),
         QuickActionItem("appelli", "Appelli", "Prenotazioni", LiquidIcons.Edit),
         QuickActionItem("didattica", "Didattica", "Corsi e orari", LiquidIcons.Star),

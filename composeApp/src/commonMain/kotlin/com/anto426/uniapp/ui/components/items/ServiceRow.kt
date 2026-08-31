@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.uniapp.ui.models.ServiceData
+import com.anto426.uniapp.model.services.ServiceData
 import com.kyant.backdrop.Backdrop
 
 @Composable

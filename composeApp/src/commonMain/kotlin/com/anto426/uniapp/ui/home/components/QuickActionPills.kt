@@ -24,15 +24,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anto426.uniapp.ui.home.QuickActionItem
+import com.anto426.uniapp.model.home.dashboard.DashboardQuickAction
 import com.anto426.uniapp.ui.theme.UniColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun QuickActionPills(
-    actions: List<QuickActionItem>,
+    actions: List<DashboardQuickAction>,
     modifier: Modifier = Modifier,
-    onActionClick: (QuickActionItem) -> Unit
+    onActionClick: (DashboardQuickAction) -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxWidth()

@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.uniapp.ui.models.TaxPaymentData
+import com.anto426.uniapp.model.services.TaxPaymentData
 import com.kyant.backdrop.Backdrop
 
 @Composable

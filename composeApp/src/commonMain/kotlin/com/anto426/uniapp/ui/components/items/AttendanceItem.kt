@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.feedback.LiquidLinearProgressIndicator
-import com.anto426.uniapp.ui.models.AttendanceData
+import com.anto426.uniapp.model.didactics.AttendanceData
 import com.kyant.backdrop.Backdrop
 
 @Composable

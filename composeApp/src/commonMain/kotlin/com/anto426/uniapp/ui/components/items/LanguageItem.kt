@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.LanguageInfo
+import com.anto426.uniapp.model.settings.LanguageInfo
 import com.kyant.backdrop.Backdrop
 
 @Composable

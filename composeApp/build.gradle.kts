@@ -57,6 +57,10 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+            implementation(libs.jetbrains.navigation3.ui)
 
             implementation("com.anto426:antosdk")
             implementation("com.anto426:unisdk")
@@ -75,6 +79,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
         }
     }

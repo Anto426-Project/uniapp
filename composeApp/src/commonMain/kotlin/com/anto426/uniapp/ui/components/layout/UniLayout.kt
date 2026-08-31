@@ -2,9 +2,8 @@ package com.anto426.uniapp.ui.components.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,63 +28,26 @@ val LocalUniScreenPadding = compositionLocalOf { PaddingValues(0.dp) }
 @Composable
 fun UniScreenColumn(content: @Composable ColumnScope.() -> Unit) {
     val padding = LocalUniScreenPadding.current
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp)
-            .graphicsLayer(clip = false),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().graphicsLayer(clip = false),
+        contentPadding =
+            PaddingValues(
+                start = 18.dp,
+                top = padding.calculateTopPadding() + 12.dp,
+                end = 18.dp,
+                bottom = padding.calculateBottomPadding() + 32.dp,
+            ),
     ) {
-        Spacer(Modifier.height(padding.calculateTopPadding() + 12.dp))
-        content()
-        Spacer(Modifier.height(padding.calculateBottomPadding() + 32.dp))
-    }
-}
-
-@Composable
-fun UniHeroCard(
-    backdropState: Backdrop,
-    eyebrow: String,
-    title: String,
-    subtitle: String,
-    icon: ImageVector? = null,
-    leadingContent: (@Composable () -> Unit)? = null
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    LiquidCard (backdropState = backdropState) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (leadingContent != null) {
-                leadingContent()
-            } else if (icon != null) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(colorScheme.primary.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            }
-
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(eyebrow.uppercase(), color = colorScheme.primary, style = MaterialTheme.typography.labelSmall)
-                Text(title, color = colorScheme.onSurface, style = MaterialTheme.typography.headlineSmall)
-                Text(subtitle, color = colorScheme.onSurface.copy(alpha = .72f))
-            }
+        item(key = "screen-content") {
+            Column(
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                content = content,
+            )
         }
     }
 }
+
 
 /**
  * A decorative card inspired by a well-known slogan, adapted for UniApp.

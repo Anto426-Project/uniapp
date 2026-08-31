@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anto426.uniapp.ui.home.CareerOverviewSummary
+import com.anto426.uniapp.model.home.dashboard.CareerOverviewSummary
 import com.anto426.uniapp.ui.theme.UniColors
 
 @Composable

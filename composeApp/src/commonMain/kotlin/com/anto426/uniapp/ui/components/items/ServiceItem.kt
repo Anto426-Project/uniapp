@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidBadgedBox
-import com.anto426.uniapp.ui.models.ServiceData
+import com.anto426.uniapp.model.services.ServiceData
 import com.kyant.backdrop.Backdrop
 
 @Composable

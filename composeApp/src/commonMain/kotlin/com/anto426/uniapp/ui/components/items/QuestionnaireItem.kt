@@ -14,8 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.QuestionnaireData
-import com.anto426.uniapp.ui.models.QuestionnaireStatus
+import com.anto426.uniapp.model.didactics.QuestionnaireData
+import com.anto426.uniapp.model.didactics.QuestionnaireStatus
 import com.kyant.backdrop.Backdrop
 
 @Composable

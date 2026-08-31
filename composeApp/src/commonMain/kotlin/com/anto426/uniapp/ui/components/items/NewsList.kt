@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.LiquidStatusCard
-import com.anto426.uniapp.ui.models.NewsItem
+import com.anto426.uniapp.model.news.NewsItem
 import com.kyant.backdrop.Backdrop
 
 @Composable

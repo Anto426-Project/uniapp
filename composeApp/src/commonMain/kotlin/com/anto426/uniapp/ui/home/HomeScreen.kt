@@ -24,8 +24,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anto426.uniapp.home.presentation.HomeUiState
+import com.anto426.uniapp.model.home.dashboard.HomeDashboardData
 import com.anto426.uniapp.ui.home.components.GlassCard
 import com.anto426.uniapp.ui.home.components.HeroCareerCard
 import com.anto426.uniapp.ui.home.components.QuickActionPills
@@ -43,13 +43,12 @@ import com.anto426.uniapp.ui.theme.UniTheme
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
+    uiState: HomeUiState,
     modifier: Modifier = Modifier,
     onNavigateToRoute: (String) -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
     UniTheme {
         Box(
             modifier = modifier
@@ -133,7 +132,7 @@ fun HomeScreen(
                                             shape = RoundedCornerShape(16.dp),
                                             backgroundColor = UniColors.PrimaryMagenta.copy(alpha = 0.3f),
                                             contentPadding = 12.dp,
-                                            onClick = { viewModel.refresh() }
+                                            onClick = onRetry
                                         ) {
                                             Text(
                                                 text = "Riprova",

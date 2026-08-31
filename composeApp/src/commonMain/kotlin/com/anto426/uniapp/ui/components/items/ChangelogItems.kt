@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidAccordionItem
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.ChangelogItemData
-import com.anto426.uniapp.ui.models.ChangelogVersionData
+import com.anto426.uniapp.model.updates.ChangelogItemData
+import com.anto426.uniapp.model.updates.ChangelogVersionData
 import com.kyant.backdrop.Backdrop
 
 @Composable

@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anto426.uniapp.ui.models.LegalSectionData
+import com.anto426.uniapp.model.legal.LegalSectionData
 
 @Composable
 fun LegalSection(section: LegalSectionData) {

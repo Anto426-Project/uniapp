@@ -1,7 +1,14 @@
 package com.anto426.uniapp.ui.components.items
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -9,15 +16,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.CourseStatus
-import com.anto426.uniapp.ui.models.StudyCourse
+import com.anto426.uniapp.model.didactics.CourseStatus
+import com.anto426.uniapp.model.didactics.StudyCourse
 import com.kyant.backdrop.Backdrop
 
 @Composable
@@ -27,21 +34,28 @@ fun StudyCourseItem(
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val statusColor = when(course.status) {
-        CourseStatus.COMPLETED -> colorScheme.primary
-        CourseStatus.ACTIVE -> Color(0xFFFFB74D) // Amber
-        CourseStatus.PLANNED -> colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-    }
 
-    val statusIcon = when(course.status) {
+    val statusIcon = when (course.status) {
         CourseStatus.COMPLETED -> LiquidIcons.Check
         CourseStatus.ACTIVE -> LiquidIcons.PlayArrow
         CourseStatus.PLANNED -> LiquidIcons.Calendar
     }
 
+    val iconContainerColor = when (course.status) {
+        CourseStatus.COMPLETED -> colorScheme.primary.copy(alpha = 0.08f)
+        CourseStatus.ACTIVE -> colorScheme.secondary.copy(alpha = 0.12f)
+        CourseStatus.PLANNED -> colorScheme.surfaceVariant.copy(alpha = 0.4f)
+    }
+
+    val iconTint = when (course.status) {
+        CourseStatus.COMPLETED -> colorScheme.primary
+        CourseStatus.ACTIVE -> colorScheme.secondary
+        CourseStatus.PLANNED -> colorScheme.onSurfaceVariant
+    }
+
     LiquidCard(
         backdropState = backdropState,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
         interactiveGelatin = true
@@ -57,37 +71,66 @@ fun StudyCourseItem(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .background(statusColor.copy(alpha = 0.1f), RoundedCornerShape(10.dp)),
+                        .size(40.dp)
+                        .background(iconContainerColor, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = statusIcon,
                         contentDescription = null,
-                        tint = statusColor,
-                        modifier = Modifier.size(18.dp)
+                        tint = iconTint,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))
 
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = course.name,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.titleSmall,
+                        letterSpacing = (-0.2).sp
                     )
                     Text(
-                        text = course.cfu,
+                        text = buildString {
+                            if (course.semester.isNotBlank()) append("${course.semester} • ")
+                            append(course.cfu)
+                            if (course.professor.isNotBlank()) append(" • ${course.professor}")
+                        },
                         color = colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp
                     )
                 }
             }
 
-            if (course.status == CourseStatus.ACTIVE) {
-                LiquidBadge(text = "In Corso", backdropState = backdropState)
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Box(contentAlignment = Alignment.Center) {
+                LiquidBadge(
+                    text = when (course.status) {
+                        CourseStatus.COMPLETED -> "Superato"
+                        CourseStatus.ACTIVE -> "In Corso"
+                        CourseStatus.PLANNED -> "Pianificato"
+                    },
+                    containerColor = when (course.status) {
+                        CourseStatus.COMPLETED -> colorScheme.primaryContainer
+                        CourseStatus.ACTIVE -> colorScheme.secondaryContainer
+                        CourseStatus.PLANNED -> colorScheme.surfaceVariant
+                    },
+                    contentColor = when (course.status) {
+                        CourseStatus.COMPLETED -> colorScheme.primary
+                        CourseStatus.ACTIVE -> colorScheme.onSecondaryContainer
+                        CourseStatus.PLANNED -> colorScheme.onSurfaceVariant
+                    },
+                    backdropState = backdropState,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = 1.02f
+                        scaleY = 1.02f
+                    }
+                )
             }
         }
     }

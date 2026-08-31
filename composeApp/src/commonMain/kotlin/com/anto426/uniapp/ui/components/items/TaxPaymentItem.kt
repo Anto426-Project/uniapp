@@ -22,7 +22,7 @@ import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.TaxPaymentData
+import com.anto426.uniapp.model.services.TaxPaymentData
 import com.kyant.backdrop.Backdrop
 
 @Composable

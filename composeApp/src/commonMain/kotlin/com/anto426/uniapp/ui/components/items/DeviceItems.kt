@@ -19,8 +19,8 @@ import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.DeviceInfo
-import com.anto426.uniapp.ui.models.DeviceType
+import com.anto426.uniapp.model.settings.DeviceInfo
+import com.anto426.uniapp.model.settings.DeviceType
 import com.kyant.backdrop.Backdrop
 
 @Composable

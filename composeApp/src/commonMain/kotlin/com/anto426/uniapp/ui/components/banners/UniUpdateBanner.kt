@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -34,23 +35,13 @@ import com.anto426.liquidmonet.components.layout.LiquidSwitcherTransition
 import com.anto426.liquidmonet.glass.LiquidGlass
 import com.anto426.liquidmonet.glass.LiquidGlassBackdropPolicy
 import com.anto426.uniapp.ui.components.interactive.UniCelebration
+import com.anto426.uniapp.model.updates.UpdateState
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.RuntimeShader
 import com.kyant.backdrop.asComposeShader
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlin.math.roundToInt
-
-enum class UpdateState {
-    CHECKING,
-    UP_TO_DATE,
-    AVAILABLE,
-    DOWNLOADING,
-    VERIFYING,
-    INSTALLING,
-    RESTART_REQUIRED,
-    ERROR
-}
 
 /**
  * Optical accents stay derived from Material tokens, while deliberately separating the hue of
@@ -108,18 +99,24 @@ fun UniAppUpdateBanner(
     val bannerContentColor = updateBannerContentColor()
     val artworkBackdrop = rememberLayerBackdrop()
 
+    val cardShape = RoundedCornerShape(32.dp)
+
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
             .height(580.dp),
         backdropState = backdropState,
-        shape = RoundedCornerShape(32.dp),
+        shape = cardShape,
         contentPadding = 0.dp,
         containerColor = Color.Transparent,
         onClick = onClick,
         interactiveGelatin = onClick != null
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(cardShape)
+        ) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -233,15 +230,14 @@ private fun UpdateBannerPureGlassLens(
         blurRadius = 3.dp,
         refractionHeight = 50.dp,
         refractionAmount = 44.dp,
-        containerColor = Color.White.copy(alpha = 0.12f)
+        containerColor = Color.Transparent
     ) {
-        // Almost colourless highlight: this is a clear lens, not a coloured disc.
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawRect(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.38f),
-                        Color.White.copy(alpha = 0.06f),
+                        Color.White.copy(alpha = 0.08f),
+                        Color.White.copy(alpha = 0.02f),
                         Color.Transparent
                     ),
                     center = Offset(size.width * 0.28f, size.height * 0.20f),
@@ -296,7 +292,7 @@ half4 main(float2 p) {
     float3 lowerColor = mix(container, primaryTone, 0.78);
     base = mix(base, lowerColor, lowerBody * 0.78);
     float lowerRim = 1.0 - smoothstep(0.0, 0.012, abs(lowerDistance - 0.55));
-    base = mix(base, content, lowerRim * 0.28);
+    base = mix(base, primaryTone, lowerRim * 0.28);
 
     float ribbonY = 0.67 - 0.11 * sin(uv.x * 2.75 + 0.32 + time * 0.035) - uv.x * 0.07;
     float ribbonDistance = abs(uv.y - ribbonY);
@@ -304,7 +300,7 @@ half4 main(float2 p) {
     float ribbonCore = 1.0 - smoothstep(0.002, 0.016, ribbonDistance);
     float3 ribbonColor = mix(tertiaryTone, primaryTone, 0.42);
     base = mix(base, ribbonColor, ribbonGlow * 0.52);
-    base = mix(base, content, ribbonCore * 0.58);
+    base = mix(base, ribbonColor, ribbonCore * 0.45);
 
     float2 lensCenter = float2(0.86 + drift * 0.35, 0.52);
     float lensDistance = length(uv - lensCenter);
@@ -312,8 +308,8 @@ half4 main(float2 p) {
     float lensHalo = 1.0 - smoothstep(0.006, 0.032, abs(lensSignedDistance));
     float lensCore = 1.0 - smoothstep(0.0, 0.0045, abs(lensSignedDistance));
     float lensInterior = 1.0 - smoothstep(-0.035, 0.035, lensSignedDistance);
-    base = mix(base, tertiaryTone, lensHalo * 0.42);
-    base = mix(base, content, lensCore * 0.66);
+    base = mix(base, tertiaryTone, lensHalo * 0.32);
+    base = mix(base, tertiaryTone, lensCore * 0.40);
     base = mix(base, container, lensInterior * 0.18);
 
     float2 centered = (uv - 0.5) * float2(resolution.x / resolution.y, 1.0);

@@ -27,7 +27,7 @@ import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.LiquidAccordionItem
 import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.models.ExamSession
+import com.anto426.uniapp.model.didactics.ExamSession
 import com.kyant.backdrop.Backdrop
 
 @Composable
