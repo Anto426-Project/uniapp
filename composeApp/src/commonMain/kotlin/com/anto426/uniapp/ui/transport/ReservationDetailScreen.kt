@@ -31,7 +31,12 @@ import com.anto426.uniapp.model.transport.TransportReservation
 import com.kyant.backdrop.Backdrop
 
 @Composable
-fun ReservationDetailScreen(reservation: TransportReservation, backdropState: Backdrop) {
+fun ReservationDetailScreen(
+    reservation: TransportReservation,
+    backdropState: Backdrop,
+    isDeleting: Boolean,
+    onDelete: () -> Unit,
+) {
     val colorScheme = MaterialTheme.colorScheme
 
     UniScreenColumn {
@@ -93,7 +98,7 @@ fun ReservationDetailScreen(reservation: TransportReservation, backdropState: Ba
                 // Direction Badge
                 val isAndata = reservation.direction == com.anto426.uniapp.model.transport.TripDirection.ANDATA
                 LiquidBadge(
-                    text = if (isAndata) "Corsa di Andata" else "Corsa di Ritorno",
+                    text = if (isAndata) stringResource(Res.string.ui_trip_outbound) else stringResource(Res.string.ui_trip_return),
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.primary,
                     backdropState = backdropState
@@ -114,7 +119,7 @@ fun ReservationDetailScreen(reservation: TransportReservation, backdropState: Ba
                 ) {
                     Icon(
                         imageVector = LiquidIcons.Search,
-                        contentDescription = "Reservation QR Code",
+                        contentDescription = "QR Code",
                         modifier = Modifier
                             .size(140.dp)
                             .graphicsLayer { alpha = 0.8f },
@@ -133,24 +138,24 @@ fun ReservationDetailScreen(reservation: TransportReservation, backdropState: Ba
         }
 
         // 3. Info Group
-        LiquidPreferenceGroup(title = "Dettagli Viaggio", backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_trip_details), backdropState = backdropState) {
             LiquidPreferenceItem(
-                title = "Tratta",
+                title = stringResource(Res.string.ui_trip_route),
                 subtitle = reservation.route,
                 icon = LiquidIcons.Star,
                 backdropState = backdropState
             )
             LiquidHorizontalDivider()
             LiquidPreferenceItem(
-                title = "Data e Ora",
-                subtitle = "${reservation.date} alle ${reservation.time}",
+                title = stringResource(Res.string.ui_trip_datetime),
+                subtitle = "${reservation.date} • ${reservation.time}",
                 icon = LiquidIcons.Time,
                 backdropState = backdropState
             )
             if (reservation.departureStop.isNotBlank()) {
                 LiquidHorizontalDivider()
                 LiquidPreferenceItem(
-                    title = "Fermata di Salita",
+                    title = stringResource(Res.string.ui_trip_departure_stop),
                     subtitle = reservation.departureStop,
                     icon = LiquidIcons.Home,
                     backdropState = backdropState
@@ -159,7 +164,7 @@ fun ReservationDetailScreen(reservation: TransportReservation, backdropState: Ba
             if (reservation.busNumber.isNotBlank()) {
                 LiquidHorizontalDivider()
                 LiquidPreferenceItem(
-                    title = "Veicolo Assegnato",
+                    title = stringResource(Res.string.ui_trip_bus_assigned),
                     subtitle = reservation.busNumber,
                     icon = LiquidIcons.Info,
                     backdropState = backdropState
@@ -171,8 +176,9 @@ fun ReservationDetailScreen(reservation: TransportReservation, backdropState: Ba
 
         // 4. Action Button
         LiquidButton(
-            text = "Annulla Prenotazione",
-            onClick = { /* Cancel logic */ },
+            text = stringResource(Res.string.ui_cancel_booking),
+            onClick = onDelete,
+            isLoading = isDeleting,
             modifier = Modifier.fillMaxWidth(),
             variant = LiquidButtonVariant.Secondary,
             backdropState = backdropState

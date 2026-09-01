@@ -33,12 +33,4 @@ class AppShellViewModel : ViewModel() {
     fun updateNavigationBarVisibility(visible: Boolean) {
         mutableUiState.update { it.copy(isNavigationBarVisible = visible) }
     }
-
-    fun showDisconnectAllDialog() {
-        mutableUiState.update { it.copy(isDisconnectAllDialogVisible = true) }
-    }
-
-    fun dismissDisconnectAllDialog() {
-        mutableUiState.update { it.copy(isDisconnectAllDialogVisible = false) }
-    }
 }

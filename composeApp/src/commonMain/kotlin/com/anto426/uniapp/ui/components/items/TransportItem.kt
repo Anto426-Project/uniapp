@@ -1,5 +1,8 @@
 package com.anto426.uniapp.ui.components.items
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
+import com.anto426.liquidmonet.components.display.LiquidIconBox
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TransportRoute
@@ -54,22 +58,14 @@ fun TransportReservationItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            colorScheme.primary.copy(alpha = 0.08f),
-                            RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                LiquidIconBox(
+                    icon = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
+                    size = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                    iconTint = colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp),
+                )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
@@ -92,7 +88,7 @@ fun TransportReservationItem(
 
             Box(contentAlignment = Alignment.Center) {
                 LiquidBadge(
-                    text = if (isAndata) "Andata" else "Ritorno",
+                    text = if (isAndata) stringResource(Res.string.ui_trip_outbound) else stringResource(Res.string.ui_trip_return),
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.primary,
                     backdropState = backdropState,
@@ -131,19 +127,14 @@ fun TransportTicketItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(colorScheme.primary.copy(alpha = 0.08f), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = ticket.icon,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                LiquidIconBox(
+                    icon = ticket.icon,
+                    size = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                    iconTint = colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp),
+                )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
@@ -199,19 +190,14 @@ fun TransportRouteItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(colorScheme.primary.copy(alpha = 0.08f), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.Time,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                LiquidIconBox(
+                    icon = LiquidIcons.Time,
+                    size = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                    iconTint = colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp),
+                )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(

@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
@@ -30,7 +35,10 @@ import com.anto426.liquidmonet.components.charts.LiquidDonutChart
 import com.anto426.liquidmonet.components.charts.LiquidLineChart
 import com.anto426.liquidmonet.components.charts.LiquidPieEntry
 import com.anto426.liquidmonet.components.display.LiquidBadge
+import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.display.LiquidVerticalDivider
 import com.anto426.liquidmonet.components.display.LiquidSectionHeader
+import com.anto426.liquidmonet.components.feedback.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -48,245 +56,343 @@ fun StatisticsScreen(
     val colorScheme = MaterialTheme.colorScheme
 
     val tabs = listOf(
-        LiquidNavigationItem("Voti", icon = LiquidIcons.Star),
-        LiquidNavigationItem("Crediti", icon = LiquidIcons.Calendar),
-        LiquidNavigationItem("Fasce", icon = LiquidIcons.Info)
+        LiquidNavigationItem("Andamento", icon = LiquidIcons.Analytics),
+        LiquidNavigationItem("Crediti CFU", icon = LiquidIcons.Calendar),
+        LiquidNavigationItem("Fasce Voto", icon = LiquidIcons.Star),
     )
 
     val gradeEntries = uiState.gradeEntries.map { LiquidChartEntry(it.label, it.value, it.secondaryValue) }
     val weightedAverageEntries = uiState.weightedAverageEntries.map { LiquidChartEntry(it.label, it.value) }
     val arithmeticAverageEntries = uiState.arithmeticAverageEntries.map { LiquidChartEntry(it.label, it.value) }
     val cfuEntries = uiState.cfuEntries.map { LiquidChartEntry(it.label, it.value) }
-    val tierColors = listOf(colorScheme.primary, colorScheme.tertiary, colorScheme.secondary)
+
+    val tierColors = listOf(
+        colorScheme.primary,
+        colorScheme.tertiary,
+        colorScheme.secondary,
+        colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+    )
+
     val donutEntries = uiState.gradeTiers.mapIndexed { index, tier ->
         LiquidPieEntry(tier.label, tier.examCount, color = tierColors[index % tierColors.size])
     }
 
     UniScreenColumn {
-        // 1. KPI Overview Header Cards (Media Ponderata, Media Aritmetica, Base Laurea)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // =========================================================================
+        // 1. HERO BENTO GLASS ACADEMIC PERFORMANCE SHOWCASE
+        // =========================================================================
+        LiquidCard(
+            backdropState = backdropState,
+            shape = RoundedCornerShape(26.dp),
+            contentPadding = 20.dp,
+            interactiveGelatin = false,
         ) {
-            // Media Ponderata
-            LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = 14.dp,
-                modifier = Modifier.weight(1f)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Ponderata",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant
-                        )
-                        Icon(
-                            imageVector = LiquidIcons.Star,
-                            contentDescription = null,
-                            tint = colorScheme.primary,
-                            modifier = Modifier.size(13.dp)
-                        )
-                    }
+                // Header badge row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
-                        text = uiState.weightedAverage.toString(),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Black,
-                        color = colorScheme.primary
+                        text = "PANORAMICA RENDIMENTO",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.primary,
+                        letterSpacing = 1.sp,
                     )
-                    Text(
-                        text = "Media / 30",
-                        fontSize = 10.sp,
-                        color = colorScheme.onSurfaceVariant
+                    LiquidBadge(
+                        text = "${uiState.totalExams} esami superati",
+                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.6f),
+                        contentColor = colorScheme.primary,
+                        backdropState = backdropState,
                     )
                 }
-            }
 
-            // Media Aritmetica
-            LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = 14.dp,
-                modifier = Modifier.weight(1f)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                // Hero KPI: Media Ponderata + Base Laurea + Trend
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "Aritmetica",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant
+                            text = "Media Ponderata",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colorScheme.onSurfaceVariant,
                         )
-                        Icon(
-                            imageVector = LiquidIcons.Edit,
-                            contentDescription = null,
-                            tint = colorScheme.tertiary,
-                            modifier = Modifier.size(13.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = if (uiState.weightedAverage > 0f) uiState.weightedAverage.toString() else "—",
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Black,
+                                color = colorScheme.primary,
+                            )
+                            Text(
+                                text = "/ 30",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.padding(bottom = 6.dp),
+                            )
+                        }
                     }
-                    Text(
-                        text = uiState.arithmeticAverage.toString(),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Black,
-                        color = colorScheme.onSurface
+
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        // Base di Laurea Indicator
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(vertical = 2.dp),
+                        ) {
+                            Icon(
+                                imageVector = LiquidIcons.MenuBook,
+                                contentDescription = null,
+                                tint = colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Base Laurea",
+                                    fontSize = 10.sp,
+                                    color = colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    text = if (uiState.degreeBase > 0f) "${uiState.degreeBase} / 110" else "—",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.onSurface,
+                                )
+                            }
+                        }
+
+                        // Trend Badge
+                        if (uiState.recentTrend != 0f) {
+                            val isPositive = uiState.recentTrend > 0f
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    text = if (isPositive) "Trend: +${uiState.recentTrend}" else "Trend: ${uiState.recentTrend}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isPositive) colorScheme.primary else colorScheme.error,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                LiquidHorizontalDivider()
+
+                // Bento Secondary KPI Tiles (3 Colonne trasparenti in puro Liquid Glass con divisori verticali)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    StatsKpiBentoTile(
+                        label = "Aritmetica",
+                        value = if (uiState.arithmeticAverage > 0f) uiState.arithmeticAverage.toString() else "—",
+                        subtitle = if (uiState.weightingSpread >= 0f) "+${uiState.weightingSpread} peso" else "${uiState.weightingSpread} peso",
+                        icon = LiquidIcons.Analytics,
+                        accentColor = colorScheme.tertiary,
+                        modifier = Modifier.weight(1f),
                     )
-                    Text(
-                        text = "Media / 30",
-                        fontSize = 10.sp,
-                        color = colorScheme.onSurfaceVariant
+
+                    LiquidVerticalDivider(modifier = Modifier.height(44.dp))
+
+                    StatsKpiBentoTile(
+                        label = "Crediti",
+                        value = "${uiState.totalCfu}",
+                        subtitle = "${uiState.averageCfuPerExam} CFU/esame",
+                        icon = LiquidIcons.Calendar,
+                        accentColor = colorScheme.secondary,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    LiquidVerticalDivider(modifier = Modifier.height(44.dp))
+
+                    StatsKpiBentoTile(
+                        label = "Top Voto",
+                        value = uiState.highestGradeLabel,
+                        subtitle = uiState.dominantTier?.label ?: "Eccellente",
+                        icon = LiquidIcons.Star,
+                        accentColor = colorScheme.primary,
+                        modifier = Modifier.weight(1f),
                     )
                 }
-            }
 
-            // Base di Laurea
-            LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = 14.dp,
-                modifier = Modifier.weight(1.05f)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                // Career CFU Linear Progress
+                val cfuProgress = uiState.careerProgress
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "Base Laurea",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant
+                            text = "Avanzamento Piano di Studi",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colorScheme.onSurfaceVariant,
                         )
-                        Icon(
-                            imageVector = LiquidIcons.Check,
-                            contentDescription = null,
-                            tint = colorScheme.primary,
-                            modifier = Modifier.size(13.dp)
+                        Text(
+                            text = "${(cfuProgress * 100).toInt()}% (${uiState.totalCfu}/180 CFU)",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.primary,
                         )
                     }
-                    Text(
-                        text = uiState.degreeBase.toString(),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Black,
-                        color = colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Prevista / 110",
-                        fontSize = 10.sp,
-                        color = colorScheme.onSurfaceVariant
+                    LiquidLinearProgressIndicator(
+                        progress = cfuProgress,
+                        backdropState = backdropState,
                     )
                 }
             }
         }
 
-        // 2. Tab Bar
+        // =========================================================================
+        // 2. TAB CONTROLS
+        // =========================================================================
         LiquidTabBar(
             items = tabs,
             selectedIndex = uiState.selectedTabIndex,
             onTabSelected = onTabSelected,
             backdropState = backdropState,
-            modifier = Modifier.padding(top = 6.dp)
+            modifier = Modifier.padding(top = 4.dp),
         )
 
-        // 3. Tab Content
+        // =========================================================================
+        // 3. TAB DETAILED CONTENT SWITCHER
+        // =========================================================================
         AnimatedContent(
             targetState = uiState.selectedTabIndex,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "StatisticsTabAnimation"
+            label = "StatisticsTabAnimation",
         ) { tabIndex ->
             when (tabIndex) {
                 0 -> {
-                    // TAB 1: Multi-Line Chart (Voti + Media Ponderata + Media Aritmetica nello stesso grafico)
+                    // TAB 0: Evoluzione Voti & Medie
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         LiquidSectionHeader(
                             title = "Evoluzione Voti e Medie",
-                            subtitle = "Confronto simultaneo tra singoli voti, media ponderata e aritmetica"
+                            subtitle = "Confronto cronologico tra voti singoli, media ponderata e aritmetica",
                         )
 
                         LiquidCard(
                             backdropState = backdropState,
                             shape = RoundedCornerShape(26.dp),
-                            contentPadding = 18.dp
+                            contentPadding = 18.dp,
+                            interactiveGelatin = false,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                                 LiquidLineChart(
                                     entries = gradeEntries,
                                     weightedAverageEntries = weightedAverageEntries,
                                     arithmeticAverageEntries = arithmeticAverageEntries,
-                                    height = 200.dp,
+                                    height = 210.dp,
                                     backdropState = backdropState,
-                                    minValue = 24f,
-                                    maxValue = 31.5f,
-                                    showLegend = true
+                                    minValue = uiState.gradeMin,
+                                    maxValue = uiState.gradeMax,
+                                    showLegend = true,
+                                    primarySeriesLabel = "Voto",
                                 )
                             }
                         }
 
-                        // Statistiche Dettagliate
+                        // Insights Grid
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
-                                    .padding(12.dp)
+                            LiquidCard(
+                                backdropState = backdropState,
+                                shape = RoundedCornerShape(22.dp),
+                                contentPadding = 14.dp,
+                                interactiveGelatin = false,
+                                modifier = Modifier.weight(1f),
                             ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = LiquidIcons.Star,
+                                            contentDescription = null,
+                                            tint = colorScheme.primary,
+                                            modifier = Modifier.size(15.dp),
+                                        )
+                                        Text(
+                                            text = "Voto Più Alto",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                     Text(
-                                        text = "Voto Più Alto",
+                                        text = uiState.highestGradeLabel,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = colorScheme.primary,
+                                    )
+                                    Text(
+                                        text = uiState.highestGradeCourses,
                                         fontSize = 11.sp,
-                                        color = colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "30 e Lode",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colorScheme.primary
-                                    )
-                                    Text(
-                                        text = "Prog I & Ing. Software",
-                                        fontSize = 10.sp,
-                                        color = colorScheme.onSurfaceVariant
+                                        color = colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }
 
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
-                                    .padding(12.dp)
+                            LiquidCard(
+                                backdropState = backdropState,
+                                shape = RoundedCornerShape(22.dp),
+                                contentPadding = 14.dp,
+                                interactiveGelatin = false,
+                                modifier = Modifier.weight(1f),
                             ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = LiquidIcons.Analytics,
+                                            contentDescription = null,
+                                            tint = colorScheme.primary,
+                                            modifier = Modifier.size(15.dp),
+                                        )
+                                        Text(
+                                            text = "Trend Recente",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                     Text(
-                                        text = "Trend Recente",
+                                        text = "${if (uiState.recentTrend >= 0f) "+" else ""}${uiState.recentTrend} Punti",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (uiState.recentTrend >= 0f) colorScheme.primary else colorScheme.error,
+                                    )
+                                    Text(
+                                        text = "Variazione negli ultimi 3 esami sostenuti",
                                         fontSize = 11.sp,
-                                        color = colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "+0.4 Media",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colorScheme.primary
-                                    )
-                                    Text(
-                                        text = "Negli ultimi 3 esami",
-                                        fontSize = 10.sp,
-                                        color = colorScheme.onSurfaceVariant
+                                        color = colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }
@@ -295,58 +401,62 @@ fun StatisticsScreen(
                 }
 
                 1 -> {
-                    // TAB 2: Bar Chart
+                    // TAB 1: Crediti CFU
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         LiquidSectionHeader(
-                            title = "Acquisizione Crediti per Semestre",
-                            subtitle = "Distribuzione dei 120 CFU superati nel triennio"
+                            title = "Distribuzione Crediti per Esame",
+                            subtitle = "Peso formativo e CFU verbalizzati per ogni materia",
                         )
 
                         LiquidCard(
                             backdropState = backdropState,
                             shape = RoundedCornerShape(26.dp),
-                            contentPadding = 20.dp
+                            contentPadding = 20.dp,
+                            interactiveGelatin = false,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                 LiquidBarChart(
                                     entries = cfuEntries,
-                                    height = 190.dp,
+                                    height = 195.dp,
                                     backdropState = backdropState,
-                                    maxValue = 35f
+                                    maxValue = uiState.cfuMax,
+                                    valueSuffix = "CFU",
+                                    detailDescription = "Crediti verbalizzati per questo esame",
                                 )
                             }
                         }
 
-                        // Summary Info
+                        // Summary Info Card
                         LiquidCard(
                             backdropState = backdropState,
                             shape = RoundedCornerShape(20.dp),
-                            contentPadding = 16.dp
+                            contentPadding = 16.dp,
+                            interactiveGelatin = false,
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                     Text(
-                                        text = "Media Crediti per Semestre",
-                                        fontSize = 13.sp,
+                                        text = "Riepilogo Crediti Formativi",
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = colorScheme.onSurface
+                                        color = colorScheme.onSurface,
                                     )
                                     Text(
-                                        text = "30.0 CFU / semestre nei primi 2 anni",
-                                        fontSize = 11.sp,
-                                        color = colorScheme.onSurfaceVariant
+                                        text = "${uiState.totalCfu} CFU totali acquisiti su 180 previsti",
+                                        fontSize = 12.sp,
+                                        color = colorScheme.onSurfaceVariant,
                                     )
                                 }
 
                                 LiquidBadge(
-                                    text = "In Regola",
+                                    text = if (uiState.totalCfu >= 60) "In Regola" else "In Corso",
                                     containerColor = colorScheme.primaryContainer,
                                     contentColor = colorScheme.primary,
-                                    backdropState = backdropState
+                                    backdropState = backdropState,
                                 )
                             }
                         }
@@ -354,67 +464,92 @@ fun StatisticsScreen(
                 }
 
                 2 -> {
-                    // TAB 3: Donut Chart
+                    // TAB 2: Fasce di Voto
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         LiquidSectionHeader(
                             title = "Ripartizione per Fasce di Voto",
-                            subtitle = "Tocca uno spicchio per visualizzare il dettaglio"
+                            subtitle = "Distribuzione analitica del rendimento accademico",
                         )
 
                         LiquidCard(
                             backdropState = backdropState,
                             shape = RoundedCornerShape(26.dp),
-                            contentPadding = 20.dp
+                            contentPadding = 20.dp,
+                            interactiveGelatin = false,
                         ) {
                             LiquidDonutChart(
                                 entries = donutEntries,
-                                size = 180.dp,
+                                size = 190.dp,
                                 centerLabel = "Esami",
                                 centerValue = uiState.totalExams.toString(),
-                                backdropState = backdropState
+                                backdropState = backdropState,
                             )
                         }
 
-                        // Detailed list
+                        // Detailed Tier Breakdown Cards with visual percentage bar
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             donutEntries.forEach { entry ->
+                                val tierRatio = if (uiState.totalExams > 0) entry.value / uiState.totalExams else 0f
+                                val tierPercentage = (tierRatio * 100).toInt()
+                                val tierColor = entry.color ?: colorScheme.primary
+
                                 LiquidCard(
                                     backdropState = backdropState,
                                     shape = RoundedCornerShape(18.dp),
-                                    contentPadding = 14.dp
+                                    contentPadding = 14.dp,
+                                    interactiveGelatin = true,
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(10.dp)
-                                                    .clip(Capsule())
-                                                    .background(entry.color ?: colorScheme.primary)
-                                            )
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(12.dp)
+                                                        .clip(Capsule())
+                                                        .background(tierColor),
+                                                )
+                                                Text(
+                                                    text = "Fascia ${entry.label}",
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = colorScheme.onSurface,
+                                                )
+                                            }
+
                                             Text(
-                                                text = "Fascia ${entry.label}",
+                                                text = "${entry.value.toInt()} esami • $tierPercentage%",
                                                 fontSize = 13.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = colorScheme.onSurface
+                                                fontWeight = FontWeight.Bold,
+                                                color = tierColor,
                                             )
                                         }
 
-                                        Text(
-                                            text = "${entry.value.toInt()} esami (${((entry.value / uiState.totalExams.coerceAtLeast(1)) * 100).toInt()}%)",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = entry.color ?: colorScheme.primary
-                                        )
+                                        // Progress indicator for tier proportion
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(4.dp)
+                                                .clip(Capsule())
+                                                .background(colorScheme.onSurface.copy(alpha = 0.08f)),
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(tierRatio.coerceIn(0f, 1f))
+                                                    .height(4.dp)
+                                                    .clip(Capsule())
+                                                    .background(tierColor),
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -423,5 +558,58 @@ fun StatisticsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StatsKpiBentoTile(
+    label: String,
+    value: String,
+    subtitle: String,
+    icon: ImageVector,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    Column(
+        modifier = modifier.padding(vertical = 2.dp, horizontal = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = accentColor.copy(alpha = 0.9f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier.size(13.dp),
+            )
+        }
+
+        Text(
+            text = value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Black,
+            color = accentColor,
+        )
+
+        Text(
+            text = subtitle,
+            fontSize = 10.sp,
+            color = colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

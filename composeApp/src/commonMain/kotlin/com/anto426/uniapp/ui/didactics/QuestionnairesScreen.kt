@@ -21,8 +21,15 @@ import com.anto426.uniapp.ui.components.items.QuestionnaireItem
 import com.anto426.uniapp.didactics.presentation.QuestionnairesUiState
 import com.kyant.backdrop.Backdrop
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 @Composable
-fun QuestionnairesScreen(backdropState: Backdrop, uiState: QuestionnairesUiState) {
+fun QuestionnairesScreen(
+    backdropState: Backdrop,
+    uiState: QuestionnairesUiState,
+    onQuestionnaireClick: (com.anto426.uniapp.model.didactics.QuestionnaireData) -> Unit,
+) {
     UniScreenColumn {
         // 1. Progress Summary Hero
         LiquidCard(
@@ -32,7 +39,7 @@ fun QuestionnairesScreen(backdropState: Backdrop, uiState: QuestionnairesUiState
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(
-                    text = "STATO VALUTAZIONI",
+                    text = stringResource(Res.string.ui_questionnaire_status).uppercase(),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
@@ -43,7 +50,7 @@ fun QuestionnairesScreen(backdropState: Backdrop, uiState: QuestionnairesUiState
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${uiState.completed.size} di ${uiState.totalCount} completati",
+                        text = stringResource(Res.string.ui_questionnaires_progress, uiState.completed.size, uiState.totalCount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -60,25 +67,31 @@ fun QuestionnairesScreen(backdropState: Backdrop, uiState: QuestionnairesUiState
                     backdropState = backdropState
                 )
                 Text(
-                    text = "La valutazione è obbligatoria per prenotare gli appelli.",
+                    text = stringResource(Res.string.ui_questionnaire_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        LiquidSectionHeader(title = "Corsi da Valutare", subtitle = "Necessario per l'esame")
+        LiquidSectionHeader(
+            title = stringResource(Res.string.ui_questionnaires_pending),
+            subtitle = stringResource(Res.string.ui_questionnaires_pending_subtitle)
+        )
 
         Column(
             modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             uiState.pending.forEach { data ->
-                QuestionnaireItem(data, backdropState)
+                QuestionnaireItem(data, backdropState) { onQuestionnaireClick(data) }
             }
         }
 
-        LiquidSectionHeader(title = "Completati", subtitle = "Storico valutazioni")
+        LiquidSectionHeader(
+            title = stringResource(Res.string.ui_questionnaires_completed),
+            subtitle = stringResource(Res.string.ui_questionnaires_completed_subtitle)
+        )
 
         Column(
             modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
@@ -86,6 +99,19 @@ fun QuestionnairesScreen(backdropState: Backdrop, uiState: QuestionnairesUiState
         ) {
             uiState.completed.forEach { data ->
                 QuestionnaireItem(data, backdropState)
+            }
+        }
+
+        if (uiState.unavailable.isNotEmpty()) {
+            LiquidSectionHeader(
+                title = stringResource(Res.string.ui_questionnaires_unavailable),
+                subtitle = stringResource(Res.string.ui_questionnaires_unavailable_desc)
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                uiState.unavailable.forEach { data -> QuestionnaireItem(data, backdropState) }
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -34,8 +35,11 @@ import com.anto426.liquidmonet.components.layout.LiquidAnimatedSwitcher
 import com.anto426.liquidmonet.components.layout.LiquidSwitcherTransition
 import com.anto426.liquidmonet.glass.LiquidGlass
 import com.anto426.liquidmonet.glass.LiquidGlassBackdropPolicy
-import com.anto426.uniapp.ui.components.interactive.UniCelebration
+import com.anto426.liquidmonet.icons.LiquidIcons
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.model.updates.UpdateState
+import com.anto426.uniapp.ui.didactics.components.UniAppBrandLogo
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.RuntimeShader
 import com.kyant.backdrop.asComposeShader
@@ -95,104 +99,197 @@ fun UniAppUpdateBanner(
     statusText: String? = null,
     channel: String? = null
 ) {
-    var memorialVisible by remember { mutableStateOf(false) }
+    var isFlipped by remember { mutableStateOf(false) }
+    val rotation by animateFloatAsState(
+        targetValue = if (isFlipped) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
+        label = "updateBannerFlipRotation",
+    )
+
     val bannerContentColor = updateBannerContentColor()
     val artworkBackdrop = rememberLayerBackdrop()
-
     val cardShape = RoundedCornerShape(32.dp)
 
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
-            .height(580.dp),
+            .height(580.dp)
+            .graphicsLayer {
+                rotationY = rotation
+                cameraDistance = 14f * density
+            },
         backdropState = backdropState,
         shape = cardShape,
         contentPadding = 0.dp,
         containerColor = Color.Transparent,
-        onClick = onClick,
-        interactiveGelatin = onClick != null
+        interactiveGelatin = false,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(cardShape)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = { isFlipped = !isFlipped },
+                        onTap = { onClick?.invoke() }
+                    )
+                }
         ) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .layerBackdrop(artworkBackdrop)
             ) {
-                UniAppAgslBackground(alpha = 0.98f, onLongPress = { memorialVisible = true })
+                UniAppAgslBackground(alpha = 0.98f)
             }
 
             UpdateBannerBubbles(artworkBackdrop)
 
-            LiquidAnimatedSwitcher(
-                targetState = state,
-                modifier = Modifier.fillMaxSize(),
-                transition = LiquidSwitcherTransition.LiquidMorph,
-                isForward = { initialState, targetState ->
-                    targetState.ordinal >= initialState.ordinal
-                },
-                label = "UpdateBannerContent"
-            ) { currentState ->
-                when (currentState) {
-                    UpdateState.CHECKING -> CheckingContent()
-                    UpdateState.UP_TO_DATE -> UpToDateContent(
-                        version = version,
-                        title = title,
-                        subtitle = subtitle,
-                        statusText = statusText ?: "Versione aggiornata"
-                    )
-                    UpdateState.AVAILABLE -> AvailableContent(
-                        version = version,
-                        title = title,
-                        subtitle = statusText ?: "Nuovo aggiornamento disponibile",
-                        backdropState = backdropState,
-                        onDownload = onDownload
-                    )
-                    UpdateState.DOWNLOADING -> DownloadingContent(
-                        version = version,
-                        progress = progress,
-                        downloadedMb = downloadedMb,
-                        totalMb = totalMb,
-                        backdropState = backdropState
-                    )
-                    UpdateState.VERIFYING -> VerifyingContent()
-                    UpdateState.INSTALLING -> InstallingContent(
-                        progress = progress,
-                        backdropState = backdropState
-                    )
-                    UpdateState.RESTART_REQUIRED -> RestartContent(
-                        onRestart = onRestart,
-                        backdropState = backdropState
-                    )
-                    UpdateState.ERROR -> ErrorContent(
-                        onRetry = onRetry,
-                        backdropState = backdropState
-                    )
+            if (rotation <= 90f) {
+                UpdateBannerFrontFace(
+                    state = state,
+                    version = version,
+                    title = title,
+                    subtitle = subtitle,
+                    statusText = statusText,
+                    channel = channel,
+                    progress = progress,
+                    downloadedMb = downloadedMb,
+                    totalMb = totalMb,
+                    backdropState = backdropState,
+                    bannerContentColor = bannerContentColor,
+                    onDownload = onDownload,
+                    onRestart = onRestart,
+                    onRetry = onRetry,
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { rotationY = 180f },
+                ) {
+                    UpdateBannerNeverSettleBackFace()
                 }
             }
+        }
+    }
+}
 
-            channel?.takeIf { it.isNotBlank() }?.let { selectedChannel ->
-                Text(
-                    text = "CANALE ${selectedChannel.uppercase()}",
-                    color = bannerContentColor.copy(alpha = 0.72f),
-                    style = MaterialTheme.typography.labelSmall,
-                    letterSpacing = 1.2.sp,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(18.dp)
+@Composable
+private fun UpdateBannerFrontFace(
+    state: UpdateState,
+    version: String,
+    title: String,
+    subtitle: String,
+    statusText: String?,
+    channel: String?,
+    progress: Float,
+    downloadedMb: Float,
+    totalMb: Float,
+    backdropState: Backdrop,
+    bannerContentColor: Color,
+    onDownload: () -> Unit,
+    onRestart: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LiquidAnimatedSwitcher(
+            targetState = state,
+            modifier = Modifier.fillMaxSize(),
+            transition = LiquidSwitcherTransition.LiquidMorph,
+            isForward = { initialState, targetState ->
+                targetState.ordinal >= initialState.ordinal
+            },
+            label = "UpdateBannerContent"
+        ) { currentState ->
+            when (currentState) {
+                UpdateState.CHECKING -> CheckingContent()
+                UpdateState.UP_TO_DATE -> UpToDateContent(
+                    version = version,
+                    title = title,
+                    subtitle = subtitle,
+                    statusText = statusText ?: stringResource(Res.string.ui_updated_version)
+                )
+                UpdateState.AVAILABLE -> AvailableContent(
+                    version = version,
+                    title = title,
+                    subtitle = statusText ?: stringResource(Res.string.ui_update_new_available),
+                    backdropState = backdropState,
+                    onDownload = onDownload
+                )
+                UpdateState.DOWNLOADING -> DownloadingContent(
+                    version = version,
+                    progress = progress,
+                    downloadedMb = downloadedMb,
+                    totalMb = totalMb,
+                    backdropState = backdropState
+                )
+                UpdateState.VERIFYING -> VerifyingContent()
+                UpdateState.INSTALLING -> InstallingContent(
+                    progress = progress,
+                    backdropState = backdropState
+                )
+                UpdateState.RESTART_REQUIRED -> RestartContent(
+                    onRestart = onRestart,
+                    backdropState = backdropState
+                )
+                UpdateState.ERROR -> ErrorContent(
+                    onRetry = onRetry,
+                    backdropState = backdropState
                 )
             }
+        }
 
-            AnimatedVisibility(
-                visible = memorialVisible,
-                enter = fadeIn(animationSpec = tween(800)),
-                exit = fadeOut(animationSpec = tween(500))
-            ) {
-                UniCelebration(onClose = { memorialVisible = false })
-            }
+        channel?.takeIf { it.isNotBlank() }?.let { selectedChannel ->
+            Text(
+                text = "CANALE ${selectedChannel.uppercase()}",
+                color = bannerContentColor.copy(alpha = 0.72f),
+                style = MaterialTheme.typography.labelSmall,
+                letterSpacing = 1.2.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(18.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Back face of the 180-degree flipped Update Card with ONLY the iconic "NEVER SETTLE" centrally displayed.
+ */
+@Composable
+private fun UpdateBannerNeverSettleBackFace() {
+    val scheme = MaterialTheme.colorScheme
+    val palette = updateBannerPalette()
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = "NEVER",
+                fontSize = 54.sp,
+                lineHeight = 56.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 7.sp,
+                color = scheme.onSurface,
+            )
+            Text(
+                text = "SETTLE",
+                fontSize = 54.sp,
+                lineHeight = 56.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 7.sp,
+                color = palette.warm,
+            )
         }
     }
 }
@@ -323,7 +420,6 @@ half4 main(float2 p) {
 @Composable
 private fun UniAppAgslBackground(
     alpha: Float = 1f,
-    onLongPress: (() -> Unit)?
 ) {
     val palette = updateBannerPalette()
     val baseColor = updateBannerBaseColor()
@@ -353,13 +449,6 @@ private fun UniAppAgslBackground(
         modifier = Modifier
             .fillMaxSize()
             .alpha(alpha)
-            .then(
-                onLongPress?.let { callback ->
-                    Modifier.pointerInput(callback) {
-                        detectTapGestures(onLongPress = { callback() })
-                    }
-                } ?: Modifier
-            )
     ) {
         val shaderDrawn = shader?.let { runtimeShader ->
             try {
@@ -429,7 +518,7 @@ private fun AvailableContent(
             )
             Spacer(modifier = Modifier.height(24.dp))
             LiquidButton(
-                text = "Scarica",
+                text = stringResource(Res.string.ui_update_download),
                 onClick = onDownload,
                 variant = LiquidButtonVariant.Glass,
                 backdropState = backdropState,
@@ -465,10 +554,10 @@ private fun CheckingContent() {
             )
         }
         Spacer(modifier = Modifier.height(32.dp))
-        Text(text = "Ricerca aggiornamenti", color = scheme.onSurface, fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = stringResource(Res.string.ui_update_search), color = scheme.onSurface, fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "Controllo della versione più recente…",
+            text = stringResource(Res.string.ui_update_checking),
             color = scheme.onSurface.copy(alpha = 0.62f),
             fontSize = 14.sp
         )
@@ -535,7 +624,7 @@ private fun DownloadingContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VersionText(version = version, fontSize = 70)
-        Text(text = "Download in corso", color = scheme.onSurface, fontSize = 23.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = stringResource(Res.string.ui_update_downloading), color = scheme.onSurface, fontSize = 23.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(35.dp))
         LiquidLinearProgressIndicator(
             progress = progress,
@@ -556,8 +645,8 @@ private fun DownloadingContent(
 private fun VerifyingContent() {
     CenterStatus(
         symbol = "◇",
-        title = "Verifica aggiornamento",
-        description = "Controllo dell'integrità del pacchetto…"
+        title = stringResource(Res.string.ui_update_verifying),
+        description = stringResource(Res.string.ui_update_integrity)
     )
 }
 
@@ -571,9 +660,9 @@ private fun InstallingContent(
         modifier = Modifier.fillMaxSize().padding(start = 48.dp, end = 48.dp, top = 155.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Installazione", color = scheme.onSurface, fontSize = 29.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = stringResource(Res.string.ui_update_installing), color = scheme.onSurface, fontSize = 29.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "Non chiudere UniApp", color = scheme.onSurface.copy(alpha = 0.62f), fontSize = 14.sp)
+        Text(text = stringResource(Res.string.ui_update_do_not_close), color = scheme.onSurface.copy(alpha = 0.62f), fontSize = 14.sp)
         Spacer(modifier = Modifier.height(40.dp))
         LiquidLinearProgressIndicator(
             progress = progress,
@@ -594,12 +683,12 @@ private fun RestartContent(
     ) {
         Text(text = "✓", color = scheme.primary, fontSize = 62.sp)
         Spacer(modifier = Modifier.height(14.dp))
-        Text(text = "Aggiornamento pronto", color = scheme.onSurface, fontSize = 27.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = stringResource(Res.string.ui_update_ready), color = scheme.onSurface, fontSize = 27.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(9.dp))
-        Text(text = "Riavvia UniApp per completare", color = scheme.onSurface.copy(alpha = 0.62f), fontSize = 14.sp)
+        Text(text = stringResource(Res.string.ui_update_restart_info), color = scheme.onSurface.copy(alpha = 0.62f), fontSize = 14.sp)
         Spacer(modifier = Modifier.height(32.dp))
         LiquidButton(
-            text = "Riavvia",
+            text = stringResource(Res.string.ui_update_restart),
             onClick = onRestart,
             variant = LiquidButtonVariant.Glass,
             backdropState = backdropState,
@@ -620,16 +709,16 @@ private fun ErrorContent(
     ) {
         Text(text = "!", color = scheme.error, fontSize = 65.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.height(20.dp))
-        Text(text = "Impossibile aggiornare", color = scheme.onSurface, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = stringResource(Res.string.ui_update_error_title), color = scheme.onSurface, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(9.dp))
         Text(
-            text = "Controlla la connessione e riprova",
+            text = stringResource(Res.string.ui_update_error_desc),
             color = scheme.onSurface.copy(alpha = 0.60f),
             fontSize = 14.sp
         )
         Spacer(modifier = Modifier.height(30.dp))
         LiquidButton(
-            text = "Riprova",
+            text = stringResource(Res.string.ui_retry),
             onClick = onRetry,
             variant = LiquidButtonVariant.Glass,
             backdropState = backdropState,

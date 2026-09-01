@@ -15,7 +15,9 @@ import com.kyant.backdrop.Backdrop
 fun ServiceRow(items: List<ServiceData>, backdropState: Backdrop, onNavigate: (String) -> Unit) {
     Row(Modifier.fillMaxWidth().graphicsLayer(clip = false), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items.forEach { item ->
-            ServiceItem(item, backdropState, Modifier.weight(1f)) { onNavigate(item.title) }
+            ServiceItem(item, backdropState, Modifier.weight(1f)) {
+                onNavigate(item.id.ifBlank { item.title })
+            }
         }
         if (items.size == 1) Spacer(Modifier.weight(1f))
     }

@@ -7,5 +7,4 @@ data class AppShellUiState(
     val searchQuery: String = "",
     val isSearchActive: Boolean = false,
     val isNavigationBarVisible: Boolean = true,
-    val isDisconnectAllDialogVisible: Boolean = false,
 )

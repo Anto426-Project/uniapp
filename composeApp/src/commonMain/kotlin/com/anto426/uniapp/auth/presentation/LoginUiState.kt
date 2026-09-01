@@ -7,7 +7,6 @@ data class LoginUiState(
     val password: String = "",
     val rememberCredentials: Boolean = true,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
     val careers: List<LoginCareerOption> = emptyList(),
     val isForgotPasswordDialogVisible: Boolean = false,
 )

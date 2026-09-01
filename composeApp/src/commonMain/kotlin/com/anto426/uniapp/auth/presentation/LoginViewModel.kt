@@ -3,6 +3,10 @@ package com.anto426.uniapp.auth.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountCredentials
+import com.anto426.uniapp.feedback.runtime.AppToastSink
+import com.anto426.uniapp.feedback.runtime.error
+import com.anto426.uniapp.feedback.runtime.success
+import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.uniapp.session.AppSessionController
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.unisdk.backend.model.LoginCareerOption
@@ -14,8 +18,10 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val sessionController: AppSessionController,
+    private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(LoginUiState())
+    private var reauthenticationAccountId: String? = null
     val uiState: StateFlow<LoginUiState> = mutableUiState.asStateFlow()
 
     init {
@@ -25,11 +31,11 @@ class LoginViewModel(
     }
 
     fun updateUsername(value: String) {
-        mutableUiState.update { it.copy(username = value, errorMessage = null) }
+        mutableUiState.update { it.copy(username = value) }
     }
 
     fun updatePassword(value: String) {
-        mutableUiState.update { it.copy(password = value, errorMessage = null) }
+        mutableUiState.update { it.copy(password = value) }
     }
 
     fun updateRememberCredentials(value: Boolean) {
@@ -59,15 +65,14 @@ class LoginViewModel(
     private fun authenticate(career: LoginCareerOption?) {
         val state = mutableUiState.value
         if (state.username.isBlank() || state.password.isBlank()) {
-            mutableUiState.update {
-                it.copy(errorMessage = "Inserisci sia il nome utente che la password.")
-            }
+            toastSink.warning("Inserisci sia il nome utente che la password.")
             return
         }
         viewModelScope.launch {
             sessionController.authenticate(
                 credentials = UniAccountCredentials(state.username, state.password),
                 selectedCareer = career,
+                preferredAccountId = reauthenticationAccountId,
             )
         }
     }
@@ -76,7 +81,8 @@ class LoginViewModel(
         mutableUiState.update { current ->
             when (sessionState) {
                 AppSessionState.Initializing -> current.copy(isLoading = true)
-                AppSessionState.Authenticating -> current.copy(isLoading = true, errorMessage = null)
+                is AppSessionState.UnlockRequired -> current.copy(isLoading = false)
+                AppSessionState.Authenticating -> current.copy(isLoading = true)
                 is AppSessionState.CareerSelectionRequired ->
                     current.copy(isLoading = false, careers = sessionState.careers)
 
@@ -84,23 +90,26 @@ class LoginViewModel(
                     current.copy(
                         isLoading = false,
                         careers = emptyList(),
-                        errorMessage = sessionState.message,
-                    )
+                    ).also { sessionState.message?.takeIf(String::isNotBlank)?.let(toastSink::error) }
 
                 is AppSessionState.ReauthenticationRequired ->
                     current.copy(
                         isLoading = false,
                         careers = emptyList(),
-                        errorMessage = sessionState.message,
-                    )
+                    ).also {
+                        reauthenticationAccountId = sessionState.account.accountId
+                        sessionState.message?.takeIf(String::isNotBlank)?.let(toastSink::error)
+                    }
 
                 is AppSessionState.Authenticated ->
                     current.copy(
                         password = "",
                         isLoading = false,
                         careers = emptyList(),
-                        errorMessage = null,
-                    )
+                    ).also {
+                        reauthenticationAccountId = null
+                        toastSink.success("Accesso effettuato.")
+                    }
             }
         }
     }

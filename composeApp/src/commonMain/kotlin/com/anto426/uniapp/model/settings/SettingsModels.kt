@@ -8,6 +8,7 @@ data class DeviceInfo(
     val name: String,
     val location: String,
     val lastSeen: String,
+    val appVersion: String? = null,
     val type: DeviceType,
     val isCurrent: Boolean,
     val id: String = "",

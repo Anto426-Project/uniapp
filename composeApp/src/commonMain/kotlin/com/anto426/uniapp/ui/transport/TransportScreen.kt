@@ -19,6 +19,9 @@ import com.anto426.uniapp.ui.components.items.TransportReservationItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 @Composable
 fun TransportScreen(
     backdropState: Backdrop,
@@ -33,7 +36,7 @@ fun TransportScreen(
                 interactiveGelatin = false
             ) {
                 Text(
-                    text = "Non hai viaggi prenotati per i prossimi giorni.",
+                    text = stringResource(Res.string.ui_transport_empty_reservations),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

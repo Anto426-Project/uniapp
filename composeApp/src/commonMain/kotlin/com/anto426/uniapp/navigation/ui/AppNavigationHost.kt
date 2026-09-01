@@ -35,7 +35,6 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.navigationevent.NavigationEvent.Companion.EDGE_RIGHT
 import com.anto426.liquidmonet.components.buttons.LiquidButton
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.LiquidFloatingActionButton
@@ -47,13 +46,14 @@ import com.anto426.liquidmonet.components.navigation.LiquidTopBarAction
 import com.anto426.liquidmonet.glass.LiquidBackground
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
 import com.anto426.liquidmonet.glass.LiquidGlassScene
-import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.motion.liquidFadeThrough
-import com.anto426.liquidmonet.motion.liquidPredictiveBackHorizontal
-import com.anto426.liquidmonet.motion.liquidSharedAxisHorizontal
 import com.anto426.liquidmonet.theme.monet.LiquidMonetPresets
+import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.app.runtime.UniAppRuntime
+import com.anto426.uniapp.feedback.runtime.AppToastHost
+import com.anto426.uniapp.feedback.runtime.AppToastManager
+import com.anto426.uniapp.feedback.runtime.info
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.appTopLevelRoutes
 import com.anto426.uniapp.navigation.model.isTopLevel
@@ -63,9 +63,18 @@ import com.anto426.uniapp.navigation.runtime.AppNavigator
 import com.anto426.uniapp.navigation.runtime.rememberAppNavigationState
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.session.presentation.AppSessionViewModel
+import com.anto426.uniapp.security.biometric.BiometricAuthenticator
+import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
+import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
+import com.anto426.unisdk.backend.model.BackendCareerType
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.Res
+import uniapp.composeapp.generated.resources.ui_home_switch_career
+import uniapp.composeapp.generated.resources.ui_professor_role
+import uniapp.composeapp.generated.resources.ui_student_role
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,33 +82,58 @@ internal fun AppNavigationHost(
     runtime: UniAppRuntime,
     sessionViewModel: AppSessionViewModel,
     sessionState: AppSessionState,
+    biometricAuthenticator: BiometricAuthenticator,
 ) {
     val navigationState = rememberAppNavigationState(sessionState)
     val navigator = navigationState.navigator
+    val toastManager = remember { AppToastManager() }
+    val topBarAccountSwitcherViewModel =
+        viewModel(key = "top-bar-profile-switcher") {
+            AccountSwitcherViewModel(runtime.sessionController, toastManager)
+        }
+    val unlockUiState by sessionViewModel.unlockUiState.collectAsStateWithLifecycle()
     val shellViewModel = viewModel { AppShellViewModel() }
     val shellUiState by shellViewModel.uiState.collectAsStateWithLifecycle()
-    val updateViewModel = viewModel { AppUpdateViewModel(runtime.updateController) }
+    val authenticatedAccount = (sessionState as? AppSessionState.Authenticated)?.account
+    val accountId = authenticatedAccount?.accountId.orEmpty()
+    val profileId = authenticatedAccount?.activeProfileId
+    val accountDataSource =
+        remember(runtime, accountId, profileId) {
+            accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
+                ?: runtime.dataSource
+        }
+    val deviceSessionsViewModel =
+        viewModel(key = "device-sessions-actions|$accountId") {
+            DeviceSessionsActionViewModel(accountDataSource, toastManager)
+        }
+    val deviceSessionsUiState by deviceSessionsViewModel.uiState.collectAsStateWithLifecycle()
+    val updateViewModel = viewModel { AppUpdateViewModel(runtime.updateController, toastManager) }
     val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
     val navigationRoute = navigator.currentRoute
     val isMandatoryUpdate = updateUiState.isMandatory
     val route = if (isMandatoryUpdate) AppRoute.Updates else navigationRoute
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val liquidPerformance = LocalLiquidGlassPerformance.current
     val isAuthenticated = sessionState is AppSessionState.Authenticated
+    val isProfessor = authenticatedAccount?.isProfessor == true
     val showTopBar = route != AppRoute.Bootstrap && route != AppRoute.Login
     val showBottomBar =
         isAuthenticated && !isMandatoryUpdate && route != AppRoute.Bootstrap && route != AppRoute.Login
     var topBarHeight by remember { mutableStateOf(152.dp) }
     val topLevelRoutes = appTopLevelRoutes
     val topLevelNavigationItems =
-        remember {
+        remember(isProfessor) {
             topLevelRoutes.map { item ->
-                val presentation = item.presentation()
+                val presentation = item.presentation(isProfessor)
                 LiquidNavigationItem(label = presentation.title, icon = presentation.icon)
             }
         }
 
     LaunchedEffect(sessionState) { navigator.reconcile() }
+    LaunchedEffect((sessionState as? AppSessionState.UnlockRequired)?.account?.accountId) {
+        if (sessionState is AppSessionState.UnlockRequired) {
+            sessionViewModel.requestUnlock(biometricAuthenticator)
+        }
+    }
     LaunchedEffect(route) {
         shellViewModel.routeChanged(route)
         scrollBehavior.state.heightOffset = 0f
@@ -132,7 +166,7 @@ internal fun AppNavigationHost(
         },
         topBar = { backdrop ->
             if (showTopBar) {
-                val presentation = route.presentation()
+                val presentation = route.presentation(isProfessor)
                 LiquidTopBar(
                     title = presentation.title,
                     subtitle = presentation.subtitle,
@@ -146,14 +180,24 @@ internal fun AppNavigationHost(
                     onSearchActiveChange = shellViewModel::setSearchActive,
                     searchPlaceholder = "Cerca...",
                     onHeightChanged = { topBarHeight = it },
-                    actionItems = topBarActions(route, navigator, shellViewModel, updateViewModel::refresh),
+                    actionItems = topBarActions(
+                        route = route,
+                        isProfessor = isProfessor,
+                        navigator = navigator,
+                        shellViewModel = shellViewModel,
+                        onRefreshUpdate = updateViewModel::refresh,
+                        onRequestDisconnectAll = deviceSessionsViewModel::requestDisconnectAll,
+                        account = authenticatedAccount,
+                        onSelectProfile = topBarAccountSwitcherViewModel::selectProfile,
+                    ),
                 )
             }
         },
         bottomBar = { backdrop ->
             if (showBottomBar) {
                 Box(Modifier.fillMaxWidth().align(Alignment.BottomCenter)) {
-                    val selectedIndex = topLevelRoutes.indexOf(route.topLevelParent()).coerceAtLeast(0)
+                    val selectedRoot = navigator.currentTopLevelRoute ?: route.topLevelParent()
+                    val selectedIndex = topLevelRoutes.indexOf(selectedRoot).coerceAtLeast(0)
                     LiquidNavigationBar(
                         selectedIndex = selectedIndex,
                         onItemSelected = { navigator.selectTopLevel(topLevelRoutes[it]) },
@@ -176,18 +220,13 @@ internal fun AppNavigationHost(
                         Icon(LiquidIcons.Add, contentDescription = null, tint = Color.White)
                     }
 
-                AppRoute.TransportBooking ->
-                    LiquidFloatingActionButton(
-                        onClick = { navigator.goBack() },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 112.dp),
-                        visible = shellUiState.isNavigationBarVisible,
-                        backdropState = backdrop,
-                    ) {
-                        Icon(LiquidIcons.Check, contentDescription = null, tint = Color.White)
-                    }
-
                 else -> Unit
             }
+            AppToastHost(
+                manager = toastManager,
+                modifier = Modifier.fillMaxSize(),
+                backdropState = backdrop,
+            )
         },
     ) { backdrop ->
         Scaffold(
@@ -221,15 +260,7 @@ internal fun AppNavigationHost(
                     val entries =
                         navigationState.rememberDecoratedEntries { key ->
                             val entryRoute = key as AppRoute
-                            val transitionMetadata =
-                                if (entryRoute.isTopLevel) {
-                                    NavDisplay.transitionSpec {
-                                        liquidFadeThrough(liquidPerformance)
-                                    }
-                                } else {
-                                    emptyMap()
-                                }
-                            NavEntry(key = key, metadata = transitionMetadata) {
+                            NavEntry(key = key) {
                                 Box(Modifier.fillMaxSize().graphicsLayer(clip = false)) {
                                     if (navigator.canRender(entryRoute)) {
                                         AppRouteContent(
@@ -237,12 +268,24 @@ internal fun AppNavigationHost(
                                             backdropState = backdrop,
                                             navigator = navigator,
                                             sessionController = runtime.sessionController,
+                                            dataSource = accountDataSource,
+                                            accountId = accountId,
                                             searchQuery = shellUiState.searchQuery,
                                             isSearchActive = shellUiState.isSearchActive,
                                             updateUiState = updateUiState,
+                                            toastSink = toastManager,
+                                            biometricAuthenticator = biometricAuthenticator,
+                                            sessionState = sessionState,
+                                            unlockUiState = unlockUiState,
+                                            onRequestUnlock = { sessionViewModel.requestUnlock(biometricAuthenticator) },
+                                            onCancelUnlock = sessionViewModel::cancelUnlock,
+                                            devicesRefreshRevision = deviceSessionsUiState.refreshRevision,
                                             onRetryUpdate = updateViewModel::refresh,
                                             onOpenUpdate = updateViewModel::openUpdate,
-                                            onSignOut = sessionViewModel::signOut,
+                                            onSignOut = {
+                                                toastManager.info("Disconnessione in corso…")
+                                                sessionViewModel.signOut()
+                                            },
                                         )
                                     } else {
                                         LaunchedEffect(entryRoute, sessionState) { navigator.reconcile() }
@@ -255,30 +298,32 @@ internal fun AppNavigationHost(
                         entries = entries,
                         onBack = { navigator.goBack() },
                         transitionSpec = {
-                            liquidSharedAxisHorizontal(
-                                forward = true,
-                                performance = liquidPerformance,
+                            AppScreenTransitions.forward(
+                                from = initialState.key as? AppRoute,
+                                to = targetState.key as? AppRoute,
                             )
                         },
                         popTransitionSpec = {
-                            liquidSharedAxisHorizontal(
-                                forward = false,
-                                performance = liquidPerformance,
+                            AppScreenTransitions.backward(
+                                from = initialState.key as? AppRoute,
+                                to = targetState.key as? AppRoute,
                             )
                         },
-                        predictivePopTransitionSpec = { swipeEdge ->
-                            liquidPredictiveBackHorizontal(
-                                fromRightEdge = swipeEdge == EDGE_RIGHT,
-                                performance = liquidPerformance,
-                            )
+                        predictivePopTransitionSpec = {
+                            AppScreenTransitions.predictiveBack()
                         },
                     )
                 }
             }
         }
 
-        if (shellUiState.isDisconnectAllDialogVisible) {
-            DisconnectAllDialog(backdrop, shellViewModel)
+        if (deviceSessionsUiState.isConfirmationVisible) {
+            DisconnectAllDialog(
+                backdrop = backdrop,
+                state = deviceSessionsUiState,
+                onDismiss = deviceSessionsViewModel::dismissConfirmation,
+                onConfirm = deviceSessionsViewModel::confirmDisconnectAll,
+            )
         }
     }
 }
@@ -310,17 +355,20 @@ private fun com.anto426.uniapp.navigation.runtime.AppNavigationState.rememberDec
 @Composable
 private fun DisconnectAllDialog(
     backdrop: com.kyant.backdrop.Backdrop,
-    shellViewModel: AppShellViewModel,
+    state: DeviceSessionsActionUiState,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
 ) {
     LiquidDialog(
-        onDismissRequest = shellViewModel::dismissDisconnectAllDialog,
+        onDismissRequest = onDismiss,
         title = "Disconnetti tutti",
         text = "Confermi la chiusura delle altre sessioni attive?",
         backdropState = backdrop,
         confirmButton = {
             LiquidButton(
                 text = "Disconnetti",
-                onClick = shellViewModel::dismissDisconnectAllDialog,
+                onClick = onConfirm,
+                enabled = !state.isDisconnecting,
                 variant = LiquidButtonVariant.Primary,
                 backdropState = backdrop,
                 modifier = Modifier.fillMaxWidth(),
@@ -329,7 +377,8 @@ private fun DisconnectAllDialog(
         dismissButton = {
             LiquidButton(
                 text = "Annulla",
-                onClick = shellViewModel::dismissDisconnectAllDialog,
+                onClick = onDismiss,
+                enabled = !state.isDisconnecting,
                 variant = LiquidButtonVariant.Text,
                 backdropState = backdrop,
                 modifier = Modifier.fillMaxWidth(),
@@ -338,14 +387,23 @@ private fun DisconnectAllDialog(
     )
 }
 
+@Composable
 private fun topBarActions(
     route: AppRoute,
+    isProfessor: Boolean,
     navigator: AppNavigator,
     shellViewModel: AppShellViewModel,
     onRefreshUpdate: () -> Unit,
+    onRequestDisconnectAll: () -> Unit,
+    account: UniAccountSummary?,
+    onSelectProfile: (String) -> Unit,
 ): List<LiquidTopBarAction> =
     when (route) {
-        AppRoute.Contacts ->
+        AppRoute.Contacts,
+        AppRoute.Teachings,
+        AppRoute.Theses,
+        AppRoute.Reports,
+        ->
             listOf(
                 LiquidTopBarAction(
                     icon = LiquidIcons.Search,
@@ -364,6 +422,9 @@ private fun topBarActions(
             )
 
         AppRoute.Exams ->
+            if (isProfessor) {
+                emptyList()
+            } else {
             listOf(
                 LiquidTopBarAction(
                     icon = LiquidIcons.Time,
@@ -371,35 +432,51 @@ private fun topBarActions(
                     onClick = { navigator.navigate(AppRoute.ExamsHistory) },
                 ),
             )
+            }
 
         AppRoute.Devices ->
             listOf(
                 LiquidTopBarAction(
                     icon = LiquidIcons.Close,
                     label = "Disconnetti tutti",
-                    onClick = shellViewModel::showDisconnectAllDialog,
+                    onClick = onRequestDisconnectAll,
                 ),
             )
 
         AppRoute.Transport -> emptyList()
 
-        AppRoute.Home,
-        AppRoute.Services,
-        AppRoute.Didactics,
-        AppRoute.Settings,
-        ->
-            listOf(
-                LiquidTopBarAction(
-                    icon = LiquidIcons.Notifications,
-                    label = "Avvisi",
-                    onClick = { navigator.navigate(AppRoute.News) },
-                ),
-                LiquidTopBarAction(
-                    icon = LiquidIcons.Settings,
-                    label = "Impostazioni",
-                    onClick = { navigator.selectTopLevel(AppRoute.Settings) },
-                ),
-            )
+        AppRoute.Home ->
+            account
+                ?.profiles
+                ?.distinctBy { it.profileId }
+                ?.takeIf { it.size > 1 }
+                ?.let { profiles ->
+                    listOf(
+                        LiquidTopBarAction(
+                            icon = LiquidIcons.AccountCircle,
+                            label = stringResource(Res.string.ui_home_switch_career),
+                            subItems =
+                                profiles.map { profile ->
+                                    val role =
+                                        stringResource(
+                                            if (profile.type == BackendCareerType.PROFESSOR) {
+                                                Res.string.ui_professor_role
+                                            } else {
+                                                Res.string.ui_student_role
+                                            },
+                                        )
+                                    val profileName = profile.degreeName.ifBlank { profile.displayName }
+                                    LiquidTopBarAction(
+                                        icon = LiquidIcons.AccountCircle,
+                                        label = "$role · $profileName",
+                                        selected = profile.profileId == account.activeProfileId,
+                                        onClick = { onSelectProfile(profile.profileId) },
+                                    )
+                                },
+                        ),
+                    )
+                }
+                .orEmpty()
 
         else -> emptyList()
     }

@@ -8,6 +8,8 @@ import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.unisdk.session.UniSessionTicket
 import com.anto426.unisdk.session.UniUserProfile
+import com.anto426.unisdk.session.UniCareerProfile
+import com.anto426.unisdk.backend.model.BackendCareerType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.runTest
@@ -18,6 +20,104 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class UniAccountStoreTest {
+    @Test
+    fun multipleCareersRemainProfilesOfOneServerIdentity() = runTest {
+        val store = createStore(listOf("installation-id", "account-id"))
+        val first =
+            profile("same-user").copy(
+                matricola = "student-a",
+                activeProfileId = "career-a",
+                profiles =
+                    listOf(
+                        UniCareerProfile(
+                            profileId = "career-a",
+                            displayName = "Student same-user",
+                            degreeName = "Informatica",
+                            matricola = "student-a",
+                        ),
+                    ),
+            )
+        val second =
+            profile("same-user").copy(
+                degreeName = "Docenza",
+                matricola = null,
+                activeProfileId = "professor-a",
+                activeProfileType = BackendCareerType.PROFESSOR,
+                profiles =
+                    listOf(
+                        UniCareerProfile(
+                            profileId = "professor-a",
+                            displayName = "Professor same-user",
+                            degreeName = "Docenza",
+                            teacherId = "teacher-a",
+                            type = BackendCareerType.PROFESSOR,
+                        ),
+                    ),
+            )
+
+        val firstAccount =
+            store.persistAuthenticatedAccount(
+                UniAccountCredentials("identity", "secret"),
+                first,
+                UniSessionTicket.restore(byteArrayOf(1)),
+            )
+        val secondAccount =
+            store.persistAuthenticatedAccount(
+                UniAccountCredentials("identity", "secret"),
+                second,
+                UniSessionTicket.restore(byteArrayOf(2)),
+            )
+
+        val accounts = store.snapshot().accounts
+        assertEquals(firstAccount.accountId, secondAccount.accountId)
+        assertEquals(1, accounts.size)
+        assertEquals(setOf("career-a", "professor-a"), accounts.single().profiles.map { it.profileId }.toSet())
+        assertEquals(BackendCareerType.PROFESSOR, accounts.single().activeProfileType)
+    }
+
+    @Test
+    fun staleAliasesOfTheSameCareerAreCollapsed() = runTest {
+        val store = createStore(listOf("installation-id", "account-id"))
+        val oldProfile =
+            UniCareerProfile(
+                profileId = "legacy-degree-key",
+                displayName = "Mario Rossi",
+                degreeName = "Informatica",
+                matricola = "12345",
+                cdsId = "10",
+            )
+        val currentProfile =
+            oldProfile.copy(
+                profileId = "12345|77|10",
+                matId = "77",
+                stuId = "20",
+            )
+
+        store.persistAuthenticatedAccount(
+            credentials = UniAccountCredentials("identity", "secret"),
+            profile =
+                profile("same-user").copy(
+                    activeProfileId = oldProfile.profileId,
+                    profiles = listOf(oldProfile),
+                ),
+            ticket = UniSessionTicket.restore(byteArrayOf(1)),
+        )
+        store.persistAuthenticatedAccount(
+            credentials = UniAccountCredentials("identity", "secret"),
+            profile =
+                profile("same-user").copy(
+                    activeProfileId = currentProfile.profileId,
+                    profiles = listOf(currentProfile),
+                ),
+            ticket = UniSessionTicket.restore(byteArrayOf(2)),
+        )
+
+        val account = store.snapshot().accounts.single()
+        assertEquals(currentProfile.profileId, account.activeProfileId)
+        assertEquals(listOf(currentProfile.profileId), account.profiles.map { it.profileId })
+        assertEquals("77", account.profiles.single().matId)
+    }
+
     @Test
     fun registryOwnsStableInstallationAndActiveAccount() = runTest {
         val store = createStore(listOf("installation-id", "account-id"))
@@ -102,6 +202,32 @@ class UniAccountStoreTest {
         store.withCredentials("account-id") {
             assertEquals("UniCredentials([REDACTED])", it.toString())
         }
+    }
+
+    @Test
+    fun cachedTransportTicketIsIsolatedAndDestroyedWithItsAccount() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val store = createStore(listOf("installation-id", "account-a", "account-b"), factory)
+        store.persistAuthenticatedAccount(
+            credentials = UniAccountCredentials("first", "first-secret"),
+            profile = profile("first-user"),
+            ticket = UniSessionTicket.restore(byteArrayOf(1)),
+        )
+        store.persistAuthenticatedAccount(
+            credentials = UniAccountCredentials("second", "second-secret"),
+            profile = profile("second-user"),
+            ticket = UniSessionTicket.restore(byteArrayOf(2)),
+        )
+        val cachedTicket = "ticket-url-and-qr".encodeToByteArray()
+        store.writeCachedData("account-a", "transport", cachedTicket)
+
+        assertContentEquals(cachedTicket, store.readCachedData("account-a", "transport"))
+        assertNull(store.readCachedData("account-b", "transport"))
+
+        store.forgetAccount("account-a")
+
+        assertFalse(factory.open("test.vault.account-a").contains("cache.v1.transport"))
+        assertEquals("second", factory.open("test.vault.account-b").getString("credentials.username"))
     }
 
     private fun createStore(

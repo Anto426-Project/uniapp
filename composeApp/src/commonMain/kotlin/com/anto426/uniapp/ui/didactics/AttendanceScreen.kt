@@ -23,7 +23,6 @@ import com.anto426.liquidmonet.components.display.LiquidSectionHeader
 import com.anto426.uniapp.didactics.presentation.AttendanceUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.items.AttendanceItem
-import com.anto426.uniapp.ui.data.UiCopy
 import com.kyant.backdrop.Backdrop
 
 @Composable
@@ -67,8 +66,7 @@ fun AttendanceScreen(backdropState: Backdrop, uiState: AttendanceUiState) {
                         backdropState = backdropState,
                         shape = RoundedCornerShape(18.dp),
                         contentPadding = 10.dp,
-                        onClick = {}, // Interactive icon area
-                        interactiveGelatin = true,
+                        interactiveGelatin = false,
                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     ) {
                         // Decorative QR-like pattern

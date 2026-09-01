@@ -17,6 +17,9 @@ import com.anto426.uniapp.ui.components.items.StudyCourseItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 @Composable
 fun StudyPlanScreen(
     backdropState: Backdrop,
@@ -24,18 +27,15 @@ fun StudyPlanScreen(
     onYearSelected: (Int) -> Unit,
     onCourseClick: (StudyCourse) -> Unit = {}
 ) {
-    val tabs = listOf(
-        LiquidNavigationItem(label = "Tutti"),
-        LiquidNavigationItem(label = "1° Anno"),
-        LiquidNavigationItem(label = "2° Anno"),
-        LiquidNavigationItem(label = "3° Anno")
-    )
+    val tabs =
+        listOf(LiquidNavigationItem(label = stringResource(Res.string.ui_home_news_all))) +
+            uiState.years.map { year -> LiquidNavigationItem(label = year.yearName) }
 
     UniScreenColumn {
         // 1. Year Tab Selector
         LiquidTabBar(
             items = tabs,
-            selectedIndex = uiState.selectedYear,
+            selectedIndex = uiState.selectedYearIndex.coerceIn(0, tabs.lastIndex.coerceAtLeast(0)),
             onTabSelected = onYearSelected,
             backdropState = backdropState,
         )
@@ -49,7 +49,7 @@ fun StudyPlanScreen(
 
             LiquidSectionHeader(
                 title = yearGroup.yearName,
-                subtitle = "$totalYearCfu CFU totali • $completedCount/${yearGroup.courses.size} superati",
+                subtitle = stringResource(Res.string.ui_study_plan_year_summary, totalYearCfu, completedCount, yearGroup.courses.size),
             )
 
             Column(

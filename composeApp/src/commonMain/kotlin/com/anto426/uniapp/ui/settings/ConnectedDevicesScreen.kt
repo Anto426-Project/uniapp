@@ -65,6 +65,8 @@ fun ConnectedDevicesScreen(
                     text = stringResource(Res.string.ui_revoke),
                     onClick = onConfirmRevocation,
                     variant = LiquidButtonVariant.Primary,
+                    isLoading = uiState.isMutating,
+                    enabled = !uiState.isMutating,
                     backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -74,6 +76,7 @@ fun ConnectedDevicesScreen(
                     text = stringResource(Res.string.ui_cancel),
                     onClick = onDismissRevocation,
                     variant = LiquidButtonVariant.Text,
+                    enabled = !uiState.isMutating,
                     backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth()
                 )

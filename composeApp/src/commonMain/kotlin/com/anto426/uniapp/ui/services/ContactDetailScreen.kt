@@ -94,26 +94,30 @@ fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_department_label), backdropState = backdropState) {
             if (contact.department.isNotBlank()) {
                 LiquidPreferenceItem(
-                    title = "Dipartimento",
+                    title = stringResource(Res.string.ui_department_label),
                     subtitle = contact.department,
                     icon = LiquidIcons.Info,
                     backdropState = backdropState
                 )
                 LiquidHorizontalDivider()
             }
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_office),
-                subtitle = contact.office.ifBlank { stringResource(Res.string.ui_office_default) },
-                icon = LiquidIcons.Home,
-                backdropState = backdropState
-            )
-            LiquidHorizontalDivider()
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_office_hours),
-                subtitle = contact.officeHours.ifBlank { stringResource(Res.string.ui_office_hours_default) },
-                icon = LiquidIcons.Time,
-                backdropState = backdropState
-            )
+            if (contact.office.isNotBlank()) {
+                LiquidPreferenceItem(
+                    title = stringResource(Res.string.ui_office),
+                    subtitle = contact.office,
+                    icon = LiquidIcons.Home,
+                    backdropState = backdropState
+                )
+                LiquidHorizontalDivider()
+            }
+            if (contact.officeHours.isNotBlank()) {
+                LiquidPreferenceItem(
+                    title = stringResource(Res.string.ui_office_hours),
+                    subtitle = contact.officeHours,
+                    icon = LiquidIcons.Time,
+                    backdropState = backdropState
+                )
+            }
         }
     }
 }

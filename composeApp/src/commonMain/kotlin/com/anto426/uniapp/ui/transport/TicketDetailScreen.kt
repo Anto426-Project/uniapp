@@ -31,7 +31,7 @@ import com.anto426.uniapp.model.transport.TransportTicket
 import com.kyant.backdrop.Backdrop
 
 @Composable
-fun TicketDetailScreen(ticket: TransportTicket, backdropState: Backdrop) {
+fun TicketDetailScreen(ticket: TransportTicket, backdropState: Backdrop, onBook: () -> Unit) {
     val colorScheme = MaterialTheme.colorScheme
 
     UniScreenColumn {
@@ -132,7 +132,7 @@ fun TicketDetailScreen(ticket: TransportTicket, backdropState: Backdrop) {
         }
 
         // 3. Information Group
-        LiquidPreferenceGroup(title = "Dettagli", backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_details), backdropState = backdropState) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_transport_price),
                 subtitle = ticket.price,
@@ -153,7 +153,7 @@ fun TicketDetailScreen(ticket: TransportTicket, backdropState: Backdrop) {
         // 4. Action Button
         LiquidButton(
             text = stringResource(Res.string.ui_transport_buy),
-            onClick = { /* Buy logic */ },
+            onClick = onBook,
             modifier = Modifier.fillMaxWidth(),
             variant = LiquidButtonVariant.Primary,
             backdropState = backdropState

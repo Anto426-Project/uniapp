@@ -3,6 +3,10 @@ package com.anto426.uniapp.updates.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.model.updates.UpdateState
+import com.anto426.uniapp.feedback.runtime.AppToastSink
+import com.anto426.uniapp.feedback.runtime.error
+import com.anto426.uniapp.feedback.runtime.info
+import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
 import com.anto426.uniapp.updates.runtime.AppUpdateController
@@ -19,6 +23,7 @@ data class AppUpdateUiState(
     val channel: String = "stable",
     val statusText: String? = null,
     val releaseNotes: String? = null,
+    val publishedAt: String? = null,
     val isMandatory: Boolean = false,
     val canOpenUpdate: Boolean = false,
     val errorMessage: String? = null,
@@ -26,6 +31,7 @@ data class AppUpdateUiState(
 
 internal class AppUpdateViewModel(
     private val controller: AppUpdateController,
+    private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     val uiState: StateFlow<AppUpdateUiState> =
         controller.state
@@ -37,15 +43,35 @@ internal class AppUpdateViewModel(
             )
 
     init {
-        refresh()
-    }
-
-    fun refresh() {
         viewModelScope.launch { controller.refresh() }
     }
 
+    fun refresh() {
+        viewModelScope.launch {
+            controller.refresh()
+            val state = controller.state.value
+            when (state.phase) {
+                AppUpdatePhase.UpToDate -> toastSink.success("L’app è aggiornata.")
+                AppUpdatePhase.Available -> toastSink.info(
+                    if (state.isMandatory) "Aggiornamento obbligatorio disponibile."
+                    else "È disponibile un nuovo aggiornamento.",
+                )
+                AppUpdatePhase.Failed -> toastSink.error(
+                    state.message ?: "Impossibile controllare gli aggiornamenti.",
+                )
+                AppUpdatePhase.Idle,
+                AppUpdatePhase.Checking,
+                -> Unit
+            }
+        }
+    }
+
     fun openUpdate() {
-        controller.openUpdate()
+        if (controller.openUpdate()) {
+            toastSink.info("Apertura dell’aggiornamento…")
+        } else {
+            toastSink.error("Link di aggiornamento non disponibile.")
+        }
     }
 }
 
@@ -73,6 +99,7 @@ private fun AppUpdateState.toUiState(): AppUpdateUiState {
                 else -> null
             },
         releaseNotes = info?.notes,
+        publishedAt = info?.publishedAt,
         isMandatory = isMandatory,
         canOpenUpdate = downloadUrl != null,
         errorMessage = message,

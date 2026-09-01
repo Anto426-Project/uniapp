@@ -6,6 +6,12 @@ import com.anto426.unisdk.backend.model.LoginCareerOption
 sealed interface AppSessionState {
     data object Initializing : AppSessionState
 
+    /** No SDK session has been resumed yet; device authentication must succeed first. */
+    data class UnlockRequired(
+        val account: UniAccountSummary,
+        val fallbackAccount: UniAccountSummary? = null,
+    ) : AppSessionState
+
     data class SignedOut(val message: String? = null) : AppSessionState
 
     data object Authenticating : AppSessionState

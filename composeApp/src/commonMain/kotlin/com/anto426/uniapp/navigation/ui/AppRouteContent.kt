@@ -3,26 +3,41 @@ package com.anto426.uniapp.navigation.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
+import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.auth.presentation.LoginViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsViewModel
+import com.anto426.uniapp.didactics.presentation.DidacticsDashboardViewModel
+import com.anto426.uniapp.didactics.presentation.CourseDetailViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsHistoryViewModel
 import com.anto426.uniapp.didactics.presentation.GradesViewModel
 import com.anto426.uniapp.didactics.presentation.AttendanceViewModel
 import com.anto426.uniapp.didactics.presentation.QuestionnairesViewModel
+import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailViewModel
 import com.anto426.uniapp.didactics.presentation.StatisticsViewModel
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
+import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
+import com.anto426.uniapp.didactics.presentation.AcademicSection
+import com.anto426.uniapp.didactics.presentation.AcademicSectionViewModel
+import com.anto426.uniapp.didactics.presentation.AcademicItemDetailViewModel
+import com.anto426.uniapp.didactics.presentation.academicItemKey
 import com.anto426.uniapp.didactics.presentation.TranscriptsViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.runtime.AppNavigator
 import com.anto426.uniapp.news.presentation.NewsViewModel
 import com.anto426.uniapp.services.presentation.ContactsViewModel
+import com.anto426.uniapp.services.presentation.ContactDetailViewModel
 import com.anto426.uniapp.services.presentation.ServicesViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.model.AppSessionState
+import com.anto426.uniapp.session.presentation.AppUnlockUiState
+import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesViewModel
 import com.anto426.uniapp.settings.presentation.ColorLabViewModel
 import com.anto426.uniapp.settings.presentation.LanguageViewModel
@@ -31,12 +46,15 @@ import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
 import com.anto426.uniapp.transport.presentation.TransportCatalogViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
+import com.anto426.uniapp.transport.presentation.ReservationDetailViewModel
+import com.anto426.uniapp.transport.presentation.TicketDetailViewModel
 import com.anto426.uniapp.updates.presentation.ChangelogViewModel
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import com.anto426.uniapp.ui.account.AccountSwitcherScreen
 import com.anto426.uniapp.ui.auth.LoginScreen
 import com.anto426.uniapp.ui.bootstrap.AppBootstrapScreen
 import com.anto426.uniapp.ui.data.UiInitialData
+import com.anto426.uniapp.ui.components.state.FeatureStateContent
 import com.anto426.uniapp.ui.didactics.AttendanceScreen
 import com.anto426.uniapp.ui.didactics.CourseDetailScreen
 import com.anto426.uniapp.ui.didactics.DidacticsScreen
@@ -44,14 +62,18 @@ import com.anto426.uniapp.ui.didactics.ExamsHistoryScreen
 import com.anto426.uniapp.ui.didactics.ExamsScreen
 import com.anto426.uniapp.ui.didactics.GradesScreen
 import com.anto426.uniapp.ui.didactics.QuestionnairesScreen
+import com.anto426.uniapp.ui.didactics.QuestionnaireDetailScreen
 import com.anto426.uniapp.ui.didactics.StatisticsScreen
-import com.anto426.uniapp.ui.didactics.StudentIdScreen
+import com.anto426.uniapp.ui.didactics.AcademicIdentityScreen
+import com.anto426.uniapp.ui.didactics.AcademicSectionScreen
+import com.anto426.uniapp.ui.didactics.AcademicItemDetailScreen
 import com.anto426.uniapp.ui.didactics.StudyPlanScreen
 import com.anto426.uniapp.ui.didactics.TranscriptsScreen
 import com.anto426.uniapp.ui.home.dashboard.HomeScreen
 import com.anto426.uniapp.ui.legal.CookiesScreen
 import com.anto426.uniapp.ui.legal.PrivacyScreen
 import com.anto426.uniapp.ui.legal.TermsScreen
+import com.anto426.uniapp.ui.news.NewsDetailScreen
 import com.anto426.uniapp.ui.news.NewsScreen
 import com.anto426.uniapp.ui.services.ContactDetailScreen
 import com.anto426.uniapp.ui.services.ContactsScreen
@@ -79,22 +101,46 @@ internal fun AppRouteContent(
     backdropState: Backdrop,
     navigator: AppNavigator,
     sessionController: AppSessionController,
+    dataSource: UniAppDataSource,
+    accountId: String,
     searchQuery: String,
     isSearchActive: Boolean,
     updateUiState: AppUpdateUiState,
+    toastSink: AppToastSink,
+    biometricAuthenticator: BiometricAuthenticator,
+    sessionState: AppSessionState,
+    unlockUiState: AppUnlockUiState,
+    onRequestUnlock: () -> Unit,
+    onCancelUnlock: () -> Unit,
+    devicesRefreshRevision: Int,
     onRetryUpdate: () -> Unit,
     onOpenUpdate: () -> Unit,
     onSignOut: () -> Unit,
 ) {
+    val viewModelKey = "$accountId|$route"
+    val uriHandler = LocalUriHandler.current
     when (route) {
-        AppRoute.Bootstrap -> AppBootstrapScreen(backdropState)
+        AppRoute.Bootstrap ->
+            AppBootstrapScreen(
+                backdropState = backdropState,
+                accountName = (sessionState as? AppSessionState.UnlockRequired)?.account?.displayName,
+                unlockUiState = unlockUiState,
+                onRequestUnlock = onRequestUnlock,
+                onCancelUnlock = onCancelUnlock,
+            )
 
         AppRoute.Login -> {
-            val loginViewModel = viewModel { LoginViewModel(sessionController) }
+            val loginViewModel =
+                viewModel(key = viewModelKey) { LoginViewModel(sessionController, toastSink) }
             val loginUiState by loginViewModel.uiState.collectAsStateWithLifecycle()
+            val accountViewModel =
+                viewModel(key = "${viewModelKey}_account") { AccountSwitcherViewModel(sessionController, toastSink) }
+            val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
             LoginScreen(
                 backdropState = backdropState,
                 uiState = loginUiState,
+                accountUiState = accountUiState,
+                onSelectAccount = accountViewModel::selectAccount,
                 onUsernameChange = loginViewModel::updateUsername,
                 onPasswordChange = loginViewModel::updatePassword,
                 onRememberCredentialsChange = loginViewModel::updateRememberCredentials,
@@ -109,11 +155,15 @@ internal fun AppRouteContent(
         }
 
         AppRoute.Home -> {
+            val account = (sessionState as? AppSessionState.Authenticated)?.account
             val homeViewModel =
-                viewModel {
+                viewModel(key = viewModelKey) {
                     HomeDashboardViewModel(
-                        news = UiInitialData.homeNews,
-                        quickActions = UiInitialData.allQuickActions,
+                        dataSource = dataSource,
+                        quickActions =
+                            if (account?.isProfessor == true) UiInitialData.professorQuickActions
+                            else UiInitialData.allQuickActions,
+                        account = account,
                     )
                 }
             val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -124,25 +174,33 @@ internal fun AppRouteContent(
                 onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
                 onOpenExams = { navigator.navigate(AppRoute.Exams) },
                 onOpenNews = { navigator.navigate(AppRoute.News) },
-                onShowNews = homeViewModel::showNews,
-                onDismissNews = homeViewModel::dismissNews,
+                onOpenBadge = { navigator.navigate(AppRoute.Badge) },
+                onShowNews = { news ->
+                    navigator.navigate(
+                        AppRoute.NewsDetail(
+                            title = news.title,
+                            description = news.description,
+                            fullContent = news.fullContent,
+                        ),
+                    )
+                },
                 onNextNews = homeViewModel::showNextNews,
                 onPreviousNews = homeViewModel::showPreviousNews,
                 onToggleCustomization = homeViewModel::toggleCustomization,
                 onFinishCustomization = homeViewModel::finishCustomization,
                 onToggleQuickAction = homeViewModel::toggleQuickAction,
-                onQuickActionClick = { actionId ->
-                    navigator.openHomeAction(actionId)
-                },
+                onQuickActionClick = navigator::openHomeAction,
             )
         }
 
         AppRoute.Services -> {
+            val isProfessor =
+                (sessionState as? AppSessionState.Authenticated)?.account?.isProfessor == true
             val servicesViewModel =
-                viewModel {
+                viewModel(key = viewModelKey) {
                     ServicesViewModel(
-                        studentServices = UiInitialData.studentServices,
-                        universityPortals = UiInitialData.universityPortals,
+                        studentServices = if (isProfessor) UiInitialData.professorServices else UiInitialData.studentServices,
+                        universityPortals = if (isProfessor) UiInitialData.professorPortals else UiInitialData.universityPortals,
                     )
                 }
             val servicesUiState by servicesViewModel.uiState.collectAsStateWithLifecycle()
@@ -151,42 +209,147 @@ internal fun AppRouteContent(
                 uiState = servicesUiState,
             ) { service ->
                 when (service) {
-                    "Trasporti" -> navigator.navigate(AppRoute.Transport)
-                    "Tasse" -> navigator.navigate(AppRoute.Taxes)
-                    "Statistiche" -> navigator.navigate(AppRoute.Statistics)
-                    "Rubrica" -> navigator.navigate(AppRoute.Contacts)
-                    "Esse3" -> navigator.navigate(AppRoute.Transcripts)
+                    "news" -> navigator.navigate(AppRoute.News)
+                    "transport" -> navigator.navigate(AppRoute.Transport)
+                    "taxes" -> navigator.navigate(AppRoute.Taxes)
+                    "statistics" -> navigator.navigate(AppRoute.Statistics)
+                    "contacts", "student-office", "professors" -> navigator.navigate(AppRoute.Contacts)
+                    "esse3" -> if (isProfessor) {
+                        uriHandler.openUri("https://unimol.esse3.cineca.it")
+                    } else {
+                        navigator.navigate(AppRoute.Transcripts)
+                    }
+                    "moodle" -> uriHandler.openUri("https://learn.unimol.it")
+                    "university-web" -> uriHandler.openUri("https://www.unimol.it")
+                    "library" -> uriHandler.openUri("https://www.unimol.it/studente/servizi/biblioteche/")
+                    "email" -> uriHandler.openUri("https://outlook.office.com/mail/")
                 }
             }
         }
 
-        AppRoute.Didactics ->
-            DidacticsScreen(
-                backdropState,
-                onOpenCareer = { navigator.navigate(AppRoute.Career) },
-                onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
-                onOpenGrades = { navigator.navigate(AppRoute.Grades) },
-                onOpenStatistics = { navigator.navigate(AppRoute.Statistics) },
-                onOpenTranscripts = { navigator.navigate(AppRoute.Transcripts) },
-                onOpenExams = { navigator.navigate(AppRoute.Exams) },
-                onOpenQuestionnaires = { navigator.navigate(AppRoute.Questionnaires) },
-                onOpenBadge = { navigator.navigate(AppRoute.Badge) },
-                onOpenAttendance = { navigator.navigate(AppRoute.Attendance) },
-                onOpenStudyPlan = { navigator.navigate(AppRoute.StudyPlan) },
+        AppRoute.Didactics -> {
+            val account = (sessionState as? AppSessionState.Authenticated)?.account
+            val didacticsViewModel =
+                viewModel(key = viewModelKey) { DidacticsDashboardViewModel(dataSource, account) }
+            val didacticsUiState by didacticsViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                state = didacticsUiState.loadState,
+                errorMessage = didacticsUiState.errorMessage,
+                backdropState = backdropState,
+                onRetry = { didacticsViewModel.refresh(force = true) },
+            ) {
+                DidacticsScreen(
+                    backdropState = backdropState,
+                    uiState = didacticsUiState,
+                    onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
+                    onOpenGrades = { navigator.navigate(AppRoute.Grades) },
+                    onOpenStatistics = { navigator.navigate(AppRoute.Statistics) },
+                    onOpenTranscripts = { navigator.navigate(AppRoute.Transcripts) },
+                    onOpenExams = { navigator.navigate(AppRoute.Exams) },
+                    onOpenQuestionnaires = { navigator.navigate(AppRoute.Questionnaires) },
+                    onOpenBadge = { navigator.navigate(AppRoute.Badge) },
+                    onOpenAttendance = { navigator.navigate(AppRoute.Attendance) },
+                    onOpenStudyPlan = { navigator.navigate(AppRoute.StudyPlan) },
+                    onOpenTeachings = { navigator.navigate(AppRoute.Teachings) },
+                    onOpenTheses = { navigator.navigate(AppRoute.Theses) },
+                    onOpenReports = { navigator.navigate(AppRoute.Reports) },
+                    onOpenNews = { navigator.navigate(AppRoute.News) },
+                    onOpenSettings = { navigator.selectTopLevel(AppRoute.Settings) },
+                )
+            }
+        }
+
+        AppRoute.Teachings ->
+            AcademicSectionRouteContent(
+                section = AcademicSection.Teachings,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                searchQuery = searchQuery,
+                backdropState = backdropState,
+                navigator = navigator,
+            )
+
+        AppRoute.Theses ->
+            AcademicSectionRouteContent(
+                section = AcademicSection.Theses,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                searchQuery = searchQuery,
+                backdropState = backdropState,
+                navigator = navigator,
+            )
+
+        AppRoute.Reports ->
+            AcademicSectionRouteContent(
+                section = AcademicSection.Reports,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                searchQuery = searchQuery,
+                backdropState = backdropState,
+                navigator = navigator,
+            )
+
+        is AppRoute.TeachingDetail ->
+            AcademicItemDetailRouteContent(
+                section = AcademicSection.Teachings,
+                itemKey = route.itemKey,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                backdropState = backdropState,
+            )
+
+        is AppRoute.ProfessorExamDetail ->
+            AcademicItemDetailRouteContent(
+                section = AcademicSection.ExamRounds,
+                itemKey = route.itemKey,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                backdropState = backdropState,
+            )
+
+        is AppRoute.ThesisDetail ->
+            AcademicItemDetailRouteContent(
+                section = AcademicSection.Theses,
+                itemKey = route.itemKey,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                backdropState = backdropState,
+            )
+
+        is AppRoute.ReportDetail ->
+            AcademicItemDetailRouteContent(
+                section = AcademicSection.Reports,
+                itemKey = route.itemKey,
+                viewModelKey = viewModelKey,
+                dataSource = dataSource,
+                backdropState = backdropState,
             )
 
         AppRoute.Settings -> {
-            val settingsViewModel = viewModel { SettingsViewModel() }
+            val settingsViewModel =
+                viewModel(key = viewModelKey) {
+                    SettingsViewModel(
+                        dataSource = dataSource,
+                        toastSink = toastSink,
+                        biometricAuthenticator = biometricAuthenticator,
+                    )
+                }
             val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            val accountViewModel =
+                viewModel(key = "${viewModelKey}_account") { AccountSwitcherViewModel(sessionController, toastSink) }
+            val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
             SettingsScreen(
                 backdropState = backdropState,
                 uiState = settingsUiState,
+                accountUiState = accountUiState,
+                onSelectAccount = accountViewModel::selectAccount,
+                onAddAccount = accountViewModel::addAccount,
                 onOpenInfo = { navigator.navigate(AppRoute.Info) },
                 onOpenTheme = { navigator.navigate(AppRoute.Theme) },
                 onOpenUpdates = { navigator.navigate(AppRoute.Updates) },
                 onOpenDevices = { navigator.navigate(AppRoute.Devices) },
                 onOpenLanguage = { navigator.navigate(AppRoute.Language) },
-                onOpenLogin = { navigator.navigate(AppRoute.Accounts) },
+                onOpenLogin = accountViewModel::addAccount,
                 onSignOut = onSignOut,
                 onNotificationsEnabledChange = settingsViewModel::setNotificationsEnabled,
                 onBiometricEnabledChange = settingsViewModel::setBiometricEnabled,
@@ -196,31 +359,42 @@ internal fun AppRouteContent(
         }
 
         AppRoute.Accounts -> {
-            val accountViewModel = viewModel { AccountSwitcherViewModel(sessionController) }
+            val accountViewModel =
+                viewModel(key = viewModelKey) { AccountSwitcherViewModel(sessionController, toastSink) }
             val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
             AccountSwitcherScreen(
                 backdropState = backdropState,
                 uiState = accountUiState,
                 onSelectAccount = accountViewModel::selectAccount,
+                onSelectProfile = accountViewModel::selectProfile,
                 onAddAccount = accountViewModel::addAccount,
             )
         }
 
-        AppRoute.Career,
         AppRoute.Transcripts,
         -> {
-            val transcriptsViewModel = viewModel { TranscriptsViewModel(UiInitialData.transcripts) }
+            val transcriptsViewModel = viewModel(key = viewModelKey) { TranscriptsViewModel(dataSource) }
             val transcriptsUiState by transcriptsViewModel.uiState.collectAsStateWithLifecycle()
-            TranscriptsScreen(
-                backdropState = backdropState,
-                uiState = transcriptsUiState,
-                onYearSelected = transcriptsViewModel::selectYear,
-            )
+            FeatureStateContent(
+                transcriptsUiState.loadState,
+                transcriptsUiState.errorMessage,
+                backdropState,
+                onRetry = { transcriptsViewModel.refresh(force = true) },
+                emptyMessage = "Il libretto non contiene esami verbalizzati.",
+            ) {
+                TranscriptsScreen(
+                    backdropState = backdropState,
+                    uiState = transcriptsUiState,
+                    onYearSelected = transcriptsViewModel::selectYear,
+                )
+            }
         }
 
         AppRoute.Info ->
             AppInfoScreen(
-                backdropState,
+                backdropState = backdropState,
+                installedVersion = updateUiState.installedVersion,
+                onOpenSource = { uriHandler.openUri("https://github.com/Anto426-Project/uniapp") },
                 onOpenPrivacy = { navigator.navigate(AppRoute.Privacy) },
                 onOpenTerms = { navigator.navigate(AppRoute.Terms) },
                 onOpenCookies = { navigator.navigate(AppRoute.Cookies) },
@@ -228,7 +402,7 @@ internal fun AppRouteContent(
             )
 
         AppRoute.Theme -> {
-            val themeViewModel = viewModel { ThemeViewModel() }
+            val themeViewModel = viewModel(key = viewModelKey) { ThemeViewModel(dataSource, toastSink) }
             val themeUiState by themeViewModel.uiState.collectAsStateWithLifecycle()
             ThemeScreen(
                 backdropState = backdropState,
@@ -243,7 +417,7 @@ internal fun AppRouteContent(
         }
 
         AppRoute.Colors -> {
-            val colorLabViewModel = viewModel { ColorLabViewModel() }
+            val colorLabViewModel = viewModel(key = viewModelKey) { ColorLabViewModel(dataSource) }
             val colorLabUiState by colorLabViewModel.uiState.collectAsStateWithLifecycle()
             ColorLabScreen(
                 backdropState = backdropState,
@@ -252,152 +426,344 @@ internal fun AppRouteContent(
             )
         }
         AppRoute.Taxes -> {
-            val taxesViewModel = viewModel { TaxesViewModel(UiInitialData.taxPayments) }
+            val taxesViewModel = viewModel(key = viewModelKey) { TaxesViewModel(dataSource) }
             val taxesUiState by taxesViewModel.uiState.collectAsStateWithLifecycle()
-            TaxesScreen(backdropState, taxesUiState)
+            FeatureStateContent(
+                taxesUiState.loadState,
+                taxesUiState.errorMessage,
+                backdropState,
+                onRetry = { taxesViewModel.refresh(force = true) },
+                emptyMessage = "Non risultano tasse per questo account.",
+            ) { TaxesScreen(backdropState, taxesUiState) }
         }
         AppRoute.Grades -> {
             val gradesViewModel =
-                viewModel {
-                    GradesViewModel(
-                        currentExams = UiInitialData.currentGradeExams,
-                        simulationPresets = UiInitialData.gradeSimulation,
-                    )
+                viewModel(key = viewModelKey) {
+                    GradesViewModel(dataSource)
                 }
             val gradesUiState by gradesViewModel.uiState.collectAsStateWithLifecycle()
-            GradesScreen(
-                backdropState = backdropState,
-                uiState = gradesUiState,
-                onTabSelected = gradesViewModel::selectTab,
-                onSimulatedGradeChanged = gradesViewModel::updateSimulatedGrade,
-            )
+            FeatureStateContent(
+                gradesUiState.loadState,
+                gradesUiState.errorMessage,
+                backdropState,
+                onRetry = { gradesViewModel.refresh(force = true) },
+            ) {
+                GradesScreen(
+                    backdropState = backdropState,
+                    uiState = gradesUiState,
+                    onTabSelected = gradesViewModel::selectTab,
+                    onSimulatedGradeChanged = gradesViewModel::updateSimulatedGrade,
+                    onSetAllGrades = gradesViewModel::setAllSimulatedGrades,
+                    onResetSimulation = gradesViewModel::resetSimulation,
+                )
+            }
         }
         AppRoute.Statistics -> {
-            val statisticsViewModel = viewModel { StatisticsViewModel() }
+            val statisticsViewModel = viewModel(key = viewModelKey) { StatisticsViewModel(dataSource) }
             val statisticsUiState by statisticsViewModel.uiState.collectAsStateWithLifecycle()
-            StatisticsScreen(
-                backdropState = backdropState,
-                uiState = statisticsUiState,
-                onTabSelected = statisticsViewModel::selectTab,
-            )
+            FeatureStateContent(
+                statisticsUiState.loadState,
+                statisticsUiState.errorMessage,
+                backdropState,
+                onRetry = { statisticsViewModel.refresh(force = true) },
+            ) {
+                StatisticsScreen(
+                    backdropState = backdropState,
+                    uiState = statisticsUiState,
+                    onTabSelected = statisticsViewModel::selectTab,
+                )
+            }
         }
 
         AppRoute.Contacts -> {
-            val contactsViewModel = viewModel { ContactsViewModel(UiInitialData.contacts) }
+            val contactsViewModel = viewModel(key = viewModelKey) { ContactsViewModel(dataSource) }
             val contactsUiState by contactsViewModel.uiState.collectAsStateWithLifecycle()
             LaunchedEffect(searchQuery, isSearchActive) {
                 contactsViewModel.updateSearchQuery(
                     searchQuery.takeIf { isSearchActive }.orEmpty(),
                 )
             }
-            ContactsScreen(
-                backdropState = backdropState,
-                uiState = contactsUiState,
-                onCategorySelected = contactsViewModel::selectCategory,
-                onContactClick = { contact ->
-                    navigator.navigate(AppRoute.ContactDetail(contact.email))
-                },
-            )
+            FeatureStateContent(
+                contactsUiState.loadState,
+                contactsUiState.errorMessage,
+                backdropState,
+                onRetry = { contactsViewModel.refresh(force = true) },
+            ) {
+                ContactsScreen(
+                    backdropState = backdropState,
+                    uiState = contactsUiState,
+                    onCategorySelected = contactsViewModel::selectCategory,
+                    onContactClick = { contact ->
+                        navigator.navigate(AppRoute.ContactDetail(contact.email.ifBlank { contact.name }))
+                    },
+                )
+            }
         }
 
         is AppRoute.ContactDetail -> {
-            val contact = UiInitialData.contacts.firstOrNull { it.email == route.contactId }
-            if (contact == null) InvalidDetailRoute(navigator) else ContactDetailScreen(contact, backdropState)
+            val detailViewModel = viewModel(key = viewModelKey) { ContactDetailViewModel(route.contactId, dataSource) }
+            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                detailUiState.loadState,
+                detailUiState.errorMessage,
+                backdropState,
+                onRetry = { detailViewModel.refresh(force = true) },
+            ) { detailUiState.contact?.let { contact -> ContactDetailScreen(contact, backdropState) } }
         }
 
         AppRoute.Transport -> {
-            val transportViewModel = viewModel { TransportViewModel(UiInitialData.myTransportReservations) }
+            val transportViewModel = viewModel(key = viewModelKey) { TransportViewModel(dataSource) }
             val transportUiState by transportViewModel.uiState.collectAsStateWithLifecycle()
-            TransportScreen(
-                backdropState = backdropState,
-                uiState = transportUiState,
-                onReservationClick = { reservation ->
-                    navigator.navigate(AppRoute.ReservationDetail(reservation.id))
-                },
-            )
+            FeatureStateContent(
+                transportUiState.loadState,
+                transportUiState.errorMessage,
+                backdropState,
+                onRetry = { transportViewModel.refresh(force = true) },
+                emptyMessage = "Non ci sono prenotazioni trasporto salvate.",
+            ) {
+                TransportScreen(
+                    backdropState = backdropState,
+                    uiState = transportUiState,
+                    onReservationClick = { reservation ->
+                        navigator.navigate(
+                            AppRoute.ReservationDetail(
+                                reservationId = reservation.id,
+                                title = reservation.route,
+                            ),
+                        )
+                    },
+                )
+            }
         }
 
         AppRoute.TransportCatalog -> {
-            val catalogViewModel = viewModel { TransportCatalogViewModel(UiInitialData.availableTickets) }
+            val catalogViewModel = viewModel(key = viewModelKey) { TransportCatalogViewModel(dataSource) }
             val catalogUiState by catalogViewModel.uiState.collectAsStateWithLifecycle()
-            TransportCatalogScreen(
-                backdropState = backdropState,
-                uiState = catalogUiState,
-                onTicketClick = { ticket -> navigator.navigate(AppRoute.TicketDetail(ticket.id)) },
-            )
+            FeatureStateContent(
+                catalogUiState.loadState,
+                catalogUiState.errorMessage,
+                backdropState,
+                onRetry = { catalogViewModel.refresh(force = true) },
+            ) {
+                TransportCatalogScreen(
+                    backdropState = backdropState,
+                    uiState = catalogUiState,
+                    onTicketClick = { ticket ->
+                        navigator.navigate(
+                            AppRoute.TicketDetail(
+                                ticketId = ticket.id,
+                                title = ticket.title,
+                            ),
+                        )
+                    },
+                )
+            }
         }
 
         AppRoute.TransportBooking -> {
             val bookingViewModel =
-                viewModel {
-                    TransportBookingViewModel(UiInitialData.transportRoutes.map { it.route })
+                viewModel(key = viewModelKey) {
+                    TransportBookingViewModel(dataSource, toastSink)
                 }
             val bookingUiState by bookingViewModel.uiState.collectAsStateWithLifecycle()
-            TransportBookingScreen(
-                backdropState = backdropState,
-                uiState = bookingUiState,
-                onRouteSelected = bookingViewModel::selectRoute,
-            )
+            FeatureStateContent(
+                bookingUiState.loadState,
+                bookingUiState.errorMessage,
+                backdropState,
+                onRetry = { bookingViewModel.refresh(force = true) },
+                emptyMessage = "Il portale non ha restituito linee prenotabili.",
+            ) {
+                TransportBookingScreen(
+                    backdropState = backdropState,
+                    uiState = bookingUiState,
+                    onRouteSelected = bookingViewModel::selectRoute,
+                    onBook = { date -> bookingViewModel.book(date) },
+                )
+            }
         }
         is AppRoute.TicketDetail -> {
-            val ticket = UiInitialData.availableTickets.firstOrNull { it.id == route.ticketId }
-            if (ticket == null) InvalidDetailRoute(navigator) else TicketDetailScreen(ticket, backdropState)
+            val detailViewModel = viewModel(key = viewModelKey) { TicketDetailViewModel(route.ticketId, dataSource) }
+            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                detailUiState.loadState,
+                detailUiState.errorMessage,
+                backdropState,
+                onRetry = { detailViewModel.refresh(force = true) },
+            ) {
+                detailUiState.ticket?.let { ticket ->
+                    TicketDetailScreen(ticket, backdropState) { navigator.navigate(AppRoute.TransportBooking) }
+                }
+            }
         }
 
         is AppRoute.ReservationDetail -> {
-            val reservation =
-                UiInitialData.myTransportReservations.firstOrNull { it.id == route.reservationId }
-            if (reservation == null) {
-                InvalidDetailRoute(navigator)
-            } else {
-                ReservationDetailScreen(reservation, backdropState)
+            val detailViewModel =
+                viewModel(key = viewModelKey) {
+                    ReservationDetailViewModel(route.reservationId, dataSource, toastSink)
+                }
+            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(detailUiState.deleted) {
+                if (detailUiState.deleted) navigator.goBack()
+            }
+            FeatureStateContent(
+                detailUiState.loadState,
+                detailUiState.errorMessage,
+                backdropState,
+                onRetry = { detailViewModel.refresh(force = true) },
+            ) {
+                detailUiState.reservation?.let { reservation ->
+                    ReservationDetailScreen(
+                        reservation = reservation,
+                        backdropState = backdropState,
+                        isDeleting = detailUiState.isDeleting,
+                        onDelete = detailViewModel::delete,
+                    )
+                }
             }
         }
 
         AppRoute.Exams -> {
-            val examsViewModel = viewModel { ExamsViewModel(UiInitialData.examSessions) }
+            val account = (sessionState as? AppSessionState.Authenticated)?.account
+            val examsViewModel = viewModel(key = viewModelKey) { ExamsViewModel(dataSource, toastSink, account = account) }
             val examsUiState by examsViewModel.uiState.collectAsStateWithLifecycle()
-            ExamsScreen(
-                backdropState = backdropState,
-                uiState = examsUiState,
-                onTabSelected = examsViewModel::selectTab,
-            )
+            FeatureStateContent(
+                examsUiState.loadState,
+                examsUiState.errorMessage,
+                backdropState,
+                onRetry = { examsViewModel.refresh(force = true) },
+                emptyMessage = "Non sono disponibili appelli.",
+            ) {
+                ExamsScreen(
+                    backdropState = backdropState,
+                    uiState = examsUiState,
+                    onTabSelected = examsViewModel::selectTab,
+                    onToggleBooking = examsViewModel::toggleBooking,
+                    onProfessorExamClick = { exam ->
+                        navigator.navigate(
+                            AppRoute.ProfessorExamDetail(
+                                itemKey = exam.academicItemKey(),
+                                title = exam.title,
+                            ),
+                        )
+                    },
+                )
+            }
         }
         AppRoute.ExamsHistory -> {
-            val historyViewModel = viewModel { ExamsHistoryViewModel(UiInitialData.pastExams) }
+            val historyViewModel = viewModel(key = viewModelKey) { ExamsHistoryViewModel(dataSource) }
             val historyUiState by historyViewModel.uiState.collectAsStateWithLifecycle()
-            ExamsHistoryScreen(backdropState, historyUiState)
+            FeatureStateContent(
+                historyUiState.loadState,
+                historyUiState.errorMessage,
+                backdropState,
+                onRetry = { historyViewModel.refresh(force = true) },
+            ) { ExamsHistoryScreen(backdropState, historyUiState) }
         }
         AppRoute.StudyPlan -> {
-            val studyPlanViewModel = viewModel { StudyPlanViewModel(UiInitialData.studyPlan) }
+            val studyPlanViewModel = viewModel(key = viewModelKey) { StudyPlanViewModel(dataSource) }
             val studyPlanUiState by studyPlanViewModel.uiState.collectAsStateWithLifecycle()
-            StudyPlanScreen(
-                backdropState = backdropState,
-                uiState = studyPlanUiState,
-                onYearSelected = studyPlanViewModel::selectYear,
-                onCourseClick = { course -> navigator.navigate(AppRoute.CourseDetail(course.id)) },
-            )
+            FeatureStateContent(
+                studyPlanUiState.loadState,
+                studyPlanUiState.errorMessage,
+                backdropState,
+                onRetry = { studyPlanViewModel.refresh(force = true) },
+                emptyMessage = "Il piano di studi non contiene corsi.",
+            ) {
+                StudyPlanScreen(
+                    backdropState = backdropState,
+                    uiState = studyPlanUiState,
+                    onYearSelected = studyPlanViewModel::selectYear,
+                    onCourseClick = { course -> if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id)) },
+                )
+            }
         }
 
         is AppRoute.CourseDetail -> {
-            val course =
-                UiInitialData.studyPlan
-                    .asSequence()
-                    .flatMap { it.courses.asSequence() }
-                    .firstOrNull { it.id == route.courseId }
-            if (course == null) InvalidDetailRoute(navigator) else CourseDetailScreen(course, backdropState)
+            val detailViewModel = viewModel(key = viewModelKey) { CourseDetailViewModel(route.courseId, dataSource) }
+            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                detailUiState.loadState,
+                detailUiState.errorMessage,
+                backdropState,
+                onRetry = { detailViewModel.refresh(force = true) },
+            ) { detailUiState.course?.let { course -> CourseDetailScreen(course, backdropState) } }
         }
 
         AppRoute.Questionnaires -> {
-            val questionnairesViewModel = viewModel { QuestionnairesViewModel(UiInitialData.questionnaires) }
+            val questionnairesViewModel = viewModel(key = viewModelKey) { QuestionnairesViewModel(dataSource) }
             val questionnairesUiState by questionnairesViewModel.uiState.collectAsStateWithLifecycle()
-            QuestionnairesScreen(backdropState, questionnairesUiState)
+            FeatureStateContent(
+                questionnairesUiState.loadState,
+                questionnairesUiState.errorMessage,
+                backdropState,
+                onRetry = { questionnairesViewModel.refresh(force = true) },
+                emptyMessage = "Non risultano questionari associati ai corsi.",
+            ) {
+                QuestionnairesScreen(
+                    backdropState = backdropState,
+                    uiState = questionnairesUiState,
+                    onQuestionnaireClick = { questionnaire ->
+                        navigator.navigate(
+                            AppRoute.Questionnaire(
+                                courseId = questionnaire.courseId,
+                                tagList = questionnaire.tagList,
+                                title = questionnaire.course,
+                            ),
+                        )
+                    },
+                )
+            }
         }
-        AppRoute.Badge -> StudentIdScreen(backdropState)
+        is AppRoute.Questionnaire -> {
+            val questionnaireViewModel =
+                viewModel(key = viewModelKey) {
+                    QuestionnaireDetailViewModel(
+                        courseId = route.courseId,
+                        tagList = route.tagList,
+                        title = route.title,
+                        dataSource = dataSource,
+                        toastSink = toastSink,
+                    )
+                }
+            val questionnaireUiState by questionnaireViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                questionnaireUiState.loadState,
+                questionnaireUiState.errorMessage,
+                backdropState,
+                onRetry = questionnaireViewModel::refresh,
+                emptyMessage = "Il questionario non contiene domande.",
+            ) {
+                QuestionnaireDetailScreen(
+                    backdropState = backdropState,
+                    uiState = questionnaireUiState,
+                    onAnswerSelected = questionnaireViewModel::selectAnswer,
+                    onFreeTextChanged = questionnaireViewModel::updateFreeText,
+                    onSubmit = questionnaireViewModel::submit,
+                )
+            }
+        }
+        AppRoute.Badge -> {
+            val account = (sessionState as? AppSessionState.Authenticated)?.account
+            val identityViewModel =
+                viewModel(key = viewModelKey) { AcademicIdentityViewModel(dataSource, account) }
+            val identityUiState by identityViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                identityUiState.loadState,
+                identityUiState.errorMessage,
+                backdropState,
+                onRetry = { identityViewModel.refresh(force = true) },
+            ) { AcademicIdentityScreen(backdropState, identityUiState) }
+        }
         AppRoute.Attendance -> {
-            val attendanceViewModel = viewModel { AttendanceViewModel(UiInitialData.attendance) }
+            val attendanceViewModel = viewModel(key = viewModelKey) { AttendanceViewModel(dataSource) }
             val attendanceUiState by attendanceViewModel.uiState.collectAsStateWithLifecycle()
-            AttendanceScreen(backdropState, attendanceUiState)
+            FeatureStateContent(
+                attendanceUiState.loadState,
+                attendanceUiState.errorMessage,
+                backdropState,
+                onRetry = { attendanceViewModel.refresh(force = true) },
+                emptyMessage = "Non risultano presenze registrate.",
+            ) { AttendanceScreen(backdropState, attendanceUiState) }
         }
         AppRoute.Privacy -> PrivacyScreen(backdropState, UiInitialData.privacySections)
         AppRoute.Terms -> TermsScreen(backdropState, UiInitialData.termsSections)
@@ -412,7 +778,7 @@ internal fun AppRouteContent(
             )
 
         AppRoute.Changelog -> {
-            val changelogViewModel = viewModel { ChangelogViewModel(UiInitialData.changelog) }
+            val changelogViewModel = viewModel(key = viewModelKey) { ChangelogViewModel(updateUiState) }
             val changelogUiState by changelogViewModel.uiState.collectAsStateWithLifecycle()
             ChangelogScreen(
                 backdropState = backdropState,
@@ -421,40 +787,69 @@ internal fun AppRouteContent(
             )
         }
         AppRoute.News -> {
-            val newsViewModel =
-                viewModel {
-                    NewsViewModel(
-                        listOf(
-                            UiInitialData.universityNews,
-                            UiInitialData.departmentNews,
-                            UiInitialData.eventNews,
-                        ),
-                    )
-                }
+            val newsViewModel = viewModel(key = viewModelKey) { NewsViewModel(dataSource) }
             val newsUiState by newsViewModel.uiState.collectAsStateWithLifecycle()
-            NewsScreen(
+            FeatureStateContent(
+                newsUiState.loadState,
+                newsUiState.errorMessage,
+                backdropState,
+                onRetry = { newsViewModel.refresh(force = true) },
+                emptyMessage = "Non ci sono nuove comunicazioni.",
+            ) {
+                NewsScreen(
+                    backdropState = backdropState,
+                    uiState = newsUiState,
+                    onTabSelected = newsViewModel::selectTab,
+                    onNewsSelected = { news ->
+                        navigator.navigate(
+                            AppRoute.NewsDetail(
+                                title = news.title,
+                                description = news.description,
+                                fullContent = news.fullContent,
+                            ),
+                        )
+                    },
+                )
+            }
+        }
+
+        is AppRoute.NewsDetail -> {
+            NewsDetailScreen(
+                title = route.title,
+                description = route.description,
+                fullContent = route.fullContent,
                 backdropState = backdropState,
-                uiState = newsUiState,
-                onTabSelected = newsViewModel::selectTab,
-                onNewsSelected = newsViewModel::showNews,
-                onDismissNews = newsViewModel::dismissNews,
             )
         }
 
         AppRoute.Devices -> {
-            val devicesViewModel = viewModel { ConnectedDevicesViewModel(UiInitialData.devices) }
+            val devicesViewModel =
+                viewModel(key = viewModelKey) { ConnectedDevicesViewModel(dataSource, toastSink) }
             val devicesUiState by devicesViewModel.uiState.collectAsStateWithLifecycle()
-            ConnectedDevicesScreen(
-                backdropState = backdropState,
-                uiState = devicesUiState,
-                onRequestRevocation = devicesViewModel::requestRevocation,
-                onDismissRevocation = devicesViewModel::dismissRevocation,
-                onConfirmRevocation = devicesViewModel::confirmRevocation,
-            )
+            LaunchedEffect(devicesRefreshRevision) {
+                if (devicesRefreshRevision > 0) devicesViewModel.refresh(force = true)
+            }
+            FeatureStateContent(
+                devicesUiState.loadState,
+                devicesUiState.errorMessage,
+                backdropState,
+                onRetry = { devicesViewModel.refresh(force = true) },
+            ) {
+                ConnectedDevicesScreen(
+                    backdropState = backdropState,
+                    uiState = devicesUiState,
+                    onRequestRevocation = devicesViewModel::requestRevocation,
+                    onDismissRevocation = devicesViewModel::dismissRevocation,
+                    onConfirmRevocation = devicesViewModel::confirmRevocation,
+                )
+            }
         }
 
         AppRoute.Language -> {
-            val languageViewModel = viewModel { LanguageViewModel(UiInitialData.languages) }
+            val languageViewModel =
+                viewModel(key = viewModelKey) {
+                    LanguageViewModel(UiInitialData.languages, dataSource, toastSink)
+                }
             val languageUiState by languageViewModel.uiState.collectAsStateWithLifecycle()
             LanguageScreen(
                 backdropState = backdropState,
@@ -462,7 +857,90 @@ internal fun AppRouteContent(
                 onLanguageSelected = languageViewModel::selectLanguage,
             )
         }
-        AppRoute.Author -> AuthorScreen(backdropState)
+        AppRoute.Author ->
+            AuthorScreen(
+                backdropState = backdropState,
+                onOpenGitHub = { uriHandler.openUri("https://github.com/Anto426") },
+                onOpenProject = { uriHandler.openUri("https://github.com/Anto426-Project/uniapp") },
+            )
+    }
+}
+
+@Composable
+private fun AcademicSectionRouteContent(
+    section: AcademicSection,
+    viewModelKey: String,
+    dataSource: UniAppDataSource,
+    searchQuery: String,
+    backdropState: Backdrop,
+    navigator: AppNavigator,
+) {
+    val sectionViewModel =
+        viewModel(key = "$viewModelKey|$section") {
+            AcademicSectionViewModel(section = section, dataSource = dataSource)
+        }
+    val sectionUiState by sectionViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(sectionViewModel, searchQuery) {
+        sectionViewModel.updateQuery(searchQuery)
+    }
+    FeatureStateContent(
+        state = sectionUiState.loadState,
+        errorMessage = sectionUiState.errorMessage,
+        backdropState = backdropState,
+        onRetry = { sectionViewModel.refresh(force = true) },
+        emptyMessage = "Non sono disponibili contenuti in questa sezione.",
+    ) {
+        AcademicSectionScreen(
+            backdropState = backdropState,
+            uiState = sectionUiState,
+            onItemClick = { item ->
+                val route =
+                    when (section) {
+                        AcademicSection.Teachings ->
+                            AppRoute.TeachingDetail(item.academicItemKey(), item.title)
+                        AcademicSection.Theses ->
+                            AppRoute.ThesisDetail(item.academicItemKey(), item.title)
+                        AcademicSection.Reports ->
+                            AppRoute.ReportDetail(item.academicItemKey(), item.title)
+                        AcademicSection.ExamRounds ->
+                            AppRoute.ProfessorExamDetail(item.academicItemKey(), item.title)
+                    }
+                navigator.navigate(route)
+            },
+        )
+    }
+}
+
+@Composable
+private fun AcademicItemDetailRouteContent(
+    section: AcademicSection,
+    itemKey: String,
+    viewModelKey: String,
+    dataSource: UniAppDataSource,
+    backdropState: Backdrop,
+) {
+    val detailViewModel =
+        viewModel(key = "$viewModelKey|$section|$itemKey") {
+            AcademicItemDetailViewModel(
+                section = section,
+                itemKey = itemKey,
+                dataSource = dataSource,
+            )
+        }
+    val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+    FeatureStateContent(
+        state = detailUiState.loadState,
+        errorMessage = detailUiState.errorMessage,
+        backdropState = backdropState,
+        onRetry = { detailViewModel.refresh(force = true) },
+        emptyMessage = "Il dettaglio selezionato non è più disponibile.",
+    ) {
+        AcademicItemDetailScreen(
+            backdropState = backdropState,
+            uiState = detailUiState,
+            section = section,
+            onTabSelected = detailViewModel::selectTab,
+        )
     }
 }
 
@@ -477,6 +955,9 @@ private fun AppNavigator.openHomeAction(actionId: String) {
         "statistiche" -> navigate(AppRoute.Statistics)
         "media" -> navigate(AppRoute.Grades)
         "appelli" -> navigate(AppRoute.Exams)
+        "insegnamenti" -> navigate(AppRoute.Teachings)
+        "tesi" -> navigate(AppRoute.Theses)
+        "verbali" -> navigate(AppRoute.Reports)
         "didattica", "condivisione" -> selectTopLevel(AppRoute.Didactics)
         "trasporti" -> navigate(AppRoute.Transport)
         "tasse" -> navigate(AppRoute.Taxes)

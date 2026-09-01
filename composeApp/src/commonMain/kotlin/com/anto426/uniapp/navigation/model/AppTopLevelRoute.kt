@@ -15,6 +15,7 @@ fun AppRoute.topLevelParent(): AppRoute =
     when (this) {
         AppRoute.Home,
         AppRoute.News,
+        is AppRoute.NewsDetail,
         -> AppRoute.Home
 
         AppRoute.Services,
@@ -29,7 +30,13 @@ fun AppRoute.topLevelParent(): AppRoute =
         -> AppRoute.Services
 
         AppRoute.Didactics,
-        AppRoute.Career,
+        AppRoute.Teachings,
+        AppRoute.Theses,
+        AppRoute.Reports,
+        is AppRoute.TeachingDetail,
+        is AppRoute.ProfessorExamDetail,
+        is AppRoute.ThesisDetail,
+        is AppRoute.ReportDetail,
         AppRoute.Grades,
         AppRoute.Statistics,
         AppRoute.Transcripts,
@@ -38,6 +45,7 @@ fun AppRoute.topLevelParent(): AppRoute =
         AppRoute.StudyPlan,
         is AppRoute.CourseDetail,
         AppRoute.Questionnaires,
+        is AppRoute.Questionnaire,
         AppRoute.Badge,
         AppRoute.Attendance,
         -> AppRoute.Didactics

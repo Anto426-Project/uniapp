@@ -1,5 +1,8 @@
 package com.anto426.uniapp.ui.components.items
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
+import com.anto426.liquidmonet.components.display.LiquidIconBox
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
@@ -42,7 +46,7 @@ fun StudyCourseItem(
     }
 
     val iconContainerColor = when (course.status) {
-        CourseStatus.COMPLETED -> colorScheme.primary.copy(alpha = 0.08f)
+        CourseStatus.COMPLETED -> colorScheme.primary.copy(alpha = 0.12f)
         CourseStatus.ACTIVE -> colorScheme.secondary.copy(alpha = 0.12f)
         CourseStatus.PLANNED -> colorScheme.surfaceVariant.copy(alpha = 0.4f)
     }
@@ -69,19 +73,14 @@ fun StudyCourseItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(iconContainerColor, RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = statusIcon,
-                        contentDescription = null,
-                        tint = iconTint,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                LiquidIconBox(
+                    icon = statusIcon,
+                    size = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = iconContainerColor,
+                    iconTint = iconTint,
+                    shape = RoundedCornerShape(12.dp),
+                )
 
                 Spacer(modifier = Modifier.width(14.dp))
 
@@ -111,9 +110,9 @@ fun StudyCourseItem(
             Box(contentAlignment = Alignment.Center) {
                 LiquidBadge(
                     text = when (course.status) {
-                        CourseStatus.COMPLETED -> "Superato"
-                        CourseStatus.ACTIVE -> "In Corso"
-                        CourseStatus.PLANNED -> "Pianificato"
+                        CourseStatus.COMPLETED -> stringResource(Res.string.ui_status_completed)
+                        CourseStatus.ACTIVE -> stringResource(Res.string.ui_status_active)
+                        CourseStatus.PLANNED -> stringResource(Res.string.ui_status_planned)
                     },
                     containerColor = when (course.status) {
                         CourseStatus.COMPLETED -> colorScheme.primaryContainer

@@ -8,18 +8,33 @@ import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.appTopLevelRoutes
 import com.anto426.uniapp.navigation.policy.AppRouteGuard
 import com.anto426.uniapp.session.model.AppSessionState
+import com.anto426.unisdk.backend.model.BackendCareerType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class AppNavigatorTest {
     @Test
-    fun crossFeatureDestinationMovesToItsOwningStack() {
+    fun destinationStaysInTheStackThatOpenedIt() {
         val fixture = Fixture(activeRoot = AppRoute.Didactics)
 
         fixture.navigator.navigate(AppRoute.Taxes)
 
-        assertEquals(AppRoute.Services, fixture.activeRoot.value)
-        assertEquals(listOf(AppRoute.Services, AppRoute.Taxes), fixture.stack(AppRoute.Services))
+        assertEquals(AppRoute.Didactics, fixture.activeRoot.value)
+        assertEquals(listOf(AppRoute.Services), fixture.stack(AppRoute.Services))
+        assertEquals(listOf(AppRoute.Didactics, AppRoute.Taxes), fixture.stack(AppRoute.Didactics))
+        assertEquals(AppRoute.Didactics, fixture.navigator.currentTopLevelRoute)
+    }
+
+    @Test
+    fun examOpenedFromHomeGoesDirectlyBackToHome() {
+        val fixture = Fixture(activeRoot = AppRoute.Home)
+
+        fixture.navigator.navigate(AppRoute.Exams)
+
+        assertEquals(listOf(AppRoute.Home, AppRoute.Exams), fixture.stack(AppRoute.Home))
+        assertEquals(AppRoute.Home, fixture.navigator.currentTopLevelRoute)
+        assertEquals(true, fixture.navigator.goBack())
+        assertEquals(AppRoute.Home, fixture.navigator.currentRoute)
         assertEquals(listOf(AppRoute.Didactics), fixture.stack(AppRoute.Didactics))
     }
 
@@ -49,6 +64,32 @@ class AppNavigatorTest {
 
         assertEquals(AppRoute.Login, fixture.activeRoot.value)
         assertEquals(listOf<NavKey>(AppRoute.Login, AppRoute.Privacy), fixture.authStack.toList())
+    }
+
+    @Test
+    fun lockedAccountCanOnlyRenderBootstrap() {
+        val locked =
+            AppSessionState.UnlockRequired(authenticatedSession.account)
+        val guard = AppRouteGuard()
+
+        assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Home, locked))
+        assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Login, locked))
+    }
+
+    @Test
+    fun professorCannotOpenStudentOnlyDestinations() {
+        val professorSession =
+            AppSessionState.Authenticated(
+                authenticatedSession.account.copy(activeProfileType = BackendCareerType.PROFESSOR),
+            )
+        val guard = AppRouteGuard()
+
+        assertEquals(AppRoute.Didactics, guard.resolve(AppRoute.Grades, professorSession))
+        assertEquals(AppRoute.Exams, guard.resolve(AppRoute.Exams, professorSession))
+        assertEquals(AppRoute.Badge, guard.resolve(AppRoute.Badge, professorSession))
+        assertEquals(AppRoute.Teachings, guard.resolve(AppRoute.Teachings, professorSession))
+        assertEquals(AppRoute.Home, guard.resolve(AppRoute.Home, professorSession))
+        assertEquals(AppRoute.Services, guard.resolve(AppRoute.Services, professorSession))
     }
 
     private class Fixture(

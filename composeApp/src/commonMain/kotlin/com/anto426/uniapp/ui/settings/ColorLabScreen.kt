@@ -20,7 +20,6 @@ import com.anto426.liquidmonet.components.pickers.LiquidColorPicker
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.settings.presentation.ColorLabUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.data.UiCopy
 import com.kyant.backdrop.Backdrop
 
 @Composable

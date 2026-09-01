@@ -29,9 +29,16 @@ import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ExamSession
 import com.kyant.backdrop.Backdrop
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
-fun ExamSessionItem(exam: ExamSession, backdropState: Backdrop) {
+fun ExamSessionItem(
+    exam: ExamSession,
+    backdropState: Backdrop,
+    isMutating: Boolean = false,
+    onToggleBooking: () -> Unit = {},
+) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     LiquidAccordionItem(
         title = exam.name,
@@ -41,47 +48,131 @@ fun ExamSessionItem(exam: ExamSession, backdropState: Backdrop) {
         onExpandedChange = { isExpanded = it },
         backdropState = backdropState
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                LiquidAvatar(initials = exam.professor.split(" ").filter(String::isNotEmpty).map { it.first() }.joinToString("").take(2), size = 40.dp, backdropState = backdropState)
-                Column {
-                    Text("Professore", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
-                    Text(exam.professor, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (exam.professor.isNotBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    LiquidAvatar(
+                        initials = exam.professor.split(" ").filter(String::isNotEmpty).map { it.first() }.joinToString("").take(2),
+                        size = 36.dp,
+                        backdropState = backdropState
+                    )
+                    Text(
+                        text = exam.professor,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(Modifier.fillMaxWidth()) {
-                    Box(Modifier.weight(1f)) { ExamDetailRow("Tipo", exam.type, LiquidIcons.Edit) }
-                    Box(Modifier.weight(1f)) { ExamDetailRow("Aula", exam.room, LiquidIcons.Info) }
-                }
-                ExamDetailRow("Finestra Prenotazioni", "${exam.bookingOpenDate} - ${exam.bookingCloseDate}", LiquidIcons.Time)
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Icon(LiquidIcons.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Studenti prenotati:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                        Text(exam.bookedUsersCount.toString(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+
+            // Details Grid
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (exam.type.isNotBlank() || exam.room.isNotBlank()) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        if (exam.type.isNotBlank()) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                ExamDetailRow(exam.type, LiquidIcons.Edit)
+                            }
+                        }
+                        if (exam.room.isNotBlank()) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                ExamDetailRow(exam.room, LiquidIcons.Info)
+                            }
+                        }
                     }
                 }
+
+                val bookingWindow =
+                    listOf(exam.bookingOpenDate, exam.bookingCloseDate)
+                        .filter(String::isNotBlank)
+                        .joinToString(" – ")
+                if (bookingWindow.isNotBlank()) {
+                    ExamDetailRow(bookingWindow, LiquidIcons.Time)
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = LiquidIcons.AccountCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = "${stringResource(Res.string.ui_booked_students)} ${exam.bookedUsersCount}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                ExamDetailRow(
+                    "${stringResource(Res.string.ui_available_slots)}: ${exam.availableSlots}",
+                    LiquidIcons.AccountCircle,
+                )
+                if (exam.notes.isNotBlank()) {
+                    ExamDetailRow(exam.notes, LiquidIcons.Info)
+                }
             }
+
             if (exam.isBooked) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LiquidButton(onClick = {}, text = "Aggiungi a Google Calendar", modifier = Modifier.fillMaxWidth(), variant = LiquidButtonVariant.Primary, size = LiquidButtonSize.Small, backdropState = backdropState)
-                    LiquidButton(onClick = {}, text = "Annulla Prenotazione", modifier = Modifier.fillMaxWidth(), variant = LiquidButtonVariant.Secondary, size = LiquidButtonSize.Small, backdropState = backdropState)
+                    LiquidButton(
+                        text = stringResource(Res.string.ui_add_calendar),
+                        onClick = {},
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = LiquidButtonVariant.Tonal,
+                        size = LiquidButtonSize.Small,
+                        backdropState = backdropState
+                    )
+                    LiquidButton(
+                        text = stringResource(Res.string.ui_cancel_booking),
+                        onClick = onToggleBooking,
+                        enabled = !isMutating,
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = LiquidButtonVariant.Secondary,
+                        size = LiquidButtonSize.Small,
+                        backdropState = backdropState
+                    )
                 }
             } else {
-                LiquidButton(onClick = {}, text = "Prenota Esame", modifier = Modifier.fillMaxWidth(), variant = LiquidButtonVariant.Primary, size = LiquidButtonSize.Small, backdropState = backdropState)
+                LiquidButton(
+                    text =
+                        if (exam.canBook) stringResource(Res.string.ui_book_exam)
+                        else stringResource(Res.string.ui_booking_closed),
+                    onClick = onToggleBooking,
+                    enabled = exam.canBook && !isMutating,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = LiquidButtonVariant.Primary,
+                    size = LiquidButtonSize.Small,
+                    backdropState = backdropState
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ExamDetailRow(label: String, value: String, icon: ImageVector) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-        Column {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
-            Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
-        }
+private fun ExamDetailRow(value: String, icon: ImageVector) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

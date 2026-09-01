@@ -5,13 +5,15 @@ import com.anto426.unisdk.backend.model.CareerData
 import com.anto426.unisdk.backend.model.ConnectedDeviceData
 import com.anto426.unisdk.backend.model.CourseSyllabusData
 import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.MoodleOverview
+import com.anto426.unisdk.backend.model.StudyPlanData
+import com.anto426.unisdk.backend.model.SurveyCourseData
 import com.anto426.unisdk.backend.model.StudentDetailsData
 import com.anto426.unisdk.backend.model.SurveyFirstPageData
 import com.anto426.unisdk.backend.model.SurveySaveRequest
 import com.anto426.unisdk.backend.model.TaxesData
 import com.anto426.unisdk.backend.model.UniversityContact
 import com.anto426.unisdk.backend.model.UniversityNews
+import com.anto426.unisdk.backend.model.ProfessorDashboardData
 
 /**
  * Account-bound facade used by UniApp features and future ViewModels.
@@ -31,6 +33,16 @@ class UniAccountClient internal constructor(
     suspend fun loadCareer(): CareerData =
         coordinator.callAuthenticated(accountId) { session, credentials ->
             loadCareer(session, credentials)
+        }
+
+    suspend fun loadProfessorDashboard(): ProfessorDashboardData =
+        coordinator.callAuthenticated(accountId) { session, credentials ->
+            loadProfessorDashboard(session, credentials)
+        }
+
+    suspend fun loadStudyPlan(): StudyPlanData =
+        coordinator.callAuthenticated(accountId) { session, credentials ->
+            loadStudyPlan(session, credentials)
         }
 
     suspend fun loadExamRounds(): List<ExamRoundData> =
@@ -61,6 +73,11 @@ class UniAccountClient internal constructor(
     suspend fun loadStudentDetails(): StudentDetailsData =
         coordinator.callAuthenticated(accountId) { session, credentials ->
             loadStudentDetails(session, credentials)
+        }
+
+    suspend fun loadProfileImage(source: String): ByteArray =
+        coordinator.callAuthenticated(accountId) { session, credentials ->
+            loadProfileImage(session, credentials, source)
         }
 
     suspend fun loadConnectedDevices(): List<ConnectedDeviceData> =
@@ -110,9 +127,9 @@ class UniAccountClient internal constructor(
             loadUniversityContacts(session, credentials)
         }
 
-    suspend fun loadMoodleOverview(): MoodleOverview =
+    suspend fun loadSurveyCourses(): List<SurveyCourseData> =
         coordinator.callAuthenticated(accountId) { session, credentials ->
-            loadMoodleOverview(session, credentials)
+            loadSurveyCourses(session, credentials)
         }
 
     suspend fun loadSurveyFirstPage(

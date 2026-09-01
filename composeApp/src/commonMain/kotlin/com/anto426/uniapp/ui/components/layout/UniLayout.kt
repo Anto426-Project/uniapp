@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -48,6 +49,23 @@ fun UniScreenColumn(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
+@Composable
+fun UniScreenLazyColumn(content: LazyListScope.() -> Unit) {
+    val padding = LocalUniScreenPadding.current
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().graphicsLayer(clip = false),
+        contentPadding =
+            PaddingValues(
+                start = 18.dp,
+                top = padding.calculateTopPadding() + 12.dp,
+                end = 18.dp,
+                bottom = padding.calculateBottomPadding() + 32.dp,
+            ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        content = content,
+    )
+}
+
 
 /**
  * A decorative card inspired by a well-known slogan, adapted for UniApp.
@@ -64,7 +82,7 @@ fun UniNeverSettleCard(
         shape = RoundedCornerShape(32.dp),
         containerColor = colorScheme.primaryContainer.copy(alpha = 0.15f),
         contentPadding = 24.dp,
-        interactiveGelatin = true
+        interactiveGelatin = false,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

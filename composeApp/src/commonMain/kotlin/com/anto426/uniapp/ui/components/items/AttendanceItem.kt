@@ -16,6 +16,9 @@ import com.anto426.liquidmonet.components.feedback.LiquidLinearProgressIndicator
 import com.anto426.uniapp.model.didactics.AttendanceData
 import com.kyant.backdrop.Backdrop
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 @Composable
 fun AttendanceItem(data: AttendanceData, backdropState: Backdrop) {
     val colorScheme = MaterialTheme.colorScheme
@@ -42,7 +45,7 @@ fun AttendanceItem(data: AttendanceData, backdropState: Backdrop) {
                         letterSpacing = (-0.3).sp
                     )
                     Text(
-                        text = "Frequenza: ${data.count} lezioni",
+                        text = stringResource(Res.string.ui_attendance_prefix, data.count),
                         color = colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )

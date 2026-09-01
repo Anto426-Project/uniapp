@@ -1,48 +1,66 @@
 package com.anto426.uniapp.ui.news
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.anto426.liquidmonet.components.cards.LiquidStatusType
-import com.anto426.liquidmonet.components.feedback.LiquidSheet
+import com.anto426.liquidmonet.components.cards.LiquidStatusCard
+import com.anto426.liquidmonet.components.display.LiquidEmptyState
 import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.news.presentation.NewsUiState
-import com.anto426.uniapp.ui.components.items.NewsList
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.kyant.backdrop.Backdrop
+
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun NewsScreen(
     backdropState: Backdrop,
     uiState: NewsUiState,
     onTabSelected: (Int) -> Unit,
-    onNewsSelected: (com.anto426.uniapp.model.news.NewsItem) -> Unit,
-    onDismissNews: () -> Unit,
+    onNewsSelected: (NewsItem) -> Unit,
 ) {
     val tabs = listOf(
-        LiquidNavigationItem(label = "Ateneo", icon = LiquidIcons.Home),
-        LiquidNavigationItem(label = "Dipartimento", icon = LiquidIcons.Star),
-        LiquidNavigationItem(label = "Eventi", icon = LiquidIcons.Calendar)
+        LiquidNavigationItem(label = stringResource(Res.string.ui_news_university), icon = LiquidIcons.Home),
+        LiquidNavigationItem(label = stringResource(Res.string.ui_news_department), icon = LiquidIcons.Star),
+        LiquidNavigationItem(label = stringResource(Res.string.ui_news_events), icon = LiquidIcons.Calendar)
     )
-    UniScreenColumn {
-        LiquidTabBar(items = tabs, selectedIndex = uiState.selectedTab, onTabSelected = onTabSelected, backdropState = backdropState)
-        Spacer(Modifier.height(8.dp))
-        NewsList(uiState.visibleNews, backdropState, onNewsSelected)
-    }
-    uiState.selectedNews?.let { news ->
-        LiquidSheet(onDismissRequest = onDismissNews, title = news.title, subtitle = news.description, backdropState = backdropState) {
-            Column(Modifier.padding(bottom = 24.dp)) {
-                Text(news.fullContent, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, lineHeight = 24.sp)
+    UniScreenLazyColumn {
+        item(key = "news-tabs") {
+            LiquidTabBar(
+                items = tabs,
+                selectedIndex = uiState.selectedTab,
+                onTabSelected = onTabSelected,
+                backdropState = backdropState,
+            )
+        }
+        item(key = "news-spacing") { Spacer(Modifier.height(8.dp)) }
+        if (uiState.visibleNews.isEmpty()) {
+            item(key = "news-empty-${uiState.selectedTab}") {
+                LiquidEmptyState(
+                    title = stringResource(Res.string.ui_news_empty_title),
+                    description = stringResource(Res.string.ui_news_empty_desc),
+                    backdropState = backdropState,
+                )
             }
+        }
+        itemsIndexed(
+            items = uiState.visibleNews,
+            key = { index, news -> "${uiState.selectedTab}|${news.title}|$index" },
+        ) { _, news ->
+            LiquidStatusCard(
+                title = news.title,
+                description = news.description,
+                statusType = news.type,
+                backdropState = backdropState,
+                onClick = { onNewsSelected(news) },
+            )
         }
     }
 }

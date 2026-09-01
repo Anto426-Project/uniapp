@@ -43,6 +43,10 @@ class AppNavigator internal constructor(
     val currentRoute: AppRoute
         get() = activeBackStack.lastOrNull() as? AppRoute ?: activeRoot
 
+    /** Top-level tab that owns the currently visible contextual back stack. */
+    val currentTopLevelRoute: AppRoute?
+        get() = activeRoot.takeIf(AppRoute::isTopLevel)
+
     /** System Back can also return a secondary top-level flow to Home. */
     val canGoBack: Boolean
         get() = activeBackStack.size > 1 || (activeRoot.isTopLevel && activeRoot != AppRoute.Home)
@@ -63,10 +67,10 @@ class AppNavigator internal constructor(
         if (destination.isTopLevel) return selectTopLevel(destination)
 
         if (activeRoot.isTopLevel) {
-            // Authenticated destinations always belong to their declared top-level flow. Keeping
-            // them in the previously selected stack makes the navbar highlight one tab while Back
-            // mutates another one.
-            activate(destination)
+            // A destination opened from a card or quick action belongs to the stack that launched
+            // it. For example Home -> Exams -> Back must return directly to Home, while opening the
+            // same destination from Didactics naturally returns to Didactics.
+            activeBackStack.add(destination)
         } else {
             // Public legal pages opened from Login remain in the signed-out flow so Back returns
             // to Login instead of exposing an authenticated top-level stack.

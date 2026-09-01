@@ -6,8 +6,9 @@ import kotlinx.serialization.Serializable
 /**
  * Complete set of navigation keys owned by UniApp.
  *
- * Detail routes carry only stable identifiers. Screen models and authenticated data are resolved
- * by the destination from the appropriate data source instead of being serialized in navigation.
+ * Detail routes carry stable identifiers plus only the display labels needed by navigation chrome.
+ * Screen models and authenticated data are resolved by the destination from the appropriate data
+ * source instead of being serialized in navigation.
  */
 @Serializable
 sealed interface AppRoute : NavKey {
@@ -27,13 +28,31 @@ sealed interface AppRoute : NavKey {
     data object Didactics : AppRoute
 
     @Serializable
+    data object Teachings : AppRoute
+
+    @Serializable
+    data object Theses : AppRoute
+
+    @Serializable
+    data object Reports : AppRoute
+
+    @Serializable
+    data class TeachingDetail(val itemKey: String, val title: String) : AppRoute
+
+    @Serializable
+    data class ProfessorExamDetail(val itemKey: String, val title: String) : AppRoute
+
+    @Serializable
+    data class ThesisDetail(val itemKey: String, val title: String) : AppRoute
+
+    @Serializable
+    data class ReportDetail(val itemKey: String, val title: String) : AppRoute
+
+    @Serializable
     data object Settings : AppRoute
 
     @Serializable
     data object Accounts : AppRoute
-
-    @Serializable
-    data object Career : AppRoute
 
     @Serializable
     data object Info : AppRoute
@@ -69,10 +88,16 @@ sealed interface AppRoute : NavKey {
     data object TransportBooking : AppRoute
 
     @Serializable
-    data class TicketDetail(val ticketId: String) : AppRoute
+    data class TicketDetail(
+        val ticketId: String,
+        val title: String = "",
+    ) : AppRoute
 
     @Serializable
-    data class ReservationDetail(val reservationId: String) : AppRoute
+    data class ReservationDetail(
+        val reservationId: String,
+        val title: String = "",
+    ) : AppRoute
 
     @Serializable
     data object Transcripts : AppRoute
@@ -91,6 +116,13 @@ sealed interface AppRoute : NavKey {
 
     @Serializable
     data object Questionnaires : AppRoute
+
+    @Serializable
+    data class Questionnaire(
+        val courseId: String,
+        val tagList: String,
+        val title: String,
+    ) : AppRoute
 
     @Serializable
     data object Badge : AppRoute
@@ -115,6 +147,13 @@ sealed interface AppRoute : NavKey {
 
     @Serializable
     data object News : AppRoute
+
+    @Serializable
+    data class NewsDetail(
+        val title: String,
+        val description: String,
+        val fullContent: String,
+    ) : AppRoute
 
     @Serializable
     data object Devices : AppRoute

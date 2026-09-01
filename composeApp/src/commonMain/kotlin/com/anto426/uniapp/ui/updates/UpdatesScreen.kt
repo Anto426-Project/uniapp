@@ -48,7 +48,7 @@ fun UpdatesScreen(
         // 2. Software Version Group (Settings Style)
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_software_version), backdropState = backdropState) {
             LiquidPreferenceItem(
-                title = "UniApp ${uiState.installedVersion}",
+                title = "${stringResource(Res.string.ui_app_name)} ${uiState.installedVersion}".trim(),
                 subtitle = uiState.errorMessage ?: uiState.statusText ?: stringResource(Res.string.ui_system_updated),
                 icon = LiquidIcons.Info,
                 backdropState = backdropState
@@ -57,7 +57,7 @@ fun UpdatesScreen(
             uiState.releaseNotes?.takeIf { it.isNotBlank() }?.let { notes ->
                 LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
                 LiquidPreferenceItem(
-                    title = if (uiState.isMandatory) "Aggiornamento obbligatorio" else "Novità disponibili",
+                    title = if (uiState.isMandatory) stringResource(Res.string.ui_update_mandatory) else stringResource(Res.string.ui_update_news),
                     subtitle = notes,
                     icon = if (uiState.isMandatory) LiquidIcons.Warning else LiquidIcons.Refresh,
                     backdropState = backdropState,

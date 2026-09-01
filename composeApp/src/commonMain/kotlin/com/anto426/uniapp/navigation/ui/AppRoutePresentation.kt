@@ -10,16 +10,37 @@ internal data class AppRoutePresentation(
     val icon: ImageVector,
 )
 
-internal fun AppRoute.presentation(): AppRoutePresentation =
+internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresentation =
     when (this) {
         AppRoute.Bootstrap -> AppRoutePresentation("UniApp", "Avvio sicuro", LiquidIcons.Lock)
         AppRoute.Login -> AppRoutePresentation("Accedi", "Portale studenti", LiquidIcons.Lock)
-        AppRoute.Home -> AppRoutePresentation("UniApp", "Liquidnio • Ingegneria Informatica", LiquidIcons.Home)
-        AppRoute.Services -> AppRoutePresentation("Servizi", "Tasse, Trasporti e Servizi Studente", LiquidIcons.Star)
-        AppRoute.Didactics -> AppRoutePresentation("Didattica", "Appelli, Libretto e Valutazioni", LiquidIcons.Calendar)
+        AppRoute.Home ->
+            if (isProfessor) {
+                AppRoutePresentation("UniApp", "Panoramica del profilo docente", LiquidIcons.Home)
+            } else {
+                AppRoutePresentation("UniApp", "Carriera e servizi universitari", LiquidIcons.Home)
+            }
+        AppRoute.Services ->
+            if (isProfessor) {
+                AppRoutePresentation("Servizi", "Portali e servizi per la docenza", LiquidIcons.Star)
+            } else {
+                AppRoutePresentation("Servizi", "Tasse, trasporti e servizi studente", LiquidIcons.Star)
+            }
+        AppRoute.Didactics ->
+            if (isProfessor) {
+                AppRoutePresentation("Didattica", "Insegnamenti, Appelli, Tesi e Verbali", LiquidIcons.MenuBook)
+            } else {
+                AppRoutePresentation("Didattica", "Appelli, Libretto e Valutazioni", LiquidIcons.Calendar)
+            }
+        AppRoute.Teachings -> AppRoutePresentation("Insegnamenti", "Corsi assegnati", LiquidIcons.MenuBook)
+        AppRoute.Theses -> AppRoutePresentation("Tesi", "Tesisti e discussioni", LiquidIcons.Assignment)
+        AppRoute.Reports -> AppRoutePresentation("Verbali", "Esiti e verbalizzazioni", LiquidIcons.Edit)
+        is AppRoute.TeachingDetail -> AppRoutePresentation(title, "Dettaglio insegnamento", LiquidIcons.MenuBook)
+        is AppRoute.ProfessorExamDetail -> AppRoutePresentation("Dettagli Appello", title, LiquidIcons.Calendar)
+        is AppRoute.ThesisDetail -> AppRoutePresentation("Dettaglio Tesi", title, LiquidIcons.Assignment)
+        is AppRoute.ReportDetail -> AppRoutePresentation(title, "Dettaglio verbale", LiquidIcons.Edit)
         AppRoute.Settings -> AppRoutePresentation("Impostazioni", "Preferenze e Configurazione", LiquidIcons.Settings)
         AppRoute.Accounts -> AppRoutePresentation("Account", "Gestione profili universitari", LiquidIcons.AccountCircle)
-        AppRoute.Career -> AppRoutePresentation("Carriera", "Riepilogo Esami e CFU", LiquidIcons.Calendar)
         AppRoute.Info -> AppRoutePresentation("Informazioni", "Versione e Note di Rilascio", LiquidIcons.Info)
         AppRoute.Theme -> AppRoutePresentation("Tema", "Personalizzazione Palette Monet", LiquidIcons.Star)
         AppRoute.Colors -> AppRoutePresentation("Laboratorio Colori", "Sperimentazione Palette", LiquidIcons.Star)
@@ -31,15 +52,26 @@ internal fun AppRoute.presentation(): AppRoutePresentation =
         AppRoute.Transport -> AppRoutePresentation("Trasporti", "Navette e Orari", LiquidIcons.Time)
         AppRoute.TransportCatalog -> AppRoutePresentation("Biglietti", "Catalogo titoli di viaggio", LiquidIcons.Star)
         AppRoute.TransportBooking -> AppRoutePresentation("Prenotazione Posto", "Seleziona data e ora", LiquidIcons.Calendar)
-        is AppRoute.TicketDetail -> AppRoutePresentation("Dettaglio Biglietto", "Info titolo di viaggio", LiquidIcons.Star)
-        is AppRoute.ReservationDetail -> AppRoutePresentation("Dettaglio Prenotazione", "Info posto a bordo", LiquidIcons.Calendar)
+        is AppRoute.TicketDetail -> AppRoutePresentation(title.ifBlank { "Biglietto" }, "Info titolo di viaggio", LiquidIcons.Star)
+        is AppRoute.ReservationDetail -> AppRoutePresentation(title.ifBlank { "Prenotazione" }, "Info posto a bordo", LiquidIcons.Calendar)
         AppRoute.Transcripts -> AppRoutePresentation("Libretto", "Voti e CFU Registrati", LiquidIcons.Calendar)
-        AppRoute.Exams -> AppRoutePresentation("Appelli", "Prenotazione Esami", LiquidIcons.Calendar)
+        AppRoute.Exams ->
+            if (isProfessor) {
+                AppRoutePresentation("Appelli", "Prenotazioni, commissioni e verbali", LiquidIcons.Calendar)
+            } else {
+                AppRoutePresentation("Appelli", "Prenotazione Esami", LiquidIcons.Calendar)
+            }
         AppRoute.ExamsHistory -> AppRoutePresentation("Storico Appelli", "Esami e prenotazioni precedenti", LiquidIcons.Time)
         AppRoute.StudyPlan -> AppRoutePresentation("Piano di Studio", "Pianificazione esami e CFU", LiquidIcons.Edit)
         is AppRoute.CourseDetail -> AppRoutePresentation("Dettaglio Corso", "Informazioni esame", LiquidIcons.Star)
         AppRoute.Questionnaires -> AppRoutePresentation("Questionari", "Valutazione Didattica", LiquidIcons.Edit)
-        AppRoute.Badge -> AppRoutePresentation("Badge", "Identità Digitale", LiquidIcons.AccountCircle)
+        is AppRoute.Questionnaire -> AppRoutePresentation(title, "Compilazione valutazione", LiquidIcons.Edit)
+        AppRoute.Badge ->
+            AppRoutePresentation(
+                "Badge",
+                if (isProfessor) "Identità docente" else "Identità Digitale",
+                LiquidIcons.AccountCircle,
+            )
         AppRoute.Attendance -> AppRoutePresentation("Presenze", "Rilevazione Aula", LiquidIcons.Check)
         AppRoute.Privacy -> AppRoutePresentation("Privacy", "Informativa sulla Privacy", LiquidIcons.Lock)
         AppRoute.Terms -> AppRoutePresentation("Termini", "Termini di Utilizzo", LiquidIcons.Info)
@@ -47,6 +79,7 @@ internal fun AppRoute.presentation(): AppRoutePresentation =
         AppRoute.Updates -> AppRoutePresentation("Aggiornamenti", "Stato Sistema e Software", LiquidIcons.Refresh)
         AppRoute.Changelog -> AppRoutePresentation("Note di Rilascio", "Cronologia Versioni", LiquidIcons.Star)
         AppRoute.News -> AppRoutePresentation("Notizie", "Comunicazioni e Avvisi", LiquidIcons.Notifications)
+        is AppRoute.NewsDetail -> AppRoutePresentation(title.ifBlank { "Notizia" }, "Comunicazione d'Ateneo", LiquidIcons.Notifications)
         AppRoute.Devices -> AppRoutePresentation("Dispositivi", "Gestione Sessioni Attive", LiquidIcons.Lock)
         AppRoute.Language -> AppRoutePresentation("Lingua", "Seleziona Lingua App", LiquidIcons.Info)
         AppRoute.Author -> AppRoutePresentation("Autore", "Sviluppatore e Designer", LiquidIcons.AccountCircle)

@@ -13,10 +13,11 @@ kotlinx-coroutines = "1.11.0"
 androidx-core-ktx = "1.19.0"
 activity-compose = "1.13.0"
 compose = "1.12.0"
-material3 = "1.5.0-alpha26"
+material3 = "1.5.0-alpha27"
 lifecycle = "2.11.0"
 navigation3 = "1.1.1"
 annotation = "1.10.0"
+coil = "3.6.1"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "androidx-core-ktx" }
@@ -44,6 +45,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

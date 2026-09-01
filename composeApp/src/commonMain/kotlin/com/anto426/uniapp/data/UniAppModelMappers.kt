@@ -25,7 +25,7 @@ import com.anto426.unisdk.backend.model.CareerData
 import com.anto426.unisdk.backend.model.ConnectedDeviceData
 import com.anto426.unisdk.backend.model.CourseSyllabusData
 import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.MoodleOverview
+import com.anto426.unisdk.backend.model.StudyPlanData
 import com.anto426.unisdk.backend.model.TaxesData
 import com.anto426.unisdk.backend.model.UniversityContact
 import com.anto426.unisdk.backend.model.UniversityNews
@@ -54,8 +54,13 @@ internal fun CareerData.toGradeExams(): List<GradeExam> =
 
 internal fun List<ExamRoundData>.toExamSessions(): List<ExamSession> =
     map { round ->
-        val date = round.dateTime.substringBefore(' ')
-        val time = round.dateTime.substringAfter(' ', missingDelimiterValue = "")
+        val date = round.dateTime.substringBefore(' ').substringBefore('T')
+        val time =
+            when {
+                'T' in round.dateTime -> round.dateTime.substringAfter('T').take(5)
+                ' ' in round.dateTime -> round.dateTime.substringAfter(' ').take(5)
+                else -> ""
+            }
         ExamSession(
             name = round.courseName,
             date = date,
@@ -66,6 +71,9 @@ internal fun List<ExamRoundData>.toExamSessions(): List<ExamSession> =
             type = round.registrationTypeDescription,
             professor = round.presidentFullName.orEmpty(),
             bookedUsersCount = round.totalRegistrations ?: 0,
+            availableSlots = round.availableSlots,
+            notes = round.notes.orEmpty(),
+            canBook = round.isBookable,
             isBooked = round.booked,
             id = round.stableUiId(),
         )
@@ -76,37 +84,24 @@ internal fun List<ExamRoundData>.toSimulationPresets(): List<GradeSimulationPres
         .distinctBy(ExamRoundData::courseName)
         .map { GradeSimulationPreset(it.courseName, cfu = 6, initialGrade = 24) }
 
-internal fun CareerData.toStudyYears(moodle: MoodleOverview): List<StudyYear> {
-    val completed =
-        exams.mapIndexed { index, exam ->
+internal fun StudyPlanData.toStudyYears(): List<StudyYear> =
+    courses
+        .map { course ->
             StudyCourse(
-                id = exam.adsceId.orEmpty(),
-                name = exam.name,
-                cfu = exam.cfu?.let { "$it CFU" }.orEmpty(),
-                status = CourseStatus.COMPLETED,
-                semester = exam.date,
-            ) to (index / COURSES_PER_YEAR + 1).coerceAtMost(3)
+                id = course.adsceId.orEmpty(),
+                name = course.title,
+                cfu = course.cfu?.let { "$it CFU" }.orEmpty(),
+                status = if (course.completed) CourseStatus.COMPLETED else CourseStatus.PLANNED,
+                description = course.category.orEmpty(),
+                semester = course.completionDate.orEmpty(),
+            ) to (course.year ?: 1).coerceAtLeast(1)
         }
-    val active =
-        moodle.courses
-            .filterNot { course -> completed.any { it.first.name.equals(course.fullName, ignoreCase = true) } }
-            .map { course ->
-                StudyCourse(
-                    id = course.id.orEmpty(),
-                    name = course.fullName,
-                    cfu = "",
-                    status = CourseStatus.ACTIVE,
-                    description = course.category.orEmpty(),
-                    semester = course.progressPercentage?.let { "$it% completato" }.orEmpty(),
-                ) to currentAcademicYearNumber(year)
-            }
-    return (completed + active)
         .groupBy(Pair<StudyCourse, Int>::second)
-        .toSortedMap()
+        .toList()
+        .sortedBy { (yearNumber, _) -> yearNumber }
         .map { (yearNumber, courses) ->
             StudyYear(yearNumber, "${yearNumber}° Anno", courses.map(Pair<StudyCourse, Int>::first))
         }
-}
 
 internal fun CourseSyllabusData.toStudyCourse(): StudyCourse =
     StudyCourse(
@@ -175,6 +170,7 @@ internal fun List<ConnectedDeviceData>.toDeviceInfo(): List<DeviceInfo> =
             name = listOfNotNull(device.manufacturer, device.model).joinToString(" ").ifBlank { "Dispositivo" },
             location = listOfNotNull(device.platform, device.osVersion).joinToString(" • "),
             lastSeen = device.lastLogin,
+            appVersion = device.appVersion,
             type = device.platform.toDeviceType(device.model),
             isCurrent = device.isCurrentDevice,
             id = device.token ?: device.serialCode.orEmpty(),
@@ -214,14 +210,13 @@ internal fun TransportData.toTickets(): List<TransportTicket> =
 internal fun ExamRoundData.stableUiId(): String =
     listOfNotNull(appId, adId, adsceId).firstOrNull() ?: "$courseName|$dateTime"
 
-internal fun String.numericGradeOrNull(): Int? =
-    filter(Char::isDigit).toIntOrNull()?.takeIf { it in 18..30 }
+internal fun String.numericGradeOrNull(): Int? {
+    val clean = substringBefore('/').trim()
+    return clean.filter(Char::isDigit).toIntOrNull()?.takeIf { it in 18..30 }
+}
 
 private fun String.calendarYearOrNull(): Int? =
     split('/', '-', '.').lastOrNull()?.takeIf { it.length == 4 }?.toIntOrNull()
-
-private fun currentAcademicYearNumber(raw: String): Int =
-    raw.filter(Char::isDigit).takeLast(1).toIntOrNull()?.coerceIn(1, 3) ?: 1
 
 private fun String.initials(): String =
     trim().split(' ').filter(String::isNotBlank).take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
@@ -246,5 +241,3 @@ private fun String?.toDeviceType(model: String?): DeviceType =
         model?.contains("tablet", ignoreCase = true) == true || model?.contains("pad", ignoreCase = true) == true -> DeviceType.TABLET
         else -> DeviceType.PHONE
     }
-
-private const val COURSES_PER_YEAR = 7

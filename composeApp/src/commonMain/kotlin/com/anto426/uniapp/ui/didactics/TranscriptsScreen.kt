@@ -18,6 +18,9 @@ import com.anto426.uniapp.ui.components.items.ExamRecordItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 @Composable
 fun TranscriptsScreen(
     backdropState: Backdrop,
@@ -25,7 +28,7 @@ fun TranscriptsScreen(
     onYearSelected: (Int) -> Unit,
 ) {
     val tabs = listOf(
-        LiquidNavigationItem(label = "Tutti"),
+        LiquidNavigationItem(label = stringResource(Res.string.ui_home_news_all)),
         LiquidNavigationItem(label = "1° Anno"),
         LiquidNavigationItem(label = "2° Anno"),
         LiquidNavigationItem(label = "3° Anno")
@@ -50,12 +53,12 @@ fun TranscriptsScreen(
 
                 LiquidSectionHeader(
                     title = when (year) {
-                        1 -> "Primo Anno"
-                        2 -> "Secondo Anno"
-                        3 -> "Terzo Anno"
-                        else -> "$year° Anno"
+                        1 -> stringResource(Res.string.ui_year_first)
+                        2 -> stringResource(Res.string.ui_year_second)
+                        3 -> stringResource(Res.string.ui_year_third)
+                        else -> stringResource(Res.string.ui_year_nth, year)
                     },
-                    subtitle = "$yearCfu CFU conseguiti • ${examsForYear.size} esami verbalizzati",
+                    subtitle = stringResource(Res.string.ui_transcripts_year_summary, yearCfu, examsForYear.size),
                 )
 
                 Column(

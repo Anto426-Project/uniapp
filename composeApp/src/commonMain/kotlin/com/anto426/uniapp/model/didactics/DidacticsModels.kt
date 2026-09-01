@@ -33,28 +33,52 @@ data class StudyYear(
     val icon: ImageVector? = null
 )
 
-enum class QuestionnaireStatus { PENDING, COMPLETED }
+enum class QuestionnaireStatus { PENDING, COMPLETED, UNAVAILABLE }
 
 data class QuestionnaireData(
     val course: String,
     val prof: String,
     val code: String,
     val status: QuestionnaireStatus,
+    val courseId: String = "",
+    val tagList: String = "",
 )
 
-data class PastExam(val name: String, val date: String, val grade: String, val status: String)
+enum class PastExamStatus { VERBALIZED, BOOKED_PAST }
+
+data class PastExam(
+    val name: String,
+    val date: String,
+    val grade: String = "",
+    val status: PastExamStatus = PastExamStatus.VERBALIZED,
+    val id: String = "",
+    val time: String = "",
+    val cfu: Int? = null,
+    val code: String? = null,
+    val room: String? = null,
+    val type: String? = null,
+    val professor: String? = null,
+    val bookingOpenDate: String? = null,
+    val bookingCloseDate: String? = null,
+    val bookedUsersCount: Int? = null,
+    val availableSlots: Int? = null,
+    val notes: String? = null,
+)
 
 data class ExamSession(
     val name: String,
     val date: String,
-    val time: String,
-    val room: String,
-    val bookingOpenDate: String,
-    val bookingCloseDate: String,
-    val type: String,
-    val professor: String,
-    val bookedUsersCount: Int,
-    val isBooked: Boolean,
+    val time: String = "",
+    val room: String = "",
+    val bookingOpenDate: String = "",
+    val bookingCloseDate: String = "",
+    val type: String = "",
+    val professor: String = "",
+    val bookedUsersCount: Int = 0,
+    val availableSlots: Int = 0,
+    val notes: String = "",
+    val canBook: Boolean = true,
+    val isBooked: Boolean = false,
     val id: String = "",
 )
 

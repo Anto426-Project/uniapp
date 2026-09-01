@@ -1,10 +1,5 @@
 package com.anto426.uniapp.ui.auth
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,9 +15,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,11 +35,14 @@ import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.components.display.LiquidAvatarPresence
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.feedback.LiquidDialog
+import com.anto426.liquidmonet.components.feedback.LiquidSheet
 import com.anto426.liquidmonet.components.inputs.LiquidTextField
 import com.anto426.liquidmonet.components.inputs.LiquidTextFieldType
 import com.anto426.liquidmonet.components.selection.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.auth.presentation.LoginUiState
+import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.backend.model.LoginCareerOption
 import com.kyant.backdrop.Backdrop
@@ -55,6 +56,8 @@ import uniapp.composeapp.generated.resources.*
 fun LoginScreen(
     backdropState: Backdrop,
     uiState: LoginUiState,
+    accountUiState: AccountSwitcherUiState = AccountSwitcherUiState(),
+    onSelectAccount: (String) -> Unit = {},
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRememberCredentialsChange: (Boolean) -> Unit = {},
@@ -67,87 +70,138 @@ fun LoginScreen(
     onOpenTerms: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    var isAccountSheetVisible by remember { mutableStateOf(false) }
 
     UniScreenColumn {
         Spacer(Modifier.height(12.dp))
 
-        // 1. Official SDK LiquidAvatar & Brand Presentation Header
+        // 1. Brand Presentation Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Official SDK LiquidAvatar with Online presence status
             LiquidAvatar(
                 size = 80.dp,
                 icon = LiquidIcons.AccountCircle,
                 presence = LiquidAvatarPresence.Online,
-                backdropState = backdropState
+                backdropState = backdropState,
             )
 
-            // Typography
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "UniApp",
+                    text = stringResource(Res.string.ui_app_name),
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Black,
                         letterSpacing = (-0.8).sp,
-                        fontSize = 32.sp
+                        fontSize = 32.sp,
                     ),
-                    color = colorScheme.onSurface
+                    color = colorScheme.onSurface,
                 )
 
                 Text(
-                    text = "Portale Universitario",
+                    text = stringResource(Res.string.ui_login_portal_subtitle),
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     ),
-                    color = colorScheme.primary
+                    color = colorScheme.primary,
                 )
 
                 Text(
-                    text = "Accedi con le tue credenziali d'Ateneo",
+                    text = stringResource(Res.string.ui_login_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
 
-        // 2. Master Glass Authentication Form Card
+        // 2. Saved Accounts Switcher Shortcut Card (if any saved accounts exist)
+        if (accountUiState.accounts.isNotEmpty()) {
+            LiquidCard(
+                backdropState = backdropState,
+                shape = RoundedCornerShape(22.dp),
+                contentPadding = 14.dp,
+                onClick = { isAccountSheetVisible = true },
+                interactiveGelatin = true,
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            imageVector = LiquidIcons.Refresh,
+                            contentDescription = null,
+                            tint = colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Column {
+                            Text(
+                                text = stringResource(Res.string.ui_login_quick_switch),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(Res.string.ui_accounts_saved_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    LiquidBadge(
+                        text = "${accountUiState.accounts.size}",
+                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        contentColor = colorScheme.primary,
+                        backdropState = backdropState,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
+        }
+
+        // 3. Master Glass Authentication Form Card
         LiquidCard(
             backdropState = backdropState,
             shape = RoundedCornerShape(30.dp),
             contentPadding = 24.dp,
-            interactiveGelatin = false
+            interactiveGelatin = false,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
-                // Header Form Label with SDK LiquidBadge
+                // Header Form Label
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Credenziali d'Accesso",
+                        text = stringResource(Res.string.ui_login_credentials_title),
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         ),
-                        color = colorScheme.onSurface
+                        color = colorScheme.onSurface,
                     )
                     LiquidBadge(
-                        text = "A.A. 2024/25",
+                        text = stringResource(Res.string.ui_login_title),
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.50f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState
+                        backdropState = backdropState,
                     )
                 }
 
@@ -156,13 +210,13 @@ fun LoginScreen(
                     value = uiState.username,
                     onValueChange = onUsernameChange,
                     type = LiquidTextFieldType.Text,
-                    label = "Nome Utente o Matricola",
-                    placeholder = "Es. m.rossi o 123456",
+                    label = stringResource(Res.string.ui_login_username_label),
+                    placeholder = stringResource(Res.string.ui_login_username_placeholder),
                     leadingIcon = LiquidIcons.AccountCircle,
                     keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
+                        imeAction = ImeAction.Next,
                     ),
-                    backdropState = backdropState
+                    backdropState = backdropState,
                 )
 
                 // Password Field
@@ -170,17 +224,17 @@ fun LoginScreen(
                     value = uiState.password,
                     onValueChange = onPasswordChange,
                     type = LiquidTextFieldType.Password,
-                    label = "Password Istituzionale",
-                    placeholder = "Inserisci la tua password...",
+                    label = stringResource(Res.string.ui_login_password_label),
+                    placeholder = stringResource(Res.string.ui_login_password_placeholder),
                     leadingIcon = LiquidIcons.Lock,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Done,
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { onSubmit() }
+                        onDone = { onSubmit() },
                     ),
-                    backdropState = backdropState
+                    backdropState = backdropState,
                 )
 
                 // Remember Credentials Switch Row
@@ -189,73 +243,36 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 2.dp, vertical = 2.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                         Text(
-                            text = "Ricorda credenziali",
+                            text = stringResource(Res.string.ui_login_remember_credentials),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
                             ),
-                            color = colorScheme.onSurface
+                            color = colorScheme.onSurface,
                         )
                         Text(
-                            text = "Mantieni la sessione attiva su questo dispositivo",
+                            text = stringResource(Res.string.ui_remember_credentials_desc),
                             fontSize = 11.sp,
-                            color = colorScheme.onSurfaceVariant
+                            color = colorScheme.onSurfaceVariant,
                         )
                     }
 
                     LiquidSwitch(
                         checked = uiState.rememberCredentials,
                         onCheckedChange = onRememberCredentialsChange,
-                        backdropState = backdropState
+                        backdropState = backdropState,
                     )
-                }
-
-                // Error Feedback Alert Card
-                AnimatedVisibility(
-                    visible = uiState.errorMessage != null,
-                    enter = fadeIn() + slideInVertically { h -> -h / 3 },
-                    exit = fadeOut() + slideOutVertically { h -> -h / 3 }
-                ) {
-                    uiState.errorMessage?.let { error ->
-                        LiquidCard(
-                            backdropState = backdropState,
-                            containerColor = colorScheme.errorContainer.copy(alpha = 0.45f),
-                            shape = RoundedCornerShape(18.dp),
-                            contentPadding = 14.dp,
-                            interactiveGelatin = false
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = LiquidIcons.Warning,
-                                    contentDescription = null,
-                                    tint = colorScheme.error,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    text = error,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    ),
-                                    color = colorScheme.onErrorContainer
-                                )
-                            }
-                        }
-                    }
                 }
 
                 Spacer(Modifier.height(2.dp))
 
                 // Primary Action Button
                 LiquidButton(
-                    text = "Accedi al Portale",
+                    text = stringResource(Res.string.ui_login_button),
                     onClick = onSubmit,
                     isLoading = uiState.isLoading,
                     variant = LiquidButtonVariant.Primary,
@@ -264,48 +281,124 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = {
                         Icon(LiquidIcons.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
-                    }
+                    },
                 )
 
                 // Secondary Forgot Password Link
                 LiquidButton(
-                    text = "Password dimenticata?",
+                    text = stringResource(Res.string.ui_login_forgot_password),
                     onClick = onShowForgotPassword,
                     variant = LiquidButtonVariant.Text,
                     size = LiquidButtonSize.Small,
                     backdropState = backdropState,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
 
-        // 3. Legal Links Footer
+        // 4. Legal Links Footer
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             LiquidButton(
                 text = stringResource(Res.string.ui_privacy),
                 onClick = onOpenPrivacy,
                 variant = LiquidButtonVariant.Text,
                 size = LiquidButtonSize.Small,
-                backdropState = backdropState
+                backdropState = backdropState,
             )
             Text(
                 text = "•",
                 color = colorScheme.onSurface.copy(alpha = 0.3f),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
             LiquidButton(
                 text = stringResource(Res.string.ui_terms),
                 onClick = onOpenTerms,
                 variant = LiquidButtonVariant.Text,
                 size = LiquidButtonSize.Small,
-                backdropState = backdropState
+                backdropState = backdropState,
             )
+        }
+    }
+
+    // Saved Accounts Bottom Sheet
+    if (isAccountSheetVisible) {
+        LiquidSheet(
+            onDismissRequest = { isAccountSheetVisible = false },
+            backdropState = backdropState,
+            title = stringResource(Res.string.ui_accounts_saved_title),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                accountUiState.accounts.forEach { account ->
+                    val isActivating = account.accountId == accountUiState.activatingAccountId
+                    val initials =
+                        account.displayName
+                            .split(' ')
+                            .filter(String::isNotBlank)
+                            .take(2)
+                            .map { it.first() }
+                            .joinToString("")
+
+                    LiquidCard(
+                        backdropState = backdropState,
+                        onClick = {
+                            isAccountSheetVisible = false
+                            onSelectAccount(account.accountId)
+                        },
+                        interactiveGelatin = true,
+                        contentPadding = 14.dp,
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            UniAccountAvatar(
+                                imageData = accountUiState.profileImages[account.accountId],
+                                initials = if (initials.isNotBlank()) initials else "UN",
+                                size = 44.dp,
+                                contentDescription = "Foto profilo",
+                                backdropState = backdropState,
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = account.displayName,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = account.degreeName,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                account.matricola?.takeIf { it.isNotBlank() }?.let { matricola ->
+                                    Text(
+                                        text = stringResource(Res.string.ui_matricola_prefix, matricola),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            if (isActivating) {
+                                LiquidBadge(
+                                    text = stringResource(Res.string.ui_account_activating),
+                                    backdropState = backdropState,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -313,18 +406,18 @@ fun LoginScreen(
     if (uiState.isForgotPasswordDialogVisible) {
         LiquidDialog(
             onDismissRequest = onDismissForgotPassword,
-            title = "Recupero Credenziali",
-            text = "Le credenziali di accesso sono gestite direttamente dal tuo Ateneo. Per reimpostare la tua password o sbloccare l'account, contatta la segreteria studenti o visita la pagina di recupero del portale istituzionale.",
+            title = stringResource(Res.string.ui_forgot_password_title),
+            text = stringResource(Res.string.ui_forgot_password_desc),
             backdropState = backdropState,
             confirmButton = {
                 LiquidButton(
-                    text = "Ho Capito",
+                    text = stringResource(Res.string.ui_understand),
                     onClick = onDismissForgotPassword,
                     variant = LiquidButtonVariant.Primary,
                     backdropState = backdropState,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
-            }
+            },
         )
     }
 
@@ -332,13 +425,13 @@ fun LoginScreen(
     if (uiState.careers.isNotEmpty()) {
         LiquidDialog(
             onDismissRequest = onCancelCareerSelection,
-            title = "Seleziona Carriera",
-            text = "Abbiamo rilevato più carriere attive associate alle tue credenziali. Seleziona quella con cui desideri accedere.",
+            title = stringResource(Res.string.ui_login_career_selection_title),
+            text = stringResource(Res.string.ui_login_career_selection_subtitle),
             backdropState = backdropState,
             confirmButton = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     uiState.careers.forEach { career ->
                         LiquidCard(
@@ -348,26 +441,26 @@ fun LoginScreen(
                             onClick = {
                                 onCareerSelected(career)
                             },
-                            interactiveGelatin = true
+                            interactiveGelatin = true,
                         ) {
                             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
                                         text = career.displayName,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Black,
-                                        color = colorScheme.primary
+                                        color = colorScheme.primary,
                                     )
                                     career.matricola?.let { matr ->
                                         LiquidBadge(
-                                            text = "matr. $matr",
+                                            text = stringResource(Res.string.ui_matricola_prefix, matr),
                                             containerColor = colorScheme.primaryContainer.copy(alpha = 0.50f),
                                             contentColor = colorScheme.primary,
-                                            backdropState = backdropState
+                                            backdropState = backdropState,
                                         )
                                     }
                                 }
@@ -375,13 +468,13 @@ fun LoginScreen(
                                     text = career.degreeName,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Medium,
-                                    color = colorScheme.onSurface
+                                    color = colorScheme.onSurface,
                                 )
                                 if (!career.departmentName.isNullOrBlank()) {
                                     Text(
                                         text = career.departmentName.orEmpty(),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                                     )
                                 }
                             }
@@ -395,10 +488,10 @@ fun LoginScreen(
                         onClick = onCancelCareerSelection,
                         variant = LiquidButtonVariant.Text,
                         backdropState = backdropState,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
-            }
+            },
         )
     }
 }

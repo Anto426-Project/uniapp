@@ -10,6 +10,7 @@ import com.anto426.unisdk.session.SessionResumeResult
 import com.anto426.unisdk.session.UniCredentials
 import com.anto426.unisdk.session.UniSession
 import com.anto426.unisdk.session.UniUserProfile
+import com.anto426.unisdk.session.UniCareerProfile
 import com.anto426.unisdk.transport.TransportService
 import com.anto426.unisdk.transport.TransportSession
 import kotlinx.coroutines.sync.Mutex
@@ -48,6 +49,7 @@ class UniSessionCoordinator(
 ) {
     private val lock = Mutex()
     private val runtimeSessions = mutableMapOf<String, ActiveUniSession>()
+    private var pendingProfileCatalog: List<LoginCareerOption> = emptyList()
 
     suspend fun authenticate(
         credentials: UniAccountCredentials,
@@ -63,14 +65,22 @@ class UniSessionCoordinator(
                     )
             ) {
                 is AuthenticationResult.CareerSelectionRequired ->
-                    ManagedAuthenticationResult.CareerSelectionRequired(result.careers)
+                    ManagedAuthenticationResult.CareerSelectionRequired(result.careers).also {
+                        pendingProfileCatalog = result.careers
+                    }
 
                 is AuthenticationResult.Authenticated -> {
+                    val resolvedProfile =
+                        result.profile.withProfileCatalog(
+                            catalog = pendingProfileCatalog,
+                            selected = selectedCareer,
+                        )
+                    pendingProfileCatalog = emptyList()
                     val account =
                         try {
                             accounts.persistAuthenticatedAccount(
                                 credentials = credentials,
-                                profile = result.profile,
+                                profile = resolvedProfile,
                                 ticket = result.ticket,
                                 preferredAccountId = preferredAccountId,
                             )
@@ -81,7 +91,7 @@ class UniSessionCoordinator(
                     runtimeSessions.remove(account.accountId)?.let { previous ->
                         runCatching { backend.closeSession(previous.session) }
                     }
-                    val active = ActiveUniSession(account, result.session, result.profile)
+                    val active = ActiveUniSession(account, result.session, resolvedProfile)
                     runtimeSessions[account.accountId] = active
                     ManagedAuthenticationResult.Authenticated(active)
                 }
@@ -107,6 +117,56 @@ class UniSessionCoordinator(
                 }
 
                 else -> result
+            }
+        }
+
+    /**
+     * Re-authenticates the same university identity into one of its student careers or professor
+     * profiles. The persistent account remains the same; only its active profile and RAM session
+     * change.
+     */
+    suspend fun activateProfile(
+        accountId: String,
+        profileId: String,
+    ): ManagedSessionResult =
+        lock.withLock {
+            val account =
+                accounts.snapshot().accounts.firstOrNull { it.accountId == accountId }
+                    ?: throw IllegalArgumentException("Unknown account")
+            val selected =
+                account.profiles.firstOrNull { it.profileId == profileId }
+                    ?.toLoginCareerOption()
+                    ?: throw IllegalArgumentException("Unknown account profile")
+
+            accounts.withCredentials(accountId) { credentials ->
+                val result = backend.login(credentials, selected)
+                val authenticated =
+                    result as? AuthenticationResult.Authenticated
+                        ?: error("Il portale non ha attivato il profilo selezionato.")
+                val catalog = account.profiles.map { it.toLoginCareerOption() }
+                val resolvedProfile =
+                    authenticated.profile.withProfileCatalog(
+                        catalog = catalog,
+                        selected = selected,
+                    )
+                val updatedAccount =
+                    try {
+                        accounts.updateSession(
+                            accountId = accountId,
+                            profile = resolvedProfile,
+                            ticket = authenticated.ticket,
+                        )
+                    } catch (error: Throwable) {
+                        runCatching { backend.closeSession(authenticated.session) }
+                        throw error
+                    }
+                runtimeSessions.remove(accountId)?.let { previous ->
+                    runCatching { backend.closeSession(previous.session) }
+                }
+                accounts.setActiveAccount(accountId)
+                val active = ActiveUniSession(updatedAccount, authenticated.session, resolvedProfile)
+                runtimeSessions[accountId] = active
+                ManagedSessionResult.Active(active)
             }
         }
 
@@ -169,6 +229,7 @@ class UniSessionCoordinator(
 
     suspend fun shutdown() {
         lock.withLock {
+            pendingProfileCatalog = emptyList()
             val sessions = runtimeSessions.values.toList()
             runtimeSessions.clear()
             sessions.forEach { active -> runCatching { backend.closeSession(active.session) } }
@@ -208,6 +269,52 @@ class UniSessionCoordinator(
         }
     }
 }
+
+private fun UniUserProfile.withProfileCatalog(
+    catalog: List<LoginCareerOption>,
+    selected: LoginCareerOption?,
+): UniUserProfile {
+    if (catalog.isEmpty()) return this
+    val mapped =
+        catalog.map { option ->
+            UniCareerProfile(
+                profileId = option.profileId,
+                displayName = option.displayName,
+                degreeName = option.degreeName,
+                matricola = option.matricola,
+                matId = option.matId,
+                stuId = option.stuId,
+                anaId = option.anaId,
+                cdsId = option.cdsId,
+                dipId = option.dipId,
+                departmentName = option.departmentName,
+                teacherId = option.teacherId,
+                type = option.type,
+            )
+        }
+    val active = selected?.profileId ?: activeProfileId
+    val activeType = mapped.firstOrNull { it.profileId == active }?.type ?: activeProfileType
+    return copy(
+        activeProfileId = active,
+        profiles = mapped,
+        activeProfileType = activeType,
+    )
+}
+
+private fun com.anto426.uniapp.account.model.UniAccountProfileSummary.toLoginCareerOption(): LoginCareerOption =
+    LoginCareerOption(
+        displayName = displayName,
+        degreeName = degreeName,
+        matricola = matricola,
+        matId = matId,
+        stuId = stuId,
+        anaId = anaId,
+        cdsId = cdsId,
+        dipId = dipId,
+        departmentName = departmentName,
+        teacherId = teacherId,
+        type = type,
+    )
 
 class InactiveAccountSessionException(accountId: String) :
     IllegalStateException("Account '$accountId' does not have an active RAM session")

@@ -1,6 +1,8 @@
 package com.anto426.uniapp.updates.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.compose.ui.graphics.Color
+import com.anto426.uniapp.model.updates.ChangelogItemData
 import com.anto426.uniapp.model.updates.ChangelogVersionData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +13,24 @@ data class ChangelogUiState(
     val expandedVersion: String = "",
 )
 
-class ChangelogViewModel(versions: List<ChangelogVersionData>) : ViewModel() {
+class ChangelogViewModel(update: AppUpdateUiState) : ViewModel() {
+    private val versions =
+        update.releaseNotes?.takeIf(String::isNotBlank)?.let { notes ->
+            listOf(
+                ChangelogVersionData(
+                    version = "v${update.displayedVersion}",
+                    date = update.publishedAt.orEmpty(),
+                    items = listOf(
+                        ChangelogItemData(
+                            tag = "UPDATE",
+                            tagColor = Color(0xFF4A90D9),
+                            title = "Note di rilascio",
+                            description = notes,
+                        ),
+                    ),
+                ),
+            )
+        }.orEmpty()
     private val mutableUiState =
         MutableStateFlow(
             ChangelogUiState(

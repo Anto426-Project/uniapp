@@ -14,6 +14,9 @@ import com.anto426.uniapp.ui.components.items.TransportTicketItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 @Composable
 fun TransportCatalogScreen(
     backdropState: Backdrop,
@@ -22,8 +25,8 @@ fun TransportCatalogScreen(
 ) {
     UniScreenColumn {
         LiquidSectionHeader(
-            title = "Titoli di Viaggio",
-            subtitle = "Scegli il titolo di viaggio più adatto"
+            title = stringResource(Res.string.ui_transport_catalog_title),
+            subtitle = stringResource(Res.string.ui_transport_catalog_sub)
         )
 
         Column(

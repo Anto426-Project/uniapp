@@ -33,4 +33,5 @@ data class ServiceData(
     val subtitle: String,
     val icon: ImageVector,
     val badgeCount: Int? = null,
+    val id: String = "",
 )

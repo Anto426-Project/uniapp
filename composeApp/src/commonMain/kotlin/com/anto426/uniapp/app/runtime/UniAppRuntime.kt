@@ -21,11 +21,26 @@ import kotlinx.coroutines.launch
 class UniAppRuntime internal constructor(
     val sessionController: AppSessionController,
     val dataSource: UniAppDataSource,
+    private val accountStore: com.anto426.uniapp.account.storage.UniAccountStore,
     internal val updateController: AppUpdateController,
     private val sessionCoordinator: UniSessionCoordinator,
     private val backend: RemoteUniBackendService,
 ) {
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val accountDataSources = mutableMapOf<String, UniAppDataSource>()
+
+    internal fun dataSourceFor(accountId: String, profileId: String?): UniAppDataSource {
+        require(accountId.isNotBlank()) { "Account id cannot be blank" }
+        val ownerKey = "$accountId|${profileId.orEmpty()}"
+        return accountDataSources.getOrPut(ownerKey) {
+            SessionUniAppDataSource(
+                sessions = sessionController,
+                accounts = accountStore,
+                fixedAccountId = accountId,
+                fixedProfileId = profileId,
+            )
+        }
+    }
 
     internal fun close() {
         cleanupScope.launch {
@@ -51,6 +66,7 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
             UniAppRuntime(
                 sessionController = sessionController,
                 dataSource = SessionUniAppDataSource(sessionController, accountStore),
+                accountStore = accountStore,
                 updateController =
                     AppUpdateController(
                         source = UniSdkAppUpdateSource(backend),

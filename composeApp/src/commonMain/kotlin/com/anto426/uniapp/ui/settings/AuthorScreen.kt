@@ -24,7 +24,11 @@ import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
 
 @Composable
-fun AuthorScreen(backdropState: Backdrop) {
+fun AuthorScreen(
+    backdropState: Backdrop,
+    onOpenGitHub: () -> Unit,
+    onOpenProject: () -> Unit,
+) {
     UniScreenColumn {
         // 1. Author Header Card
         LiquidCard(
@@ -38,7 +42,7 @@ fun AuthorScreen(backdropState: Backdrop) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 LiquidAvatar(
-                    initials = "AN",
+                    initials = "A4",
                     size = 56.dp,
                     backdropState = backdropState
                 )
@@ -48,7 +52,7 @@ fun AuthorScreen(backdropState: Backdrop) {
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
-                        text = "Anto426",
+                        text = stringResource(Res.string.ui_author),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -63,37 +67,29 @@ fun AuthorScreen(backdropState: Backdrop) {
         }
 
         // 2. Social & Links
-        LiquidPreferenceGroup(title = "Links", backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_author_links), backdropState = backdropState) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_github),
                 subtitle = "@Anto426",
                 icon = LiquidIcons.Share,
                 backdropState = backdropState,
-                onClick = {}
+                onClick = onOpenGitHub
             )
             LiquidHorizontalDivider()
             LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_linkedin),
-                subtitle = "Antonio",
-                icon = LiquidIcons.AccountCircle,
+                title = stringResource(Res.string.ui_author_project_name),
+                subtitle = "Anto426-Project/uniapp",
+                icon = LiquidIcons.Share,
                 backdropState = backdropState,
-                onClick = {}
-            )
-            LiquidHorizontalDivider()
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_portfolio),
-                subtitle = "anto426.dev",
-                icon = LiquidIcons.Search,
-                backdropState = backdropState,
-                onClick = {}
+                onClick = onOpenProject
             )
         }
 
         // 3. Location info
         LiquidPreferenceGroup(backdropState = backdropState) {
             LiquidPreferenceItem(
-                title = "Location",
-                subtitle = stringResource(Res.string.ui_author_location),
+                title = stringResource(Res.string.ui_author_location),
+                subtitle = stringResource(Res.string.ui_university),
                 icon = LiquidIcons.Home,
                 backdropState = backdropState
             )

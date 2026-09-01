@@ -1,23 +1,18 @@
 package com.anto426.uniapp.ui.services
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.LiquidCard
+import com.anto426.liquidmonet.components.display.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.LiquidSectionHeader
 import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.services.presentation.ContactsUiState
 import com.anto426.uniapp.ui.components.items.ContactItem
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.kyant.backdrop.Backdrop
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun ContactsScreen(
@@ -27,10 +22,10 @@ fun ContactsScreen(
     onContactClick: (ContactData) -> Unit = {},
 ) {
     val tabs = listOf(
-        LiquidNavigationItem(label = "Tutti"),
-        LiquidNavigationItem(label = "Docenti"),
-        LiquidNavigationItem(label = "Segreterie"),
-        LiquidNavigationItem(label = "Uffici")
+        LiquidNavigationItem(label = stringResource(Res.string.ui_home_news_all)),
+        LiquidNavigationItem(label = stringResource(Res.string.ui_teachers_title)),
+        LiquidNavigationItem(label = stringResource(Res.string.ui_secretariat_title)),
+        LiquidNavigationItem(label = stringResource(Res.string.ui_offices_support_title))
     )
 
     val categoryFiltered = uiState.visibleContacts
@@ -38,118 +33,75 @@ fun ContactsScreen(
     val secretariat = uiState.secretariat
     val services = uiState.services
 
-    UniScreenColumn {
-        // 1. Category Tabs
-        LiquidTabBar(
-            items = tabs,
-            selectedIndex = uiState.selectedCategoryIndex,
-            onTabSelected = onCategorySelected,
-            backdropState = backdropState,
-        )
+    UniScreenLazyColumn {
+        item(key = "contact-tabs") {
+            LiquidTabBar(
+                items = tabs,
+                selectedIndex = uiState.selectedCategoryIndex,
+                onTabSelected = onCategorySelected,
+                backdropState = backdropState,
+            )
+        }
 
         // 2. Contact Sections
         if (categoryFiltered.isEmpty()) {
-            LiquidCard(
-                backdropState = backdropState,
-                contentPadding = 20.dp,
-                interactiveGelatin = false
-            ) {
-                Text(
-                    text = "Nessun contatto disponibile",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            item(key = "contacts-empty") {
+                LiquidEmptyState(
+                    title = stringResource(Res.string.ui_contacts_empty_title),
+                    description = stringResource(Res.string.ui_contacts_empty_desc),
+                    backdropState = backdropState,
                 )
             }
         } else if (uiState.selectedCategoryIndex == 0) {
-            // All categories grouped
             if (teachers.isNotEmpty()) {
-                LiquidSectionHeader(
-                    title = "Docenti e Ricercatori",
-                    subtitle = "${teachers.size} contatti",
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer(clip = false),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    teachers.forEach { contact ->
-                        ContactItem(
-                            contact = contact,
-                            backdropState = backdropState,
-                            onClick = { onContactClick(contact) }
-                        )
-                    }
+                item(key = "teachers-header") {
+                    LiquidSectionHeader(
+                        title = stringResource(Res.string.ui_teachers_title),
+                        subtitle = stringResource(Res.string.ui_contacts_count, teachers.size)
+                    )
+                }
+                itemsIndexed(teachers, key = { index, item -> "teacher|${item.email}|${item.name}|$index" }) { _, contact ->
+                    ContactItem(contact, backdropState) { onContactClick(contact) }
                 }
             }
 
             if (secretariat.isNotEmpty()) {
-                LiquidSectionHeader(
-                    title = "Segreterie Studenti",
-                    subtitle = "${secretariat.size} sportelli",
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer(clip = false),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    secretariat.forEach { contact ->
-                        ContactItem(
-                            contact = contact,
-                            backdropState = backdropState,
-                            onClick = { onContactClick(contact) }
-                        )
-                    }
+                item(key = "secretariat-header") {
+                    LiquidSectionHeader(
+                        title = stringResource(Res.string.ui_secretariat_title),
+                        subtitle = stringResource(Res.string.ui_secretariat_count, secretariat.size)
+                    )
+                }
+                itemsIndexed(secretariat, key = { index, item -> "secretariat|${item.email}|${item.name}|$index" }) { _, contact ->
+                    ContactItem(contact, backdropState) { onContactClick(contact) }
                 }
             }
 
             if (services.isNotEmpty()) {
-                LiquidSectionHeader(
-                    title = "Uffici e Supporto",
-                    subtitle = "${services.size} uffici",
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer(clip = false),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    services.forEach { contact ->
-                        ContactItem(
-                            contact = contact,
-                            backdropState = backdropState,
-                            onClick = { onContactClick(contact) }
-                        )
-                    }
+                item(key = "services-header") {
+                    LiquidSectionHeader(
+                        title = stringResource(Res.string.ui_offices_support_title),
+                        subtitle = stringResource(Res.string.ui_offices_count, services.size)
+                    )
+                }
+                itemsIndexed(services, key = { index, item -> "service|${item.email}|${item.name}|$index" }) { _, contact ->
+                    ContactItem(contact, backdropState) { onContactClick(contact) }
                 }
             }
         } else {
-            // Specific category selected
-            val sectionTitle = when (uiState.selectedCategoryIndex) {
-                1 -> "Docenti e Ricercatori"
-                2 -> "Segreterie Studenti"
-                else -> "Uffici e Supporto"
-            }
-
-            LiquidSectionHeader(
-                title = sectionTitle,
-                subtitle = "${categoryFiltered.size} contatti disponibili",
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer(clip = false),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                categoryFiltered.forEach { contact ->
-                    ContactItem(
-                        contact = contact,
-                        backdropState = backdropState,
-                        onClick = { onContactClick(contact) }
-                    )
+            item(key = "filtered-header") {
+                val sectionTitle = when (uiState.selectedCategoryIndex) {
+                    1 -> stringResource(Res.string.ui_teachers_title)
+                    2 -> stringResource(Res.string.ui_secretariat_title)
+                    else -> stringResource(Res.string.ui_offices_support_title)
                 }
+                LiquidSectionHeader(
+                    title = sectionTitle,
+                    subtitle = stringResource(Res.string.ui_contacts_available, categoryFiltered.size)
+                )
+            }
+            itemsIndexed(categoryFiltered, key = { index, item -> "filtered|${item.email}|${item.name}|$index" }) { _, contact ->
+                ContactItem(contact, backdropState) { onContactClick(contact) }
             }
         }
     }
