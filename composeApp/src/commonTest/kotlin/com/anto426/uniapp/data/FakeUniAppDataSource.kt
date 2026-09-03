@@ -17,6 +17,12 @@ open class FakeUniAppDataSource : UniAppDataSource {
     override suspend fun disconnectDevice(targetToken: String) = "OK"
     override suspend fun disconnectAllOtherDevices() = "OK"
     override suspend fun loadAttendanceHistory(forceRefresh: Boolean) = emptyList<AttendanceRecord>()
+    override suspend fun registerAttendance(
+        qrCode: String,
+        deviceLatitude: Double?,
+        deviceLongitude: Double?,
+        deviceAccuracyMeters: Double?,
+    ): String = "OK"
     override suspend fun loadUniversityNews(forceRefresh: Boolean) = emptyList<UniversityNews>()
     override suspend fun loadUniversityContacts(forceRefresh: Boolean) = emptyList<UniversityContact>()
     override suspend fun loadStudyPlan(forceRefresh: Boolean) = StudyPlanData(emptyList())

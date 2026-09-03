@@ -1,6 +1,9 @@
 package com.anto426.uniapp.model.services
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 enum class ContactCategory {
     TEACHERS,
@@ -29,9 +32,33 @@ data class TaxPaymentData(
 )
 
 data class ServiceData(
-    val title: String,
-    val subtitle: String,
+    val titleRes: StringResource? = null,
+    val subtitleRes: StringResource? = null,
+    val rawTitle: String = "",
+    val rawSubtitle: String = "",
     val icon: ImageVector,
     val badgeCount: Int? = null,
     val id: String = "",
-)
+) {
+    constructor(
+        title: String,
+        subtitle: String,
+        icon: ImageVector,
+        badgeCount: Int? = null,
+        id: String = "",
+    ) : this(null, null, title, subtitle, icon, badgeCount, id)
+
+    constructor(
+        titleRes: StringResource,
+        subtitleRes: StringResource,
+        icon: ImageVector,
+        badgeCount: Int? = null,
+        id: String = "",
+    ) : this(titleRes, subtitleRes, "", "", icon, badgeCount, id)
+
+    val title: String
+        @Composable get() = titleRes?.let { stringResource(it) } ?: rawTitle
+
+    val subtitle: String
+        @Composable get() = subtitleRes?.let { stringResource(it) } ?: rawSubtitle
+}

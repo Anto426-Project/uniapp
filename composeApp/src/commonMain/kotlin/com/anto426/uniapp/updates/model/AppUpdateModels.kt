@@ -13,6 +13,8 @@ enum class AppUpdatePhase {
     Checking,
     UpToDate,
     Available,
+    Downloading,
+    Installing,
     Failed,
 }
 

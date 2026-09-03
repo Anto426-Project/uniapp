@@ -71,7 +71,6 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
             backdropState = backdropState,
             shape = RoundedCornerShape(24.dp),
             contentPadding = 18.dp,
-            interactiveGelatin = false,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),

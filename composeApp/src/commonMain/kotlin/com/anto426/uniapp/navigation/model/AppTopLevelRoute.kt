@@ -53,6 +53,7 @@ fun AppRoute.topLevelParent(): AppRoute =
         AppRoute.Settings,
         AppRoute.Accounts,
         AppRoute.Info,
+        AppRoute.AboutUniApp,
         AppRoute.Theme,
         AppRoute.Colors,
         AppRoute.Privacy,

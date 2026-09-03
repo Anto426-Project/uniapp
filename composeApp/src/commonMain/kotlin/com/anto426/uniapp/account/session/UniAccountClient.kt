@@ -166,4 +166,17 @@ class UniAccountClient internal constructor(
             com.anto426.unisdk.transport.TransportSession,
         ) -> T,
     ): T = coordinator.withTransportSession(accountId, block)
+
+    suspend fun loadTransportData(): com.anto426.unisdk.transport.TransportData =
+        withTransportSession { session -> loadTransportData(session) }
+
+    suspend fun bookTransport(
+        request: com.anto426.unisdk.transport.TransportBookingRequest,
+    ): com.anto426.unisdk.transport.TransportActionResult =
+        withTransportSession { session -> bookTransport(session, request) }
+
+    suspend fun deleteTransportBooking(
+        bookingId: String,
+    ): com.anto426.unisdk.transport.TransportActionResult =
+        withTransportSession { session -> deleteTransportBooking(session, bookingId) }
 }

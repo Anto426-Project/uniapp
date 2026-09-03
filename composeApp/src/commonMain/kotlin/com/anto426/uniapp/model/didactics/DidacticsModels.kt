@@ -2,7 +2,24 @@ package com.anto426.uniapp.model.didactics
 
 import androidx.compose.ui.graphics.vector.ImageVector
 
-data class AttendanceData(val course: String, val percentage: String, val count: String)
+data class SingleAttendanceEntry(
+    val id: String = "",
+    val date: String = "",
+    val time: String = "",
+    val room: String = "",
+    val teacher: String = "",
+    val hours: Double? = null,
+    val status: String = "",
+)
+
+data class AttendanceData(
+    val course: String,
+    val percentage: String,
+    val count: String,
+    val attendedHours: Double = 0.0,
+    val totalHours: Double? = null,
+    val records: List<SingleAttendanceEntry> = emptyList(),
+)
 
 data class ExamRecord(
     val name: String,
@@ -85,3 +102,12 @@ data class ExamSession(
 data class GradeExam(val name: String, val grade: Int, val cfu: Int)
 
 data class GradeSimulationPreset(val name: String, val cfu: Int, val initialGrade: Int)
+
+data class SimulationItem(
+    val id: String,
+    val name: String,
+    val cfu: Int,
+    val grade: Int,
+    val isEnabled: Boolean = false,
+    val isCustom: Boolean = false,
+)

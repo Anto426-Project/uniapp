@@ -1,5 +1,5 @@
 [versions]
-agp = "9.3.1"
+agp = "9.3.2"
 android-compileSdk = "37"
 android-minSdk = "29"
 android-targetSdk = "37"
@@ -31,6 +31,8 @@ androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-kt
 androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
+antosdk = { module = "com.anto426:antosdk" }
+firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk" }
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -47,6 +49,8 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+secure-storage-sdk = { module = "com.anto426:secure-storage-sdk" }
+unisdk = { module = "com.anto426:unisdk" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

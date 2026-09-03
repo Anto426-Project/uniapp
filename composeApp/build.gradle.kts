@@ -48,6 +48,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core.ktx)
             implementation(libs.ktor.client.okhttp)
         }
 
@@ -62,10 +63,10 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.navigation3)
             implementation(libs.jetbrains.navigation3.ui)
 
-            implementation("com.anto426:antosdk")
-            implementation("com.anto426:unisdk")
-            implementation("com.anto426:secure-storage-sdk")
-            implementation("com.anto426:firebase-connector-sdk")
+            implementation(libs.antosdk)
+            implementation(libs.unisdk)
+            implementation(libs.secure.storage.sdk)
+            implementation(libs.firebase.connector.sdk)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.contentNegotiation)
             implementation(libs.ktor.serialization.kotlinx.json)

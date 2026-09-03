@@ -36,9 +36,5 @@ fun ExamsHistoryScreen(backdropState: Backdrop, uiState: ExamsHistoryUiState) {
         ) { _, exam ->
             PastExamItem(exam, backdropState)
         }
-
-        item(key = "history-bottom-space") {
-            Spacer(Modifier.height(80.dp))
-        }
     }
 }

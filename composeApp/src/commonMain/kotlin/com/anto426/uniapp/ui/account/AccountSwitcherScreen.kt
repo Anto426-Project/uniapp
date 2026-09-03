@@ -63,7 +63,6 @@ internal fun AccountSwitcherScreen(
                 LiquidCard(
                     backdropState = backdropState,
                     onClick = if (isActive || isSwitching) null else ({ onSelectAccount(account.accountId) }),
-                    interactiveGelatin = !isActive && !isSwitching,
                     contentPadding = 16.dp,
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -83,7 +82,7 @@ internal fun AccountSwitcherScreen(
                             imageData = uiState.profileImages[account.accountId],
                             initials = initials,
                             size = 46.dp,
-                            contentDescription = "Foto profilo",
+                            contentDescription = stringResource(Res.string.ui_profile_picture),
                             backdropState = backdropState,
                         )
                         Column(modifier = Modifier.weight(1f)) {

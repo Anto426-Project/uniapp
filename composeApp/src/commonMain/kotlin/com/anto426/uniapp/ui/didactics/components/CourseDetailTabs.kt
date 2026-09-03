@@ -113,7 +113,7 @@ fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
                 }
 
                 Text(
-                    text = "La verifica dell'apprendimento prevede una prova con quesiti teorico-pratici ed eventuale colloquio orale di approfondimento.",
+                    text = stringResource(Res.string.ui_course_exam_mode_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.onSurface.copy(alpha = 0.85f),
                     lineHeight = 22.sp,
@@ -150,7 +150,7 @@ fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
                 }
 
                 Text(
-                    text = "Dispense fornite dal docente e materiale integrativo reso disponibile sulla piattaforma didattica d'Ateneo.",
+                    text = stringResource(Res.string.ui_course_materials_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.onSurface.copy(alpha = 0.85f),
                     lineHeight = 22.sp,
@@ -183,7 +183,6 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
             backdropState = backdropState,
             shape = RoundedCornerShape(22.dp),
             contentPadding = 16.dp,
-            interactiveGelatin = false,
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -243,13 +242,13 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
                         )
                     }
                     Text(
-                        text = "Su Appuntamento",
+                        text = stringResource(Res.string.ui_course_by_appointment),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
                     )
                     Text(
-                        text = "In presenza o online",
+                        text = stringResource(Res.string.ui_course_in_person_or_online),
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
@@ -282,13 +281,13 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
                         )
                     }
                     Text(
-                        text = "Studio Dipartimento",
+                        text = stringResource(Res.string.ui_course_dept_office),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
                     )
                     Text(
-                        text = "Edificio Didattico",
+                        text = stringResource(Res.string.ui_course_dept_building),
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )

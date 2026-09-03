@@ -1,6 +1,11 @@
 package com.anto426.uniapp.ui.components.items
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -10,10 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.LiquidBadge
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.QuestionnaireData
 import com.anto426.uniapp.model.didactics.QuestionnaireStatus
@@ -26,64 +35,77 @@ fun QuestionnaireItem(
     onClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val isPending = data.status == QuestionnaireStatus.PENDING
     val isCompleted = data.status == QuestionnaireStatus.COMPLETED
+
+    val (iconVector, iconTint, iconBg) = when {
+        isCompleted -> Triple(LiquidIcons.Check, colorScheme.primary, colorScheme.primary.copy(alpha = 0.12f))
+        isPending -> Triple(LiquidIcons.Feedback, colorScheme.primary, colorScheme.primary.copy(alpha = 0.16f))
+        else -> Triple(LiquidIcons.Lock, colorScheme.onSurfaceVariant.copy(alpha = 0.6f), colorScheme.surfaceVariant.copy(alpha = 0.35f))
+    }
+
+    val (badgeText, badgeBg, badgeFg) = when {
+        isCompleted -> Triple(stringResource(Res.string.ui_questionnaire_status_completed), colorScheme.primaryContainer, colorScheme.primary)
+        isPending -> Triple(stringResource(Res.string.ui_questionnaire_status_pending), colorScheme.primary.copy(alpha = 0.16f), colorScheme.primary)
+        else -> Triple(stringResource(Res.string.ui_questionnaire_status_inactive), colorScheme.surfaceVariant.copy(alpha = 0.4f), colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+    }
 
     LiquidCard(
         backdropState = backdropState,
         shape = RoundedCornerShape(22.dp),
         contentPadding = 16.dp,
-        onClick = if (data.status == QuestionnaireStatus.PENDING) onClick else null,
-        interactiveGelatin = data.status == QuestionnaireStatus.PENDING,
+        onClick = if (isPending) onClick else null,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Icon(
+                imageVector = iconVector,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.liquidIconContainer(
+                    containerSize = 42.dp,
+                    iconSize = 20.dp,
+                    containerColor = iconBg,
+                    shape = RoundedCornerShape(14.dp),
+                ),
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
                 Text(
                     text = data.course,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
-                    fontSize = 15.sp,
-                    letterSpacing = (-0.3).sp
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 20.sp,
                 )
                 Text(
-                    text = "${data.prof} • ${data.code}",
+                    text = listOf(data.prof.takeIf { it.isNotBlank() }, data.code.takeIf { it.isNotBlank() })
+                        .filterNotNull()
+                        .joinToString(" • "),
                     color = colorScheme.onSurfaceVariant,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
-            if (isCompleted) {
-                LiquidIconBox(
-                    icon = LiquidIcons.Check,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = Color(0xFF00C853).copy(alpha = 0.12f),
-                    iconTint = Color(0xFF00C853),
-                    shape = RoundedCornerShape(12.dp),
-                )
-            } else if (data.status == QuestionnaireStatus.PENDING) {
-                LiquidIconBox(
-                    icon = LiquidIcons.Feedback,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
-                )
-            } else {
-                LiquidIconBox(
-                    icon = LiquidIcons.Lock,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                    iconTint = colorScheme.onSurfaceVariant,
-                    shape = RoundedCornerShape(12.dp),
-                )
-            }
+            Spacer(Modifier.width(2.dp))
+
+            LiquidBadge(
+                text = badgeText,
+                containerColor = badgeBg,
+                contentColor = badgeFg,
+                backdropState = backdropState,
+            )
         }
     }
 }

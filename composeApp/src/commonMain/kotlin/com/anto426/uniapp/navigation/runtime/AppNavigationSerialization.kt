@@ -49,6 +49,7 @@ internal val AppNavigationSavedStateConfiguration =
                     subclass(AppRoute.Questionnaire::class, AppRoute.Questionnaire.serializer())
                     subclass(AppRoute.Badge::class, AppRoute.Badge.serializer())
                     subclass(AppRoute.Attendance::class, AppRoute.Attendance.serializer())
+                    subclass(AppRoute.AboutUniApp::class, AppRoute.AboutUniApp.serializer())
                     subclass(AppRoute.Privacy::class, AppRoute.Privacy.serializer())
                     subclass(AppRoute.Terms::class, AppRoute.Terms.serializer())
                     subclass(AppRoute.Cookies::class, AppRoute.Cookies.serializer())

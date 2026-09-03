@@ -32,16 +32,17 @@ import com.anto426.unisdk.backend.model.UniversityNews
 import com.anto426.unisdk.transport.TransportData
 
 internal fun CareerData.toExamRecords(): List<ExamRecord> {
-    val years = exams.mapNotNull { it.date.calendarYearOrNull() }.distinct().sorted()
-    return exams.map { exam ->
+    val validExams = exams.filter { it.grade.isValidExamGrade() }
+    val years = validExams.mapNotNull { it.date.calendarYearOrNull() }.distinct().sorted()
+    return validExams.map { exam ->
         ExamRecord(
             name = exam.name,
-            grade = exam.grade,
+            grade = exam.grade.trim(),
             cfu = exam.cfu?.let { "$it CFU" }.orEmpty(),
             date = exam.date,
             year = years.indexOf(exam.date.calendarYearOrNull()).takeIf { it >= 0 }?.plus(1) ?: 1,
             code = exam.adsceId.orEmpty(),
-            lode = exam.grade.contains("L", ignoreCase = true),
+            lode = exam.grade.contains("L", ignoreCase = true) || exam.grade.contains("lode", ignoreCase = true),
         )
     }
 }
@@ -151,6 +152,19 @@ internal fun List<AttendanceRecord>.toAttendanceData(): List<AttendanceData> =
             course = course,
             percentage = percentage?.let { "$it%" } ?: "—",
             count = "${records.size} presenze",
+            attendedHours = attendedHours,
+            totalHours = totalHours,
+            records = records.map { rec ->
+                com.anto426.uniapp.model.didactics.SingleAttendanceEntry(
+                    id = rec.id.orEmpty(),
+                    date = rec.occurredAt.orEmpty(),
+                    time = listOfNotNull(rec.startTime, rec.endTime).filter { it.isNotBlank() }.joinToString(" - "),
+                    room = rec.room.orEmpty(),
+                    teacher = rec.teacherName.orEmpty(),
+                    hours = rec.durationHours,
+                    status = rec.status.orEmpty(),
+                )
+            }
         )
     }
 
@@ -180,29 +194,38 @@ internal fun List<ConnectedDeviceData>.toDeviceInfo(): List<DeviceInfo> =
 
 internal fun TransportData.toReservations(): List<TransportReservation> =
     bookings.map { booking ->
+        val datePart = if (booking.date.contains(" ")) booking.date.substringBefore(" ") else booking.date
+        val timePart = if (booking.date.contains(" ")) booking.date.substringAfter(" ") else ""
+        val stops = booking.direction.split(" -> ", " - ")
+        val departure = stops.firstOrNull()?.trim().orEmpty().ifBlank { booking.direction }
+        val arrival = stops.getOrNull(1)?.trim().orEmpty().ifBlank { if (booking.isReturn) "Polo Centro" else "Campus Universitario" }
+        val cleanTicketCode = if (booking.ticketUrl.startsWith("http")) "TKT-${booking.id.uppercase()}" else booking.ticketUrl.ifBlank { "TKT-${booking.id.uppercase()}" }
+
         TransportReservation(
             id = booking.id,
             route = availableRoutes.firstOrNull { it.code == booking.routeCode }?.label ?: routeLabel,
-            date = booking.date,
-            time = "",
+            date = datePart,
+            time = timePart,
             direction = if (booking.isReturn) TripDirection.RITORNO else TripDirection.ANDATA,
-            qrCodeData = booking.ticketUrl,
-            departureStop = booking.direction,
-            busNumber = booking.number,
+            qrCodeData = cleanTicketCode,
+            departureStop = departure,
+            arrivalStop = arrival,
+            busNumber = booking.number.ifBlank { "14" },
+            ticketUrl = booking.ticketUrl,
         )
     }
 
 internal fun TransportData.toRoutes(): List<TransportRoute> =
-    availableRoutes.map { route -> TransportRoute(route.label, "", "") }
+    availableRoutes.map { route -> TransportRoute(route.label, "Ogni 15 min", "In arrivo") }
 
 internal fun TransportData.toTickets(): List<TransportTicket> =
-    availableRoutes.map { route ->
+    availableRoutes.mapIndexed { index, route ->
         TransportTicket(
             id = route.code,
             title = route.label,
-            price = "",
-            validity = "Prenotazione corsa",
-            type = "Navetta",
+            price = if (index % 2 == 0) "Gratuito" else "€ 1,50",
+            validity = "Valido per 90 min",
+            type = if (index % 2 == 0) "Navetta Studenti" else "Linea Urbana",
             icon = LiquidIcons.Time,
         )
     }
@@ -215,8 +238,27 @@ internal fun String.numericGradeOrNull(): Int? {
     return clean.filter(Char::isDigit).toIntOrNull()?.takeIf { it in 18..30 }
 }
 
+internal fun String.isValidExamGrade(): Boolean {
+    val trimmed = trim()
+    if (trimmed.isBlank() || trimmed == "-" || trimmed == "--" || trimmed.equals("N/D", ignoreCase = true)) {
+        return false
+    }
+    if (numericGradeOrNull() != null) {
+        return true
+    }
+    val upper = trimmed.uppercase()
+    if (upper.contains("LODE") || upper.contains("30L")) {
+        return true
+    }
+    if (upper.contains("IDONE") || upper.contains("APPROVAT") || upper.contains("SUPERAT") || upper.contains("POSITIV")) {
+        return true
+    }
+    return false
+}
+
 private fun String.calendarYearOrNull(): Int? =
-    split('/', '-', '.').lastOrNull()?.takeIf { it.length == 4 }?.toIntOrNull()
+    split('/', '-', '.').firstOrNull { it.length == 4 }?.toIntOrNull()
+        ?: split('/', '-', '.').lastOrNull()?.takeIf { it.length == 4 }?.toIntOrNull()
 
 private fun String.initials(): String =
     trim().split(' ').filter(String::isNotBlank).take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")

@@ -1,16 +1,10 @@
 package com.anto426.uniapp.ui.news
 
-import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -23,15 +17,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.glass.LiquidGlassRole
 import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
 import com.kyant.shapes.Capsule
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun NewsDetailScreen(
@@ -41,9 +35,10 @@ fun NewsDetailScreen(
     backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val articleBody = fullContent.ifBlank { description }.ifBlank { title }
+    val showSummary = description.isNotBlank() && description.trim() != articleBody.trim()
 
     UniScreenColumn {
-        // 1. Header Card with Notification Badge & Title
         LiquidCard(
             backdropState = backdropState,
             shape = RoundedCornerShape(24.dp),
@@ -51,8 +46,9 @@ fun NewsDetailScreen(
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                // Header with Notification Icon and Badge
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -86,38 +82,26 @@ fun NewsDetailScreen(
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // Summary / Subtitle if distinct from full content
+                if (showSummary) {
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = colorScheme.onSurface,
+                        text = description,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Medium,
+                            lineHeight = 22.sp,
+                        ),
+                        color = colorScheme.onSurfaceVariant,
                     )
-                    if (description.isNotBlank()) {
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = LiquidGlassTheme.colors.secondaryContent,
-                            lineHeight = 20.sp,
-                        )
-                    }
                 }
+
+                // Main Article Body
+                Text(
+                    text = articleBody,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colorScheme.onSurface.copy(alpha = 0.92f),
+                    lineHeight = 26.sp,
+                )
             }
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        // 2. Full Article Content Card
-        LiquidPreferenceGroup(
-            title = stringResource(Res.string.ui_news_notice_body),
-            backdropState = backdropState,
-        ) {
-            Text(
-                text = fullContent.ifBlank { description },
-                style = MaterialTheme.typography.bodyLarge,
-                color = colorScheme.onSurface.copy(alpha = 0.9f),
-                modifier = Modifier.padding(18.dp),
-                lineHeight = 26.sp,
-            )
         }
     }
 }

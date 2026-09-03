@@ -11,6 +11,9 @@ import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.security.biometric.BiometricAvailability
 import com.anto426.uniapp.security.biometric.UnavailableBiometricAuthenticator
 import com.anto426.uniapp.security.account.AccountSecurityPreferences
+import com.anto426.uniapp.notifications.model.NotificationAuthorizationStatus
+import com.anto426.uniapp.notifications.runtime.AppNotificationController
+import com.anto426.uniapp.notifications.runtime.UnavailableAppNotificationController
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val notificationsEnabled: Boolean = true,
+    val notificationsEnabled: Boolean = false,
+    val notificationAuthorization: NotificationAuthorizationStatus = NotificationAuthorizationStatus.NotDetermined,
     val biometricEnabled: Boolean = false,
     val biometricAvailability: BiometricAvailability = BiometricAvailability.Unavailable,
     val isBiometricAuthenticating: Boolean = false,
@@ -29,6 +33,7 @@ class SettingsViewModel(
     private val dataSource: UniAppDataSource,
     private val toastSink: AppToastSink = AppToastSink.None,
     private val biometricAuthenticator: BiometricAuthenticator = UnavailableBiometricAuthenticator,
+    private val notificationController: AppNotificationController = UnavailableAppNotificationController,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = mutableUiState.asStateFlow()
@@ -39,15 +44,24 @@ class SettingsViewModel(
                 biometricAvailability = biometricAuthenticator.availability(),
             )
         viewModelScope.launch {
+            notificationController.state.collect { notificationState ->
+                update {
+                    copy(notificationAuthorization = notificationState.authorizationStatus)
+                }
+            }
+        }
+        viewModelScope.launch {
             try {
+                val notificationsEnabled =
+                    dataSource.readPreference(NOTIFICATIONS_KEY)?.toBooleanStrictOrNull() ?: false
                 mutableUiState.value =
                     mutableUiState.value.copy(
-                        notificationsEnabled =
-                            dataSource.readPreference(NOTIFICATIONS_KEY)?.toBooleanStrictOrNull() ?: true,
+                        notificationsEnabled = notificationsEnabled,
                         biometricEnabled =
                             dataSource.readPreference(AccountSecurityPreferences.BIOMETRIC_UNLOCK)
                                 ?.toBooleanStrictOrNull() ?: false,
                     )
+                notificationController.restoreEnabled(notificationsEnabled)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -58,11 +72,15 @@ class SettingsViewModel(
 
     fun setNotificationsEnabled(enabled: Boolean) {
         update { copy(notificationsEnabled = enabled) }
+        notificationController.setEnabled(enabled)
         persistToggle(
             key = NOTIFICATIONS_KEY,
             enabled = enabled,
             successMessage = if (enabled) "Notifiche attivate." else "Notifiche disattivate.",
-            rollback = { update { copy(notificationsEnabled = !enabled) } },
+            rollback = {
+                update { copy(notificationsEnabled = !enabled) }
+                notificationController.setEnabled(!enabled)
+            },
         )
     }
 

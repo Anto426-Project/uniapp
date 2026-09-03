@@ -66,6 +66,7 @@ import com.anto426.uniapp.session.presentation.AppSessionViewModel
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
+import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
@@ -120,13 +121,10 @@ internal fun AppNavigationHost(
         isAuthenticated && !isMandatoryUpdate && route != AppRoute.Bootstrap && route != AppRoute.Login
     var topBarHeight by remember { mutableStateOf(152.dp) }
     val topLevelRoutes = appTopLevelRoutes
-    val topLevelNavigationItems =
-        remember(isProfessor) {
-            topLevelRoutes.map { item ->
-                val presentation = item.presentation(isProfessor)
-                LiquidNavigationItem(label = presentation.title, icon = presentation.icon)
-            }
-        }
+    val topLevelNavigationItems = topLevelRoutes.map { item ->
+        val presentation = item.presentation(isProfessor)
+        LiquidNavigationItem(label = presentation.title, icon = presentation.icon)
+    }
 
     LaunchedEffect(sessionState) { navigator.reconcile() }
     LaunchedEffect((sessionState as? AppSessionState.UnlockRequired)?.account?.accountId) {
@@ -247,7 +245,10 @@ internal fun AppNavigationHost(
                     top = innerPadding.calculateTopPadding(),
                     bottom = if (showBottomBar) 110.dp else 24.dp,
                 )
-            CompositionLocalProvider(LocalUniScreenPadding provides screenPadding) {
+            CompositionLocalProvider(
+                LocalUniScreenPadding provides screenPadding,
+                LocalNavigationBarVisible provides shellUiState.isNavigationBarVisible,
+            ) {
                 if (isMandatoryUpdate) {
                     UpdatesScreen(
                         backdropState = backdrop,
@@ -273,6 +274,7 @@ internal fun AppNavigationHost(
                                             searchQuery = shellUiState.searchQuery,
                                             isSearchActive = shellUiState.isSearchActive,
                                             updateUiState = updateUiState,
+                                            notificationController = runtime.notificationManager,
                                             toastSink = toastManager,
                                             biometricAuthenticator = biometricAuthenticator,
                                             sessionState = sessionState,

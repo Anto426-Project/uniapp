@@ -20,8 +20,11 @@ import com.anto426.unisdk.backend.model.UniversityNews
 import com.anto426.unisdk.backend.model.ProfessorDashboardData
 import com.anto426.unisdk.platform.currentEpochMillis
 import com.anto426.unisdk.transport.TransportActionResult
+import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportData
+import com.anto426.unisdk.transport.TransportDirection
+import com.anto426.unisdk.transport.TransportRouteData
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,6 +50,12 @@ interface UniAppDataSource {
     suspend fun disconnectDevice(targetToken: String): String
     suspend fun disconnectAllOtherDevices(): String
     suspend fun loadAttendanceHistory(forceRefresh: Boolean = false): List<AttendanceRecord>
+    suspend fun registerAttendance(
+        qrCode: String,
+        deviceLatitude: Double? = null,
+        deviceLongitude: Double? = null,
+        deviceAccuracyMeters: Double? = null,
+    ): String
     suspend fun loadUniversityNews(forceRefresh: Boolean = false): List<UniversityNews>
     suspend fun loadUniversityContacts(forceRefresh: Boolean = false): List<UniversityContact>
     suspend fun loadSurveyCourses(forceRefresh: Boolean = false): List<SurveyCourseData>
@@ -227,6 +236,23 @@ class SessionUniAppDataSource(
             forceRefresh,
         ) { client -> client.loadAttendanceHistory() }
 
+    override suspend fun registerAttendance(
+        qrCode: String,
+        deviceLatitude: Double?,
+        deviceLongitude: Double?,
+        deviceAccuracyMeters: Double?,
+    ): String {
+        val context = activeContext()
+        return context.client.registerAttendance(
+            qrCode = qrCode,
+            deviceLatitude = deviceLatitude,
+            deviceLongitude = deviceLongitude,
+            deviceAccuracyMeters = deviceAccuracyMeters,
+        ).also {
+            invalidate(context.accountId, profileScopedKey("attendance"))
+        }
+    }
+
     override suspend fun loadUniversityNews(forceRefresh: Boolean): List<UniversityNews> =
         cached(
             "university-news",
@@ -270,20 +296,25 @@ class SessionUniAppDataSource(
         ) { client -> client.loadSurveyCompilationStatus(adCod) }
 
     override suspend fun loadTransportData(forceRefresh: Boolean): TransportData =
-        cached("transport", UniAppCachePolicies.Transport, TransportData.serializer(), forceRefresh) { client ->
-            client.withTransportSession { session -> loadTransportData(session) }
-        }
+        cached(
+            "transport-data",
+            UniAppCachePolicies.Transport,
+            TransportData.serializer(),
+            forceRefresh,
+        ) { client -> client.loadTransportData() }
 
     override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
         val context = activeContext()
-        return context.client.withTransportSession { session -> bookTransport(session, request) }
-            .also { invalidate(context.accountId, profileScopedKey("transport")) }
+        return context.client.bookTransport(request).also {
+            invalidate(context.accountId, profileScopedKey("transport-data"))
+        }
     }
 
     override suspend fun deleteTransportBooking(bookingId: String): TransportActionResult {
         val context = activeContext()
-        return context.client.withTransportSession { session -> deleteTransportBooking(session, bookingId) }
-            .also { invalidate(context.accountId, profileScopedKey("transport")) }
+        return context.client.deleteTransportBooking(bookingId).also {
+            invalidate(context.accountId, profileScopedKey("transport-data"))
+        }
     }
 
     override suspend fun readPreference(key: String): String? {

@@ -21,10 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
+import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.kyant.backdrop.Backdrop
 
 val LocalUniScreenPadding = compositionLocalOf { PaddingValues(0.dp) }
+val LocalNavigationBarVisible = compositionLocalOf { true }
 
 @Composable
 fun UniScreenColumn(content: @Composable ColumnScope.() -> Unit) {
@@ -80,9 +82,10 @@ fun UniNeverSettleCard(
         backdropState = backdropState,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
-        containerColor = colorScheme.primaryContainer.copy(alpha = 0.15f),
+        colors = LiquidCardDefaults.colors(
+            containerColor = colorScheme.primaryContainer.copy(alpha = 0.15f)
+        ),
         contentPadding = 24.dp,
-        interactiveGelatin = false,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

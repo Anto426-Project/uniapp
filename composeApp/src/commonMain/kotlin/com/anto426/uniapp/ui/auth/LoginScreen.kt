@@ -128,7 +128,6 @@ fun LoginScreen(
                 shape = RoundedCornerShape(22.dp),
                 contentPadding = 14.dp,
                 onClick = { isAccountSheetVisible = true },
-                interactiveGelatin = true,
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -178,7 +177,6 @@ fun LoginScreen(
             backdropState = backdropState,
             shape = RoundedCornerShape(30.dp),
             contentPadding = 24.dp,
-            interactiveGelatin = false,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -355,7 +353,6 @@ fun LoginScreen(
                             isAccountSheetVisible = false
                             onSelectAccount(account.accountId)
                         },
-                        interactiveGelatin = true,
                         contentPadding = 14.dp,
                     ) {
                         Row(
@@ -367,7 +364,7 @@ fun LoginScreen(
                                 imageData = accountUiState.profileImages[account.accountId],
                                 initials = if (initials.isNotBlank()) initials else "UN",
                                 size = 44.dp,
-                                contentDescription = "Foto profilo",
+                                contentDescription = stringResource(Res.string.ui_profile_picture),
                                 backdropState = backdropState,
                             )
                             Column(modifier = Modifier.weight(1f)) {
@@ -441,7 +438,6 @@ fun LoginScreen(
                             onClick = {
                                 onCareerSelected(career)
                             },
-                            interactiveGelatin = true,
                         ) {
                             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Row(

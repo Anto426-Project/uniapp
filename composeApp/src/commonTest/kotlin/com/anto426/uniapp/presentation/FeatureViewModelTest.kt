@@ -11,6 +11,7 @@ import com.anto426.uniapp.didactics.presentation.DidacticsDashboardViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsViewModel
 import com.anto426.uniapp.didactics.presentation.buildExamHistory
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
+import com.anto426.uniapp.didactics.presentation.TranscriptsViewModel
 import com.anto426.uniapp.didactics.presentation.StatisticsViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicItemDetailViewModel
@@ -174,8 +175,43 @@ class FeatureViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf(1, 4), viewModel.uiState.value.years.map { it.yearNumber })
-        viewModel.selectYear(2)
+        assertEquals(1, viewModel.uiState.value.displayedYears.single().yearNumber)
+        viewModel.selectYear(1)
         assertEquals(4, viewModel.uiState.value.displayedYears.single().yearNumber)
+    }
+
+    @Test
+    fun transcriptsSelectsYearDirectlyWithoutAllOption() = runViewModelTest {
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadCareer(forceRefresh: Boolean) =
+                CareerData(
+                    average = "28.0",
+                    degreeBase = "102.0",
+                    cfu = "18",
+                    cfuTarget = 180,
+                    year = "2",
+                    status = "Attivo",
+                    exams = listOf(
+                        CareerExamData("Analisi", "30", "01/02/2025", 9, "A"),
+                        CareerExamData("Tirocinio", "IDONEO", "15/05/2025", 6, "T"),
+                        CareerExamData("Programmazione", "30 e lode", "20/06/2025", 9, "P"),
+                        CareerExamData("Seminario", "", "20/06/2025", 3, "S"),
+                        CareerExamData("Fisica", "28", "01/02/2026", 9, "B"),
+                    ),
+                )
+        }
+        val viewModel = TranscriptsViewModel(source)
+        advanceUntilIdle()
+
+        val allExams = viewModel.uiState.value.examsByYear.values.flatten()
+        assertEquals(listOf("Analisi", "Tirocinio", "Programmazione", "Fisica"), allExams.map { it.name })
+        assertEquals(true, allExams.first { it.name == "Programmazione" }.lode)
+        assertEquals("IDONEO", allExams.first { it.name == "Tirocinio" }.grade)
+        assertEquals(1, viewModel.uiState.value.selectedYear)
+        assertEquals(listOf(1), viewModel.uiState.value.displayedYears)
+        viewModel.selectYear(2)
+        assertEquals(2, viewModel.uiState.value.selectedYear)
+        assertEquals(listOf(2), viewModel.uiState.value.displayedYears)
     }
 
     @Test

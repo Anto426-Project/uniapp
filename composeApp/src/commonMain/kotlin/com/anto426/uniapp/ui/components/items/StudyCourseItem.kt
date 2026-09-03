@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
@@ -62,7 +62,6 @@ fun StudyCourseItem(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -73,13 +72,16 @@ fun StudyCourseItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                LiquidIconBox(
-                    icon = statusIcon,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = iconContainerColor,
-                    iconTint = iconTint,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = statusIcon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = iconContainerColor,
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Spacer(modifier = Modifier.width(14.dp))

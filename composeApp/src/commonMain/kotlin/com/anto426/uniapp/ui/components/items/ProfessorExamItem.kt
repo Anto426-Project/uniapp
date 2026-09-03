@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.unisdk.backend.model.ProfessorContentItem
 import com.kyant.backdrop.Backdrop
@@ -53,7 +53,6 @@ fun ProfessorExamItem(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClickDetail,
-        interactiveGelatin = true,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -64,13 +63,16 @@ fun ProfessorExamItem(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                LiquidIconBox(
-                    icon = LiquidIcons.Calendar,
-                    size = 42.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = LiquidIcons.Calendar,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 42.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Spacer(modifier = Modifier.width(14.dp))

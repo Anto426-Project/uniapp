@@ -45,7 +45,6 @@ fun QuestionnaireDetailScreen(
                 backdropState = backdropState,
                 shape = RoundedCornerShape(24.dp),
                 contentPadding = 18.dp,
-                interactiveGelatin = false,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(uiState.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -98,7 +97,6 @@ private fun SurveyQuestionCard(
         backdropState = backdropState,
         shape = RoundedCornerShape(22.dp),
         contentPadding = 18.dp,
-        interactiveGelatin = false,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(
@@ -149,7 +147,7 @@ private fun SurveyQuestionCard(
                     onValueChange = { onFreeTextChanged(question.questionId, it) },
                     modifier = Modifier.fillMaxWidth(),
                     type = LiquidTextFieldType.TextArea,
-                    label = "Osservazioni",
+                    label = stringResource(Res.string.ui_questionnaires_observations),
                     backdropState = backdropState,
                 )
             }

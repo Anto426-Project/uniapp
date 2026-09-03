@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.LiquidCard
+import com.anto426.liquidmonet.components.display.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.LiquidSectionHeader
+import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.transport.presentation.TransportUiState
 import com.anto426.uniapp.ui.components.items.TransportReservationItem
@@ -30,17 +32,12 @@ fun TransportScreen(
 ) {
     UniScreenColumn {
         if (uiState.days.isEmpty()) {
-            LiquidCard(
+            LiquidEmptyState(
+                title = stringResource(Res.string.ui_transport_empty_reservations),
+                description = stringResource(Res.string.ui_state_no_data),
+                icon = LiquidIcons.DirectionsBus,
                 backdropState = backdropState,
-                contentPadding = 20.dp,
-                interactiveGelatin = false
-            ) {
-                Text(
-                    text = stringResource(Res.string.ui_transport_empty_reservations),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            )
         } else {
             uiState.days.forEach { day ->
                 LiquidSectionHeader(
@@ -64,7 +61,5 @@ fun TransportScreen(
                 }
             }
         }
-
-        Spacer(Modifier.height(32.dp))
     }
 }

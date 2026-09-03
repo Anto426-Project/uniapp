@@ -43,7 +43,28 @@ final class UniAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
+        let content = notification.request.content
+        IosPushBridgeKt.cacheRemotePushNotificationFromIos(
+            id: notification.request.identifier,
+            title: content.title.isEmpty ? nil : content.title,
+            body: content.body.isEmpty ? nil : content.body
+        )
         completionHandler([.banner, .list, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let request = response.notification.request
+        let content = request.content
+        IosPushBridgeKt.cacheRemotePushNotificationFromIos(
+            id: request.identifier,
+            title: content.title.isEmpty ? nil : content.title,
+            body: content.body.isEmpty ? nil : content.body
+        )
+        completionHandler()
     }
 }
 

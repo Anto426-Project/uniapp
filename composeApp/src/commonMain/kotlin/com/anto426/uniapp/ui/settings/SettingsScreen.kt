@@ -30,6 +30,7 @@ import com.anto426.liquidmonet.components.buttons.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.LiquidIconButton
 import com.anto426.liquidmonet.components.cards.LiquidCard
+import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidBadge
@@ -91,7 +92,6 @@ fun SettingsScreen(
                 backdropState = backdropState,
                 shape = RoundedCornerShape(26.dp),
                 contentPadding = 18.dp,
-                interactiveGelatin = true,
                 onClick = { isAccountSheetVisible = true },
             ) {
                 Row(
@@ -103,7 +103,7 @@ fun SettingsScreen(
                         imageData = accountUiState.profileImages[account.accountId],
                         initials = if (initials.isNotBlank()) initials else "UN",
                         size = 50.dp,
-                        contentDescription = "Foto profilo",
+                        contentDescription = stringResource(Res.string.ui_profile_picture),
                         backdropState = backdropState,
                     )
 
@@ -314,10 +314,15 @@ fun SettingsScreen(
                                     requestedAccountId = account.accountId
                                     onSelectAccount(account.accountId)
                                 }),
-                                interactiveGelatin = !isActive && !isSwitching,
                                 contentPadding = 14.dp,
                                 shape = RoundedCornerShape(18.dp),
-                                containerColor = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else null,
+                                colors = if (isActive) {
+                                    LiquidCardDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    )
+                                } else {
+                                    LiquidCardDefaults.colors()
+                                },
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -328,7 +333,7 @@ fun SettingsScreen(
                                         imageData = accountUiState.profileImages[account.accountId],
                                         initials = if (initials.isNotBlank()) initials else "UN",
                                         size = 44.dp,
-                                        contentDescription = "Foto profilo",
+                                        contentDescription = stringResource(Res.string.ui_profile_picture),
                                         backdropState = backdropState,
                                     )
 

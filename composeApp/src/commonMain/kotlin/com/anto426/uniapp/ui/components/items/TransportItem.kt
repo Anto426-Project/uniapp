@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TransportRoute
@@ -46,7 +46,6 @@ fun TransportReservationItem(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -58,13 +57,16 @@ fun TransportReservationItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                LiquidIconBox(
-                    icon = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -76,7 +78,7 @@ fun TransportReservationItem(
                         letterSpacing = (-0.2).sp
                     )
                     Text(
-                        text = "Ore ${reservation.time} • ${if (reservation.departureStop.isNotBlank()) reservation.departureStop else reservation.date}",
+                        text = if (reservation.departureStop.isNotBlank()) reservation.departureStop else reservation.date,
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
@@ -115,7 +117,6 @@ fun TransportTicketItem(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -127,13 +128,16 @@ fun TransportTicketItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                LiquidIconBox(
-                    icon = ticket.icon,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = ticket.icon,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -178,7 +182,6 @@ fun TransportRouteItem(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -190,13 +193,16 @@ fun TransportRouteItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                LiquidIconBox(
-                    icon = LiquidIcons.Time,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = LiquidIcons.Time,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

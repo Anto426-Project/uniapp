@@ -61,16 +61,22 @@ internal class AppUpdateViewModel(
                 )
                 AppUpdatePhase.Idle,
                 AppUpdatePhase.Checking,
+                AppUpdatePhase.Downloading,
+                AppUpdatePhase.Installing,
                 -> Unit
             }
         }
     }
 
     fun openUpdate() {
-        if (controller.openUpdate()) {
-            toastSink.info("Apertura dell’aggiornamento…")
-        } else {
-            toastSink.error("Link di aggiornamento non disponibile.")
+        viewModelScope.launch {
+            if (controller.startUpdate()) {
+                toastSink.info("Aggiornamento avviato…")
+            } else {
+                toastSink.error(
+                    controller.state.value.message ?: "Impossibile avviare l’aggiornamento.",
+                )
+            }
         }
     }
 }
@@ -85,7 +91,10 @@ private fun AppUpdateState.toUiState(): AppUpdateUiState {
                 -> UpdateState.CHECKING
 
                 AppUpdatePhase.UpToDate -> UpdateState.UP_TO_DATE
-                AppUpdatePhase.Available -> UpdateState.AVAILABLE
+                AppUpdatePhase.Available,
+                AppUpdatePhase.Downloading,
+                AppUpdatePhase.Installing,
+                -> UpdateState.AVAILABLE
                 AppUpdatePhase.Failed -> UpdateState.ERROR
             },
         installedVersion = installedBuild.versionName,
@@ -94,6 +103,8 @@ private fun AppUpdateState.toUiState(): AppUpdateUiState {
         statusText =
             when {
                 isMandatory -> "Aggiornamento obbligatorio"
+                phase == AppUpdatePhase.Downloading -> "Download dell’aggiornamento…"
+                phase == AppUpdatePhase.Installing -> "Installazione e riavvio…"
                 phase == AppUpdatePhase.Available -> "Nuovo aggiornamento disponibile"
                 phase == AppUpdatePhase.UpToDate -> "Versione aggiornata"
                 else -> null
@@ -101,7 +112,10 @@ private fun AppUpdateState.toUiState(): AppUpdateUiState {
         releaseNotes = info?.notes,
         publishedAt = info?.publishedAt,
         isMandatory = isMandatory,
-        canOpenUpdate = downloadUrl != null,
+        canOpenUpdate =
+            downloadUrl != null &&
+                phase != AppUpdatePhase.Downloading &&
+                phase != AppUpdatePhase.Installing,
         errorMessage = message,
     )
 }

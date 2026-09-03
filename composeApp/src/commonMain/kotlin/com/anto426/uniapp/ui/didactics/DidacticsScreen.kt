@@ -74,7 +74,6 @@ fun DidacticsScreen(
             shape = RoundedCornerShape(24.dp),
             contentPadding = 20.dp,
             onClick = onOpenStatistics,
-            interactiveGelatin = true
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -88,13 +87,13 @@ fun DidacticsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = uiState.degreeName.ifBlank { "Corso di laurea" },
+                            text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_didactics_degree_fallback) },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = colorScheme.onSurface
                         )
                         Text(
-                            text = uiState.degreeDetails.ifBlank { "Dati carriera" },
+                            text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_didactics_career_data_fallback) },
                             style = MaterialTheme.typography.labelMedium,
                             color = colorScheme.onSurfaceVariant
                         )
@@ -102,9 +101,9 @@ fun DidacticsScreen(
 
                     LiquidBadge(
                         text = if (uiState.plannedActivities > 0) {
-                            "${uiState.completedExams} / ${uiState.plannedActivities} ATTIVITÀ"
+                            stringResource(Res.string.ui_didactics_activities_badge, uiState.completedExams, uiState.plannedActivities)
                         } else {
-                            "${uiState.completedExams} ESAMI"
+                            stringResource(Res.string.ui_didactics_exams_badge, uiState.completedExams)
                         },
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
@@ -132,7 +131,7 @@ fun DidacticsScreen(
                             color = colorScheme.primary
                         )
                         Text(
-                            text = "Media Ponderata",
+                            text = stringResource(Res.string.ui_weighted_average),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurfaceVariant
@@ -151,7 +150,7 @@ fun DidacticsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Progresso carriera: ${(uiState.progress * 100).toInt()}%",
+                            text = stringResource(Res.string.ui_didactics_career_progress_percent, (uiState.progress * 100).toInt()),
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant
                         )
@@ -168,8 +167,8 @@ fun DidacticsScreen(
 
         // 2. Section: Carriera e Piano di Studi
         LiquidSectionHeader(
-            title = "Carriera e Valutazioni",
-            subtitle = "Libretto esami, piano e calcolo della media"
+            title = stringResource(Res.string.ui_didactics_section_career_evaluations),
+            subtitle = stringResource(Res.string.ui_didactics_section_career_evaluations_sub)
         )
 
         Column(
@@ -181,8 +180,8 @@ fun DidacticsScreen(
             DidacticRow(
                 item1 = {
                     DidacticItem(
-                        title = "Libretto",
-                        subtitle = "Esami e voti registrati",
+                        title = stringResource(Res.string.ui_transcript),
+                        subtitle = stringResource(Res.string.ui_didactics_transcript_sub),
                         icon = LiquidIcons.MenuBook,
                         backdropState = backdropState,
                         onClick = onOpenTranscripts
@@ -190,8 +189,8 @@ fun DidacticsScreen(
                 },
                 item2 = {
                     DidacticItem(
-                        title = "Piano di Studio",
-                        subtitle = "Curriculum triennale",
+                        title = stringResource(Res.string.ui_study_plan),
+                        subtitle = stringResource(Res.string.ui_didactics_study_plan_sub),
                         icon = LiquidIcons.Assignment,
                         backdropState = backdropState,
                         onClick = onOpenStudyPlan
@@ -202,8 +201,8 @@ fun DidacticsScreen(
             DidacticRow(
                 item1 = {
                     DidacticItem(
-                        title = "Tasse e Contributi",
-                        subtitle = "Situazione pagamenti",
+                        title = stringResource(Res.string.ui_didactics_taxes_title),
+                        subtitle = stringResource(Res.string.ui_didactics_taxes_sub),
                         icon = LiquidIcons.CreditCard,
                         backdropState = backdropState,
                         onClick = onOpenTaxes
@@ -211,8 +210,8 @@ fun DidacticsScreen(
                 },
                 item2 = {
                     DidacticItem(
-                        title = "Media e Voti",
-                        subtitle = "Simulazione e calcolo",
+                        title = stringResource(Res.string.ui_didactics_grades_title),
+                        subtitle = stringResource(Res.string.ui_didactics_grades_sub),
                         icon = LiquidIcons.Analytics,
                         backdropState = backdropState,
                         onClick = onOpenGrades
@@ -223,8 +222,8 @@ fun DidacticsScreen(
 
         // 3. Section: Esami e Attività Didattica
         LiquidSectionHeader(
-            title = "Esami e Aula",
-            subtitle = "Appelli d'esame, presenze e rilevazioni"
+            title = stringResource(Res.string.ui_didactics_section_exams_classroom),
+            subtitle = stringResource(Res.string.ui_didactics_section_exams_classroom_sub)
         )
 
         Column(
@@ -236,8 +235,8 @@ fun DidacticsScreen(
             DidacticRow(
                 item1 = {
                     DidacticItem(
-                        title = "Appelli Esami",
-                        subtitle = "Iscrizioni e prenotazioni",
+                        title = stringResource(Res.string.ui_didactics_exams_title),
+                        subtitle = stringResource(Res.string.ui_didactics_exams_sub),
                         icon = LiquidIcons.Calendar,
                         backdropState = backdropState,
                         badgeCount = uiState.openExamRounds.takeIf { it > 0 },
@@ -246,8 +245,8 @@ fun DidacticsScreen(
                 },
                 item2 = {
                     DidacticItem(
-                        title = "Presenze Aula",
-                        subtitle = "Rilevazione presenze QR",
+                        title = stringResource(Res.string.ui_didactics_attendance_title),
+                        subtitle = stringResource(Res.string.ui_didactics_attendance_sub),
                         icon = LiquidIcons.QrCode,
                         backdropState = backdropState,
                         onClick = onOpenAttendance
@@ -258,8 +257,8 @@ fun DidacticsScreen(
             DidacticRow(
                 item1 = {
                     DidacticItem(
-                        title = "Questionari OPIS",
-                        subtitle = "Valutazione didattica",
+                        title = stringResource(Res.string.ui_didactics_questionnaires_title),
+                        subtitle = stringResource(Res.string.ui_didactics_questionnaires_sub),
                         icon = LiquidIcons.Feedback,
                         backdropState = backdropState,
                         badgeCount = uiState.pendingQuestionnaires.takeIf { it > 0 },
@@ -268,8 +267,8 @@ fun DidacticsScreen(
                 },
                 item2 = {
                     DidacticItem(
-                        title = "Badge Studente",
-                        subtitle = "Tessera identificativa",
+                        title = stringResource(Res.string.ui_didactics_badge_title),
+                        subtitle = stringResource(Res.string.ui_didactics_badge_sub),
                         icon = LiquidIcons.Badge,
                         backdropState = backdropState,
                         onClick = onOpenBadge

@@ -14,13 +14,13 @@ class AppRoutePresentationTest {
                 fullContent = "Contenuto",
             )
 
-        assertEquals("Bando borse di studio", route.presentation().title)
+        assertEquals("Bando borse di studio", route.presentation().titleString)
     }
 
     @Test
     fun ticketDetailUsesTheSelectedTicketTitle() {
         val route = AppRoute.TicketDetail(ticketId = "ticket-1", title = "Abbonamento mensile")
 
-        assertEquals("Abbonamento mensile", route.presentation().title)
+        assertEquals("Abbonamento mensile", route.presentation().titleString)
     }
 }

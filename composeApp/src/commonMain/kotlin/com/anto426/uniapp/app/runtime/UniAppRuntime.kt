@@ -8,10 +8,14 @@ import com.anto426.uniapp.account.session.UniSessionCoordinator
 import com.anto426.uniapp.data.SessionUniAppDataSource
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.notifications.platform.rememberPlatformNotificationPermissionController
+import com.anto426.uniapp.notifications.runtime.AppNotificationManager
 import com.anto426.uniapp.updates.data.UniSdkAppUpdateSource
 import com.anto426.uniapp.updates.platform.rememberPlatformAppUpdateEnvironment
 import com.anto426.uniapp.updates.runtime.AppUpdateController
 import com.anto426.unisdk.backend.RemoteUniBackendService
+import com.anto426.unisdk.platform.registerPushNotificationsTokenProvider
+import com.anto426.firebase.createPushNotificationConnector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,8 +27,10 @@ class UniAppRuntime internal constructor(
     val dataSource: UniAppDataSource,
     private val accountStore: com.anto426.uniapp.account.storage.UniAccountStore,
     internal val updateController: AppUpdateController,
+    internal val notificationManager: AppNotificationManager,
     private val sessionCoordinator: UniSessionCoordinator,
     private val backend: RemoteUniBackendService,
+    private val unregisterPushTokenProvider: () -> Unit,
 ) {
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val accountDataSources = mutableMapOf<String, UniAppDataSource>()
@@ -43,6 +49,8 @@ class UniAppRuntime internal constructor(
     }
 
     internal fun close() {
+        unregisterPushTokenProvider()
+        notificationManager.close()
         cleanupScope.launch {
             try {
                 sessionCoordinator.shutdown()
@@ -58,11 +66,15 @@ class UniAppRuntime internal constructor(
 internal fun rememberUniAppRuntime(): UniAppRuntime {
     val accountStore = rememberPlatformUniAccountStore()
     val updateEnvironment = rememberPlatformAppUpdateEnvironment()
+    val notificationPermissions = rememberPlatformNotificationPermissionController()
+    val pushConnector = remember { createPushNotificationConnector() }
     val runtime =
-        remember(accountStore, updateEnvironment) {
+        remember(accountStore, updateEnvironment, notificationPermissions, pushConnector) {
             val backend = RemoteUniBackendService()
             val coordinator = UniSessionCoordinator(backend, accountStore)
             val sessionController = AppSessionController(coordinator, accountStore)
+            val unregisterPushTokenProvider =
+                registerPushNotificationsTokenProvider { pushConnector.tokenFlow.value }
             UniAppRuntime(
                 sessionController = sessionController,
                 dataSource = SessionUniAppDataSource(sessionController, accountStore),
@@ -73,8 +85,14 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
                         installedBuild = updateEnvironment.installedBuild,
                         launcher = updateEnvironment.launcher,
                     ),
+                notificationManager =
+                    AppNotificationManager(
+                        connector = pushConnector,
+                        permissions = notificationPermissions,
+                    ),
                 sessionCoordinator = coordinator,
                 backend = backend,
+                unregisterPushTokenProvider = unregisterPushTokenProvider,
             )
         }
     DisposableEffect(runtime) {

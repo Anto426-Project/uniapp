@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ExamRecord
 import com.kyant.backdrop.Backdrop
@@ -35,7 +35,6 @@ fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
         backdropState = backdropState,
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
-        interactiveGelatin = false,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -46,13 +45,16 @@ fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                LiquidIconBox(
-                    icon = LiquidIcons.Check,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = LiquidIcons.Check,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Spacer(modifier = Modifier.width(14.dp))

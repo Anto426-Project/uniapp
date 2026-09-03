@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidBadgedBox
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.uniapp.model.services.ServiceData
 import com.kyant.backdrop.Backdrop
 
@@ -32,19 +32,21 @@ fun ServiceItem(data: ServiceData, backdropState: Backdrop, modifier: Modifier =
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LiquidBadgedBox(
                 badge = { data.badgeCount?.let { LiquidBadge(count = it, backdropState = backdropState) } }
             ) {
-                LiquidIconBox(
-                    icon = data.icon,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = data.icon,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
             }
             Column {

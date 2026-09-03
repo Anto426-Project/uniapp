@@ -20,9 +20,16 @@ internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnv
         PlatformAppUpdateEnvironment(
             installedBuild = InstalledAppBuild(versionName, versionCode),
             launcher =
-                PlatformUpdateLauncher { downloadUrl ->
-                    NSURL.URLWithString(downloadUrl)?.let(UIApplication.sharedApplication::openURL)
-                        ?: false
+                PlatformUpdateLauncher { downloadUrl, _ ->
+                    val opened =
+                        NSURL.URLWithString(downloadUrl)
+                            ?.let(UIApplication.sharedApplication::openURL)
+                            ?: false
+                    if (opened) {
+                        PlatformUpdateLaunchResult.OpenedExternalStore
+                    } else {
+                        PlatformUpdateLaunchResult.Failed("Impossibile aprire l’App Store.")
+                    }
                 },
         )
     }

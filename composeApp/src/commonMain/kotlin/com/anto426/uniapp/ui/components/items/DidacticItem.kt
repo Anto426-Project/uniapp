@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidBadgedBox
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.kyant.backdrop.Backdrop
 
@@ -50,13 +50,16 @@ fun DidacticItem(
     LiquidCard(modifier = Modifier.graphicsLayer(clip = false), backdropState = backdropState, shape = RoundedCornerShape(22.dp), contentPadding = 16.dp, onClick = onClick) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LiquidBadgedBox(badge = { badgeCount?.let { LiquidBadge(count = it, backdropState = backdropState) } }) {
-                LiquidIconBox(
-                    icon = icon,
-                    size = 40.dp,
-                    iconSize = 20.dp,
-                    containerColor = iconColor.copy(alpha = 0.12f),
-                    iconTint = iconColor,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 40.dp,
+                        iconSize = 20.dp,
+                        containerColor = iconColor.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
             }
             Column {

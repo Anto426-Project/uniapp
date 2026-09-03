@@ -24,7 +24,7 @@ import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.AcademicItemDetailUiState
 import com.anto426.uniapp.didactics.presentation.AcademicSection
@@ -32,8 +32,7 @@ import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.backend.model.ProfessorContentItem
 import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.Res
-import uniapp.composeapp.generated.resources.ui_academic_item_details
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun AcademicItemDetailScreen(
@@ -77,7 +76,6 @@ fun AcademicItemDetailScreen(
             backdropState = backdropState,
             shape = RoundedCornerShape(24.dp),
             contentPadding = 20.dp,
-            interactiveGelatin = false,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -130,7 +128,7 @@ fun AcademicItemDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Text(
-                            text = "Data:",
+                            text = stringResource(Res.string.ui_academic_data_prefix),
                             style = MaterialTheme.typography.labelMedium,
                             color = colorScheme.onSurfaceVariant,
                         )
@@ -180,7 +178,6 @@ private fun ThesisDetailContent(
             backdropState = backdropState,
             shape = RoundedCornerShape(24.dp),
             contentPadding = 20.dp,
-            interactiveGelatin = false,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -193,7 +190,7 @@ private fun ThesisDetailContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     LiquidBadge(
-                        text = "TESISTA • LAUREANDO",
+                        text = stringResource(Res.string.ui_academic_tag_thesis),
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
                         contentColor = colorScheme.primary,
                         backdropState = backdropState,
@@ -236,7 +233,7 @@ private fun ThesisDetailContent(
                 ) {
                     thesis.date?.takeIf(String::isNotBlank)?.let { date ->
                         ThesisHeroStatTile(
-                            label = "Discussione",
+                            label = stringResource(Res.string.ui_thesis_defense),
                             value = date,
                             icon = LiquidIcons.Calendar,
                         )
@@ -244,7 +241,7 @@ private fun ThesisDetailContent(
 
                     thesis.voto?.takeIf(String::isNotBlank)?.let { voto ->
                         ThesisHeroStatTile(
-                            label = "Voto Finale",
+                            label = stringResource(Res.string.ui_thesis_final_grade),
                             value = voto,
                             icon = LiquidIcons.Star,
                         )
@@ -252,7 +249,7 @@ private fun ThesisDetailContent(
 
                     if (thesis.relatore != null) {
                         ThesisHeroStatTile(
-                            label = "Relatore",
+                            label = stringResource(Res.string.ui_thesis_supervisor),
                             value = thesis.relatore,
                             icon = LiquidIcons.AccountCircle,
                         )
@@ -269,23 +266,25 @@ private fun ThesisDetailContent(
                 backdropState = backdropState,
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = 18.dp,
-                interactiveGelatin = false,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        LiquidIconBox(
-                            icon = LiquidIcons.Assignment,
-                            size = 32.dp,
-                            iconSize = 16.dp,
-                            containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            iconTint = colorScheme.primary,
-                            shape = RoundedCornerShape(10.dp),
+                        Icon(
+                            imageVector = LiquidIcons.Assignment,
+                            contentDescription = null,
+                            tint = colorScheme.primary,
+                            modifier = Modifier.liquidIconContainer(
+                                containerSize = 32.dp,
+                                iconSize = 16.dp,
+                                containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(10.dp),
+                            ),
                         )
                         Text(
-                            text = "Titolo dell'Elaborato / Tesi",
+                            text = stringResource(Res.string.ui_thesis_title_label),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary,
@@ -306,13 +305,13 @@ private fun ThesisDetailContent(
         // ==========================================
         if (thesis.relatore != null || thesis.correlatore != null) {
             LiquidPreferenceGroup(
-                title = "Docenti Relatori",
+                title = stringResource(Res.string.ui_thesis_supervisors_group),
                 backdropState = backdropState,
             ) {
                 thesis.relatore?.let { rel ->
                     LiquidPreferenceItem(
                         title = rel,
-                        subtitle = "Docente Relatore",
+                        subtitle = stringResource(Res.string.ui_thesis_supervisor_role),
                         icon = LiquidIcons.AccountCircle,
                         backdropState = backdropState,
                     )
@@ -320,7 +319,7 @@ private fun ThesisDetailContent(
                 thesis.correlatore?.let { correl ->
                     LiquidPreferenceItem(
                         title = correl,
-                        subtitle = "Correlatore",
+                        subtitle = stringResource(Res.string.ui_thesis_cosupervisor_role),
                         icon = LiquidIcons.AccountCircle,
                         backdropState = backdropState,
                     )
@@ -332,12 +331,12 @@ private fun ThesisDetailContent(
         // 4. DATI CANDIDATO E SESSIONE
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Dati Sessione e Carriera",
+            title = stringResource(Res.string.ui_thesis_session_group),
             backdropState = backdropState,
         ) {
             thesis.matricola?.let { matr ->
                 LiquidPreferenceItem(
-                    title = "Matricola Studente",
+                    title = stringResource(Res.string.ui_thesis_student_matricola),
                     subtitle = matr,
                     icon = LiquidIcons.Badge,
                     backdropState = backdropState,
@@ -346,7 +345,7 @@ private fun ThesisDetailContent(
 
             thesis.cds?.let { cds ->
                 LiquidPreferenceItem(
-                    title = "Corso di Laurea",
+                    title = stringResource(Res.string.ui_thesis_degree_course),
                     subtitle = cds,
                     icon = LiquidIcons.MenuBook,
                     backdropState = backdropState,
@@ -355,7 +354,7 @@ private fun ThesisDetailContent(
 
             thesis.sessione?.let { sess ->
                 LiquidPreferenceItem(
-                    title = "Sessione di Laurea",
+                    title = stringResource(Res.string.ui_thesis_degree_session),
                     subtitle = sess,
                     icon = LiquidIcons.Calendar,
                     backdropState = backdropState,
@@ -364,7 +363,7 @@ private fun ThesisDetailContent(
 
             thesis.date?.let { date ->
                 LiquidPreferenceItem(
-                    title = "Data e Orario Discussione",
+                    title = stringResource(Res.string.ui_thesis_defense_date_time),
                     subtitle = date,
                     icon = LiquidIcons.Time,
                     backdropState = backdropState,
@@ -373,7 +372,7 @@ private fun ThesisDetailContent(
 
             thesis.sede?.let { sede ->
                 LiquidPreferenceItem(
-                    title = "Sede / Aula Discussione",
+                    title = stringResource(Res.string.ui_thesis_defense_location),
                     subtitle = sede,
                     icon = LiquidIcons.Info,
                     backdropState = backdropState,
@@ -382,7 +381,7 @@ private fun ThesisDetailContent(
 
             thesis.voto?.let { voto ->
                 LiquidPreferenceItem(
-                    title = "Esito / Valutazione",
+                    title = stringResource(Res.string.ui_thesis_outcome_evaluation),
                     subtitle = voto,
                     icon = LiquidIcons.Star,
                     backdropState = backdropState,

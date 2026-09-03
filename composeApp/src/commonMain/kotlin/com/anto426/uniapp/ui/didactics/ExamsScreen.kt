@@ -90,6 +90,5 @@ fun ExamsScreen(
                 )
             }
         }
-        item(key = "exam-bottom-space") { Spacer(Modifier.height(80.dp)) }
     }
 }

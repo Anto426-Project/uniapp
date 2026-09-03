@@ -21,7 +21,7 @@ import com.anto426.liquidmonet.components.buttons.LiquidButton
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.settings.DeviceInfo
 import com.anto426.uniapp.model.settings.DeviceType
@@ -80,19 +80,21 @@ fun CurrentDeviceHero(device: DeviceInfo, backdropState: Backdrop) {
         backdropState = backdropState,
         shape = RoundedCornerShape(24.dp),
         contentPadding = 16.dp,
-        interactiveGelatin = false
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LiquidIconBox(
-                icon = icon,
-                size = 40.dp,
-                iconSize = 20.dp,
-                containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                iconTint = colorScheme.primary,
-                shape = RoundedCornerShape(12.dp),
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = colorScheme.primary,
+                modifier = Modifier.liquidIconContainer(
+                    containerSize = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(12.dp),
+                ),
             )
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {

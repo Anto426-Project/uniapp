@@ -34,15 +34,7 @@ import com.anto426.unisdk.backend.model.ProfessorContentItem
 import com.anto426.unisdk.backend.model.ProfessorExamBooking
 import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.Res
-import uniapp.composeapp.generated.resources.ui_professor_bookings
-import uniapp.composeapp.generated.resources.ui_professor_commission
-import uniapp.composeapp.generated.resources.ui_professor_exam_details_tab
-import uniapp.composeapp.generated.resources.ui_professor_exam_round_tab
-import uniapp.composeapp.generated.resources.ui_professor_no_bookings
-import uniapp.composeapp.generated.resources.ui_professor_no_bookings_description
-import uniapp.composeapp.generated.resources.ui_professor_no_commission
-import uniapp.composeapp.generated.resources.ui_professor_no_commission_description
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 internal fun ProfessorExamDetailContent(
@@ -61,7 +53,7 @@ internal fun ProfessorExamDetailContent(
 
     val tabs = listOf(
         LiquidNavigationItem(
-            label = "Iscritti",
+            label = stringResource(Res.string.ui_professor_registered_students),
             badge = if (bookingsCount > 0) bookingsCount.toString() else null,
             icon = LiquidIcons.AccountCircle,
         ),
@@ -84,7 +76,6 @@ internal fun ProfessorExamDetailContent(
             backdropState = backdropState,
             shape = RoundedCornerShape(24.dp),
             contentPadding = 20.dp,
-            interactiveGelatin = false,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -97,7 +88,7 @@ internal fun ProfessorExamDetailContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     LiquidBadge(
-                        text = "APPELLO D'ESAME",
+                        text = stringResource(Res.string.ui_professor_exam_round_tag),
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
                         contentColor = colorScheme.primary,
                         backdropState = backdropState,
@@ -139,14 +130,14 @@ internal fun ProfessorExamDetailContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ProfessorHeroStatTile(
-                        label = "Iscritti",
+                        label = stringResource(Res.string.ui_professor_registered_students),
                         value = if (bookingsCount > 0) "$bookingsCount" else "0",
                         icon = LiquidIcons.AccountCircle,
                     )
 
                     item.date?.takeIf(String::isNotBlank)?.let { date ->
                         ProfessorHeroStatTile(
-                            label = "Data e Ora",
+                            label = stringResource(Res.string.ui_date_time_label),
                             value = date,
                             icon = LiquidIcons.Calendar,
                         )
@@ -154,8 +145,8 @@ internal fun ProfessorExamDetailContent(
 
                     if (item.commission.isNotEmpty()) {
                         ProfessorHeroStatTile(
-                            label = "Commissione",
-                            value = "${item.commission.size} membri",
+                            label = stringResource(Res.string.ui_professor_commission),
+                            value = stringResource(Res.string.ui_professor_members_count, item.commission.size),
                             icon = LiquidIcons.AccountCircle,
                         )
                     }
@@ -237,8 +228,9 @@ private fun ProfessorBookingsTabContent(
             item.bookings.forEach { booking ->
                 LiquidPreferenceItem(
                     title = booking.studentName,
-                    subtitle = booking.matricola?.takeIf(String::isNotBlank)?.let { "Matricola: $it" }
-                        ?: "Iscritto alla sessione",
+                    subtitle = booking.matricola?.takeIf(String::isNotBlank)?.let {
+                        stringResource(Res.string.ui_professor_student_matricola_format, it)
+                    } ?: stringResource(Res.string.ui_professor_student_registered_fallback),
                     icon = LiquidIcons.AccountCircle,
                     backdropState = backdropState,
                     trailingContent = {
@@ -277,7 +269,7 @@ private fun ProfessorCommissionTabContent(
             item.commission.forEach { member ->
                 LiquidPreferenceItem(
                     title = member.displayName,
-                    subtitle = member.role?.takeIf(String::isNotBlank) ?: "Docente esaminatore",
+                    subtitle = member.role?.takeIf(String::isNotBlank) ?: stringResource(Res.string.ui_professor_examiner_role_fallback),
                     icon = LiquidIcons.AccountCircle,
                     backdropState = backdropState,
                 )
@@ -311,8 +303,8 @@ private fun ProfessorSessionInfoTabContent(
 
     if (fields.isEmpty()) {
         LiquidEmptyState(
-            title = "Nessun dettaglio disponibile",
-            description = "I dettagli della sessione dell'appello non sono al momento disponibili.",
+            title = stringResource(Res.string.ui_details_none_title),
+            description = stringResource(Res.string.ui_professor_exam_details_none_desc),
             icon = LiquidIcons.Info,
             backdropState = backdropState,
         )

@@ -131,6 +131,9 @@ sealed interface AppRoute : NavKey {
     data object Attendance : AppRoute
 
     @Serializable
+    data object AboutUniApp : AppRoute
+
+    @Serializable
     data object Privacy : AppRoute
 
     @Serializable

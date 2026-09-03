@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.anto426.liquidmonet.components.display.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.LiquidSectionHeader
 import com.anto426.liquidmonet.components.display.LiquidSectionHeaderSize
 import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
@@ -27,21 +28,25 @@ fun TranscriptsScreen(
     uiState: TranscriptsUiState,
     onYearSelected: (Int) -> Unit,
 ) {
-    val tabs = listOf(
-        LiquidNavigationItem(label = stringResource(Res.string.ui_home_news_all)),
-        LiquidNavigationItem(label = "1° Anno"),
-        LiquidNavigationItem(label = "2° Anno"),
-        LiquidNavigationItem(label = "3° Anno")
-    )
+    val years = uiState.availableYears
+    val tabs = years.map { year ->
+        LiquidNavigationItem(label = "${year}° Anno")
+    }
+    val selectedTabIndex = years.indexOf(uiState.selectedYear).coerceAtLeast(0)
 
     UniScreenColumn {
         // 1. Year Tab Selector
-        LiquidTabBar(
-            items = tabs,
-            selectedIndex = uiState.selectedYear,
-            onTabSelected = onYearSelected,
-            backdropState = backdropState,
-        )
+        if (tabs.isNotEmpty()) {
+            LiquidTabBar(
+                items = tabs,
+                selectedIndex = selectedTabIndex,
+                onTabSelected = { index ->
+                    val year = years.getOrElse(index) { index + 1 }
+                    onYearSelected(year)
+                },
+                backdropState = backdropState,
+            )
+        }
 
         // 2. Exams Grouped by Year
         uiState.displayedYears.forEach { year ->
@@ -71,6 +76,21 @@ fun TranscriptsScreen(
                         ExamRecordItem(exam = exam, backdropState = backdropState)
                     }
                 }
+            } else {
+                LiquidSectionHeader(
+                    title = when (year) {
+                        1 -> stringResource(Res.string.ui_year_first)
+                        2 -> stringResource(Res.string.ui_year_second)
+                        3 -> stringResource(Res.string.ui_year_third)
+                        else -> stringResource(Res.string.ui_year_nth, year)
+                    },
+                    subtitle = stringResource(Res.string.ui_transcripts_year_summary, 0, 0),
+                )
+                LiquidEmptyState(
+                    title = stringResource(Res.string.ui_grades_verbalized_empty),
+                    description = stringResource(Res.string.ui_history_empty_desc),
+                    backdropState = backdropState,
+                )
             }
         }
     }

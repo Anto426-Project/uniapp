@@ -26,6 +26,7 @@ data class TransportBookingUiState(
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
     val isSubmitting: Boolean = false,
+    val bookedSuccessfully: Boolean = false,
 )
 
 class TransportBookingViewModel(
@@ -66,16 +67,32 @@ class TransportBookingViewModel(
     }
 
     fun book(date: LocalDate, direction: TransportDirection = TransportDirection.OUTBOUND) {
+        book(listOf(date), direction)
+    }
+
+    fun book(dates: List<LocalDate>, direction: TransportDirection = TransportDirection.OUTBOUND) {
         val route = routesByLabel[mutableUiState.value.selectedRoute] ?: return
+        if (dates.isEmpty()) return
         viewModelScope.launch {
             mutableUiState.value = mutableUiState.value.copy(isSubmitting = true)
             try {
-                val result = dataSource.bookTransport(TransportBookingRequest(route.code, date, direction))
-                mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
-                if (result == TransportActionResult.AlreadyExists) {
-                    toastSink.warning("Corsa già prenotata.")
+                var anySuccess = false
+                for (date in dates) {
+                    val result = dataSource.bookTransport(TransportBookingRequest(route.code, date, direction))
+                    if (result != TransportActionResult.AlreadyExists) {
+                        anySuccess = true
+                    }
+                }
+                if (anySuccess) {
+                    mutableUiState.value = mutableUiState.value.copy(
+                        isSubmitting = false,
+                        bookedSuccessfully = true,
+                    )
+                    val totalRides = dates.size * (if (direction == TransportDirection.ROUND_TRIP) 2 else 1)
+                    toastSink.success(if (totalRides > 1) "$totalRides corse prenotate con successo." else "Prenotazione completata.")
                 } else {
-                    toastSink.success("Prenotazione completata.")
+                    mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
+                    toastSink.warning("Corse già prenotate per le date selezionate.")
                 }
             } catch (error: CancellationException) {
                 throw error

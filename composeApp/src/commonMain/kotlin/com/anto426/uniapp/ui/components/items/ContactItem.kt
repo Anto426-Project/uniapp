@@ -40,7 +40,6 @@ fun ContactItem(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

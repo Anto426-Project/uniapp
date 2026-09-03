@@ -12,6 +12,7 @@ val AppRoute.requirement: AppRouteRequirement
         when (this) {
             AppRoute.Bootstrap -> AppRouteRequirement.BootstrapOnly
             AppRoute.Login -> AppRouteRequirement.SignedOutOnly
+            AppRoute.AboutUniApp,
             AppRoute.Privacy,
             AppRoute.Terms,
             AppRoute.Cookies,

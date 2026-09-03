@@ -29,6 +29,7 @@ import com.anto426.uniapp.didactics.presentation.TranscriptsViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.runtime.AppNavigator
+import com.anto426.uniapp.notifications.runtime.AppNotificationController
 import com.anto426.uniapp.news.presentation.NewsViewModel
 import com.anto426.uniapp.services.presentation.ContactsViewModel
 import com.anto426.uniapp.services.presentation.ContactDetailViewModel
@@ -79,6 +80,7 @@ import com.anto426.uniapp.ui.services.ContactDetailScreen
 import com.anto426.uniapp.ui.services.ContactsScreen
 import com.anto426.uniapp.ui.services.ServicesScreen
 import com.anto426.uniapp.ui.services.TaxesScreen
+import com.anto426.uniapp.ui.settings.AboutUniAppScreen
 import com.anto426.uniapp.ui.settings.AppInfoScreen
 import com.anto426.uniapp.ui.settings.AuthorScreen
 import com.anto426.uniapp.ui.settings.ColorLabScreen
@@ -106,6 +108,7 @@ internal fun AppRouteContent(
     searchQuery: String,
     isSearchActive: Boolean,
     updateUiState: AppUpdateUiState,
+    notificationController: AppNotificationController,
     toastSink: AppToastSink,
     biometricAuthenticator: BiometricAuthenticator,
     sessionState: AppSessionState,
@@ -332,6 +335,7 @@ internal fun AppRouteContent(
                         dataSource = dataSource,
                         toastSink = toastSink,
                         biometricAuthenticator = biometricAuthenticator,
+                        notificationController = notificationController,
                     )
                 }
             val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
@@ -395,6 +399,7 @@ internal fun AppRouteContent(
                 backdropState = backdropState,
                 installedVersion = updateUiState.installedVersion,
                 onOpenSource = { uriHandler.openUri("https://github.com/Anto426-Project/uniapp") },
+                onOpenAboutUniApp = { navigator.navigate(AppRoute.AboutUniApp) },
                 onOpenPrivacy = { navigator.navigate(AppRoute.Privacy) },
                 onOpenTerms = { navigator.navigate(AppRoute.Terms) },
                 onOpenCookies = { navigator.navigate(AppRoute.Cookies) },
@@ -452,9 +457,17 @@ internal fun AppRouteContent(
                     backdropState = backdropState,
                     uiState = gradesUiState,
                     onTabSelected = gradesViewModel::selectTab,
+                    onToggleSimulationItem = gradesViewModel::toggleSimulationItem,
                     onSimulatedGradeChanged = gradesViewModel::updateSimulatedGrade,
+                    onSimulatedCfuChanged = gradesViewModel::updateSimulatedCfu,
+                    onAddCustomExam = gradesViewModel::addCustomExam,
+                    onRemoveCustomExam = gradesViewModel::removeCustomExam,
                     onSetAllGrades = gradesViewModel::setAllSimulatedGrades,
+                    onApplyCurrentAverage = gradesViewModel::applyCurrentAveragePreset,
                     onResetSimulation = gradesViewModel::resetSimulation,
+                    onTargetDegreeChanged = gradesViewModel::updateTargetDegree,
+                    onThesisPointsChanged = gradesViewModel::updateThesisPoints,
+                    onBonusPointsChanged = gradesViewModel::updateBonusPoints,
                 )
             }
         }
@@ -566,6 +579,11 @@ internal fun AppRouteContent(
                     TransportBookingViewModel(dataSource, toastSink)
                 }
             val bookingUiState by bookingViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(bookingUiState.bookedSuccessfully) {
+                if (bookingUiState.bookedSuccessfully) {
+                    navigator.goBack()
+                }
+            }
             FeatureStateContent(
                 bookingUiState.loadState,
                 bookingUiState.errorMessage,
@@ -577,7 +595,7 @@ internal fun AppRouteContent(
                     backdropState = backdropState,
                     uiState = bookingUiState,
                     onRouteSelected = bookingViewModel::selectRoute,
-                    onBook = { date -> bookingViewModel.book(date) },
+                    onBook = { dates, direction -> bookingViewModel.book(dates, direction) },
                 )
             }
         }
@@ -757,14 +775,18 @@ internal fun AppRouteContent(
         AppRoute.Attendance -> {
             val attendanceViewModel = viewModel(key = viewModelKey) { AttendanceViewModel(dataSource) }
             val attendanceUiState by attendanceViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                attendanceUiState.loadState,
-                attendanceUiState.errorMessage,
-                backdropState,
-                onRetry = { attendanceViewModel.refresh(force = true) },
-                emptyMessage = "Non risultano presenze registrate.",
-            ) { AttendanceScreen(backdropState, attendanceUiState) }
+            AttendanceScreen(
+                backdropState = backdropState,
+                uiState = attendanceUiState,
+                onRegisterAttendance = { code ->
+                    attendanceViewModel.registerAttendance(code)
+                },
+                onClearRegistrationStatus = {
+                    attendanceViewModel.clearRegistrationStatus()
+                },
+            )
         }
+        AppRoute.AboutUniApp -> AboutUniAppScreen(backdropState, UiInitialData.appInfoSections)
         AppRoute.Privacy -> PrivacyScreen(backdropState, UiInitialData.privacySections)
         AppRoute.Terms -> TermsScreen(backdropState, UiInitialData.termsSections)
         AppRoute.Cookies -> CookiesScreen(backdropState, UiInitialData.cookieSections)

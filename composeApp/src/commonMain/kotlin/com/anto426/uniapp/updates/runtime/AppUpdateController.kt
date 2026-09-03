@@ -5,6 +5,7 @@ import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
 import com.anto426.uniapp.updates.model.InstalledAppBuild
 import com.anto426.uniapp.updates.platform.PlatformUpdateLauncher
+import com.anto426.uniapp.updates.platform.PlatformUpdateLaunchResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,18 +55,48 @@ internal class AppUpdateController(
         }
     }
 
-    fun openUpdate(): Boolean {
+    suspend fun startUpdate(): Boolean {
         val current = mutableState.value
         val downloadUrl = current.downloadUrl
         if (downloadUrl == null) {
             mutableState.value = current.copy(message = "Link di aggiornamento non disponibile o non sicuro.")
             return false
         }
-        val opened = launcher.open(downloadUrl)
-        if (!opened) {
-            mutableState.value = current.copy(message = "Impossibile aprire il link di aggiornamento.")
+
+        mutableState.value = current.copy(
+            phase = AppUpdatePhase.Downloading,
+            message = null,
+        )
+        return when (
+            val result = launcher.start(
+                downloadUrl = downloadUrl,
+                expectedVersionCode = current.updateInfo?.latestVersionCode,
+            )
+        ) {
+            PlatformUpdateLaunchResult.Started -> {
+                mutableState.value = mutableState.value.copy(
+                    phase = AppUpdatePhase.Installing,
+                    message = "Installazione dell’aggiornamento in corso…",
+                )
+                true
+            }
+
+            PlatformUpdateLaunchResult.OpenedExternalStore -> {
+                mutableState.value = mutableState.value.copy(
+                    phase = AppUpdatePhase.Available,
+                    message = "Completa l’aggiornamento dall’App Store.",
+                )
+                true
+            }
+
+            is PlatformUpdateLaunchResult.Failed -> {
+                mutableState.value = mutableState.value.copy(
+                    phase = AppUpdatePhase.Available,
+                    message = result.message,
+                )
+                false
+            }
         }
-        return opened
     }
 
     private companion object {

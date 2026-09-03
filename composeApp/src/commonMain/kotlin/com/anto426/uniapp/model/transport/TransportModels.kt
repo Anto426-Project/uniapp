@@ -27,5 +27,6 @@ data class TransportReservation(
     val qrCodeData: String = "",
     val departureStop: String = "",
     val arrivalStop: String = "",
-    val busNumber: String = ""
+    val busNumber: String = "",
+    val ticketUrl: String = "",
 )

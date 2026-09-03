@@ -20,7 +20,7 @@ data class StudyPlanUiState(
     val errorMessage: String? = null,
 ) {
     val displayedYears: List<StudyYear>
-        get() = if (selectedYearIndex == 0) years else listOfNotNull(years.getOrNull(selectedYearIndex - 1))
+        get() = listOfNotNull(years.getOrNull(selectedYearIndex))
 }
 
 class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
@@ -34,8 +34,10 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
             mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
             try {
                 val years = dataSource.loadStudyPlan(force).toStudyYears()
+                val maxIndex = (years.size - 1).coerceAtLeast(0)
                 mutableUiState.value = mutableUiState.value.copy(
                     years = years,
+                    selectedYearIndex = mutableUiState.value.selectedYearIndex.coerceIn(0, maxIndex),
                     loadState = if (years.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 )
             } catch (error: CancellationException) {
@@ -50,8 +52,9 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
     }
 
     fun selectYear(index: Int) {
+        val maxIndex = (mutableUiState.value.years.size - 1).coerceAtLeast(0)
         mutableUiState.value = mutableUiState.value.copy(
-            selectedYearIndex = index.coerceIn(0, mutableUiState.value.years.size),
+            selectedYearIndex = index.coerceIn(0, maxIndex),
         )
     }
 }

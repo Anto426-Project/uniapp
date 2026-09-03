@@ -34,12 +34,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.buttons.LiquidButton
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.components.selection.LiquidSlider
 import com.anto426.liquidmonet.components.selection.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -146,7 +148,6 @@ fun ThemeScreen(
     var edgeSpecularGlow by remember { mutableStateOf(true) }
     var edgeGlowIntensity by remember { mutableFloatStateOf(0.75f) }
 
-    var interactiveGelatin by remember { mutableStateOf(true) }
     var hapticFeedbackLevel by remember { mutableIntStateOf(1) } // 0: Off, 1: Delicato, 2: Accentuato, 3: Dinamico
     var reducedMotion by remember { mutableStateOf(false) }
 
@@ -160,14 +161,14 @@ fun ThemeScreen(
         // 1. MODALITÀ TEMA & CONTRASTO (2 a 2)
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Aspetto e Modalità Tema",
+            title = stringResource(Res.string.ui_theme_mode_group),
             backdropState = backdropState,
         ) {
             val themeModes = listOf(
-                Triple("Sistema", "Segui dispositivo", LiquidIcons.Settings),
-                Triple("Chiaro", "Luminoso & fresco", LiquidIcons.Star),
-                Triple("Scuro", "Contrasto bilanciato", LiquidIcons.Time),
-                Triple("AMOLED", "Nero assoluto OLED", LiquidIcons.Lock),
+                Triple(stringResource(Res.string.ui_theme_mode_system), stringResource(Res.string.ui_theme_mode_system_sub), LiquidIcons.Settings),
+                Triple(stringResource(Res.string.ui_theme_mode_light), stringResource(Res.string.ui_theme_mode_light_sub), LiquidIcons.Star),
+                Triple(stringResource(Res.string.ui_theme_mode_dark), stringResource(Res.string.ui_theme_mode_dark_sub), LiquidIcons.Time),
+                Triple(stringResource(Res.string.ui_theme_mode_amoled), stringResource(Res.string.ui_theme_mode_amoled_sub), LiquidIcons.Lock),
             )
 
             Column(
@@ -201,8 +202,8 @@ fun ThemeScreen(
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
             LiquidPreferenceItem(
-                title = "Colori Dinamici (Material You)",
-                subtitle = "Sincronizza automaticamente con lo sfondo del sistema",
+                title = stringResource(Res.string.ui_theme_material_you_title),
+                subtitle = stringResource(Res.string.ui_theme_material_you_sub),
                 icon = LiquidIcons.Star,
                 backdropState = backdropState,
                 trailingContent = {
@@ -228,7 +229,7 @@ fun ThemeScreen(
         // ==========================================
         AnimatedVisibility(visible = !isMaterialYou) {
             LiquidPreferenceGroup(
-                title = "Tavolozza Colori & Monet Seed",
+                title = stringResource(Res.string.ui_theme_palette_group),
                 backdropState = backdropState,
             ) {
                 Column(
@@ -265,8 +266,8 @@ fun ThemeScreen(
                 LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
                 LiquidPreferenceItem(
-                    title = "Laboratorio Colori Personalizzati",
-                    subtitle = "Crea una combinazione cromatica su misura",
+                    title = stringResource(Res.string.ui_theme_palette_custom_lab),
+                    subtitle = stringResource(Res.string.ui_theme_palette_custom_lab_sub),
                     icon = LiquidIcons.Edit,
                     backdropState = backdropState,
                     onClick = { onThemeSelected?.invoke(3) },
@@ -280,7 +281,7 @@ fun ThemeScreen(
         // 3. MOTORE GRAFICO SFONDO LIQUID (2 a 2)
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Motore Grafico Sfondo Liquid",
+            title = stringResource(Res.string.ui_theme_engine_group),
             backdropState = backdropState,
         ) {
             val bgEffects = listOf(
@@ -335,7 +336,7 @@ fun ThemeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Intensità Bagliore Sfondo",
+                        text = stringResource(Res.string.ui_theme_glow_intensity),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurface,
@@ -365,7 +366,7 @@ fun ThemeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Velocità Dinamica Animazione",
+                        text = stringResource(Res.string.ui_theme_anim_speed),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurface,
@@ -396,7 +397,7 @@ fun ThemeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Saturazione Cromatica Sfondo",
+                        text = stringResource(Res.string.ui_theme_saturation),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurface,
@@ -419,8 +420,8 @@ fun ThemeScreen(
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
             LiquidPreferenceItem(
-                title = "Vignettatura Angolare Morbida",
-                subtitle = "Inscurisce i bordi per aumentare la leggibilità del testo",
+                title = stringResource(Res.string.ui_theme_vignette_title),
+                subtitle = stringResource(Res.string.ui_theme_vignette_sub),
                 icon = LiquidIcons.Home,
                 backdropState = backdropState,
                 trailingContent = {
@@ -432,8 +433,8 @@ fun ThemeScreen(
                 },
             )
             LiquidPreferenceItem(
-                title = "Griglia Prospettica Cyber Grid",
-                subtitle = "Linee geometriche sottili di profondità 3D",
+                title = stringResource(Res.string.ui_theme_cyber_grid_title),
+                subtitle = stringResource(Res.string.ui_theme_cyber_grid_sub),
                 icon = LiquidIcons.Settings,
                 backdropState = backdropState,
                 trailingContent = {
@@ -445,8 +446,8 @@ fun ThemeScreen(
                 },
             )
             LiquidPreferenceItem(
-                title = "Onde Armoniche Fluide",
-                subtitle = "Disegna linee d'onda sinusoidali in sottofondo",
+                title = stringResource(Res.string.ui_theme_waves_title),
+                subtitle = stringResource(Res.string.ui_theme_waves_sub),
                 icon = LiquidIcons.Time,
                 backdropState = backdropState,
                 trailingContent = {
@@ -458,8 +459,8 @@ fun ThemeScreen(
                 },
             )
             LiquidPreferenceItem(
-                title = "Grana Fotografica Analogica",
-                subtitle = "Aggiunge una texture filmica raffinata allo sfondo",
+                title = stringResource(Res.string.ui_theme_grain_title),
+                subtitle = stringResource(Res.string.ui_theme_grain_sub),
                 icon = LiquidIcons.Star,
                 backdropState = backdropState,
                 trailingContent = {
@@ -478,7 +479,7 @@ fun ThemeScreen(
         // 4. MATERIALE VETRO & TRASPARENZA (2 a 2)
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Materiale Vetro & Trasparenza",
+            title = stringResource(Res.string.ui_theme_glass_group),
             backdropState = backdropState,
         ) {
             val glassStyles = listOf(
@@ -525,7 +526,7 @@ fun ThemeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Opacità Superficie Vetro",
+                        text = stringResource(Res.string.ui_theme_glass_opacity),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurface,
@@ -552,7 +553,7 @@ fun ThemeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Sfocatura Sfondo (Backdrop Blur)",
+                        text = stringResource(Res.string.ui_theme_glass_blur),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurface,
@@ -579,7 +580,7 @@ fun ThemeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Bagliore Bordo Speculare",
+                        text = stringResource(Res.string.ui_theme_glass_glow),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colorScheme.onSurface,
@@ -602,8 +603,8 @@ fun ThemeScreen(
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
             LiquidPreferenceItem(
-                title = "Riflesso Bordo Speculare",
-                subtitle = "Evidenziazione luminescente dei bordi superiori delle card",
+                title = stringResource(Res.string.ui_theme_glass_specular_title),
+                subtitle = stringResource(Res.string.ui_theme_glass_specular_sub),
                 icon = LiquidIcons.Star,
                 backdropState = backdropState,
                 trailingContent = {
@@ -622,25 +623,9 @@ fun ThemeScreen(
         // 5. FISICA & FEEDBACK TATTILE (2 a 2)
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Fisica e Feedback Tattile",
+            title = stringResource(Res.string.ui_theme_haptics_group),
             backdropState = backdropState,
         ) {
-            LiquidPreferenceItem(
-                title = "Interattività Gelatina",
-                subtitle = "Risposta elastica e micro-deformazione tattile al tocco",
-                icon = LiquidIcons.Star,
-                backdropState = backdropState,
-                trailingContent = {
-                    LiquidSwitch(
-                        checked = interactiveGelatin,
-                        onCheckedChange = { interactiveGelatin = it },
-                        backdropState = backdropState,
-                    )
-                },
-            )
-
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
-
             val hapticOptions = listOf(
                 Triple("Disattivato", "Nessuna vibrazione", LiquidIcons.Lock),
                 Triple("Delicato", "Tocco morbido sottile", LiquidIcons.Star),
@@ -679,8 +664,8 @@ fun ThemeScreen(
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
             LiquidPreferenceItem(
-                title = "Riduci Movimento Globale",
-                subtitle = "Minimizza le animazioni continue per risparmio energetico",
+                title = stringResource(Res.string.ui_theme_reduced_motion_title),
+                subtitle = stringResource(Res.string.ui_theme_reduced_motion_sub),
                 icon = LiquidIcons.Refresh,
                 backdropState = backdropState,
                 trailingContent = {
@@ -703,7 +688,7 @@ fun ThemeScreen(
         // 6. GEOMETRIA, TIPOGRAFIA E LAYOUT (2 a 2)
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Geometria e Tipografia",
+            title = stringResource(Res.string.ui_theme_geometry_group),
             backdropState = backdropState,
         ) {
             val cornerModes = listOf(
@@ -785,7 +770,7 @@ fun ThemeScreen(
         // 7. PARAMETRI SISTEMA & RENDERING GPU (2 a 2)
         // ==========================================
         LiquidPreferenceGroup(
-            title = "Parametri Sistema e Rendering GPU",
+            title = stringResource(Res.string.ui_theme_rendering_group),
             backdropState = backdropState,
         ) {
             val perfModes = listOf(
@@ -826,8 +811,8 @@ fun ThemeScreen(
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
             LiquidPreferenceItem(
-                title = "Pausa Animazioni a Schermo Spento",
-                subtitle = "Arresta l'engine grafico a schermo inattivo per preservare la batteria",
+                title = stringResource(Res.string.ui_theme_pause_sleep_title),
+                subtitle = stringResource(Res.string.ui_theme_pause_sleep_sub),
                 icon = LiquidIcons.Lock,
                 backdropState = backdropState,
                 trailingContent = {
@@ -846,7 +831,7 @@ fun ThemeScreen(
         // 8. AZIONI RAPIDE & RESET
         // ==========================================
         LiquidButton(
-            text = "Ripristina Valori Predefiniti Liquid Monet",
+            text = stringResource(Res.string.ui_theme_reset_button),
             onClick = {
                 selectedThemeMode = 0
                 selectedPaletteIndex = 0
@@ -863,7 +848,6 @@ fun ThemeScreen(
                 blurRadius = 24f
                 edgeSpecularGlow = true
                 edgeGlowIntensity = 0.75f
-                interactiveGelatin = true
                 hapticFeedbackLevel = 1
                 reducedMotion = false
                 cornerRadiusType = 1
@@ -879,8 +863,6 @@ fun ThemeScreen(
             variant = LiquidButtonVariant.Secondary,
             backdropState = backdropState,
         )
-
-        Spacer(Modifier.height(80.dp))
     }
 }
 
@@ -945,13 +927,16 @@ private fun OptionChoiceTile(
                         }
                     }
                 } else if (leadingIcon != null) {
-                    LiquidIconBox(
-                        icon = leadingIcon,
-                        size = 32.dp,
-                        iconSize = 16.dp,
-                        containerColor = if (isSelected) colorScheme.primary.copy(alpha = 0.2f) else colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                        iconTint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant,
-                        shape = RoundedCornerShape(8.dp),
+                    Icon(
+                        imageVector = leadingIcon,
+                        contentDescription = null,
+                        tint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant,
+                        modifier = Modifier.liquidIconContainer(
+                            containerSize = 32.dp,
+                            iconSize = 16.dp,
+                            containerColor = if (isSelected) colorScheme.primary.copy(alpha = 0.2f) else colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                            shape = RoundedCornerShape(8.dp),
+                        ),
                     )
                 }
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.components.display.LiquidIconBox
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.AcademicSectionUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
@@ -44,7 +44,6 @@ fun AcademicSectionScreen(
                 onClick = { onItemClick(item) },
             )
         }
-        item(key = "academic-section-bottom-space") { Spacer(Modifier.height(80.dp)) }
     }
 }
 
@@ -62,7 +61,6 @@ fun AcademicContentCard(
         shape = RoundedCornerShape(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
-        interactiveGelatin = true,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -73,13 +71,16 @@ fun AcademicContentCard(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                LiquidIconBox(
-                    icon = LiquidIcons.Assignment,
-                    size = 42.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    iconTint = colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp),
+                Icon(
+                    imageVector = LiquidIcons.Assignment,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 42.dp,
+                        iconSize = 20.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
                 )
 
                 Spacer(modifier = Modifier.width(14.dp))

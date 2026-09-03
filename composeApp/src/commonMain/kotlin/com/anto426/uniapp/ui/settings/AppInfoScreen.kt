@@ -1,7 +1,6 @@
 package com.anto426.uniapp.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
@@ -23,15 +24,11 @@ import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
-import com.anto426.liquidmonet.glass.LiquidGlassRole
-import com.anto426.liquidmonet.glass.liquidGlass
+import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.ui.components.banners.UniAppUpdateBanner
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.backdrop.Backdrop
-import com.kyant.shapes.Capsule
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -40,10 +37,11 @@ fun AppInfoScreen(
     backdropState: Backdrop,
     installedVersion: String,
     onOpenSource: () -> Unit,
+    onOpenAboutUniApp: () -> Unit = {},
     onOpenPrivacy: () -> Unit = {},
     onOpenTerms: () -> Unit = {},
     onOpenCookies: () -> Unit = {},
-    onOpenAuthor: () -> Unit = {}
+    onOpenAuthor: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -54,23 +52,62 @@ fun AppInfoScreen(
             version = installedVersion.ifBlank { "—" },
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
-            statusText = stringResource(Res.string.ui_updated_version)
+            statusText = stringResource(Res.string.ui_updated_version),
         )
 
         Spacer(Modifier.height(8.dp))
 
-        // 2. Project Mission Card
-        LiquidPreferenceGroup(
-            title = stringResource(Res.string.ui_project_summary_title),
-            backdropState = backdropState
+        // 2. Clickable Project Summary Hero Card (Navigates to Full Info)
+        LiquidCard(
+            backdropState = backdropState,
+            shape = RoundedCornerShape(24.dp),
+            contentPadding = 18.dp,
+            onClick = onOpenAboutUniApp,
         ) {
-            Text(
-                text = stringResource(Res.string.ui_project_summary_text),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colorScheme.onSurface.copy(alpha = 0.85f),
-                modifier = Modifier.padding(16.dp),
-                lineHeight = 22.sp
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Icon(
+                    imageVector = LiquidIcons.Info,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 44.dp,
+                        iconSize = 22.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(14.dp),
+                    ),
+                )
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_app_info_about_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(Res.string.ui_app_info_about_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 17.sp,
+                    )
+                }
+
+                Icon(
+                    imageVector = LiquidIcons.ArrowForward,
+                    contentDescription = stringResource(Res.string.ui_read_details),
+                    tint = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
 
         Spacer(Modifier.height(8.dp))
@@ -78,14 +115,14 @@ fun AppInfoScreen(
         // 3. Source Code & Author Section
         LiquidPreferenceGroup(
             title = stringResource(Res.string.ui_app_info_group),
-            backdropState = backdropState
+            backdropState = backdropState,
         ) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_source),
                 subtitle = stringResource(Res.string.ui_source_subtitle),
                 icon = LiquidIcons.Share,
                 backdropState = backdropState,
-                onClick = onOpenSource
+                onClick = onOpenSource,
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
             LiquidPreferenceItem(
@@ -93,21 +130,21 @@ fun AppInfoScreen(
                 subtitle = stringResource(Res.string.ui_author_subtitle),
                 icon = LiquidIcons.AccountCircle,
                 backdropState = backdropState,
-                onClick = onOpenAuthor
+                onClick = onOpenAuthor,
             )
         }
 
-        // 4. Legal & Policies Directory
+        // 4. Policy e Note Legali
         LiquidPreferenceGroup(
             title = stringResource(Res.string.ui_legal_notes),
-            backdropState = backdropState
+            backdropState = backdropState,
         ) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_privacy),
                 subtitle = stringResource(Res.string.ui_app_info_gdpr),
                 icon = LiquidIcons.Lock,
                 backdropState = backdropState,
-                onClick = onOpenPrivacy
+                onClick = onOpenPrivacy,
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
             LiquidPreferenceItem(
@@ -115,15 +152,7 @@ fun AppInfoScreen(
                 subtitle = stringResource(Res.string.ui_app_info_academic_use),
                 icon = LiquidIcons.Info,
                 backdropState = backdropState,
-                onClick = onOpenTerms
-            )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_cookies),
-                subtitle = stringResource(Res.string.ui_app_info_tech_cookies),
-                icon = LiquidIcons.Search,
-                backdropState = backdropState,
-                onClick = onOpenCookies
+                onClick = onOpenTerms,
             )
         }
 
@@ -133,13 +162,13 @@ fun AppInfoScreen(
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             LiquidBadge(
                 text = stringResource(Res.string.ui_app_credit),
                 containerColor = colorScheme.primary.copy(alpha = 0.12f),
                 contentColor = colorScheme.primary,
-                backdropState = backdropState
+                backdropState = backdropState,
             )
 
             Text(
@@ -147,7 +176,7 @@ fun AppInfoScreen(
                 style = MaterialTheme.typography.labelSmall,
                 color = colorScheme.onSurface.copy(alpha = 0.5f),
                 fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.sp
+                letterSpacing = 1.sp,
             )
         }
     }

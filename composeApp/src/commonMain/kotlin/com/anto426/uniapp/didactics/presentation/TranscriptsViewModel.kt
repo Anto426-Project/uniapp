@@ -14,13 +14,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class TranscriptsUiState(
-    val selectedYear: Int = 0,
+    val selectedYear: Int = 1,
     val examsByYear: Map<Int, List<ExamRecord>> = emptyMap(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
 ) {
+    val availableYears: List<Int>
+        get() {
+            val maxYear = maxOf(3, examsByYear.keys.maxOrNull() ?: 3)
+            return (1..maxYear).toList()
+        }
+
     val displayedYears: List<Int>
-        get() = if (selectedYear == 0) examsByYear.keys.sorted() else listOf(selectedYear)
+        get() = listOf(selectedYear)
 }
 
 class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
@@ -34,8 +40,13 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
             mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
             try {
                 val exams = dataSource.loadCareer(force).toExamRecords()
+                val examsByYear = exams.groupBy { it.year }
+                val maxYear = maxOf(3, examsByYear.keys.maxOrNull() ?: 3)
+                val currentYear = mutableUiState.value.selectedYear
+                val selectedYear = if (currentYear in 1..maxYear) currentYear else 1
                 mutableUiState.value = mutableUiState.value.copy(
-                    examsByYear = exams.groupBy { it.year },
+                    examsByYear = examsByYear,
+                    selectedYear = selectedYear,
                     loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 )
             } catch (error: CancellationException) {
@@ -50,6 +61,9 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
     }
 
     fun selectYear(year: Int) {
-        mutableUiState.value = mutableUiState.value.copy(selectedYear = year.coerceIn(0, 3))
+        val available = mutableUiState.value.availableYears
+        mutableUiState.value = mutableUiState.value.copy(
+            selectedYear = if (year in available) year else 1,
+        )
     }
 }

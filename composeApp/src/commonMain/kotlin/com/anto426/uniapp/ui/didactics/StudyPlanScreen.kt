@@ -27,18 +27,18 @@ fun StudyPlanScreen(
     onYearSelected: (Int) -> Unit,
     onCourseClick: (StudyCourse) -> Unit = {}
 ) {
-    val tabs =
-        listOf(LiquidNavigationItem(label = stringResource(Res.string.ui_home_news_all))) +
-            uiState.years.map { year -> LiquidNavigationItem(label = year.yearName) }
+    val tabs = uiState.years.map { year -> LiquidNavigationItem(label = year.yearName) }
 
     UniScreenColumn {
         // 1. Year Tab Selector
-        LiquidTabBar(
-            items = tabs,
-            selectedIndex = uiState.selectedYearIndex.coerceIn(0, tabs.lastIndex.coerceAtLeast(0)),
-            onTabSelected = onYearSelected,
-            backdropState = backdropState,
-        )
+        if (tabs.isNotEmpty()) {
+            LiquidTabBar(
+                items = tabs,
+                selectedIndex = uiState.selectedYearIndex.coerceIn(0, tabs.lastIndex),
+                onTabSelected = onYearSelected,
+                backdropState = backdropState,
+            )
+        }
 
         // 2. Courses Grouped by Year
         uiState.displayedYears.forEach { yearGroup ->

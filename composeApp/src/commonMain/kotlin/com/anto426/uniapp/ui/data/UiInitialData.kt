@@ -9,100 +9,161 @@ import com.anto426.uniapp.model.services.ServiceData
 import com.anto426.uniapp.model.settings.LanguageInfo
 import com.anto426.uniapp.model.updates.ChangelogItemData
 import com.anto426.uniapp.model.updates.ChangelogVersionData
+import uniapp.composeapp.generated.resources.*
 
 /**
  * Static configuration metadata, legal disclosures, service directory links, and changelogs.
  */
 object UiInitialData {
     val studentServices = listOf(
-        ServiceData("Trasporti", "Navette e Orari", LiquidIcons.Time, id = "transport"),
-        ServiceData("Tasse", "Pagamenti e Scadenze", LiquidIcons.CreditCard, id = "taxes"),
-        ServiceData("Rubrica", "Docenti e Uffici", LiquidIcons.AccountCircle, id = "contacts"),
-        ServiceData("Segreteria", "Ticket e Supporto", LiquidIcons.Phone, badgeCount = 1, id = "student-office")
+        ServiceData(titleRes = Res.string.service_student_transport_title, subtitleRes = Res.string.service_student_transport_sub, icon = LiquidIcons.Time, id = "transport"),
+        ServiceData(titleRes = Res.string.service_student_taxes_title, subtitleRes = Res.string.service_student_taxes_sub, icon = LiquidIcons.CreditCard, id = "taxes"),
+        ServiceData(titleRes = Res.string.service_student_contacts_title, subtitleRes = Res.string.service_student_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
+        ServiceData(titleRes = Res.string.service_student_office_title, subtitleRes = Res.string.service_student_office_sub, icon = LiquidIcons.Phone, badgeCount = 1, id = "student-office"),
     )
 
     val universityPortals = listOf(
-        ServiceData("Esse3", "Esami e Carriera", LiquidIcons.Badge, id = "esse3"),
-        ServiceData("Moodle", "Corsi e Materiale", LiquidIcons.MenuBook, id = "moodle"),
-        ServiceData("Portale Web", "Sito Istituzionale", LiquidIcons.Home, id = "university-web"),
-        ServiceData("Email", "Outlook Ateneo", LiquidIcons.Notifications, badgeCount = 3, id = "email")
+        ServiceData(titleRes = Res.string.portal_student_esse3_title, subtitleRes = Res.string.portal_student_esse3_sub, icon = LiquidIcons.Badge, id = "esse3"),
+        ServiceData(titleRes = Res.string.portal_student_moodle_title, subtitleRes = Res.string.portal_student_moodle_sub, icon = LiquidIcons.MenuBook, id = "moodle"),
+        ServiceData(titleRes = Res.string.portal_student_web_title, subtitleRes = Res.string.portal_student_web_sub, icon = LiquidIcons.Home, id = "university-web"),
+        ServiceData(titleRes = Res.string.portal_student_email_title, subtitleRes = Res.string.portal_student_email_sub, icon = LiquidIcons.Notifications, badgeCount = 3, id = "email"),
     )
 
     val professorServices = listOf(
-        ServiceData("Rubrica", "Contatti e uffici", LiquidIcons.AccountCircle, id = "contacts"),
-        ServiceData("Docenti", "Profili e contatti accademici", LiquidIcons.AccountCircle, id = "professors"),
+        ServiceData(titleRes = Res.string.service_prof_contacts_title, subtitleRes = Res.string.service_prof_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
+        ServiceData(titleRes = Res.string.service_prof_teachers_title, subtitleRes = Res.string.service_prof_teachers_sub, icon = LiquidIcons.AccountCircle, id = "professors"),
     )
 
     val professorPortals = listOf(
-        ServiceData("Esse3", "Portale docenti", LiquidIcons.MenuBook, id = "esse3"),
-        ServiceData("Moodle", "Corsi e materiale", LiquidIcons.MenuBook, id = "moodle"),
-        ServiceData("Portale Web", "Sito istituzionale", LiquidIcons.Home, id = "university-web"),
-        ServiceData("Biblioteca", "Cataloghi e servizi bibliotecari", LiquidIcons.MenuBook, id = "library"),
+        ServiceData(titleRes = Res.string.portal_prof_esse3_title, subtitleRes = Res.string.portal_prof_esse3_sub, icon = LiquidIcons.MenuBook, id = "esse3"),
+        ServiceData(titleRes = Res.string.portal_prof_moodle_title, subtitleRes = Res.string.portal_prof_moodle_sub, icon = LiquidIcons.MenuBook, id = "moodle"),
+        ServiceData(titleRes = Res.string.portal_prof_web_title, subtitleRes = Res.string.portal_prof_web_sub, icon = LiquidIcons.Home, id = "university-web"),
+        ServiceData(titleRes = Res.string.portal_prof_library_title, subtitleRes = Res.string.portal_prof_library_sub, icon = LiquidIcons.MenuBook, id = "library"),
     )
 
     val allQuickActions = listOf(
-        QuickActionItem("libretto", "Libretto", "Voti e CFU", LiquidIcons.MenuBook),
-        QuickActionItem("statistiche", "Statistiche", "Grafici e andamento", LiquidIcons.Analytics),
-        QuickActionItem("media", "Media", "Simulazione", LiquidIcons.Analytics),
-        QuickActionItem("appelli", "Appelli", "Prenotazioni", LiquidIcons.Calendar),
-        QuickActionItem("didattica", "Didattica", "Corsi e orari", LiquidIcons.Assignment),
-        QuickActionItem("trasporti", "Trasporti", "Navette e orari", LiquidIcons.Time),
-        QuickActionItem("tasse", "Tasse", "Bollettini", LiquidIcons.CreditCard),
-        QuickActionItem("rubrica", "Rubrica", "Docenti", LiquidIcons.AccountCircle),
-        QuickActionItem("notifiche", "Avvisi", "Comunicazioni", LiquidIcons.Notifications),
-        QuickActionItem("condivisione", "Orario", "Calendario lezioni", LiquidIcons.Share),
-        QuickActionItem("sicurezza", "Accessi", "Dispositivi", LiquidIcons.Lock),
-        QuickActionItem("impostazioni", "Preferenze", "Personalizzazione", LiquidIcons.Settings)
+        QuickActionItem("libretto", Res.string.quick_action_libretto_title, Res.string.quick_action_libretto_sub, LiquidIcons.MenuBook),
+        QuickActionItem("statistiche", Res.string.quick_action_statistiche_title, Res.string.quick_action_statistiche_sub, LiquidIcons.Analytics),
+        QuickActionItem("media", Res.string.quick_action_media_title, Res.string.quick_action_media_sub, LiquidIcons.Analytics),
+        QuickActionItem("appelli", Res.string.quick_action_appelli_title, Res.string.quick_action_appelli_sub, LiquidIcons.Calendar),
+        QuickActionItem("didattica", Res.string.quick_action_didattica_title, Res.string.quick_action_didattica_sub, LiquidIcons.Assignment),
+        QuickActionItem("trasporti", Res.string.quick_action_trasporti_title, Res.string.quick_action_trasporti_sub, LiquidIcons.Time),
+        QuickActionItem("tasse", Res.string.quick_action_tasse_title, Res.string.quick_action_tasse_sub, LiquidIcons.CreditCard),
+        QuickActionItem("rubrica", Res.string.quick_action_rubrica_title, Res.string.quick_action_rubrica_sub, LiquidIcons.AccountCircle),
+        QuickActionItem("notifiche", Res.string.quick_action_notifiche_title, Res.string.quick_action_notifiche_sub, LiquidIcons.Notifications),
+        QuickActionItem("condivisione", Res.string.quick_action_condivisione_title, Res.string.quick_action_condivisione_sub, LiquidIcons.Share),
+        QuickActionItem("sicurezza", Res.string.quick_action_sicurezza_title, Res.string.quick_action_sicurezza_sub, LiquidIcons.Lock),
+        QuickActionItem("impostazioni", Res.string.quick_action_impostazioni_title, Res.string.quick_action_impostazioni_sub, LiquidIcons.Settings),
     )
 
     val professorQuickActions = listOf(
-        QuickActionItem("insegnamenti", "Insegnamenti", "Corsi assegnati", LiquidIcons.MenuBook),
-        QuickActionItem("appelli", "Appelli", "Prenotazioni e commissioni", LiquidIcons.Calendar),
-        QuickActionItem("tesi", "Tesi", "Tesisti e discussioni", LiquidIcons.Assignment),
-        QuickActionItem("verbali", "Verbali", "Esiti e verbalizzazioni", LiquidIcons.Edit),
-        QuickActionItem("rubrica", "Rubrica", "Docenti e uffici", LiquidIcons.AccountCircle),
-        QuickActionItem("notifiche", "Notizie", "Comunicazioni di Ateneo", LiquidIcons.Notifications),
+        QuickActionItem("insegnamenti", Res.string.quick_action_prof_insegnamenti_title, Res.string.quick_action_prof_insegnamenti_sub, LiquidIcons.MenuBook),
+        QuickActionItem("appelli", Res.string.quick_action_prof_appelli_title, Res.string.quick_action_prof_appelli_sub, LiquidIcons.Calendar),
+        QuickActionItem("tesi", Res.string.quick_action_prof_tesi_title, Res.string.quick_action_prof_tesi_sub, LiquidIcons.Assignment),
+        QuickActionItem("verbali", Res.string.quick_action_prof_verbali_title, Res.string.quick_action_prof_verbali_sub, LiquidIcons.Edit),
+        QuickActionItem("rubrica", Res.string.quick_action_prof_rubrica_title, Res.string.quick_action_prof_rubrica_sub, LiquidIcons.AccountCircle),
+        QuickActionItem("notifiche", Res.string.quick_action_prof_notifiche_title, Res.string.quick_action_prof_notifiche_sub, LiquidIcons.Notifications),
     )
 
     val changelog = listOf(
-        ChangelogVersionData("v1.0.0", "26 Agosto 2026", listOf(
-            ChangelogItemData("NEW", Color(0xFF4A90D9), "Nuova Esperienza UniApp", "Design system Liquid Monet e navigazione accademica reattiva."),
-            ChangelogItemData("NEW", Color(0xFF4A90D9), "Career Hub", "Dashboard unificata per libretto, esami e simulazione proiettiva."),
-            ChangelogItemData("FIXED", Color(0xFF00C853), "Sicurezza Sessione", "Crittografia locale con hardware keystore e gestione dispositivi connessi.")
+        ChangelogVersionData("v1.0.0", Res.string.changelog_v1_0_0_date, listOf(
+            ChangelogItemData("NEW", Color(0xFF4A90D9), Res.string.changelog_v1_0_0_item_1_title, Res.string.changelog_v1_0_0_item_1_desc),
+            ChangelogItemData("NEW", Color(0xFF4A90D9), Res.string.changelog_v1_0_0_item_2_title, Res.string.changelog_v1_0_0_item_2_desc),
+            ChangelogItemData("FIXED", Color(0xFF00C853), Res.string.changelog_v1_0_0_item_3_title, Res.string.changelog_v1_0_0_item_3_desc),
         )),
-        ChangelogVersionData("v0.9.5", "15 Agosto 2026", listOf(
-            ChangelogItemData("IMPROVED", Color(0xFFFFAB00), "Ottimizzazione Grafica", "Fluidità del rendering e ridotto consumo energetico."),
-            ChangelogItemData("FIXED", Color(0xFF00C853), "Notifiche", "Sincronizzazione degli avvisi didattici in tempo reale.")
-        ))
+        ChangelogVersionData("v0.9.5", Res.string.changelog_v0_9_5_date, listOf(
+            ChangelogItemData("IMPROVED", Color(0xFFFFAB00), Res.string.changelog_v0_9_5_item_1_title, Res.string.changelog_v0_9_5_item_1_desc),
+            ChangelogItemData("FIXED", Color(0xFF00C853), Res.string.changelog_v0_9_5_item_2_title, Res.string.changelog_v0_9_5_item_2_desc),
+        )),
+    )
+
+    val appInfoSections = listOf(
+        LegalSectionData(Res.string.app_info_sec_1_title, Res.string.app_info_sec_1_content),
+        LegalSectionData(Res.string.app_info_sec_2_title, Res.string.app_info_sec_2_content),
+        LegalSectionData(Res.string.app_info_sec_3_title, Res.string.app_info_sec_3_content),
+        LegalSectionData(Res.string.app_info_sec_4_title, Res.string.app_info_sec_4_content),
+        LegalSectionData(Res.string.app_info_sec_5_title, Res.string.app_info_sec_5_content),
+        LegalSectionData(Res.string.app_info_sec_6_title, Res.string.app_info_sec_6_content),
+        LegalSectionData(Res.string.app_info_sec_7_title, Res.string.app_info_sec_7_content),
+        LegalSectionData(Res.string.app_info_sec_8_title, Res.string.app_info_sec_8_content),
+        LegalSectionData(Res.string.app_info_sec_9_title, Res.string.app_info_sec_9_content),
+        LegalSectionData(Res.string.app_info_sec_10_title, Res.string.app_info_sec_10_content),
+        LegalSectionData(Res.string.app_info_sec_11_title, Res.string.app_info_sec_11_content),
+        LegalSectionData(Res.string.app_info_sec_12_title, Res.string.app_info_sec_12_content),
+        LegalSectionData(Res.string.app_info_sec_13_title, Res.string.app_info_sec_13_content),
+        LegalSectionData(Res.string.app_info_sec_14_title, Res.string.app_info_sec_14_content),
+        LegalSectionData(Res.string.app_info_sec_15_title, Res.string.app_info_sec_15_content),
+        LegalSectionData(Res.string.app_info_sec_16_title, Res.string.app_info_sec_16_content),
+        LegalSectionData(Res.string.app_info_sec_17_title, Res.string.app_info_sec_17_content),
+        LegalSectionData(Res.string.app_info_sec_18_title, Res.string.app_info_sec_18_content),
     )
 
     val privacySections = listOf(
-        LegalSectionData("Raccolta Dati", "UniApp non raccoglie né trasmette dati personali a server di terze parti. Le credenziali sono memorizzate esclusivamente sul dispositivo."),
-        LegalSectionData("Sicurezza", "Utilizziamo le best practice di sicurezza Android per proteggere i tuoi dati. L'accesso biometrico è opzionale."),
-        LegalSectionData("Servizi Esterni", "L'app si connette ai portali ufficiali dell'Università per recuperare le informazioni accademiche.")
+        LegalSectionData(Res.string.privacy_sec_1_title, Res.string.privacy_sec_1_content),
+        LegalSectionData(Res.string.privacy_sec_2_title, Res.string.privacy_sec_2_content),
+        LegalSectionData(Res.string.privacy_sec_3_title, Res.string.privacy_sec_3_content),
+        LegalSectionData(Res.string.privacy_sec_4_title, Res.string.privacy_sec_4_content),
+        LegalSectionData(Res.string.privacy_sec_5_title, Res.string.privacy_sec_5_content),
+        LegalSectionData(Res.string.privacy_sec_6_title, Res.string.privacy_sec_6_content),
+        LegalSectionData(Res.string.privacy_sec_7_title, Res.string.privacy_sec_7_content),
+        LegalSectionData(Res.string.privacy_sec_8_title, Res.string.privacy_sec_8_content),
+        LegalSectionData(Res.string.privacy_sec_9_title, Res.string.privacy_sec_9_content),
+        LegalSectionData(Res.string.privacy_sec_10_title, Res.string.privacy_sec_10_content),
+        LegalSectionData(Res.string.privacy_sec_11_title, Res.string.privacy_sec_11_content),
+        LegalSectionData(Res.string.privacy_sec_12_title, Res.string.privacy_sec_12_content),
+        LegalSectionData(Res.string.privacy_sec_13_title, Res.string.privacy_sec_13_content),
+        LegalSectionData(Res.string.privacy_sec_14_title, Res.string.privacy_sec_14_content),
+        LegalSectionData(Res.string.privacy_sec_15_title, Res.string.privacy_sec_15_content),
+        LegalSectionData(Res.string.privacy_sec_16_title, Res.string.privacy_sec_16_content),
+        LegalSectionData(Res.string.privacy_sec_17_title, Res.string.privacy_sec_17_content),
+        LegalSectionData(Res.string.privacy_sec_18_title, Res.string.privacy_sec_18_content),
+        LegalSectionData(Res.string.privacy_sec_19_title, Res.string.privacy_sec_19_content),
+        LegalSectionData(Res.string.privacy_sec_20_title, Res.string.privacy_sec_20_content),
+        LegalSectionData(Res.string.privacy_sec_21_title, Res.string.privacy_sec_21_content),
+        LegalSectionData(Res.string.privacy_sec_22_title, Res.string.privacy_sec_22_content),
     )
 
     val termsSections = listOf(
-        LegalSectionData("Limitazione di Responsabilità", "UniApp è un client indipendente e non è affiliato ufficialmente all'Ateneo. Non siamo responsabili per inesattezze nei dati forniti dai portali esterni."),
-        LegalSectionData("Uso Consentito", "L'app deve essere utilizzata esclusivamente per scopi personali e accademici. È vietato ogni tentativo di reverse engineering."),
-        LegalSectionData("Modifiche ai Termini", "Ci riserviamo il diritto di modificare questi termini in qualsiasi momento per riflettere cambiamenti nel servizio o nella legge.")
+        LegalSectionData(Res.string.terms_sec_1_title, Res.string.terms_sec_1_content),
+        LegalSectionData(Res.string.terms_sec_2_title, Res.string.terms_sec_2_content),
+        LegalSectionData(Res.string.terms_sec_3_title, Res.string.terms_sec_3_content),
+        LegalSectionData(Res.string.terms_sec_4_title, Res.string.terms_sec_4_content),
+        LegalSectionData(Res.string.terms_sec_5_title, Res.string.terms_sec_5_content),
+        LegalSectionData(Res.string.terms_sec_6_title, Res.string.terms_sec_6_content),
+        LegalSectionData(Res.string.terms_sec_7_title, Res.string.terms_sec_7_content),
+        LegalSectionData(Res.string.terms_sec_8_title, Res.string.terms_sec_8_content),
+        LegalSectionData(Res.string.terms_sec_9_title, Res.string.terms_sec_9_content),
+        LegalSectionData(Res.string.terms_sec_10_title, Res.string.terms_sec_10_content),
+        LegalSectionData(Res.string.terms_sec_11_title, Res.string.terms_sec_11_content),
+        LegalSectionData(Res.string.terms_sec_12_title, Res.string.terms_sec_12_content),
+        LegalSectionData(Res.string.terms_sec_13_title, Res.string.terms_sec_13_content),
+        LegalSectionData(Res.string.terms_sec_14_title, Res.string.terms_sec_14_content),
+        LegalSectionData(Res.string.terms_sec_15_title, Res.string.terms_sec_15_content),
+        LegalSectionData(Res.string.terms_sec_16_title, Res.string.terms_sec_16_content),
+        LegalSectionData(Res.string.terms_sec_17_title, Res.string.terms_sec_17_content),
+        LegalSectionData(Res.string.terms_sec_18_title, Res.string.terms_sec_18_content),
+        LegalSectionData(Res.string.terms_sec_19_title, Res.string.terms_sec_19_content),
+        LegalSectionData(Res.string.terms_sec_20_title, Res.string.terms_sec_20_content),
+        LegalSectionData(Res.string.terms_sec_21_title, Res.string.terms_sec_21_content),
+        LegalSectionData(Res.string.terms_sec_22_title, Res.string.terms_sec_22_content),
+        LegalSectionData(Res.string.terms_sec_23_title, Res.string.terms_sec_23_content),
     )
 
     val cookieSections = listOf(
-        LegalSectionData("Cosa sono i cookie", "I cookie sono piccoli file di testo utilizzati per memorizzare informazioni sul dispositivo."),
-        LegalSectionData("Cookie tecnici", "Utilizziamo esclusivamente cookie tecnici necessari al funzionamento dell'app e alla gestione della sessione."),
-        LegalSectionData("Gestione", "Puoi cancellare i dati locali dell'app in qualsiasi momento dalle impostazioni di Android.")
+        LegalSectionData(Res.string.cookie_sec_1_title, Res.string.cookie_sec_1_content),
+        LegalSectionData(Res.string.cookie_sec_2_title, Res.string.cookie_sec_2_content),
+        LegalSectionData(Res.string.cookie_sec_3_title, Res.string.cookie_sec_3_content),
     )
 
     val languages = listOf(
         LanguageInfo("Italiano", "Italiano (Predefinito)", "it"),
-        LanguageInfo("Inglese", "English (UK)", "en")
+        LanguageInfo("Inglese", "English (UK)", "en"),
     )
 
     val palettes = listOf(
         LiquidPaletteOption("Sapphire", Color(0xFF4A90D9)),
         LiquidPaletteOption("Emerald", Color(0xFF2ECC71)),
         LiquidPaletteOption("Sunset", Color(0xFFE67E22)),
-        LiquidPaletteOption("Violet", Color(0xFF9B59B6))
+        LiquidPaletteOption("Violet", Color(0xFF9B59B6)),
     )
 }
