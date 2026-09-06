@@ -1221,7 +1221,7 @@ section {
 .download-rows-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 4px;
 }
 
 .abi-download-row {
@@ -1229,23 +1229,24 @@ section {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 18px 24px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-fast);
+  padding: 16px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.abi-download-row:last-child {
+  border-bottom: none;
 }
 
 .abi-download-row.recommended {
-  border-color: var(--theme-glow-1);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  box-shadow: 0 4px 20px -8px var(--theme-glow-1);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .abi-download-row:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--glass-border-hover);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .abi-row-left {
@@ -1581,10 +1582,8 @@ section {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--card-border);
-  padding: 28px;
-  border-radius: var(--card-radius);
+  padding: 12px 32px 12px 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sec-shield {
@@ -2022,6 +2021,14 @@ section {
 
   .security-glass-box {
     grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 28px 24px;
+  }
+
+  .sec-left-col {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0 0 24px 0;
   }
 }
 
