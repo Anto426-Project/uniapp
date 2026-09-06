@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import GlassSurface from './GlassSurface';
 
 export const Architecture: React.FC = () => {
   return (
@@ -17,15 +16,7 @@ export const Architecture: React.FC = () => {
 
         <div className="arch-cards-grid">
           {/* 1. Liquid-Monet SDK */}
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={24}
-            className="glass-card as-flex-col"
-            distortionScale={-140}
-            backgroundOpacity={0.12}
-            saturation={1.3}
-          >
+          <div className="glass-card">
             <div className="card-icon-bubble">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
@@ -45,18 +36,10 @@ export const Architecture: React.FC = () => {
               <span className="arch-tag">Palette Dinamiche</span>
               <span className="arch-tag">Compose Multiplatform</span>
             </div>
-          </GlassSurface>
+          </div>
 
           {/* 2. Sicurezza Zero-Trust e Keystore Hardware */}
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={24}
-            className="glass-card as-flex-col"
-            distortionScale={-140}
-            backgroundOpacity={0.12}
-            saturation={1.3}
-          >
+          <div className="glass-card">
             <div className="card-icon-bubble">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -73,7 +56,7 @@ export const Architecture: React.FC = () => {
               <span className="arch-tag">Zero Proxy Server</span>
               <span className="arch-tag">Zero Testo in Chiaro</span>
             </div>
-          </GlassSurface>
+          </div>
         </div>
       </div>
     </section>

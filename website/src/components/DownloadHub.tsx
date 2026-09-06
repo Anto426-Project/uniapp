@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { UpdateManifest, ReleaseChannelData } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
-import GlassSurface from './GlassSurface';
 
 interface DownloadHubProps {
   manifest: UpdateManifest;
@@ -166,16 +165,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
         </div>
 
         {/* Scheda Unificata Download Hub */}
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={32}
-          className="download-unified-card as-block"
-          distortionScale={-140}
-          backgroundOpacity={0.14}
-          saturation={1.35}
-          style={{ marginBottom: '40px' }}
-        >
+        <div className="download-unified-card" style={{ marginBottom: '40px' }}>
           {/* Toolbar Canale & Versione */}
           <div className="download-card-toolbar">
             <div className="channel-switch-wrapper-inline">
@@ -345,18 +335,12 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
               </div>
             </div>
           </div>
-        </GlassSurface>
+        </div>
 
         {/* Scheda Note di Rilascio / Changelog */}
-        <GlassSurface
+        <div
           id="changelog"
-          width="100%"
-          height="auto"
-          borderRadius={32}
-          className="changelog-card as-block"
-          distortionScale={-140}
-          backgroundOpacity={0.14}
-          saturation={1.35}
+          className="changelog-card"
           style={{ marginTop: '40px' }}
         >
           <div className="changelog-header-row">
@@ -420,7 +404,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
-        </GlassSurface>
+        </div>
       </div>
     </section>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import GlassSurface from './GlassSurface';
 
 export const FeaturesGrid: React.FC = () => {
   const features = [
@@ -88,20 +87,11 @@ export const FeaturesGrid: React.FC = () => {
 
         <div className="features-grid">
           {features.map((f, idx) => (
-            <GlassSurface
-              key={idx}
-              width="100%"
-              height="auto"
-              borderRadius={24}
-              className="feature-card as-flex-col"
-              distortionScale={-140}
-              backgroundOpacity={0.12}
-              saturation={1.3}
-            >
+            <div key={idx} className="feature-card">
               <div className="feature-icon-wrapper">{f.icon}</div>
               <h3 className="feature-title">{f.title}</h3>
               <p className="feature-desc">{f.desc}</p>
-            </GlassSurface>
+            </div>
           ))}
         </div>
       </div>

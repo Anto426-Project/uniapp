@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import GlassSurface from './GlassSurface';
 
 export const SecuritySection: React.FC = () => {
   return (
@@ -15,15 +14,7 @@ export const SecuritySection: React.FC = () => {
           </p>
         </div>
 
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={28}
-          className="security-glass-box as-block"
-          distortionScale={-140}
-          backgroundOpacity={0.12}
-          saturation={1.3}
-        >
+        <div className="security-glass-box">
           <div className="sec-left-col">
             <div className="sec-shield">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
@@ -89,7 +80,7 @@ export const SecuritySection: React.FC = () => {
               </div>
             </li>
           </ul>
-        </GlassSurface>
+        </div>
       </div>
     </section>
   );

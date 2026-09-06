@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import GlassSurface from './GlassSurface';
 
 export const InstallationGuide: React.FC = () => {
   return (
@@ -16,15 +15,7 @@ export const InstallationGuide: React.FC = () => {
         </div>
 
         <div className="steps-grid">
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={24}
-            className="step-box as-flex-col"
-            distortionScale={-140}
-            backgroundOpacity={0.12}
-            saturation={1.3}
-          >
+          <div className="step-box">
             <span className="step-idx">01</span>
             <div className="step-box-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -37,17 +28,9 @@ export const InstallationGuide: React.FC = () => {
             <p className="step-box-desc">
               Scegli il pacchetto <strong>ARM64-v8a</strong> per i dispositivi a 64-bit o <strong>Universale</strong> per qualsiasi dispositivo Android.
             </p>
-          </GlassSurface>
+          </div>
 
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={24}
-            className="step-box as-flex-col"
-            distortionScale={-140}
-            backgroundOpacity={0.12}
-            saturation={1.3}
-          >
+          <div className="step-box">
             <span className="step-idx">02</span>
             <div className="step-box-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -60,17 +43,9 @@ export const InstallationGuide: React.FC = () => {
             <p className="step-box-desc">
               Se richiesto dal sistema, abilita temporaneamente <em>Installa app sconosciute</em> nelle impostazioni del browser (es. Chrome).
             </p>
-          </GlassSurface>
+          </div>
 
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={24}
-            className="step-box as-flex-col"
-            distortionScale={-140}
-            backgroundOpacity={0.12}
-            saturation={1.3}
-          >
+          <div className="step-box">
             <span className="step-idx">03</span>
             <div className="step-box-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -82,7 +57,7 @@ export const InstallationGuide: React.FC = () => {
             <p className="step-box-desc">
               Apri UniApp ed effettua il login con le tue credenziali Esse3. I successivi aggiornamenti verranno notificati direttamente in-app.
             </p>
-          </GlassSurface>
+          </div>
         </div>
       </div>
     </section>
