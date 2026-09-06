@@ -46,31 +46,27 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
         </div>
 
         {/* 3D Depth Carousel Container */}
-        <div className="relative w-full max-w-6xl mx-auto flex items-center justify-center">
-          <div className="relative w-full h-[580px] sm:h-[620px] flex items-center justify-center">
-            <DepthCarousel
-              items={carouselItems}
-              cardWidth={260}
-              cardHeight={530}
-              radius={24}
-              tint="#030712"
-              depth={160}
-              spread={110}
-              tilt={24}
-              tiltDirection="right"
-              perspective={1200}
-              visibleCards={3}
-              falloff={0.22}
-              blur={4}
-              duration={650}
-              autoplay
-              autoplayDelay={3500}
-              loop
-              showControls
-              showIndicators
-              onChange={(idx: number) => setCurrentIndex(idx)}
-            />
-          </div>
+        <div className="relative w-full max-w-5xl mx-auto" style={{ height: '580px', position: 'relative' }}>
+          <DepthCarousel
+            items={carouselItems}
+            depth={200}
+            spread={90}
+            tilt={22}
+            tiltDirection="right"
+            perspective={1400}
+            visibleCards={4}
+            falloff={0.2}
+            blur={6}
+            cardWidth={260}
+            cardHeight={520}
+            radius={24}
+            autoplay
+            autoplayDelay={3200}
+            loop
+            showControls
+            showIndicators
+            onChange={(idx: number) => setCurrentIndex(idx)}
+          />
         </div>
 
         {/* Info Schermata Attiva */}
