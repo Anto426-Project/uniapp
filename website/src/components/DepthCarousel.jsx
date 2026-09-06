@@ -1,55 +1,20 @@
-'use client';
-
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import './DepthCarousel.css';
 
-export interface DepthCarouselItem {
-  image: string;
-  alt?: string;
-  [key: string]: any;
-}
-
-export interface DepthCarouselProps {
-  items?: (string | DepthCarouselItem)[];
-  cardWidth?: number;
-  cardHeight?: number;
-  radius?: number;
-  tint?: string;
-  depth?: number;
-  spread?: number;
-  tilt?: number;
-  tiltDirection?: 'left' | 'right' | 'both';
-  perspective?: number;
-  visibleCards?: number;
-  falloff?: number;
-  blur?: number;
-  duration?: number;
-  ease?: string;
-  autoplay?: boolean;
-  autoplayDelay?: number;
-  loop?: boolean;
-  showControls?: boolean;
-  showIndicators?: boolean;
-  onChange?: (index: number, item: DepthCarouselItem) => void;
-  onItemClick?: (index: number, item: DepthCarouselItem) => void;
-  className?: string;
-}
-
-const DEFAULT_ITEMS: DepthCarouselItem[] = [
+const DEFAULT_ITEMS = [
   { image: 'https://picsum.photos/seed/depth1/800/1000', alt: 'Slide 1' },
   { image: 'https://picsum.photos/seed/depth2/800/1000', alt: 'Slide 2' },
   { image: 'https://picsum.photos/seed/depth3/800/1000', alt: 'Slide 3' },
   { image: 'https://picsum.photos/seed/depth4/800/1000', alt: 'Slide 4' },
   { image: 'https://picsum.photos/seed/depth5/800/1000', alt: 'Slide 5' },
-  { image: 'https://picsum.photos/seed/depth6/800/1000', alt: 'Slide 6' },
+  { image: 'https://picsum.photos/seed/depth6/800/1000', alt: 'Slide 6' }
 ];
 
-const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
-const normalizeItem = (it: string | DepthCarouselItem): DepthCarouselItem =>
-  typeof it === 'string' ? { image: it, alt: '' } : it;
+const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+const normalizeItem = it => (typeof it === 'string' ? { image: it, alt: '' } : it);
 
-export const DepthCarousel: React.FC<DepthCarouselProps> = ({
+const DepthCarousel = ({
   items = DEFAULT_ITEMS,
   cardWidth = 300,
   cardHeight = 380,
@@ -58,9 +23,9 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
   depth = 220,
   spread = 90,
   tilt = 22,
-  tiltDirection = 'both',
+  tiltDirection = 'right',
   perspective = 1400,
-  visibleCards = 3,
+  visibleCards = 4,
   falloff = 0.2,
   blur = 6,
   duration = 700,
@@ -71,42 +36,31 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
   showControls = true,
   showIndicators = true,
   onChange,
-  onItemClick,
-  className = '',
+  className = ''
 }) => {
   const data = useMemo(() => (Array.isArray(items) ? items : []).map(normalizeItem), [items]);
   const count = data.length;
 
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const overlayRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const rootRef = useRef(null);
+  const stageRef = useRef(null);
+  const cardRefs = useRef([]);
+  const overlayRefs = useRef([]);
 
   const posRef = useRef(0);
   const focusRef = useRef(0);
-  const tweenRef = useRef<gsap.core.Tween | null>(null);
+  const tweenRef = useRef(null);
   const scaleRef = useRef(1);
-  const cfgRef = useRef<any>({});
+  const cfgRef = useRef({});
   const onChangeRef = useRef(onChange);
-  const onItemClickRef = useRef(onItemClick);
 
-  const dragRef = useRef<{
-    x: number;
-    startPos: number;
-    lastX: number;
-    lastT: number;
-    v: number;
-    moved: boolean;
-    id: number;
-  } | null>(null);
-  const wheelTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const autoTimerRef = useRef<number | null>(null);
+  const dragRef = useRef(null);
+  const wheelTimerRef = useRef(null);
+  const autoTimerRef = useRef(null);
   const reducedRef = useRef(false);
 
   const [active, setActive] = useState(0);
 
   onChangeRef.current = onChange;
-  onItemClickRef.current = onItemClick;
   cfgRef.current = {
     count,
     depth,
@@ -120,17 +74,15 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     ease,
     loop,
     cardWidth,
-    autoplayDelay,
+    autoplayDelay
   };
 
-  const layout = useCallback((pos: number) => {
+  const layout = useCallback(pos => {
     const cfg = cfgRef.current;
     const n = cfg.count;
     if (!n) return;
-    const isBoth = cfg.tiltDirection === 'both';
     const dir = cfg.tiltDirection === 'left' ? -1 : 1;
     const sc = scaleRef.current;
-    const stackOffset = isBoth ? 0 : (dir * (Math.min(n - 1, cfg.visibleCards) * cfg.spread)) / 2;
 
     for (let i = 0; i < n; i++) {
       const el = cardRefs.current[i];
@@ -142,36 +94,20 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
         if (d > n / 2) d -= n;
       }
 
+      const back = Math.max(0, d);
       const az = Math.abs(d);
-      const sign = Math.sign(d);
       const shown = az <= cfg.visibleCards + 0.5;
 
-      let tz: number;
-      let tx: number;
-      let ry: number;
-      let back: number;
-      let opacity: number;
-      let zi: number;
+      const tz = -cfg.depth * d;
+      const tx = dir * cfg.spread * d;
+      const ry = dir * cfg.tilt * clamp(d, 0, 1);
 
-      if (isBoth) {
-        tz = -cfg.depth * az;
-        tx = cfg.spread * d;
-        ry = -sign * cfg.tilt * clamp(az, 0, 1);
-        back = az;
-        opacity = shown ? 1 : 0;
-        zi = Math.round(2000 - az * 20);
-      } else {
-        tz = -cfg.depth * Math.max(0, d);
-        tx = dir * cfg.spread * d - stackOffset;
-        ry = dir * cfg.tilt * clamp(d, 0, 1);
-        back = Math.max(0, d);
-        opacity = d < 0 ? Math.max(0, 1 + d) : 1;
-        if (!shown) opacity = 0;
-        zi = Math.round(2000 - d * 20);
-      }
+      let opacity = d < 0 ? Math.max(0, 1 + d) : 1;
+      if (!shown) opacity = 0;
 
-      const brightness = Math.max(0.18, 1 - back * cfg.falloff);
+      const brightness = Math.max(0.15, 1 - back * cfg.falloff);
       const blurPx = cfg.blur > 0 ? Math.min(cfg.blur, (back / Math.max(1, cfg.visibleCards)) * cfg.blur) : 0;
+      const zi = Math.round(2000 - d * 20);
 
       el.style.transform = `translate(-50%, -50%) scale(${sc}) translateX(${tx.toFixed(2)}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
       el.style.opacity = opacity.toFixed(3);
@@ -180,12 +116,12 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       el.style.pointerEvents = shown && opacity > 0.05 ? 'auto' : 'none';
 
       const ov = overlayRefs.current[i];
-      if (ov) ov.style.opacity = clamp(back * cfg.falloff * 1.25, 0, 0.85).toFixed(3);
+      if (ov) ov.style.opacity = clamp(back * cfg.falloff * 1.25, 0, 0.86).toFixed(3);
     }
   }, []);
 
   const notify = useCallback(
-    (idx: number) => {
+    idx => {
       setActive(idx);
       onChangeRef.current?.(idx, data[idx]);
     },
@@ -193,7 +129,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
   );
 
   const tweenTo = useCallback(
-    (target: number, animate: boolean) => {
+    (target, animate) => {
       tweenRef.current?.kill();
       const cfg = cfgRef.current;
       const proxy = { p: posRef.current };
@@ -210,14 +146,14 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
           const n = cfg.count;
           if (n > 0) posRef.current = ((posRef.current % n) + n) % n;
           layout(posRef.current);
-        },
+        }
       });
     },
     [layout]
   );
 
   const setFocus = useCallback(
-    (rawIndex: number, animate = true) => {
+    (rawIndex, animate = true) => {
       const cfg = cfgRef.current;
       const n = cfg.count;
       if (!n) return;
@@ -236,17 +172,16 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     [tweenTo, notify]
   );
 
-  const navigateBy = useCallback((step: number) => setFocus(focusRef.current + step, true), [setFocus]);
+  const navigateBy = useCallback(step => setFocus(focusRef.current + step, true), [setFocus]);
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const ro = new ResizeObserver((entries) => {
+    const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
       const cfg = cfgRef.current;
-      const spreadFactor = cfg.tiltDirection === 'both' ? cfg.visibleCards * 2 : cfg.visibleCards;
-      const needed = cfg.cardWidth + Math.abs(cfg.spread) * spreadFactor + 100;
-      scaleRef.current = clamp(w / needed, 0.45, 1);
+      const needed = cfg.cardWidth + Math.abs(cfg.spread) * 2 + 120;
+      scaleRef.current = clamp(w / needed, 0.4, 1);
       layout(posRef.current);
     });
     ro.observe(root);
@@ -256,7 +191,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const onWheel = (e: WheelEvent) => {
+    const onWheel = e => {
       const cfg = cfgRef.current;
       if (cfg.count < 2) return;
       e.preventDefault();
@@ -276,7 +211,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     };
   }, [layout, setFocus]);
 
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerDown = useCallback(e => {
     const cfg = cfgRef.current;
     if (cfg.count < 2) return;
     tweenRef.current?.kill();
@@ -287,12 +222,12 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       lastT: performance.now(),
       v: 0,
       moved: false,
-      id: e.pointerId,
+      id: e.pointerId
     };
   }, []);
 
   const onPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
+    e => {
       const drag = dragRef.current;
       if (!drag) return;
       const cfg = cfgRef.current;
@@ -326,7 +261,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
   }, [setFocus]);
 
   const onKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+    e => {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         navigateBy(-1);
@@ -339,20 +274,15 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
   );
 
   const onCardClick = useCallback(
-    (index: number) => {
+    index => {
       if (dragRef.current?.moved) return;
-      if (index === focusRef.current && onItemClickRef.current) {
-        onItemClickRef.current(index, data[index]);
-      } else {
-        setFocus(index, true);
-      }
+      setFocus(index, true);
     },
-    [setFocus, data]
+    [setFocus]
   );
 
   useEffect(() => {
-    reducedRef.current =
-      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    reducedRef.current = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!autoplay || reducedRef.current || count < 2) return;
     const root = rootRef.current;
     let hovered = false;
@@ -413,7 +343,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     <div
       ref={rootRef}
       className={`depth-carousel ${className}`.trim()}
-      style={{ '--dc-perspective': `${perspective}px` } as React.CSSProperties}
+      style={{ '--dc-perspective': `${perspective}px` }}
       role="group"
       aria-roledescription="carousel"
       aria-label="Depth carousel"
@@ -429,9 +359,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
           <div
             key={i}
             className="depth-carousel__card"
-            ref={(el) => {
-              cardRefs.current[i] = el;
-            }}
+            ref={el => (cardRefs.current[i] = el)}
             style={{ width: cardWidth, height: cardHeight, borderRadius: radius }}
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${count}`}
@@ -441,9 +369,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
             <img className="depth-carousel__img" src={item.image} alt={item.alt || ''} draggable={false} />
             <span
               className="depth-carousel__tint"
-              ref={(el) => {
-                overlayRefs.current[i] = el;
-              }}
+              ref={el => (overlayRefs.current[i] = el)}
               style={{ background: tint }}
             />
           </div>

@@ -4,19 +4,29 @@ import React, { useState, useMemo } from 'react';
 import { ScreenshotItem } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
 import { LightboxModal } from './LightboxModal';
-import DepthCarousel, { DepthCarouselItem } from './reactbits/DepthCarousel';
+// @ts-ignore
+import DepthCarousel from './DepthCarousel';
+
+interface DepthCarouselItem {
+  image: string;
+  alt: string;
+  title?: string;
+  description?: string;
+  raw?: ScreenshotItem;
+}
 
 interface ScreenshotsGalleryProps {
   screenshots: ScreenshotItem[];
 }
 
 export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screenshots }) => {
-  const [selectedScreenshot, setSelectedScreenshot] = useState<ScreenshotItem | null>(null);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const carouselItems: DepthCarouselItem[] = useMemo(() => {
     return screenshots.map((item) => ({
       image: withBasePath(`/assets/screenshots/${item.file}`),
-      alt: item.title,
+      alt: item.title || '',
       title: item.title,
       description: item.description,
       raw: item,
@@ -47,9 +57,9 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
               depth={160}
               spread={110}
               tilt={24}
-              tiltDirection="both"
+              tiltDirection="right"
               perspective={1200}
-              visibleCards={2}
+              visibleCards={3}
               falloff={0.22}
               blur={4}
               duration={650}
@@ -58,18 +68,40 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
               loop
               showControls
               showIndicators
-              onItemClick={(idx) => setSelectedScreenshot(screenshots[idx])}
+              onChange={(idx: number) => setCurrentIndex(idx)}
             />
           </div>
         </div>
+
+        {/* Info Schermata Attiva */}
+        {screenshots[currentIndex] && (
+          <div className="text-center mt-6">
+            <h3 className="text-lg font-semibold text-white/90">
+              {screenshots[currentIndex].title}
+            </h3>
+            <p className="text-sm text-white/60 max-w-md mx-auto mt-1">
+              {screenshots[currentIndex].description}
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(true)}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/10 hover:bg-white/15 text-white/80 border border-white/10 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+              </svg>
+              Ingrandisci schermata
+            </button>
+          </div>
+        )}
       </div>
 
       <LightboxModal
-        isOpen={Boolean(selectedScreenshot)}
-        imageUrl={selectedScreenshot ? withBasePath(`/assets/screenshots/${selectedScreenshot.file}`) : ''}
-        title={selectedScreenshot?.title || ''}
-        description={selectedScreenshot?.description || ''}
-        onClose={() => setSelectedScreenshot(null)}
+        isOpen={isLightboxOpen && Boolean(screenshots[currentIndex])}
+        imageUrl={screenshots[currentIndex] ? withBasePath(`/assets/screenshots/${screenshots[currentIndex].file}`) : ''}
+        title={screenshots[currentIndex]?.title || ''}
+        description={screenshots[currentIndex]?.description || ''}
+        onClose={() => setIsLightboxOpen(false)}
       />
     </section>
   );
