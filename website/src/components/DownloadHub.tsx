@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { UpdateManifest, ReleaseChannelData } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
+import GlassSurface from './GlassSurface';
 
 interface DownloadHubProps {
   manifest: UpdateManifest;
@@ -165,7 +166,16 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
         </div>
 
         {/* Scheda Unificata Download Hub */}
-        <div className="download-unified-card" style={{ marginBottom: '40px' }}>
+        <GlassSurface
+          width="100%"
+          height="auto"
+          borderRadius={32}
+          className="download-unified-card as-block"
+          distortionScale={-140}
+          backgroundOpacity={0.14}
+          saturation={1.35}
+          style={{ marginBottom: '40px' }}
+        >
           {/* Toolbar Canale & Versione */}
           <div className="download-card-toolbar">
             <div className="channel-switch-wrapper-inline">
@@ -335,10 +345,20 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
               </div>
             </div>
           </div>
-        </div>
+        </GlassSurface>
 
         {/* Scheda Note di Rilascio / Changelog */}
-        <div id="changelog" className="changelog-card" style={{ marginTop: '40px' }}>
+        <GlassSurface
+          id="changelog"
+          width="100%"
+          height="auto"
+          borderRadius={32}
+          className="changelog-card as-block"
+          distortionScale={-140}
+          backgroundOpacity={0.14}
+          saturation={1.35}
+          style={{ marginTop: '40px' }}
+        >
           <div className="changelog-header-row">
             <div className="cl-title-wrap">
               <div className="abi-row-icon" style={{ width: 38, height: 38 }}>
@@ -400,7 +420,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
-        </div>
+        </GlassSurface>
       </div>
     </section>
   );

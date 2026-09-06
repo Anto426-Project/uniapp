@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { withBasePath } from '@/utils/basePath';
+import GlassSurface from './GlassSurface';
 
 interface NavbarProps {
   currentTheme: string;
@@ -28,7 +29,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTheme, onThemeChange }) =
 
   return (
     <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
-      <nav className="nav-container">
+      <GlassSurface
+        width="100%"
+        height={64}
+        borderRadius={9999}
+        className="nav-container as-nav"
+        distortionScale={-140}
+        backgroundOpacity={0.18}
+        saturation={1.5}
+      >
         <a href="#" className="brand-wrapper">
           <img
             src={withBasePath('/assets/uniapp-icon.webp')}
@@ -82,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTheme, onThemeChange }) =
             <span>GitHub</span>
           </a>
         </div>
-      </nav>
+      </GlassSurface>
     </header>
   );
 };

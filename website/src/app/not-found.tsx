@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Home, Download, SearchX, ExternalLink } from 'lucide-react';
 import { Background } from '@/components/Background';
+import GlassSurface from '@/components/GlassSurface';
 
 export default function NotFound() {
   const [theme, setTheme] = useState('violet');
@@ -34,17 +35,20 @@ export default function NotFound() {
           zIndex: 1,
         }}
       >
-        <div
-          className="glass-panel"
+        <GlassSurface
+          width="min(100%, 560px)"
+          height="auto"
+          borderRadius={28}
+          className="as-block"
+          distortionScale={-100}
+          backgroundOpacity={0.85}
+          saturation={1.2}
           style={{
-            width: 'min(100%, 560px)',
             padding: '52px 36px',
             textAlign: 'center',
-            borderRadius: '28px',
             position: 'relative',
             zIndex: 2,
-            boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px var(--theme-glow-1)',
-            border: '1px solid var(--glass-border)',
+            boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.75), 0 0 30px var(--theme-glow-1)',
           }}
         >
           {/* Badge Icona */}
@@ -186,7 +190,7 @@ export default function NotFound() {
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
-        </div>
+        </GlassSurface>
       </main>
     </>
   );
