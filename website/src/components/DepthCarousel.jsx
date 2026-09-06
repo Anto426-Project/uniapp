@@ -203,10 +203,12 @@ const DepthCarousel = ({
     const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
       const cfg = cfgRef.current;
-      const isBoth = cfg.tiltDirection === 'both' || cfg.tiltDirection === 'center';
-      const spreadFactor = isBoth ? Math.min(cfg.visibleCards, 2) * 2 : 2;
-      const needed = cfg.cardWidth + Math.abs(cfg.spread) * spreadFactor + 80;
-      scaleRef.current = clamp(w / needed, 0.42, 1);
+      const isMobile = w < 640;
+      // On mobile, keep the center card prominent and full-sized (only scale down on extremely narrow viewports)
+      const targetScale = isMobile
+        ? clamp((w - 24) / cfg.cardWidth, 0.82, 1)
+        : clamp(w / (cfg.cardWidth + Math.abs(cfg.spread) * 2 + 60), 0.7, 1);
+      scaleRef.current = targetScale;
       layout(posRef.current);
     });
     ro.observe(root);
