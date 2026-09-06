@@ -25,9 +25,9 @@ const DepthCarousel = ({
   depth = 220,
   spread = 90,
   tilt = 22,
-  tiltDirection = 'right',
+  tiltDirection = 'center',
   perspective = 1400,
-  visibleCards = 4,
+  visibleCards = 3,
   falloff = 0.2,
   blur = 6,
   duration = 700,
@@ -38,6 +38,7 @@ const DepthCarousel = ({
   showControls = true,
   showIndicators = true,
   onChange,
+  onItemClick,
   className = ''
 }) => {
   const data = useMemo(() => (Array.isArray(items) ? items : []).map(normalizeItem), [items]);
@@ -54,6 +55,7 @@ const DepthCarousel = ({
   const scaleRef = useRef(1);
   const cfgRef = useRef({});
   const onChangeRef = useRef(onChange);
+  const onItemClickRef = useRef(onItemClick);
 
   const dragRef = useRef(null);
   const wheelTimerRef = useRef(null);
@@ -63,6 +65,7 @@ const DepthCarousel = ({
   const [active, setActive] = useState(0);
 
   onChangeRef.current = onChange;
+  onItemClickRef.current = onItemClick;
   cfgRef.current = {
     count,
     depth,
@@ -83,6 +86,7 @@ const DepthCarousel = ({
     const cfg = cfgRef.current;
     const n = cfg.count;
     if (!n) return;
+    const isBoth = cfg.tiltDirection === 'both' || cfg.tiltDirection === 'center';
     const dir = cfg.tiltDirection === 'left' ? -1 : 1;
     const sc = scaleRef.current;
 
@@ -96,26 +100,43 @@ const DepthCarousel = ({
         if (d > n / 2) d -= n;
       }
 
-      const back = Math.max(0, d);
       const az = Math.abs(d);
+      const sign = Math.sign(d);
       const shown = az <= cfg.visibleCards + 0.5;
 
-      const tz = -cfg.depth * d;
-      const tx = dir * cfg.spread * d;
-      const ry = dir * cfg.tilt * clamp(d, 0, 1);
+      let tz, tx, ry, back, opacity, zi;
 
-      let opacity = d < 0 ? Math.max(0, 1 + d) : 1;
-      if (!shown) opacity = 0;
+      if (isBoth) {
+        tz = -cfg.depth * az;
+        tx = cfg.spread * d;
+        ry = -sign * cfg.tilt * clamp(az, 0, 1);
+        back = az;
+
+        const fadeStart = Math.max(0.8, cfg.visibleCards - 1.2);
+        if (az > fadeStart) {
+          opacity = Math.max(0, 1 - (az - fadeStart) / Math.max(0.1, cfg.visibleCards - fadeStart));
+        } else {
+          opacity = 1;
+        }
+        zi = Math.round(2000 - az * 50);
+      } else {
+        tz = -cfg.depth * d;
+        tx = dir * cfg.spread * d;
+        ry = dir * cfg.tilt * clamp(d, 0, 1);
+        back = Math.max(0, d);
+        opacity = d < 0 ? Math.max(0, 1 + d) : 1;
+        if (!shown) opacity = 0;
+        zi = Math.round(2000 - d * 20);
+      }
 
       const brightness = Math.max(0.15, 1 - back * cfg.falloff);
       const blurPx = cfg.blur > 0 ? Math.min(cfg.blur, (back / Math.max(1, cfg.visibleCards)) * cfg.blur) : 0;
-      const zi = Math.round(2000 - d * 20);
 
       el.style.transform = `translate(-50%, -50%) scale(${sc}) translateX(${tx.toFixed(2)}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
       el.style.opacity = opacity.toFixed(3);
       el.style.filter = `brightness(${brightness.toFixed(3)}) blur(${blurPx.toFixed(2)}px)`;
       el.style.zIndex = String(zi);
-      el.style.pointerEvents = shown && opacity > 0.05 ? 'auto' : 'none';
+      el.style.pointerEvents = shown && opacity > 0.1 ? 'auto' : 'none';
 
       const ov = overlayRefs.current[i];
       if (ov) ov.style.opacity = clamp(back * cfg.falloff * 1.25, 0, 0.86).toFixed(3);
@@ -182,8 +203,10 @@ const DepthCarousel = ({
     const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
       const cfg = cfgRef.current;
-      const needed = cfg.cardWidth + Math.abs(cfg.spread) * 2 + 120;
-      scaleRef.current = clamp(w / needed, 0.4, 1);
+      const isBoth = cfg.tiltDirection === 'both' || cfg.tiltDirection === 'center';
+      const spreadFactor = isBoth ? Math.min(cfg.visibleCards, 2) * 2 : 2;
+      const needed = cfg.cardWidth + Math.abs(cfg.spread) * spreadFactor + 80;
+      scaleRef.current = clamp(w / needed, 0.42, 1);
       layout(posRef.current);
     });
     ro.observe(root);
@@ -255,7 +278,12 @@ const DepthCarousel = ({
     const drag = dragRef.current;
     if (!drag) return;
     dragRef.current = null;
-    if (!drag.moved) return;
+    if (!drag.moved) {
+      if (Math.abs(posRef.current - Math.round(posRef.current)) > 0.01) {
+        setFocus(Math.round(posRef.current), true);
+      }
+      return;
+    }
     const cfg = cfgRef.current;
     const stepPx = Math.max(cfg.cardWidth * 0.55 * scaleRef.current, 40);
     const projected = posRef.current - (drag.v * 180) / stepPx;
@@ -278,9 +306,13 @@ const DepthCarousel = ({
   const onCardClick = useCallback(
     index => {
       if (dragRef.current?.moved) return;
-      setFocus(index, true);
+      if (index === focusRef.current && onItemClickRef.current) {
+        onItemClickRef.current(index, data[index]);
+      } else {
+        setFocus(index, true);
+      }
     },
-    [setFocus]
+    [setFocus, data]
   );
 
   useEffect(() => {
@@ -314,10 +346,15 @@ const DepthCarousel = ({
     const onFocusOut = () => {
       focused = false;
     };
+    const onPointerRelease = () => {
+      focused = false;
+    };
     root?.addEventListener('mouseenter', onEnter);
     root?.addEventListener('mouseleave', onLeave);
     root?.addEventListener('focusin', onFocusIn);
     root?.addEventListener('focusout', onFocusOut);
+    root?.addEventListener('pointerup', onPointerRelease);
+    root?.addEventListener('pointercancel', onPointerRelease);
     start();
     return () => {
       stop();
@@ -325,6 +362,8 @@ const DepthCarousel = ({
       root?.removeEventListener('mouseleave', onLeave);
       root?.removeEventListener('focusin', onFocusIn);
       root?.removeEventListener('focusout', onFocusOut);
+      root?.removeEventListener('pointerup', onPointerRelease);
+      root?.removeEventListener('pointercancel', onPointerRelease);
     };
   }, [autoplay, autoplayDelay, count, navigateBy]);
 
@@ -361,9 +400,7 @@ const DepthCarousel = ({
           <div
             key={i}
             className="depth-carousel__card"
-            ref={el => {
-              cardRefs.current[i] = el;
-            }}
+            ref={el => (cardRefs.current[i] = el)}
             style={{ width: cardWidth, height: cardHeight, borderRadius: radius }}
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${count}`}
@@ -373,9 +410,7 @@ const DepthCarousel = ({
             <img className="depth-carousel__img" src={item.image} alt={item.alt || ''} draggable={false} />
             <span
               className="depth-carousel__tint"
-              ref={el => {
-                overlayRefs.current[i] = el;
-              }}
+              ref={el => (overlayRefs.current[i] = el)}
               style={{ background: tint }}
             />
           </div>

@@ -207,7 +207,6 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
             <div className="console-version-row">
               <div className="console-version-tag">
                 <span className="ver-text">{version}</span>
-                <span className="ver-subbadge">Build Ufficiale</span>
               </div>
               <div className="console-pub-date">
                 <Calendar className="w-3.5 h-3.5" />

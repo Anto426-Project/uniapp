@@ -46,50 +46,35 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
         </div>
 
         {/* 3D Depth Carousel Container */}
-        <div className="relative w-full max-w-5xl mx-auto" style={{ height: '580px', position: 'relative' }}>
+        <div
+          className="relative w-full max-w-5xl mx-auto flex items-center justify-center"
+          style={{ height: '560px', position: 'relative', margin: '0 auto' }}
+        >
           <DepthCarousel
             items={carouselItems}
-            depth={200}
-            spread={90}
+            depth={180}
+            spread={100}
             tilt={22}
-            tiltDirection="right"
+            tiltDirection="center"
             perspective={1400}
-            visibleCards={4}
+            visibleCards={2.5}
             falloff={0.2}
-            blur={6}
-            cardWidth={260}
-            cardHeight={520}
-            radius={24}
-            autoplay
+            blur={4}
+            autoplay={true}
             autoplayDelay={3200}
-            loop
-            showControls
-            showIndicators
+            loop={true}
+            cardWidth={260}
+            cardHeight={480}
+            radius={22}
+            tint="#05060a"
+            duration={700}
+            ease="power3.out"
+            showControls={false}
+            showIndicators={false}
             onChange={(idx: number) => setCurrentIndex(idx)}
+            onItemClick={() => setIsLightboxOpen(true)}
           />
         </div>
-
-        {/* Info Schermata Attiva */}
-        {screenshots[currentIndex] && (
-          <div className="text-center mt-6">
-            <h3 className="text-lg font-semibold text-white/90">
-              {screenshots[currentIndex].title}
-            </h3>
-            <p className="text-sm text-white/60 max-w-md mx-auto mt-1">
-              {screenshots[currentIndex].description}
-            </p>
-            <button
-              type="button"
-              onClick={() => setIsLightboxOpen(true)}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/10 hover:bg-white/15 text-white/80 border border-white/10 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-              </svg>
-              Ingrandisci schermata
-            </button>
-          </div>
-        )}
       </div>
 
       <LightboxModal

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ExternalLink } from 'lucide-react';
 import { withBasePath } from '@/utils/basePath';
 
 export const Footer: React.FC = () => {
@@ -44,11 +45,7 @@ export const Footer: React.FC = () => {
                   className="footer-account-avatar"
                 />
                 <span>Anto426-Project</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
+                <ExternalLink className="w-3 h-3 opacity-60" />
               </a>
 
               <a
@@ -64,16 +61,12 @@ export const Footer: React.FC = () => {
                   className="footer-account-avatar"
                 />
                 <span>Anto426</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
+                <ExternalLink className="w-3 h-3 opacity-60" />
               </a>
             </div>
           </div>
 
-          {/* Sezione Link Rapidi & Risorse */}
+          {/* Sezione Link Rapidi & Risorse (2 colonne pulite, senza duplicati) */}
           <div className="footer-links-group">
             <div className="footer-nav-col">
               <span className="footer-group-title">Navigazione</span>
@@ -87,82 +80,30 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="footer-nav-col">
-              <span className="footer-group-title">GitHub &amp; Profili</span>
-              <ul className="footer-links-list">
-                <li>
-                  <a href="https://github.com/Anto426-Project" target="_blank" rel="noopener noreferrer">
-                    <img
-                      src="https://github.com/Anto426-Project.png"
-                      alt="Anto426-Project"
-                      className="footer-inline-avatar"
-                    />
-                    <span>Anto426-Project</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://github.com/Anto426" target="_blank" rel="noopener noreferrer">
-                    <img
-                      src="https://github.com/Anto426.png"
-                      alt="Anto426"
-                      className="footer-inline-avatar"
-                    />
-                    <span>Anto426</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div className="footer-nav-col">
               <span className="footer-group-title">Sorgenti &amp; API</span>
               <ul className="footer-links-list">
                 <li>
                   <a href="https://github.com/Anto426-Project/Uniapp" target="_blank" rel="noopener noreferrer">
                     <span>Progetto UniApp</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
+                    <ExternalLink className="w-3 h-3 opacity-60" />
                   </a>
                 </li>
                 <li>
                   <a href="https://github.com/Anto426-Project/UniappUpstream" target="_blank" rel="noopener noreferrer">
                     <span>Repository Upstream</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
+                    <ExternalLink className="w-3 h-3 opacity-60" />
                   </a>
                 </li>
                 <li>
                   <a href={withBasePath('/update.json')} target="_blank" rel="noopener noreferrer">
                     <span>Manifest update.json</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
+                    <ExternalLink className="w-3 h-3 opacity-60" />
                   </a>
                 </li>
                 <li>
                   <a href="https://github.com/Anto426-Project/Uniapp/issues" target="_blank" rel="noopener noreferrer">
                     <span>Segnala Bug / Feedback</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
+                    <ExternalLink className="w-3 h-3 opacity-60" />
                   </a>
                 </li>
               </ul>
@@ -172,25 +113,18 @@ export const Footer: React.FC = () => {
 
         {/* Barra Inferiore Footer */}
         <div className="footer-bottom-row">
-          <div className="footer-copyright-text">
-            <span>
-              &copy; 2026{' '}
-              <a href="https://github.com/Anto426" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', fontWeight: 700 }}>
-                Anto426
-              </a>{' '}
-              &amp;{' '}
-              <a href="https://github.com/Anto426-Project" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', fontWeight: 700 }}>
-                Anto426-Project
-              </a>{' '}
-              • Progetto open-source non ufficiale, indipendente dall&apos;Ateneo.
-            </span>
-          </div>
-          <div className="footer-bottom-badges">
-            <span className="footer-pill-tag">
-              <span className="footer-monet-dot" />
-              Liquid Monet &amp; Compose 1.12
-            </span>
-          </div>
+          <p className="footer-copyright-text">
+            <span>&copy; 2026</span>{' '}
+            <a href="https://github.com/Anto426" target="_blank" rel="noopener noreferrer">
+              Anto426
+            </a>{' '}
+            &amp;{' '}
+            <a href="https://github.com/Anto426-Project" target="_blank" rel="noopener noreferrer">
+              Anto426-Project
+            </a>
+            <span className="footer-copyright-separator">&bull;</span>
+            <span>Progetto open-source indipendente non affiliato all&apos;Ateneo.</span>
+          </p>
         </div>
       </div>
     </footer>
