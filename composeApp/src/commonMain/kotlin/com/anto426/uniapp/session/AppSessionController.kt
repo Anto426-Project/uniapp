@@ -7,10 +7,18 @@ import com.anto426.uniapp.account.session.ManagedSessionResult
 import com.anto426.uniapp.account.session.UniAccountClient
 import com.anto426.uniapp.account.session.UniSessionCoordinator
 import com.anto426.uniapp.account.storage.UniAccountStore
+import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.data.local.UniAppDataKeys
+import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.session.model.AppSessionState
-import com.anto426.uniapp.security.account.AccountSecurityPreferences
 import com.anto426.unisdk.backend.model.LoginCareerOption
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.time.Clock
+import com.anto426.uniapp.security.password.verifyAppPassword
+import com.anto426.uniapp.security.biometric.BiometricAuthenticator
+import com.anto426.uniapp.security.account.authorizeAccountRemoval
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,9 +28,12 @@ import kotlinx.coroutines.sync.withLock
 class AppSessionController internal constructor(
     private val coordinator: UniSessionCoordinator,
     private val accountStore: UniAccountStore,
+    private val localDataStore: UniLocalDataStore,
 ) {
     private val lock = Mutex()
     private val mutableState = MutableStateFlow<AppSessionState>(AppSessionState.Initializing)
+    private val mutableAccountsRevision = MutableStateFlow(0L)
+    internal val accountsRevision: StateFlow<Long> = mutableAccountsRevision.asStateFlow()
 
     val state: StateFlow<AppSessionState> = mutableState.asStateFlow()
 
@@ -37,7 +48,7 @@ class AppSessionController internal constructor(
                     }
                     when {
                         account == null -> AppSessionState.SignedOut()
-                        accountStore.requiresBiometricUnlock(account.accountId) ->
+                        requiresBiometricUnlock(account.accountId) ->
                             AppSessionState.UnlockRequired(account)
                         else -> coordinator.resumeActiveAccount().toAppState()
                     }
@@ -77,6 +88,29 @@ class AppSessionController internal constructor(
                     }
         }
     }
+
+    /** Checks and opens the same account under one lock; switching cannot reuse this result. */
+    internal suspend fun unlockWithPassword(password: String): PasswordUnlockResult =
+        lock.withLock {
+            val requirement = mutableState.value as? AppSessionState.UnlockRequired
+                ?: return@withLock PasswordUnlockResult.Invalid
+            if (password.isEmpty() || password.length > 128) return@withLock PasswordUnlockResult.Invalid
+            val scope = LocalDataScope.Account(requirement.account.accountId)
+            val now = Clock.System.now().toEpochMilliseconds()
+            if (now < localDataStore.read(scope, UniAppDataKeys.PasswordRetryAfter)) {
+                return@withLock PasswordUnlockResult.RetryLater
+            }
+            val verifier = localDataStore.read(scope, UniAppDataKeys.PasswordVerifier)
+                ?: return@withLock PasswordUnlockResult.Invalid
+            // Persist the throttle before verification, including cancelled attempts or restarts.
+            localDataStore.write(scope, UniAppDataKeys.PasswordRetryAfter, now + 5_000L)
+            val valid = withContext(Dispatchers.Default) { verifyAppPassword(password, verifier) }
+            if (!valid) return@withLock PasswordUnlockResult.Invalid
+            localDataStore.remove(scope, UniAppDataKeys.PasswordRetryAfter)
+            // Leave UnlockRequired in place until activation succeeds, allowing a safe retry.
+            mutableState.value = coordinator.activate(requirement.account.accountId).toAppState()
+            PasswordUnlockResult.Unlocked
+        }
 
     suspend fun authenticate(
         credentials: UniAccountCredentials,
@@ -123,7 +157,7 @@ class AppSessionController internal constructor(
             val target = snapshot.accounts.firstOrNull { it.accountId == accountId }
                 ?: throw IllegalArgumentException("Unknown account")
             val current = (mutableState.value as? AppSessionState.Authenticated)?.account
-            if (accountStore.requiresBiometricUnlock(accountId)) {
+            if (requiresBiometricUnlock(accountId)) {
                 return@withLock AppSessionState.UnlockRequired(
                     account = target,
                     fallbackAccount = current,
@@ -172,14 +206,46 @@ class AppSessionController internal constructor(
 
     suspend fun accounts(): List<UniAccountSummary> = accountStore.snapshot().accounts
 
+    /** Local deletion only. Authorization applies to the target account, even if it is inactive. */
+    internal suspend fun removeAccount(accountId: String, authenticator: BiometricAuthenticator): Boolean =
+        lock.withLock {
+            require(accountStore.snapshot().accounts.any { it.accountId == accountId }) { "Unknown account" }
+            val isProtected = requiresBiometricUnlock(accountId)
+            if (!authorizeAccountRemoval(isProtected, authenticator)) return@withLock false
+            removeAccountLocked(accountId)
+            true
+        }
+
+    private suspend fun removeAccountLocked(accountId: String) {
+        val previous = mutableState.value
+        try {
+            coordinator.forgetAccount(accountId)
+        } finally {
+            // Closing the runtime session may have succeeded even if vault cleanup failed.
+            mutableState.value = when (previous) {
+                is AppSessionState.Authenticated ->
+                    if (previous.account.accountId == accountId) AppSessionState.SignedOut() else previous
+                is AppSessionState.UnlockRequired -> when {
+                    previous.account.accountId == accountId ->
+                        previous.fallbackAccount?.let(AppSessionState::Authenticated) ?: AppSessionState.SignedOut()
+                    previous.fallbackAccount?.accountId == accountId -> previous.copy(fallbackAccount = null)
+                    else -> previous
+                }
+                is AppSessionState.ReauthenticationRequired ->
+                    if (previous.account.accountId == accountId) AppSessionState.SignedOut() else previous
+                else -> previous
+            }
+            mutableAccountsRevision.value += 1
+        }
+    }
+
     internal suspend fun cachedProfileImage(account: UniAccountSummary): ByteArray? =
         account.photoUrl
             ?.takeIf(String::isNotBlank)
             ?.let { source -> accountStore.readProfileImage(account.accountId, source)?.bytes }
 
-    private suspend fun UniAccountStore.requiresBiometricUnlock(accountId: String): Boolean =
-        readPreference(accountId, AccountSecurityPreferences.BIOMETRIC_UNLOCK)
-            ?.toBooleanStrictOrNull() == true
+    private suspend fun requiresBiometricUnlock(accountId: String): Boolean =
+        localDataStore.read(LocalDataScope.Account(accountId), UniAppDataKeys.BiometricUnlock)
 
     private fun ManagedSessionResult.toAppState(): AppSessionState =
         when (this) {
@@ -192,3 +258,5 @@ class AppSessionController internal constructor(
                 )
         }
 }
+
+internal enum class PasswordUnlockResult { Unlocked, Invalid, RetryLater }

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.numericGradeOrNull
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +23,7 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val career = dataSource.loadCareer(force)
                 val graded = career.exams.mapNotNull { exam ->
@@ -98,7 +100,7 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare le statistiche."),
                 )
             }

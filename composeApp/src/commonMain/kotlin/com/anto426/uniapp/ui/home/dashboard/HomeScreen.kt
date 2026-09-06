@@ -12,11 +12,9 @@ import com.anto426.uniapp.ui.home.dashboard.components.HomeNewsSection
 import com.anto426.uniapp.ui.home.dashboard.components.HomeQuickAccessSection
 import com.anto426.uniapp.ui.home.dashboard.components.HomeQuickIndicatorsRow
 import com.anto426.uniapp.ui.home.dashboard.components.HomeAcademicProfileHeroCard
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun HomeScreen(
-    backdropState: Backdrop,
     uiState: HomeDashboardUiState,
     onOpenStatistics: () -> Unit = {},
     onOpenTaxes: () -> Unit = {},
@@ -35,7 +33,6 @@ fun HomeScreen(
         // 1. Scheda Unificata Profilo Studente & Carriera Accademica
         HomeAcademicProfileHeroCard(
             uiState = uiState,
-            backdropState = backdropState,
             onOpenBadge = onOpenBadge,
             onOpenStatistics = onOpenStatistics,
         )
@@ -43,7 +40,6 @@ fun HomeScreen(
         // 2. Indicatori Rapidi - Appelli e Tasse
         HomeQuickIndicatorsRow(
             uiState = uiState,
-            backdropState = backdropState,
             onOpenExams = onOpenExams,
             onOpenTaxes = onOpenTaxes,
             onOpenTheses = { onQuickActionClick("tesi") },
@@ -53,7 +49,6 @@ fun HomeScreen(
         HomeNewsSection(
             homeNews = uiState.news,
             activeNewsIndex = uiState.activeNewsIndex,
-            backdropState = backdropState,
             onOpenNews = onOpenNews,
             onShowNews = onShowNews,
             onNextNews = onNextNews,
@@ -63,7 +58,6 @@ fun HomeScreen(
         // 4. Accesso Rapido Personalizzabile
         HomeQuickAccessSection(
             uiState = uiState,
-            backdropState = backdropState,
             onToggleCustomization = onToggleCustomization,
             onFinishCustomization = onFinishCustomization,
             onToggleQuickAction = onToggleQuickAction,

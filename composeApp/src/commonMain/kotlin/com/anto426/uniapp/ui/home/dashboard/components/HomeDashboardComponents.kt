@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,7 +42,7 @@ import com.anto426.liquidmonet.components.buttons.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
-import com.anto426.liquidmonet.components.cards.LiquidStatusCard
+import com.anto426.uniapp.ui.components.items.UniNewsCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.liquidIconContainer
@@ -52,22 +52,19 @@ import com.anto426.liquidmonet.components.layout.LiquidAnimatedSwitcher
 import com.anto426.liquidmonet.components.layout.LiquidSwitcherTransition
 import com.anto426.liquidmonet.components.selection.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.home.presentation.HomeDashboardUiState
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.cards.UniHeroFluidBackground
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassLenses
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
-import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun HomeAcademicProfileHeroCard(
     uiState: HomeDashboardUiState,
-    backdropState: Backdrop,
     onOpenBadge: () -> Unit,
     onOpenStatistics: () -> Unit,
 ) {
@@ -75,8 +72,7 @@ fun HomeAcademicProfileHeroCard(
 
     LiquidCard(
         modifier = Modifier.fillMaxWidth(),
-        backdropState = backdropState,
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedRectangle(26.dp),
         contentPadding = 20.dp,
         onClick = if (uiState.isProfessor) onOpenBadge else onOpenStatistics,
     ) {
@@ -95,7 +91,6 @@ fun HomeAcademicProfileHeroCard(
                     initials = uiState.profileInitials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
                     size = 46.dp,
                     contentDescription = stringResource(Res.string.ui_profile_picture),
-                    backdropState = backdropState,
                 )
 
                 Column(
@@ -136,7 +131,6 @@ fun HomeAcademicProfileHeroCard(
                     onClick = onOpenBadge,
                     variant = LiquidButtonVariant.Tonal,
                     size = LiquidButtonSize.Small,
-                    backdropState = backdropState,
                 )
             }
 
@@ -146,7 +140,7 @@ fun HomeAcademicProfileHeroCard(
             )
 
             if (uiState.isProfessor) {
-                ProfessorHomeIdentitySummary(uiState, backdropState)
+                ProfessorHomeIdentitySummary(uiState)
             } else {
                 // 2. Corso di Laurea e CFU
                 Row(
@@ -169,7 +163,6 @@ fun HomeAcademicProfileHeroCard(
                         text = "${uiState.acquiredCfu} / ${uiState.targetCfu.takeIf { it > 0 } ?: "—"} CFU",
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -227,7 +220,6 @@ fun HomeAcademicProfileHeroCard(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     LiquidLinearProgressIndicator(
                         progress = uiState.progress,
-                        backdropState = backdropState,
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -269,7 +261,6 @@ fun HomeAcademicProfileHeroCard(
 @Composable
 fun HomeQuickIndicatorsRow(
     uiState: HomeDashboardUiState,
-    backdropState: Backdrop,
     onOpenExams: () -> Unit,
     onOpenTaxes: () -> Unit,
     onOpenTheses: () -> Unit,
@@ -283,8 +274,7 @@ fun HomeQuickIndicatorsRow(
         // Card Appelli
         LiquidCard(
             modifier = Modifier.weight(1f),
-            backdropState = backdropState,
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
             onClick = onOpenExams,
         ) {
@@ -302,14 +292,13 @@ fun HomeQuickIndicatorsRow(
                             containerSize = 40.dp,
                             iconSize = 20.dp,
                             containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedRectangle(12.dp),
                         ),
                     )
                     LiquidBadge(
                         text = uiState.openExamRounds.toString(),
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
                 Column {
@@ -334,8 +323,7 @@ fun HomeQuickIndicatorsRow(
         // Secondo indicatore: prenotazioni docente oppure tasse studente.
         LiquidCard(
             modifier = Modifier.weight(1f),
-            backdropState = backdropState,
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
             onClick = if (uiState.isProfessor) onOpenTheses else onOpenTaxes,
         ) {
@@ -353,14 +341,13 @@ fun HomeQuickIndicatorsRow(
                             containerSize = 40.dp,
                             iconSize = 20.dp,
                             containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedRectangle(12.dp),
                         ),
                     )
                     LiquidBadge(
                         text = if (uiState.isProfessor) uiState.thesisCount.toString() else uiState.dueAmount,
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
                 Column {
@@ -390,7 +377,6 @@ fun HomeQuickIndicatorsRow(
 @Composable
 private fun ProfessorHomeIdentitySummary(
     uiState: HomeDashboardUiState,
-    backdropState: Backdrop,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -408,13 +394,11 @@ private fun ProfessorHomeIdentitySummary(
                 text = stringResource(Res.string.ui_professor_courses_count, uiState.teachingCount),
                 containerColor = colors.primaryContainer.copy(alpha = .5f),
                 contentColor = colors.primary,
-                backdropState = backdropState,
             )
             LiquidBadge(
                 text = stringResource(Res.string.ui_professor_rounds_count, uiState.openExamRounds),
                 containerColor = colors.primaryContainer.copy(alpha = .5f),
                 contentColor = colors.primary,
-                backdropState = backdropState,
             )
         }
     }
@@ -425,16 +409,14 @@ private fun ProfessorHomeIdentitySummary(
 fun HomeNewsSection(
     homeNews: List<NewsItem>,
     activeNewsIndex: Int,
-    backdropState: Backdrop,
     onOpenNews: () -> Unit,
     onShowNews: (NewsItem) -> Unit,
     onNextNews: () -> Unit,
     onPreviousNews: () -> Unit,
 ) {
-    if (homeNews.isEmpty()) return
-
-    val safeActiveIndex = activeNewsIndex.coerceIn(0, homeNews.lastIndex)
-    val currentNews = homeNews[safeActiveIndex]
+    val effectiveNews = if (homeNews.isNotEmpty()) homeNews else UniAppInitialData.fallbackNews
+    val safeActiveIndex = activeNewsIndex.coerceIn(0, effectiveNews.lastIndex.coerceAtLeast(0))
+    val currentNews = effectiveNews[safeActiveIndex]
 
     Column(
         modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
@@ -442,14 +424,13 @@ fun HomeNewsSection(
     ) {
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_home_news_eyebrow),
-            subtitle = stringResource(Res.string.ui_home_news_page_notice, safeActiveIndex + 1, homeNews.size),
+            subtitle = stringResource(Res.string.ui_home_news_page_notice, safeActiveIndex + 1, effectiveNews.size),
             trailingContent = {
                 LiquidButton(
                     text = stringResource(Res.string.ui_home_news_all),
                     onClick = onOpenNews,
                     variant = LiquidButtonVariant.Text,
                     size = LiquidButtonSize.Small,
-                    backdropState = backdropState,
                 )
             },
         )
@@ -462,16 +443,11 @@ fun HomeNewsSection(
             modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
             label = "homeNewsSwitcher",
         ) { index ->
-            val newsItem = homeNews.getOrNull(index) ?: currentNews
-            LiquidStatusCard(
-                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-                title = newsItem.title,
-                description = newsItem.description,
-                statusType = newsItem.type,
-                backdropState = backdropState,
-                titleMaxLines = 1,
-                descriptionMaxLines = 2,
+            val newsItem = effectiveNews.getOrNull(index) ?: currentNews
+            UniNewsCard(
+                news = newsItem,
                 onClick = { onShowNews(newsItem) },
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
             )
         }
     }
@@ -481,7 +457,6 @@ fun HomeNewsSection(
 @Composable
 fun HomeQuickAccessSection(
     uiState: HomeDashboardUiState,
-    backdropState: Backdrop,
     onToggleCustomization: () -> Unit,
     onFinishCustomization: () -> Unit,
     onToggleQuickAction: (String) -> Unit,
@@ -504,7 +479,6 @@ fun HomeQuickAccessSection(
                     onClick = onToggleCustomization,
                     variant = if (uiState.isCustomizing) LiquidButtonVariant.Tonal else LiquidButtonVariant.Glass,
                     size = LiquidButtonSize.Small,
-                    backdropState = backdropState,
                 ) {
                     AnimatedContent(
                         targetState = uiState.isCustomizing,
@@ -548,8 +522,7 @@ fun HomeQuickAccessSection(
             if (isCustomizing) {
                 LiquidCard(
                     modifier = Modifier.graphicsLayer(clip = false),
-                    backdropState = backdropState,
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedRectangle(24.dp),
                     contentPadding = 20.dp,
                 ) {
                     Column(
@@ -581,7 +554,6 @@ fun HomeQuickAccessSection(
                                     onClick = { onToggleQuickAction(action.id) },
                                     leadingIcon = action.icon,
                                     trailingIcon = if (isSelected) LiquidIcons.Check else null,
-                                    backdropState = backdropState,
                                 )
                             }
                         }
@@ -591,7 +563,6 @@ fun HomeQuickAccessSection(
                             onClick = onFinishCustomization,
                             modifier = Modifier.fillMaxWidth(),
                             variant = LiquidButtonVariant.Primary,
-                            backdropState = backdropState,
                         )
                     }
                 }
@@ -616,8 +587,7 @@ fun HomeQuickAccessSection(
                                     modifier = Modifier
                                         .weight(1f)
                                         .graphicsLayer(clip = false),
-                                    backdropState = backdropState,
-                                    shape = RoundedCornerShape(20.dp),
+                                    shape = RoundedRectangle(20.dp),
                                     contentPadding = 16.dp,
                                     onClick = { onQuickActionClick(action.id) },
                                 ) {

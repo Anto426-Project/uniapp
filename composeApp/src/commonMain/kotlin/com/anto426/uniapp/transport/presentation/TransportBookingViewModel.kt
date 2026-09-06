@@ -8,6 +8,8 @@ import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBookingRequest
@@ -41,7 +43,7 @@ class TransportBookingViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val routes = dataSource.loadTransportData(force).availableRoutes
                 routesByLabel = routes.associateBy(TransportRouteData::label)
@@ -54,7 +56,7 @@ class TransportBookingViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare le linee."),
                 )
             }

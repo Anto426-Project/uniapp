@@ -151,21 +151,42 @@ class UniAccountStore(
         }
     }
 
-    internal suspend fun readPreference(accountId: String, key: String): String? {
-        val bytes = readCachedData(accountId, preferenceCacheKey(key)) ?: return null
-        return try {
-            bytes.decodeToString(throwOnInvalidSequence = true)
-        } finally {
-            bytes.fill(0)
+    /** Application-owned data that must exist independently from an authenticated account. */
+    internal suspend fun readApplicationData(key: String): ByteArray? =
+        lock.withLock {
+            storageManager.registry().getBytes(localDataKey(key))
+        }
+
+    internal suspend fun writeApplicationData(key: String, value: ByteArray) {
+        lock.withLock {
+            storageManager.registry().putBytes(localDataKey(key), value)
         }
     }
 
-    internal suspend fun writePreference(accountId: String, key: String, value: String) {
-        val bytes = value.encodeToByteArray()
-        try {
-            writeCachedData(accountId, preferenceCacheKey(key), bytes)
-        } finally {
-            bytes.fill(0)
+    internal suspend fun removeApplicationData(key: String) {
+        lock.withLock {
+            storageManager.registry().remove(localDataKey(key))
+        }
+    }
+
+    /** Account-owned data kept separate from credentials, sessions and response caches. */
+    internal suspend fun readAccountData(accountId: String, key: String): ByteArray? =
+        lock.withLock {
+            requireKnownAccount(loadRegistry(), accountId)
+            storageManager.vault(accountId).getBytes(localDataKey(key))
+        }
+
+    internal suspend fun writeAccountData(accountId: String, key: String, value: ByteArray) {
+        lock.withLock {
+            requireKnownAccount(loadRegistry(), accountId)
+            storageManager.vault(accountId).putBytes(localDataKey(key), value)
+        }
+    }
+
+    internal suspend fun removeAccountData(accountId: String, key: String) {
+        lock.withLock {
+            requireKnownAccount(loadRegistry(), accountId)
+            storageManager.vault(accountId).remove(localDataKey(key))
         }
     }
 
@@ -307,7 +328,15 @@ class UniAccountStore(
         return "cache.v1.$normalized"
     }
 
-    private fun preferenceCacheKey(key: String): String = "preference-$key"
+    private fun localDataKey(key: String): String {
+        val normalized = key.trim()
+        require(normalized.isNotEmpty()) { "Local data key cannot be blank" }
+        require(normalized.length <= 180) { "Local data key is too long" }
+        require(normalized.all { it.isLetterOrDigit() || it == '.' || it == '_' || it == '-' }) {
+            "Local data key contains unsupported characters"
+        }
+        return "local.v1.$normalized"
+    }
 
     private companion object {
         const val REGISTRY_SCHEMA_VERSION = 1

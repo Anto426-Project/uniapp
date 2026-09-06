@@ -111,3 +111,18 @@ data class SimulationItem(
     val isEnabled: Boolean = false,
     val isCustom: Boolean = false,
 )
+
+data class ThesisData(
+    val candidateName: String,
+    val thesisTitle: String? = null,
+    val relatore: String? = null,
+    val correlatore: String? = null,
+    val matricola: String? = null,
+    val cds: String? = null,
+    val date: String? = null,
+    val sede: String? = null,
+    val voto: String? = null,
+    val sessione: String? = null,
+    val extraFields: List<Pair<String, String>> = emptyList(),
+)
+

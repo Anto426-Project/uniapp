@@ -11,6 +11,7 @@ import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +49,7 @@ class ReservationDetailViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = ReservationDetailUiState(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare la prenotazione."),
                 )
             }
@@ -101,7 +102,7 @@ class TicketDetailViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = TicketDetailUiState(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare la linea."),
                 )
             }

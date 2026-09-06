@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.data.toNewsItems
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -40,7 +42,7 @@ class HomeDashboardViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.update { it.copy(loadState = FeatureLoadState.Loading, errorMessage = null) }
+            mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
             try {
                 if (account?.isProfessor == true) {
                     loadProfessorHome(force)
@@ -51,20 +53,23 @@ class HomeDashboardViewModel(
                     val career = async { dataSource.loadCareer(force) }
                     val taxes = async { dataSource.loadTaxes(force) }
                     val rounds = async { dataSource.loadExamRounds(force) }
-                    val news = async { dataSource.loadUniversityNews(force) }
+                    val news = async {
+                        runCatching { dataSource.loadUniversityNews(force) }.getOrDefault(emptyList())
+                    }
                     HomeSnapshot(student.await(), career.await(), taxes.await(), rounds.await(), news.await())
                 }
                 val targetCfu = snapshot.career.cfuTarget ?: 0
                 val acquiredCfu = snapshot.career.cfu.firstAcademicIntegerOrNull() ?: 0
                 val nextRound = snapshot.rounds.firstOrNull { it.open && !it.booked }
                 val nextTax = snapshot.taxes.unpaidInstallments.firstOrNull()
+                val newsItems = snapshot.news.toNewsItems().ifEmpty { UniAppInitialData.fallbackNews }
                 mutableUiState.update { current ->
                     current.copy(
                         profileName = snapshot.student.fullName,
                         matricola = snapshot.student.matricola.orEmpty(),
                         departmentName = snapshot.student.departmentName.orEmpty(),
                         profileInitials = snapshot.student.fullName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString(""),
-                        news = snapshot.news.toNewsItems(),
+                        news = newsItems,
                         degreeName = snapshot.student.degreeName ?: snapshot.career.status,
                         academicYear = snapshot.career.year,
                         acquiredCfu = acquiredCfu.toString(),
@@ -104,7 +109,9 @@ class HomeDashboardViewModel(
         val professor = checkNotNull(account)
         val snapshot = coroutineScope {
             val dashboard = async { dataSource.loadProfessorDashboard(force) }
-            val news = async { dataSource.loadUniversityNews(force) }
+            val news = async {
+                runCatching { dataSource.loadUniversityNews(force) }.getOrDefault(emptyList())
+            }
             dashboard.await() to news.await()
         }
         val (dashboard, news) = snapshot
@@ -112,6 +119,7 @@ class HomeDashboardViewModel(
             professor.profiles.firstOrNull { it.profileId == professor.activeProfileId }
                 ?: professor.profiles.firstOrNull { it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR }
         val firstRound = dashboard.examRounds.firstOrNull()
+        val newsItems = news.toNewsItems().ifEmpty { UniAppInitialData.fallbackNews }
         mutableUiState.update { current ->
             current.copy(
                 isProfessor = true,
@@ -119,7 +127,7 @@ class HomeDashboardViewModel(
                 matricola = professor.serverUserId,
                 departmentName = activeProfile?.departmentName.orEmpty(),
                 profileInitials = professor.displayName.initials(),
-                news = news.toNewsItems(),
+                news = newsItems,
                 degreeName = activeProfile?.departmentName.orEmpty(),
                 academicYear = "",
                 teachingCount = dashboard.teachings.size,

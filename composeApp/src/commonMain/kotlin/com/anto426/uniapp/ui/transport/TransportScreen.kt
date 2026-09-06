@@ -19,14 +19,12 @@ import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.transport.presentation.TransportUiState
 import com.anto426.uniapp.ui.components.items.TransportReservationItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun TransportScreen(
-    backdropState: Backdrop,
     uiState: TransportUiState,
     onReservationClick: (TransportReservation) -> Unit = {}
 ) {
@@ -35,8 +33,7 @@ fun TransportScreen(
             LiquidEmptyState(
                 title = stringResource(Res.string.ui_transport_empty_reservations),
                 description = stringResource(Res.string.ui_state_no_data),
-                icon = LiquidIcons.DirectionsBus,
-                backdropState = backdropState,
+                icon = LiquidIcons.Calendar,
             )
         } else {
             uiState.days.forEach { day ->
@@ -54,7 +51,6 @@ fun TransportScreen(
                     day.reservations.forEach { reservation ->
                         TransportReservationItem(
                             reservation = reservation,
-                            backdropState = backdropState,
                             onClick = { onReservationClick(reservation) }
                         )
                     }

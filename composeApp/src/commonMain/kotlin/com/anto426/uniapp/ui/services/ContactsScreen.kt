@@ -10,13 +10,11 @@ import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.services.presentation.ContactsUiState
 import com.anto426.uniapp.ui.components.items.ContactItem
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun ContactsScreen(
-    backdropState: Backdrop,
     uiState: ContactsUiState,
     onCategorySelected: (Int) -> Unit,
     onContactClick: (ContactData) -> Unit = {},
@@ -39,7 +37,6 @@ fun ContactsScreen(
                 items = tabs,
                 selectedIndex = uiState.selectedCategoryIndex,
                 onTabSelected = onCategorySelected,
-                backdropState = backdropState,
             )
         }
 
@@ -49,7 +46,6 @@ fun ContactsScreen(
                 LiquidEmptyState(
                     title = stringResource(Res.string.ui_contacts_empty_title),
                     description = stringResource(Res.string.ui_contacts_empty_desc),
-                    backdropState = backdropState,
                 )
             }
         } else if (uiState.selectedCategoryIndex == 0) {
@@ -61,7 +57,7 @@ fun ContactsScreen(
                     )
                 }
                 itemsIndexed(teachers, key = { index, item -> "teacher|${item.email}|${item.name}|$index" }) { _, contact ->
-                    ContactItem(contact, backdropState) { onContactClick(contact) }
+                    ContactItem(contact) { onContactClick(contact) }
                 }
             }
 
@@ -73,7 +69,7 @@ fun ContactsScreen(
                     )
                 }
                 itemsIndexed(secretariat, key = { index, item -> "secretariat|${item.email}|${item.name}|$index" }) { _, contact ->
-                    ContactItem(contact, backdropState) { onContactClick(contact) }
+                    ContactItem(contact) { onContactClick(contact) }
                 }
             }
 
@@ -85,7 +81,7 @@ fun ContactsScreen(
                     )
                 }
                 itemsIndexed(services, key = { index, item -> "service|${item.email}|${item.name}|$index" }) { _, contact ->
-                    ContactItem(contact, backdropState) { onContactClick(contact) }
+                    ContactItem(contact) { onContactClick(contact) }
                 }
             }
         } else {
@@ -101,7 +97,7 @@ fun ContactsScreen(
                 )
             }
             itemsIndexed(categoryFiltered, key = { index, item -> "filtered|${item.email}|${item.name}|$index" }) { _, contact ->
-                ContactItem(contact, backdropState) { onContactClick(contact) }
+                ContactItem(contact) { onContactClick(contact) }
             }
         }
     }

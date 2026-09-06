@@ -8,6 +8,8 @@ import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.backend.model.SurveyAnswerBodyDto
 import com.anto426.unisdk.backend.model.SurveyFirstPageData
@@ -55,7 +57,7 @@ class QuestionnaireDetailViewModel(
     fun refresh() {
         viewModelScope.launch {
             mutableUiState.update {
-                it.copy(loadState = FeatureLoadState.Loading, errorMessage = null, submitted = false)
+                it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null, submitted = false)
             }
             try {
                 val survey = dataSource.loadSurveyFirstPage(courseId, tagList)
@@ -74,7 +76,7 @@ class QuestionnaireDetailViewModel(
             } catch (error: Throwable) {
                 mutableUiState.update {
                     it.copy(
-                        loadState = FeatureLoadState.Error,
+                        loadState = mutableUiState.value.loadState.onRefreshFailure(),
                         errorMessage = error.userMessage("Impossibile caricare il questionario."),
                     )
                 }

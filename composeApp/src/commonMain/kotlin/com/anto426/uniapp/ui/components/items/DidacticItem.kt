@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,7 +26,6 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidBadgedBox
 import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun DidacticRow(item1: @Composable () -> Unit, item2: @Composable () -> Unit) {
@@ -41,15 +40,14 @@ fun DidacticItem(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    backdropState: Backdrop,
     badgeCount: Int? = null,
     iconColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    LiquidCard(modifier = Modifier.graphicsLayer(clip = false), backdropState = backdropState, shape = RoundedCornerShape(22.dp), contentPadding = 16.dp, onClick = onClick) {
+    LiquidCard(modifier = Modifier.graphicsLayer(clip = false), shape = RoundedRectangle(22.dp), contentPadding = 16.dp, onClick = onClick) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            LiquidBadgedBox(badge = { badgeCount?.let { LiquidBadge(count = it, backdropState = backdropState) } }) {
+            LiquidBadgedBox(badge = { badgeCount?.let { LiquidBadge(count = it) } }) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
@@ -58,7 +56,7 @@ fun DidacticItem(
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = iconColor.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
             }

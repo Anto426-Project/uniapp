@@ -15,11 +15,9 @@ import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.GraduationTargetTab
 import com.anto426.uniapp.ui.didactics.components.SimulationChartTab
 import com.anto426.uniapp.ui.didactics.components.SimulationTab
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun GradesScreen(
-    backdropState: Backdrop,
     uiState: GradesUiState,
     onTabSelected: (Int) -> Unit,
     onToggleSimulationItem: (String) -> Unit,
@@ -46,7 +44,6 @@ fun GradesScreen(
             items = tabs,
             selectedIndex = uiState.selectedTab,
             onTabSelected = onTabSelected,
-            backdropState = backdropState,
         )
 
         // 2. Tab Content
@@ -66,18 +63,15 @@ fun GradesScreen(
                     onSetAllGrades = onSetAllGrades,
                     onApplyCurrentAverage = onApplyCurrentAverage,
                     onResetSimulation = onResetSimulation,
-                    backdropState = backdropState,
                 )
                 1 -> GraduationTargetTab(
                     uiState = uiState,
                     onTargetDegreeChange = onTargetDegreeChanged,
                     onThesisPointsChange = onThesisPointsChanged,
                     onBonusPointsChange = onBonusPointsChanged,
-                    backdropState = backdropState,
                 )
                 else -> SimulationChartTab(
                     uiState = uiState,
-                    backdropState = backdropState,
                 )
             }
         }

@@ -11,6 +11,8 @@ import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.model.didactics.ExamSession
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.backend.model.ExamRoundData
 import com.anto426.unisdk.backend.model.ProfessorContentItem
@@ -56,7 +58,7 @@ class ExamsViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 if (account?.isProfessor == true) {
                     val rounds = dataSource.loadProfessorDashboard(force).examRounds
@@ -83,7 +85,7 @@ class ExamsViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare gli appelli."),
                     mutatingExamId = null,
                 )

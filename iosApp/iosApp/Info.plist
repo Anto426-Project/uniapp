@@ -4,6 +4,10 @@
 <dict>
 	<key>NSFaceIDUsageDescription</key>
 	<string>UniApp usa Face ID per autorizzare l’accesso alle credenziali universitarie salvate.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>UniApp richiede l'accesso alla fotocamera per scansionare i codici QR delle presenze e dei servizi universitari.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>UniApp richiede l'accesso alle foto per scansionare codici QR da immagini salvate.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UILaunchScreen</key>

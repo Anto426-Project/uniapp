@@ -74,6 +74,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.zscanner)
         }
 
         iosMain.dependencies {
@@ -87,3 +88,44 @@ kotlin {
         }
     }
 }
+
+// Capture the checked-out modules, including local changes, instead of dependency aliases.
+val moduleNames = listOf("liquid-monet", "uni-sdk", "secure-storage-sdk", "firebase-connector-sdk")
+val moduleMetadata = moduleNames.map { name ->
+    val moduleDir = rootProject.file("libs/$name")
+    val declaredVersion = Regex("""version\s*=\s*"([^"]+)"""")
+        .find(providers.fileContents(rootProject.layout.projectDirectory.file("libs/$name/build.gradle.kts")).asText.get())
+        ?.groupValues?.get(1) ?: "unknown"
+    val revision = providers.exec { commandLine("git", "-C", moduleDir.absolutePath, "rev-parse", "HEAD") }.standardOutput.asText.get().trim()
+    val dirty = providers.exec { commandLine("git", "-C", moduleDir.absolutePath, "status", "--porcelain", "--untracked-files=normal") }.standardOutput.asText.get().isNotBlank()
+    listOf(name, declaredVersion, revision, dirty.toString())
+}
+val sourceRevision = providers.exec {
+    commandLine("git", "-C", rootProject.projectDir.absolutePath, "rev-parse", "HEAD")
+}.standardOutput.asText.map { it.trim() }
+val appStoreUrl = providers.environmentVariable("UNIAPP_APP_STORE_URL").orElse("")
+val generateAppBuildMetadata = tasks.register("generateAppBuildMetadata") {
+    val output = layout.buildDirectory.dir("generated/appInfo/commonMain")
+    inputs.property("modules", moduleMetadata)
+    inputs.property("revision", sourceRevision)
+    inputs.property("appStoreUrl", appStoreUrl)
+    outputs.dir(output)
+    doLast {
+        fun literal(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$").replace("\n", "\\n").replace("\r", "\\r") + "\""
+        val modules = (inputs.properties["modules"] as List<List<String>>).joinToString(",\n") { values ->
+            "AppModuleInfo(${literal(values[0])}, ${literal(values[1])}, ${literal(values[2])}, ${values[3]})"
+        }
+        val target = output.get().file("com/anto426/uniapp/app/info/AppBuildMetadata.kt").asFile
+        target.parentFile.mkdirs()
+        target.writeText("""
+            package com.anto426.uniapp.app.info
+            import com.anto426.unisdk.platform.AppModuleInfo
+            internal object AppBuildMetadata {
+                const val sourceRevision = ${literal(inputs.properties["revision"].toString())}
+                const val appStoreUrl = ${literal(inputs.properties["appStoreUrl"].toString())}
+                val modules = listOf($modules)
+            }
+        """.trimIndent())
+    }
+}
+kotlin.sourceSets.commonMain { kotlin.srcDir(generateAppBuildMetadata) }

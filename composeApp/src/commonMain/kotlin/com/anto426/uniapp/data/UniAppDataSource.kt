@@ -65,8 +65,6 @@ interface UniAppDataSource {
     suspend fun loadTransportData(forceRefresh: Boolean = false): TransportData
     suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult
     suspend fun deleteTransportBooking(bookingId: String): TransportActionResult
-    suspend fun readPreference(key: String): String?
-    suspend fun writePreference(key: String, value: String)
 }
 
 data class UniAppCachePolicy(val maxAgeMillis: Long) {
@@ -113,23 +111,23 @@ class SessionUniAppDataSource(
     private val memoryCacheGuard = Mutex()
     private val memoryCache = mutableMapOf<String, CachedValue<Any?>>()
 
-    private fun activeAccountId(): String =
-        fixedAccountId
-            ?: (sessions.state.value as? AppSessionState.Authenticated)?.account?.accountId
-            ?: error("Nessuna sessione universitaria attiva.")
-
-    private fun activeProfileId(): String =
-        fixedProfileId
-            ?: (sessions.state.value as? AppSessionState.Authenticated)?.account?.activeProfileId
-            ?: "default"
-
-    private fun profileScopedKey(key: String): String =
-        "profile-${activeProfileId().hashCode().toUInt().toString(16)}-$key"
+    private fun ActiveAccountContext.profileScopedKey(key: String): String =
+        "profile-${(sessionState.account.activeProfileId ?: "default").hashCode().toUInt().toString(16)}-$key"
 
     private fun activeContext(): ActiveAccountContext {
-        val accountId = activeAccountId()
-        val client = checkNotNull(sessions.accountClient(accountId)) { "La sessione dell'account non è più attiva." }
-        return ActiveAccountContext(accountId, client)
+        val sessionState = sessions.state.value as? AppSessionState.Authenticated
+            ?: throw CancellationException("The data request no longer has an authenticated owner")
+        val account = sessionState.account
+        requireDataRequestOwner(account.accountId, account.activeProfileId, fixedAccountId, fixedProfileId)
+        val client = sessions.accountClient(account.accountId)
+            ?: throw CancellationException("The data request belongs to an inactive session")
+        return ActiveAccountContext(account.accountId, client, sessionState)
+    }
+
+    private fun ensureCurrent(context: ActiveAccountContext) {
+        if (sessions.state.value !== context.sessionState) {
+            throw CancellationException("The account or profile changed while loading data")
+        }
     }
 
     override suspend fun loadCareer(forceRefresh: Boolean): CareerData =
@@ -166,14 +164,14 @@ class SessionUniAppDataSource(
     override suspend fun bookExamRound(round: ExamRoundData): String {
         val context = activeContext()
         return context.client.bookExamRound(round).also {
-            invalidate(context.accountId, profileScopedKey("exam-rounds"))
+            invalidate(context.accountId, context.profileScopedKey("exam-rounds"))
         }
     }
 
     override suspend fun cancelExamRound(round: ExamRoundData): String {
         val context = activeContext()
         return context.client.cancelExamRound(round).also {
-            invalidate(context.accountId, profileScopedKey("exam-rounds"))
+            invalidate(context.accountId, context.profileScopedKey("exam-rounds"))
         }
     }
 
@@ -190,17 +188,28 @@ class SessionUniAppDataSource(
     override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray =
         activeContext().let { context ->
             requestLock(context.accountId, "profile-image").withLock {
+                ensureCurrent(context)
                 val cached = accounts.readProfileImage(context.accountId, source)
+                ensureCurrent(context)
                 if (!forceRefresh && cached != null && nowMillis() - cached.savedAtMillis <= UniAppCachePolicies.ProfileImage.maxAgeMillis) {
                     return@withLock cached.bytes
                 }
                 try {
                     context.client.loadProfileImage(source).also { bytes ->
-                        accounts.writeProfileImage(context.accountId, source, nowMillis(), bytes)
+                        ensureCurrent(context)
+                        try {
+                            accounts.writeProfileImage(context.accountId, source, nowMillis(), bytes)
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (_: Exception) {
+                            // Keep the downloaded image usable even when persistence fails.
+                        }
+                        ensureCurrent(context)
                     }
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Throwable) {
+                    ensureCurrent(context)
                     cached?.bytes ?: throw error
                 }
             }
@@ -217,14 +226,14 @@ class SessionUniAppDataSource(
     override suspend fun disconnectDevice(targetToken: String): String {
         val context = activeContext()
         return context.client.disconnectDevice(targetToken).also {
-            invalidate(context.accountId, profileScopedKey("connected-devices"))
+            invalidate(context.accountId, context.profileScopedKey("connected-devices"))
         }
     }
 
     override suspend fun disconnectAllOtherDevices(): String {
         val context = activeContext()
         return context.client.disconnectAllOtherDevices().also {
-            invalidate(context.accountId, profileScopedKey("connected-devices"))
+            invalidate(context.accountId, context.profileScopedKey("connected-devices"))
         }
     }
 
@@ -249,7 +258,7 @@ class SessionUniAppDataSource(
             deviceLongitude = deviceLongitude,
             deviceAccuracyMeters = deviceAccuracyMeters,
         ).also {
-            invalidate(context.accountId, profileScopedKey("attendance"))
+            invalidate(context.accountId, context.profileScopedKey("attendance"))
         }
     }
 
@@ -283,7 +292,7 @@ class SessionUniAppDataSource(
     override suspend fun saveSurvey(courseId: String, request: SurveySaveRequest): String {
         val context = activeContext()
         return context.client.saveSurvey(courseId, request).also {
-            invalidate(context.accountId, profileScopedKey("survey-courses"))
+            invalidate(context.accountId, context.profileScopedKey("survey-courses"))
         }
     }
 
@@ -306,23 +315,15 @@ class SessionUniAppDataSource(
     override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
         val context = activeContext()
         return context.client.bookTransport(request).also {
-            invalidate(context.accountId, profileScopedKey("transport-data"))
+            invalidate(context.accountId, context.profileScopedKey("transport-data"))
         }
     }
 
     override suspend fun deleteTransportBooking(bookingId: String): TransportActionResult {
         val context = activeContext()
         return context.client.deleteTransportBooking(bookingId).also {
-            invalidate(context.accountId, profileScopedKey("transport-data"))
+            invalidate(context.accountId, context.profileScopedKey("transport-data"))
         }
-    }
-
-    override suspend fun readPreference(key: String): String? {
-        return accounts.readPreference(activeAccountId(), key)
-    }
-
-    override suspend fun writePreference(key: String, value: String) {
-        accounts.writePreference(activeAccountId(), key, value)
     }
 
     private suspend fun <T> cached(
@@ -332,19 +333,36 @@ class SessionUniAppDataSource(
         forceRefresh: Boolean,
         fetch: suspend (UniAccountClient) -> T,
     ): T {
+        val requestStartedAt = nowMillis()
         val context = activeContext()
         val accountId = context.accountId
-        val scopedKey = profileScopedKey(key)
+        val scopedKey = context.profileScopedKey(key)
         return requestLock(accountId, scopedKey).withLock {
+            ensureCurrent(context)
             val cached = readEntry(accountId, scopedKey, serializer)
-            if (!forceRefresh && cached != null && nowMillis() - cached.savedAtMillis <= policy.maxAgeMillis) {
+            ensureCurrent(context)
+            if (cached != null && nowMillis() - cached.savedAtMillis in 0..policy.maxAgeMillis &&
+                (!forceRefresh || cached.savedAtMillis > requestStartedAt)
+            ) {
                 return@withLock cached.value
             }
             try {
-                fetch(context.client).also { value -> writeEntry(accountId, scopedKey, serializer, value) }
+                val value = fetch(context.client)
+                ensureCurrent(context)
+                // A disk write failure must not replace a successful response with stale data.
+                try {
+                    writeEntry(accountId, scopedKey, serializer, value)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    // The response is still available in the process cache.
+                }
+                ensureCurrent(context)
+                value
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
+                ensureCurrent(context)
                 cached?.value ?: throw error
             }
         }
@@ -368,7 +386,9 @@ class SessionUniAppDataSource(
                         CachedValue(entry.savedAtMillis, entry.value)
                 }
             }
-        } catch (_: Throwable) {
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: kotlinx.serialization.SerializationException) {
             accounts.removeCachedData(accountId, key)
             null
         } finally {
@@ -378,13 +398,13 @@ class SessionUniAppDataSource(
 
     private suspend fun <T> writeEntry(accountId: String, key: String, serializer: KSerializer<T>, value: T) {
         val savedAtMillis = nowMillis()
+        memoryCacheGuard.withLock {
+            memoryCache[cacheIdentity(accountId, key)] = CachedValue(savedAtMillis, value)
+        }
         val envelope = CacheEnvelope(CACHE_SCHEMA_VERSION, savedAtMillis, json.encodeToString(serializer, value))
         val bytes = json.encodeToString(CacheEnvelope.serializer(), envelope).encodeToByteArray()
         try {
             accounts.writeCachedData(accountId, key, bytes)
-            memoryCacheGuard.withLock {
-                memoryCache[cacheIdentity(accountId, key)] = CachedValue(savedAtMillis, value)
-            }
         } finally {
             bytes.fill(0)
         }
@@ -398,7 +418,11 @@ class SessionUniAppDataSource(
     private fun cacheIdentity(accountId: String, key: String): String = "$accountId|$key"
 
     private data class CachedValue<T>(val savedAtMillis: Long, val value: T)
-    private data class ActiveAccountContext(val accountId: String, val client: UniAccountClient)
+    private data class ActiveAccountContext(
+        val accountId: String,
+        val client: UniAccountClient,
+        val sessionState: AppSessionState.Authenticated,
+    )
 
     @Serializable
     private data class CacheEnvelope(val schemaVersion: Int, val savedAtMillis: Long, val payload: String)

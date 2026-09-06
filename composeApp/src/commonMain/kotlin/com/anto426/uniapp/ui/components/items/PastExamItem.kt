@@ -25,12 +25,11 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.PastExam
 import com.anto426.uniapp.model.didactics.PastExamStatus
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
-fun PastExamItem(exam: PastExam, backdropState: Backdrop) {
+fun PastExamItem(exam: PastExam) {
     var isExpanded by rememberSaveable(exam.id) { mutableStateOf(false) }
     val colorScheme = MaterialTheme.colorScheme
     val isVerbalized = exam.status == PastExamStatus.VERBALIZED
@@ -57,7 +56,6 @@ fun PastExamItem(exam: PastExam, backdropState: Backdrop) {
         leadingIcon = if (isVerbalized) LiquidIcons.Check else LiquidIcons.Calendar,
         isExpanded = isExpanded,
         onExpandedChange = { isExpanded = it },
-        backdropState = backdropState
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (!exam.professor.isNullOrBlank() || exam.grade.isNotBlank()) {
@@ -74,7 +72,6 @@ fun PastExamItem(exam: PastExam, backdropState: Backdrop) {
                             LiquidAvatar(
                                 initials = exam.professor.split(" ").filter(String::isNotEmpty).map { it.first() }.joinToString("").take(2),
                                 size = 36.dp,
-                                backdropState = backdropState
                             )
                             Column {
                                 Text(
@@ -99,7 +96,6 @@ fun PastExamItem(exam: PastExam, backdropState: Backdrop) {
                             text = "${stringResource(Res.string.ui_exam_grade)} ${exam.grade}",
                             containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
                             contentColor = colorScheme.primary,
-                            backdropState = backdropState
                         )
                     }
                 }

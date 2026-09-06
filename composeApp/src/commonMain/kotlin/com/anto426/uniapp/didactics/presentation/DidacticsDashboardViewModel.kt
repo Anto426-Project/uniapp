@@ -7,6 +7,7 @@ import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -52,7 +53,7 @@ class DidacticsDashboardViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.update { it.copy(loadState = FeatureLoadState.Loading, errorMessage = null) }
+            mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
             try {
                 if (account?.isProfessor == true) {
                     val professor = checkNotNull(account)

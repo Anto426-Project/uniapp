@@ -8,7 +8,9 @@ import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.info
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.session.model.AppSessionState
+import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +23,12 @@ class AccountSwitcherViewModel(
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(AccountSwitcherUiState())
     val uiState: StateFlow<AccountSwitcherUiState> = mutableUiState.asStateFlow()
+    private var refreshJob: Job? = null
 
     init {
-        refresh()
+        viewModelScope.launch {
+            sessionController.accountsRevision.collect { refresh() }
+        }
         viewModelScope.launch {
             sessionController.state.collect { state ->
                 val activeAccount = (state as? AppSessionState.Authenticated)?.account
@@ -43,7 +48,8 @@ class AccountSwitcherViewModel(
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             mutableUiState.update { it.copy(isLoading = true, errorMessage = null) }
             mutableUiState.value =
                 try {
@@ -56,7 +62,7 @@ class AccountSwitcherViewModel(
                         snapshot.mapNotNull { account ->
                             sessionController.cachedProfileImage(account)?.let { account.accountId to it }
                         }.toMap()
-                    AccountSwitcherUiState(
+                    mutableUiState.value.copy(
                         accounts = snapshot,
                         activeAccountId = activeId,
                         profileImages = profileImages,
@@ -75,6 +81,7 @@ class AccountSwitcherViewModel(
 
     fun selectAccount(accountId: String) {
         val current = mutableUiState.value
+        if (current.isRemovingAccount || current.pendingRemovalAccountId != null) return
         if (accountId == current.activeAccountId || current.activatingAccountId != null) return
 
         viewModelScope.launch {
@@ -127,6 +134,7 @@ class AccountSwitcherViewModel(
     }
 
     fun selectProfile(profileId: String) {
+        if (mutableUiState.value.isRemovingAccount || mutableUiState.value.pendingRemovalAccountId != null) return
         val currentAccount =
             mutableUiState.value.accounts.firstOrNull {
                 it.accountId == mutableUiState.value.activeAccountId
@@ -173,7 +181,47 @@ class AccountSwitcherViewModel(
     }
 
     fun addAccount() {
+        if (mutableUiState.value.isRemovingAccount) return
         toastSink.info("Accedi con il nuovo account.")
         viewModelScope.launch { sessionController.signOut() }
+    }
+
+    fun requestAccountRemoval(accountId: String) {
+        val current = mutableUiState.value
+        if (current.isRemovingAccount || current.activatingAccountId != null || current.activatingProfileId != null) return
+        if (current.accounts.none { it.accountId == accountId }) return
+        mutableUiState.update { it.copy(pendingRemovalAccountId = accountId) }
+    }
+
+    fun dismissAccountRemoval() {
+        if (!mutableUiState.value.isRemovingAccount) {
+            mutableUiState.update { it.copy(pendingRemovalAccountId = null) }
+        }
+    }
+
+    fun confirmAccountRemoval(authenticator: BiometricAuthenticator) {
+        val accountId = mutableUiState.value.pendingRemovalAccountId ?: return
+        if (mutableUiState.value.isRemovingAccount) return
+        mutableUiState.update { it.copy(isRemovingAccount = true) }
+        viewModelScope.launch {
+            try {
+                if (sessionController.removeAccount(accountId, authenticator)) {
+                    mutableUiState.update {
+                        it.copy(
+                            accounts = it.accounts.filterNot { account -> account.accountId == accountId },
+                            profileImages = it.profileImages - accountId,
+                            pendingRemovalAccountId = null,
+                        )
+                    }
+                    toastSink.success("Account rimosso dal dispositivo.")
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                toastSink.error("Impossibile completare la rimozione dell’account.")
+            } finally {
+                mutableUiState.update { it.copy(isRemovingAccount = false) }
+            }
+        }
     }
 }

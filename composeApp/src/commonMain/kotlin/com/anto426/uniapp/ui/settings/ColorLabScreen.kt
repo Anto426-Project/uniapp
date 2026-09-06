@@ -20,11 +20,9 @@ import com.anto426.liquidmonet.components.pickers.LiquidColorPicker
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.settings.presentation.ColorLabUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ColorLabScreen(
-    backdropState: Backdrop,
     uiState: ColorLabUiState,
     onColorSelected: (androidx.compose.ui.graphics.Color) -> Unit,
 ) {
@@ -35,13 +33,12 @@ fun ColorLabScreen(
         LiquidColorPicker(
             selectedColor = uiState.selectedColor,
             onColorSelected = onColorSelected,
-            backdropState = backdropState
         )
 
         Spacer(Modifier.height(16.dp))
 
         // 2. Info Section
-        LiquidPreferenceGroup(backdropState = backdropState) {
+        LiquidPreferenceGroup {
             Text(
                 text = stringResource(Res.string.ui_colors_info),
                 style = MaterialTheme.typography.bodySmall,

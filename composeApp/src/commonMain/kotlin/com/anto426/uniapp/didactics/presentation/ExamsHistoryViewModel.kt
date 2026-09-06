@@ -7,6 +7,8 @@ import com.anto426.uniapp.data.stableUiId
 import com.anto426.uniapp.model.didactics.PastExam
 import com.anto426.uniapp.model.didactics.PastExamStatus
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.backend.model.CareerExamData
 import com.anto426.unisdk.backend.model.ExamRoundData
@@ -42,7 +44,7 @@ class ExamsHistoryViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val snapshot = coroutineScope {
                     val career = async { dataSource.loadCareer(force) }
@@ -60,7 +62,7 @@ class ExamsHistoryViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare lo storico esami."),
                 )
             }

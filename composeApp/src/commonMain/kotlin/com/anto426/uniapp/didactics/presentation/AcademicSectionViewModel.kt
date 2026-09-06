@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.backend.model.ProfessorContentItem
 import kotlinx.coroutines.CancellationException
@@ -51,7 +53,7 @@ class AcademicSectionViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.update { it.copy(loadState = FeatureLoadState.Loading, errorMessage = null) }
+            mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
             try {
                 val dashboard = dataSource.loadProfessorDashboard(force)
                 val items =
@@ -72,7 +74,7 @@ class AcademicSectionViewModel(
             } catch (error: Throwable) {
                 mutableUiState.update {
                     it.copy(
-                        loadState = FeatureLoadState.Error,
+                        loadState = mutableUiState.value.loadState.onRefreshFailure(),
                         errorMessage = error.userMessage("Impossibile caricare i dati della docenza."),
                     )
                 }

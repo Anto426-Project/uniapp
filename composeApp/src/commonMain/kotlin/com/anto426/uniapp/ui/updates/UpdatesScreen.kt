@@ -15,24 +15,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
+import com.anto426.liquidmonet.components.cards.LiquidPreferenceDropdown
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun UpdatesScreen(
-    backdropState: Backdrop,
     uiState: AppUpdateUiState,
     onRetry: () -> Unit,
     onOpenUpdate: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onSelectChannel: (String) -> Unit = {},
 ) {
     UniScreenColumn {
         // 1. New High-Fidelity App Update Banner
         UniAppUpdateBanner(
-            backdropState = backdropState,
             state = uiState.bannerState,
             version = uiState.displayedVersion,
             title = stringResource(Res.string.ui_app_name),
@@ -40,30 +39,32 @@ fun UpdatesScreen(
             statusText = uiState.statusText,
             channel = uiState.channel,
             onDownload = onOpenUpdate,
+            canDownload = uiState.canOpenUpdate,
+            progress = uiState.progress,
+            downloadedMb = uiState.downloadedMb,
+            totalMb = uiState.totalMb,
             onRetry = onRetry,
         )
 
         Spacer(Modifier.height(8.dp))
 
         // 2. Software Version Group (Settings Style)
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_software_version), backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_software_version)) {
             LiquidPreferenceItem(
                 title = "${stringResource(Res.string.ui_app_name)} ${uiState.installedVersion}".trim(),
                 subtitle = uiState.errorMessage ?: uiState.statusText ?: stringResource(Res.string.ui_system_updated),
                 icon = LiquidIcons.Info,
-                backdropState = backdropState
             )
 
-            uiState.releaseNotes?.takeIf { it.isNotBlank() }?.let { notes ->
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-                LiquidPreferenceItem(
-                    title = if (uiState.isMandatory) stringResource(Res.string.ui_update_mandatory) else stringResource(Res.string.ui_update_news),
-                    subtitle = notes,
-                    icon = if (uiState.isMandatory) LiquidIcons.Warning else LiquidIcons.Refresh,
-                    backdropState = backdropState,
-                    onClick = onOpenUpdate.takeIf { uiState.canOpenUpdate },
-                )
-            }
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+
+            LiquidPreferenceDropdown(
+                title = stringResource(Res.string.ui_update_channel),
+                selectedItem = uiState.channel,
+                items = if (uiState.isBusy || uiState.isMandatory) listOf(uiState.channel) else listOf("Stabile", "Beta"),
+                onItemSelected = onSelectChannel,
+                icon = LiquidIcons.Refresh,
+            )
 
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
 
@@ -71,16 +72,7 @@ fun UpdatesScreen(
                 title = stringResource(Res.string.ui_changelog),
                 subtitle = stringResource(Res.string.ui_changelog_subtitle),
                 icon = LiquidIcons.Star,
-                backdropState = backdropState,
                 onClick = onOpenChangelog,
-                trailingContent = {
-                    Icon(
-                        imageVector = LiquidIcons.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             )
         }
     }

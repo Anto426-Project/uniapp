@@ -36,6 +36,4 @@ open class FakeUniAppDataSource : UniAppDataSource {
     override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData("", bookings = emptyList(), totalCount = 0)
     override suspend fun bookTransport(request: TransportBookingRequest) = TransportActionResult.Completed
     override suspend fun deleteTransportBooking(bookingId: String) = TransportActionResult.Completed
-    override suspend fun readPreference(key: String): String? = null
-    override suspend fun writePreference(key: String, value: String) = Unit
 }

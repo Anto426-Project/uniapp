@@ -1,12 +1,13 @@
 package com.anto426.uniapp.ui.components.state
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
+import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.liquidmonet.components.display.LiquidEmptyState
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
-
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -14,13 +15,18 @@ import uniapp.composeapp.generated.resources.*
 fun FeatureStateContent(
     state: FeatureLoadState,
     errorMessage: String?,
-    backdropState: Backdrop,
     onRetry: () -> Unit,
     emptyMessage: String = "",
     content: @Composable () -> Unit,
 ) {
+    val toastSink = LocalAppToastSink.current
+    LaunchedEffect(state, errorMessage) {
+        if (state == FeatureLoadState.Content && !errorMessage.isNullOrBlank()) {
+            toastSink.warning(errorMessage)
+        }
+    }
     when (state) {
-        FeatureLoadState.Loading -> AppLoadingState(backdropState = backdropState)
+        FeatureLoadState.Loading -> AppLoadingState()
 
         FeatureLoadState.Error ->
             UniScreenColumn {
@@ -30,7 +36,6 @@ fun FeatureStateContent(
                     icon = LiquidIcons.Warning,
                     actionButtonText = stringResource(Res.string.ui_retry),
                     onActionClick = onRetry,
-                    backdropState = backdropState,
                 )
             }
 
@@ -38,8 +43,9 @@ fun FeatureStateContent(
             UniScreenColumn {
                 LiquidEmptyState(
                     title = stringResource(Res.string.ui_state_empty_content),
-                    description = emptyMessage.ifBlank { stringResource(Res.string.ui_state_no_data) },
-                    backdropState = backdropState,
+                    description = errorMessage ?: emptyMessage.ifBlank { stringResource(Res.string.ui_state_no_data) },
+                    actionButtonText = if (errorMessage != null) stringResource(Res.string.ui_retry) else null,
+                    onActionClick = if (errorMessage != null) onRetry else null,
                 )
             }
 

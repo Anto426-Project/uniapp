@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,16 +29,15 @@ import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.didactics.presentation.toAcademicDetailFields
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.backend.model.ProfessorContentItem
 import com.anto426.unisdk.backend.model.ProfessorExamBooking
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 internal fun ProfessorExamDetailContent(
-    backdropState: Backdrop,
     item: ProfessorContentItem,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
@@ -73,8 +72,7 @@ internal fun ProfessorExamDetailContent(
         // 1. HERO HEADER CARD
         // ==========================================
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
         ) {
             Column(
@@ -91,7 +89,6 @@ internal fun ProfessorExamDetailContent(
                         text = stringResource(Res.string.ui_professor_exam_round_tag),
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
 
                     item.code?.takeIf(String::isNotBlank)?.let { code ->
@@ -99,7 +96,6 @@ internal fun ProfessorExamDetailContent(
                             text = code,
                             containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                             contentColor = colorScheme.primary,
-                            backdropState = backdropState,
                         )
                     }
                 }
@@ -161,16 +157,15 @@ internal fun ProfessorExamDetailContent(
             items = tabs,
             selectedIndex = selectedTab.coerceIn(0, tabs.lastIndex),
             onTabSelected = onTabSelected,
-            backdropState = backdropState,
         )
 
         // ==========================================
         // 3. TAB CONTENT
         // ==========================================
         when (selectedTab.coerceIn(0, tabs.lastIndex)) {
-            0 -> ProfessorBookingsTabContent(backdropState = backdropState, item = item)
-            1 -> ProfessorCommissionTabContent(backdropState = backdropState, item = item)
-            else -> ProfessorSessionInfoTabContent(backdropState = backdropState, item = item)
+            0 -> ProfessorBookingsTabContent(item = item)
+            1 -> ProfessorCommissionTabContent(item = item)
+            else -> ProfessorSessionInfoTabContent(item = item)
         }
     }
 }
@@ -209,7 +204,6 @@ private fun ProfessorHeroStatTile(
 
 @Composable
 private fun ProfessorBookingsTabContent(
-    backdropState: Backdrop,
     item: ProfessorContentItem,
 ) {
     if (item.bookings.isEmpty()) {
@@ -217,13 +211,11 @@ private fun ProfessorBookingsTabContent(
             title = stringResource(Res.string.ui_professor_no_bookings),
             description = stringResource(Res.string.ui_professor_no_bookings_description),
             icon = LiquidIcons.AccountCircle,
-            backdropState = backdropState,
         )
     } else {
         val colorScheme = MaterialTheme.colorScheme
         LiquidPreferenceGroup(
             title = "${stringResource(Res.string.ui_professor_bookings)} (${item.bookings.size})",
-            backdropState = backdropState,
         ) {
             item.bookings.forEach { booking ->
                 LiquidPreferenceItem(
@@ -232,14 +224,12 @@ private fun ProfessorBookingsTabContent(
                         stringResource(Res.string.ui_professor_student_matricola_format, it)
                     } ?: stringResource(Res.string.ui_professor_student_registered_fallback),
                     icon = LiquidIcons.AccountCircle,
-                    backdropState = backdropState,
                     trailingContent = {
                         booking.grade?.takeIf(String::isNotBlank)?.let { grade ->
                             LiquidBadge(
                                 text = grade,
                                 containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                                 contentColor = colorScheme.primary,
-                                backdropState = backdropState,
                             )
                         }
                     },
@@ -251,7 +241,6 @@ private fun ProfessorBookingsTabContent(
 
 @Composable
 private fun ProfessorCommissionTabContent(
-    backdropState: Backdrop,
     item: ProfessorContentItem,
 ) {
     if (item.commission.isEmpty()) {
@@ -259,19 +248,16 @@ private fun ProfessorCommissionTabContent(
             title = stringResource(Res.string.ui_professor_no_commission),
             description = stringResource(Res.string.ui_professor_no_commission_description),
             icon = LiquidIcons.AccountCircle,
-            backdropState = backdropState,
         )
     } else {
         LiquidPreferenceGroup(
             title = "${stringResource(Res.string.ui_professor_commission)} (${item.commission.size})",
-            backdropState = backdropState,
         ) {
             item.commission.forEach { member ->
                 LiquidPreferenceItem(
                     title = member.displayName,
                     subtitle = member.role?.takeIf(String::isNotBlank) ?: stringResource(Res.string.ui_professor_examiner_role_fallback),
                     icon = LiquidIcons.AccountCircle,
-                    backdropState = backdropState,
                 )
             }
         }
@@ -280,7 +266,6 @@ private fun ProfessorCommissionTabContent(
 
 @Composable
 private fun ProfessorSessionInfoTabContent(
-    backdropState: Backdrop,
     item: ProfessorContentItem,
 ) {
     val rawFields =
@@ -306,19 +291,16 @@ private fun ProfessorSessionInfoTabContent(
             title = stringResource(Res.string.ui_details_none_title),
             description = stringResource(Res.string.ui_professor_exam_details_none_desc),
             icon = LiquidIcons.Info,
-            backdropState = backdropState,
         )
     } else {
         LiquidPreferenceGroup(
             title = stringResource(Res.string.ui_professor_exam_round_tab),
-            backdropState = backdropState,
         ) {
             fields.forEach { (label, value) ->
                 LiquidPreferenceItem(
                     title = label,
                     subtitle = value,
                     icon = LiquidIcons.Info,
-                    backdropState = backdropState,
                 )
             }
         }

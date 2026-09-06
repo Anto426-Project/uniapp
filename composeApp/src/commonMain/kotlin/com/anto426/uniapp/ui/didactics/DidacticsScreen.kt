@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,13 +28,13 @@ import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
 import com.anto426.uniapp.ui.components.items.DidacticItem
 import com.anto426.uniapp.ui.components.items.DidacticRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
+import com.anto426.uniapp.ui.didactics.components.ProfessorDidacticsContent
+import com.anto426.uniapp.ui.didactics.components.YearProgress
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun DidacticsScreen(
-    backdropState: Backdrop,
     uiState: DidacticsDashboardUiState,
     onOpenTaxes: () -> Unit = {},
     onOpenGrades: () -> Unit = {},
@@ -55,7 +55,6 @@ fun DidacticsScreen(
 
     if (uiState.isProfessor) {
         ProfessorDidacticsContent(
-            backdropState = backdropState,
             uiState = uiState,
             onOpenTeachings = onOpenTeachings,
             onOpenExams = onOpenExams,
@@ -70,8 +69,7 @@ fun DidacticsScreen(
     UniScreenColumn {
         // 1. Academic Degree Header Card - Semplificata e Pulita
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
             onClick = onOpenStatistics,
         ) {
@@ -107,7 +105,6 @@ fun DidacticsScreen(
                         },
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState
                     )
                 }
 
@@ -143,7 +140,6 @@ fun DidacticsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     LiquidLinearProgressIndicator(
                         progress = uiState.progress,
-                        backdropState = backdropState
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -183,7 +179,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_transcript),
                         subtitle = stringResource(Res.string.ui_didactics_transcript_sub),
                         icon = LiquidIcons.MenuBook,
-                        backdropState = backdropState,
                         onClick = onOpenTranscripts
                     )
                 },
@@ -192,7 +187,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_study_plan),
                         subtitle = stringResource(Res.string.ui_didactics_study_plan_sub),
                         icon = LiquidIcons.Assignment,
-                        backdropState = backdropState,
                         onClick = onOpenStudyPlan
                     )
                 }
@@ -204,7 +198,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_didactics_taxes_title),
                         subtitle = stringResource(Res.string.ui_didactics_taxes_sub),
                         icon = LiquidIcons.CreditCard,
-                        backdropState = backdropState,
                         onClick = onOpenTaxes
                     )
                 },
@@ -213,7 +206,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_didactics_grades_title),
                         subtitle = stringResource(Res.string.ui_didactics_grades_sub),
                         icon = LiquidIcons.Analytics,
-                        backdropState = backdropState,
                         onClick = onOpenGrades
                     )
                 }
@@ -238,7 +230,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_didactics_exams_title),
                         subtitle = stringResource(Res.string.ui_didactics_exams_sub),
                         icon = LiquidIcons.Calendar,
-                        backdropState = backdropState,
                         badgeCount = uiState.openExamRounds.takeIf { it > 0 },
                         onClick = onOpenExams
                     )
@@ -248,7 +239,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_didactics_attendance_title),
                         subtitle = stringResource(Res.string.ui_didactics_attendance_sub),
                         icon = LiquidIcons.QrCode,
-                        backdropState = backdropState,
                         onClick = onOpenAttendance
                     )
                 }
@@ -260,7 +250,6 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_didactics_questionnaires_title),
                         subtitle = stringResource(Res.string.ui_didactics_questionnaires_sub),
                         icon = LiquidIcons.Feedback,
-                        backdropState = backdropState,
                         badgeCount = uiState.pendingQuestionnaires.takeIf { it > 0 },
                         onClick = onOpenQuestionnaires
                     )
@@ -270,167 +259,10 @@ fun DidacticsScreen(
                         title = stringResource(Res.string.ui_didactics_badge_title),
                         subtitle = stringResource(Res.string.ui_didactics_badge_sub),
                         icon = LiquidIcons.Badge,
-                        backdropState = backdropState,
                         onClick = onOpenBadge
                     )
                 }
             )
         }
-    }
-}
-
-@Composable
-private fun ProfessorDidacticsContent(
-    backdropState: Backdrop,
-    uiState: DidacticsDashboardUiState,
-    onOpenTeachings: () -> Unit,
-    onOpenExams: () -> Unit,
-    onOpenTheses: () -> Unit,
-    onOpenReports: () -> Unit,
-    onOpenNews: () -> Unit,
-    onOpenSettings: () -> Unit,
-) {
-    UniScreenColumn {
-        LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
-            contentPadding = 20.dp,
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_professor_role) },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                )
-                Text(
-                    text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_university) },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    ProfessorMetricBadge(
-                        stringResource(Res.string.ui_professor_courses_count, uiState.teachingCount),
-                        backdropState,
-                    )
-                    ProfessorMetricBadge(
-                        stringResource(Res.string.ui_professor_rounds_count, uiState.openExamRounds),
-                        backdropState,
-                    )
-                    ProfessorMetricBadge(
-                        stringResource(Res.string.ui_professor_theses_count, uiState.thesisCount),
-                        backdropState,
-                    )
-                }
-            }
-        }
-
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_professor_didactics_tools),
-            subtitle = stringResource(Res.string.ui_professor_didactics_tools_subtitle),
-        )
-
-        Column(
-            modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_teachings),
-                        subtitle = stringResource(Res.string.ui_professor_teachings_subtitle),
-                        icon = LiquidIcons.MenuBook,
-                        badgeCount = uiState.teachingCount.takeIf { it > 0 },
-                        backdropState = backdropState,
-                        onClick = onOpenTeachings,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_exam_rounds),
-                        subtitle = stringResource(Res.string.ui_professor_exam_rounds_subtitle),
-                        icon = LiquidIcons.Calendar,
-                        badgeCount = uiState.openExamRounds.takeIf { it > 0 },
-                        backdropState = backdropState,
-                        onClick = onOpenExams,
-                    )
-                },
-            )
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_theses),
-                        subtitle = stringResource(Res.string.ui_professor_theses_subtitle),
-                        icon = LiquidIcons.Assignment,
-                        badgeCount = uiState.thesisCount.takeIf { it > 0 },
-                        backdropState = backdropState,
-                        onClick = onOpenTheses,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_reports),
-                        subtitle = stringResource(Res.string.ui_professor_reports_subtitle),
-                        icon = LiquidIcons.Edit,
-                        badgeCount = uiState.reportCount.takeIf { it > 0 },
-                        backdropState = backdropState,
-                        onClick = onOpenReports,
-                    )
-                },
-            )
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_news),
-                        subtitle = stringResource(Res.string.ui_professor_news_subtitle),
-                        icon = LiquidIcons.Notifications,
-                        backdropState = backdropState,
-                        onClick = onOpenNews,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_settings),
-                        subtitle = stringResource(Res.string.ui_professor_settings_subtitle),
-                        icon = LiquidIcons.Settings,
-                        backdropState = backdropState,
-                        onClick = onOpenSettings,
-                    )
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProfessorMetricBadge(text: String, backdropState: Backdrop) {
-    LiquidBadge(
-        text = text,
-        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f),
-        contentColor = MaterialTheme.colorScheme.primary,
-        backdropState = backdropState,
-    )
-}
-
-@Composable
-private fun YearProgress(year: String, isCompleted: Boolean, colorScheme: androidx.compose.material3.ColorScheme) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = if (isCompleted) LiquidIcons.Check else LiquidIcons.Time,
-            contentDescription = null,
-            tint = if (isCompleted) colorScheme.primary else colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(14.dp)
-        )
-        Text(
-            text = year,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Medium,
-            color = if (isCompleted) colorScheme.onSurface else colorScheme.onSurfaceVariant
-        )
     }
 }

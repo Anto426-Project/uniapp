@@ -6,6 +6,8 @@ import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toTickets
 import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +29,7 @@ class TransportCatalogViewModel(private val dataSource: UniAppDataSource) : View
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val tickets = dataSource.loadTransportData(force).toTickets()
                 mutableUiState.value = TransportCatalogUiState(
@@ -38,7 +40,7 @@ class TransportCatalogViewModel(private val dataSource: UniAppDataSource) : View
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare le linee disponibili."),
                 )
             }

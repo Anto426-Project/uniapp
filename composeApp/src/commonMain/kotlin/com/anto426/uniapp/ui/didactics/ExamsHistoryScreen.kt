@@ -10,20 +10,17 @@ import com.anto426.liquidmonet.components.display.LiquidEmptyState
 import com.anto426.uniapp.didactics.presentation.ExamsHistoryUiState
 import com.anto426.uniapp.ui.components.items.PastExamItem
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
-import com.kyant.backdrop.Backdrop
-
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
-fun ExamsHistoryScreen(backdropState: Backdrop, uiState: ExamsHistoryUiState) {
+fun ExamsHistoryScreen(uiState: ExamsHistoryUiState) {
     UniScreenLazyColumn {
         if (uiState.exams.isEmpty()) {
             item(key = "history-empty") {
                 LiquidEmptyState(
                     title = stringResource(Res.string.ui_history_empty_title),
                     description = stringResource(Res.string.ui_history_empty_desc),
-                    backdropState = backdropState,
                 )
             }
         }
@@ -34,7 +31,7 @@ fun ExamsHistoryScreen(backdropState: Backdrop, uiState: ExamsHistoryUiState) {
                 "history|${exam.id}|${exam.date}|${exam.time}|$index"
             },
         ) { _, exam ->
-            PastExamItem(exam, backdropState)
+            PastExamItem(exam)
         }
     }
 }

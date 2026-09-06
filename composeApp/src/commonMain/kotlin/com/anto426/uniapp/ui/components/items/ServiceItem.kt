@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,21 +21,19 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidBadgedBox
 import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.uniapp.model.services.ServiceData
-import com.kyant.backdrop.Backdrop
 
 @Composable
-fun ServiceItem(data: ServiceData, backdropState: Backdrop, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
+fun ServiceItem(data: ServiceData, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     val colorScheme = MaterialTheme.colorScheme
     LiquidCard(
         modifier = modifier.graphicsLayer(clip = false),
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LiquidBadgedBox(
-                badge = { data.badgeCount?.let { LiquidBadge(count = it, backdropState = backdropState) } }
+                badge = { data.badgeCount?.let { LiquidBadge(count = it) } }
             ) {
                 Icon(
                     imageVector = data.icon,
@@ -45,7 +43,7 @@ fun ServiceItem(data: ServiceData, backdropState: Backdrop, modifier: Modifier =
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
             }

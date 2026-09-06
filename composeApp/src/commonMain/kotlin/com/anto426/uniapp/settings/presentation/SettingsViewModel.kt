@@ -2,7 +2,10 @@ package com.anto426.uniapp.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.local.LocalDataKey
+import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.data.local.UniAppDataKeys
+import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
@@ -10,15 +13,24 @@ import com.anto426.uniapp.security.biometric.BiometricAuthenticationResult
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.security.biometric.BiometricAvailability
 import com.anto426.uniapp.security.biometric.UnavailableBiometricAuthenticator
-import com.anto426.uniapp.security.account.AccountSecurityPreferences
 import com.anto426.uniapp.notifications.model.NotificationAuthorizationStatus
 import com.anto426.uniapp.notifications.runtime.AppNotificationController
 import com.anto426.uniapp.notifications.runtime.UnavailableAppNotificationController
+import com.anto426.uniapp.security.password.createAppPasswordVerifier
+import com.anto426.uniapp.security.password.AppPasswordVerifier
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+enum class AppPasswordSetupError {
+    TooShort,
+    TooLong,
+    Mismatch,
+}
 
 data class SettingsUiState(
     val notificationsEnabled: Boolean = false,
@@ -26,15 +38,22 @@ data class SettingsUiState(
     val biometricEnabled: Boolean = false,
     val biometricAvailability: BiometricAvailability = BiometricAvailability.Unavailable,
     val isBiometricAuthenticating: Boolean = false,
+    val isPasswordSetupVisible: Boolean = false,
+    val passwordSetupError: AppPasswordSetupError? = null,
     val isSignOutConfirmationVisible: Boolean = false,
 )
 
 class SettingsViewModel(
-    private val dataSource: UniAppDataSource,
+    private val localDataStore: UniLocalDataStore,
+    accountId: String,
     private val toastSink: AppToastSink = AppToastSink.None,
     private val biometricAuthenticator: BiometricAuthenticator = UnavailableBiometricAuthenticator,
     private val notificationController: AppNotificationController = UnavailableAppNotificationController,
+    private val passwordVerifierFactory: suspend (String) -> AppPasswordVerifier = { password ->
+        withContext(Dispatchers.Default) { createAppPasswordVerifier(password) }
+    },
 ) : ViewModel() {
+    private val dataScope = LocalDataScope.Account(accountId)
     private val mutableUiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = mutableUiState.asStateFlow()
 
@@ -53,13 +72,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             try {
                 val notificationsEnabled =
-                    dataSource.readPreference(NOTIFICATIONS_KEY)?.toBooleanStrictOrNull() ?: false
+                    localDataStore.read(dataScope, UniAppDataKeys.NotificationsEnabled)
                 mutableUiState.value =
                     mutableUiState.value.copy(
                         notificationsEnabled = notificationsEnabled,
-                        biometricEnabled =
-                            dataSource.readPreference(AccountSecurityPreferences.BIOMETRIC_UNLOCK)
-                                ?.toBooleanStrictOrNull() ?: false,
+                        biometricEnabled = localDataStore.read(dataScope, UniAppDataKeys.BiometricUnlock),
                     )
                 notificationController.restoreEnabled(notificationsEnabled)
             } catch (error: CancellationException) {
@@ -74,7 +91,7 @@ class SettingsViewModel(
         update { copy(notificationsEnabled = enabled) }
         notificationController.setEnabled(enabled)
         persistToggle(
-            key = NOTIFICATIONS_KEY,
+            key = UniAppDataKeys.NotificationsEnabled,
             enabled = enabled,
             successMessage = if (enabled) "Notifiche attivate." else "Notifiche disattivate.",
             rollback = {
@@ -87,8 +104,48 @@ class SettingsViewModel(
     fun setBiometricEnabled(enabled: Boolean) {
         if (enabled == mutableUiState.value.biometricEnabled || mutableUiState.value.isBiometricAuthenticating) return
 
+        if (enabled) {
+            update {
+                copy(
+                    isPasswordSetupVisible = true,
+                    passwordSetupError = null,
+                )
+            }
+            return
+        }
+
+        authenticateAndSetBiometric(enabled = false)
+    }
+
+    fun submitBiometricPassword(password: String, confirmation: String) {
+        if (!mutableUiState.value.isPasswordSetupVisible || mutableUiState.value.isBiometricAuthenticating) return
+        val validationError =
+            when {
+                password.isBlank() || password.length < MIN_APP_PASSWORD_LENGTH -> AppPasswordSetupError.TooShort
+                password.length > 128 -> AppPasswordSetupError.TooLong
+                password != confirmation -> AppPasswordSetupError.Mismatch
+                else -> null
+            }
+        if (validationError != null) {
+            update { copy(passwordSetupError = validationError) }
+            return
+        }
+        authenticateAndSetBiometric(enabled = true, password = password)
+    }
+
+    fun dismissBiometricPasswordSetup() {
+        if (mutableUiState.value.isBiometricAuthenticating) return
+        update {
+            copy(
+                isPasswordSetupVisible = false,
+                passwordSetupError = null,
+            )
+        }
+    }
+
+    private fun authenticateAndSetBiometric(enabled: Boolean, password: String? = null) {
+        update { copy(isBiometricAuthenticating = true, passwordSetupError = null) }
         viewModelScope.launch {
-            update { copy(isBiometricAuthenticating = true) }
             try {
                 when (
                     val result = biometricAuthenticator.authenticate(
@@ -100,8 +157,24 @@ class SettingsViewModel(
                     )
                 ) {
                     BiometricAuthenticationResult.Authenticated -> {
-                        dataSource.writePreference(AccountSecurityPreferences.BIOMETRIC_UNLOCK, enabled.toString())
-                        update { copy(biometricEnabled = enabled) }
+                        if (enabled) {
+                            requireNotNull(password)
+                            val verifier = passwordVerifierFactory(password)
+                            // Commit the verifier first: a failed enable must never leave an
+                            // enabled biometric gate without its fallback credential.
+                            localDataStore.write(dataScope, UniAppDataKeys.PasswordVerifier, verifier)
+                            localDataStore.write(dataScope, UniAppDataKeys.BiometricUnlock, true)
+                        } else {
+                            localDataStore.write(dataScope, UniAppDataKeys.BiometricUnlock, false)
+                        }
+                        update {
+                            copy(
+                                biometricEnabled = enabled,
+                                isPasswordSetupVisible = false,
+                                passwordSetupError = null,
+                            )
+                        }
+                        if (!enabled) localDataStore.remove(dataScope, UniAppDataKeys.PasswordVerifier)
                         toastSink.success(
                             if (enabled) "Accesso biometrico attivato." else "Accesso biometrico disattivato.",
                         )
@@ -133,14 +206,14 @@ class SettingsViewModel(
     }
 
     private fun persistToggle(
-        key: String,
+        key: LocalDataKey<Boolean>,
         enabled: Boolean,
         successMessage: String,
         rollback: () -> Unit,
     ) {
         viewModelScope.launch {
             try {
-                dataSource.writePreference(key, enabled.toString())
+                localDataStore.write(dataScope, key, enabled)
                 toastSink.success(successMessage)
             } catch (error: CancellationException) {
                 throw error
@@ -152,6 +225,6 @@ class SettingsViewModel(
     }
 
     private companion object {
-        const val NOTIFICATIONS_KEY = "settings.notifications"
+        const val MIN_APP_PASSWORD_LENGTH = 8
     }
 }

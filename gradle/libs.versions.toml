@@ -18,6 +18,7 @@ lifecycle = "2.11.0"
 navigation3 = "1.1.1"
 annotation = "1.10.0"
 coil = "3.6.1"
+zscanner = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "androidx-core-ktx" }
@@ -51,6 +52,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 secure-storage-sdk = { module = "com.anto426:secure-storage-sdk" }
 unisdk = { module = "com.anto426:unisdk" }
+zscanner = { group = "io.github.namantonk", name = "zscanner", version.ref = "zscanner" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -26,7 +26,6 @@ DEFAULT_HOSTS = (
     "codeload.github.com",
     "tile.openstreetmap.org",
     "router.project-osrm.org",
-    "uniaappauthorization.antobot.info",
 )
 DEFAULT_OUTPUT = Path("trusted_ca_bundle.pem")
 DEFAULT_METADATA_OUTPUT = Path("trusted_ca_bundle_meta.json")

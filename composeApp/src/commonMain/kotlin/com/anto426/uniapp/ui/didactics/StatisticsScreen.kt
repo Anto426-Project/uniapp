@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,12 +45,10 @@ import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.StatisticsUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 import com.kyant.shapes.Capsule
 
 @Composable
 fun StatisticsScreen(
-    backdropState: Backdrop,
     uiState: StatisticsUiState,
     onTabSelected: (Int) -> Unit,
 ) {
@@ -86,7 +84,6 @@ fun StatisticsScreen(
             items = tabs,
             selectedIndex = uiState.selectedTabIndex,
             onTabSelected = onTabSelected,
-            backdropState = backdropState,
             modifier = Modifier.padding(top = 4.dp),
         )
 
@@ -109,8 +106,7 @@ fun StatisticsScreen(
 
                         // 1. Grafico Linee in primo piano
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(26.dp),
+                            shape = RoundedRectangle(26.dp),
                             contentPadding = 18.dp,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -119,7 +115,6 @@ fun StatisticsScreen(
                                     weightedAverageEntries = weightedAverageEntries,
                                     arithmeticAverageEntries = arithmeticAverageEntries,
                                     height = 210.dp,
-                                    backdropState = backdropState,
                                     minValue = uiState.gradeMin,
                                     maxValue = uiState.gradeMax,
                                     showLegend = true,
@@ -130,8 +125,7 @@ fun StatisticsScreen(
 
                         // 2. Progresso Piano di Studi (Avanzamento subito dopo il grafico)
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(22.dp),
+                            shape = RoundedRectangle(22.dp),
                             contentPadding = 16.dp,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -154,15 +148,13 @@ fun StatisticsScreen(
                                 }
                                 LiquidLinearProgressIndicator(
                                     progress = uiState.careerProgress,
-                                    backdropState = backdropState,
                                 )
                             }
                         }
 
                         // 3. Riepilogo Performance Principali (Media Ponderata, Base Laurea, Esami)
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(24.dp),
+                            shape = RoundedRectangle(24.dp),
                             contentPadding = 18.dp,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -282,8 +274,7 @@ fun StatisticsScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             LiquidCard(
-                                backdropState = backdropState,
-                                shape = RoundedCornerShape(22.dp),
+                                shape = RoundedRectangle(22.dp),
                                 contentPadding = 14.dp,
                                 modifier = Modifier.weight(1f),
                             ) {
@@ -322,8 +313,7 @@ fun StatisticsScreen(
                             }
 
                             LiquidCard(
-                                backdropState = backdropState,
-                                shape = RoundedCornerShape(22.dp),
+                                shape = RoundedRectangle(22.dp),
                                 contentPadding = 14.dp,
                                 modifier = Modifier.weight(1f),
                             ) {
@@ -377,15 +367,13 @@ fun StatisticsScreen(
                         )
 
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(26.dp),
+                            shape = RoundedRectangle(26.dp),
                             contentPadding = 20.dp,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                 LiquidBarChart(
                                     entries = cfuEntries,
                                     height = 195.dp,
-                                    backdropState = backdropState,
                                     maxValue = uiState.cfuMax,
                                     valueSuffix = "CFU",
                                     detailDescription = stringResource(Res.string.ui_stats_cfu_bar_detail),
@@ -395,8 +383,7 @@ fun StatisticsScreen(
 
                         // Summary Info Card
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedRectangle(20.dp),
                             contentPadding = 16.dp,
                         ) {
                             Row(
@@ -422,7 +409,6 @@ fun StatisticsScreen(
                                     text = if (uiState.totalCfu >= 60) stringResource(Res.string.ui_status_in_order) else stringResource(Res.string.ui_status_in_progress),
                                     containerColor = colorScheme.primaryContainer,
                                     contentColor = colorScheme.primary,
-                                    backdropState = backdropState,
                                 )
                             }
                         }
@@ -438,8 +424,7 @@ fun StatisticsScreen(
                         )
 
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(26.dp),
+                            shape = RoundedRectangle(26.dp),
                             contentPadding = 20.dp,
                         ) {
                             LiquidDonutChart(
@@ -447,7 +432,6 @@ fun StatisticsScreen(
                                 size = 190.dp,
                                 centerLabel = stringResource(Res.string.ui_exams),
                                 centerValue = uiState.totalExams.toString(),
-                                backdropState = backdropState,
                             )
                         }
 
@@ -462,8 +446,7 @@ fun StatisticsScreen(
                                 val tierColor = entry.color ?: colorScheme.primary
 
                                 LiquidCard(
-                                    backdropState = backdropState,
-                                    shape = RoundedCornerShape(18.dp),
+                                    shape = RoundedRectangle(18.dp),
                                     contentPadding = 14.dp,
                                 ) {
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

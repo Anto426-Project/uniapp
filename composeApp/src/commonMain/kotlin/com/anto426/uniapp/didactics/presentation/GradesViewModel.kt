@@ -8,6 +8,8 @@ import com.anto426.uniapp.data.toGradeExams
 import com.anto426.uniapp.model.didactics.GradeExam
 import com.anto426.uniapp.model.didactics.SimulationItem
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -228,7 +230,7 @@ class GradesViewModel(
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val career = dataSource.loadCareer(force)
                 val studyPlan = runCatching { dataSource.loadStudyPlan(force) }.getOrNull()
@@ -281,7 +283,7 @@ class GradesViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare voti e simulazione."),
                 )
             }

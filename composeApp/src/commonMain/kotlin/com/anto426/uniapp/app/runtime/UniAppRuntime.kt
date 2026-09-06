@@ -7,6 +7,8 @@ import com.anto426.uniapp.account.platform.rememberPlatformUniAccountStore
 import com.anto426.uniapp.account.session.UniSessionCoordinator
 import com.anto426.uniapp.data.SessionUniAppDataSource
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.local.EncryptedUniLocalDataStore
+import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.session.AppSessionController
 import com.anto426.uniapp.notifications.platform.rememberPlatformNotificationPermissionController
 import com.anto426.uniapp.notifications.runtime.AppNotificationManager
@@ -25,6 +27,7 @@ import kotlinx.coroutines.launch
 class UniAppRuntime internal constructor(
     val sessionController: AppSessionController,
     val dataSource: UniAppDataSource,
+    val localDataStore: UniLocalDataStore,
     private val accountStore: com.anto426.uniapp.account.storage.UniAccountStore,
     internal val updateController: AppUpdateController,
     internal val notificationManager: AppNotificationManager,
@@ -32,6 +35,8 @@ class UniAppRuntime internal constructor(
     private val backend: RemoteUniBackendService,
     private val unregisterPushTokenProvider: () -> Unit,
 ) {
+    val appInfo: com.anto426.unisdk.platform.AppInfo get() = com.anto426.unisdk.platform.AppInfoProvider.current
+
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val accountDataSources = mutableMapOf<String, UniAppDataSource>()
 
@@ -72,12 +77,14 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
         remember(accountStore, updateEnvironment, notificationPermissions, pushConnector) {
             val backend = RemoteUniBackendService()
             val coordinator = UniSessionCoordinator(backend, accountStore)
-            val sessionController = AppSessionController(coordinator, accountStore)
+            val localDataStore = EncryptedUniLocalDataStore(accountStore)
+            val sessionController = AppSessionController(coordinator, accountStore, localDataStore)
             val unregisterPushTokenProvider =
                 registerPushNotificationsTokenProvider { pushConnector.tokenFlow.value }
             UniAppRuntime(
                 sessionController = sessionController,
                 dataSource = SessionUniAppDataSource(sessionController, accountStore),
+                localDataStore = localDataStore,
                 accountStore = accountStore,
                 updateController =
                     AppUpdateController(

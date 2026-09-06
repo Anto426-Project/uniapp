@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,12 +21,10 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.unisdk.backend.model.ProfessorContentItem
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ProfessorExamItem(
     exam: ProfessorContentItem,
-    backdropState: Backdrop,
     onClickDetail: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -49,8 +47,7 @@ fun ProfessorExamItem(
 
     LiquidCard(
         modifier = Modifier.fillMaxWidth(),
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClickDetail,
     ) {
@@ -71,7 +68,7 @@ fun ProfessorExamItem(
                         containerSize = 42.dp,
                         iconSize = 20.dp,
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
 
@@ -95,7 +92,6 @@ fun ProfessorExamItem(
                                 text = code,
                                 containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                                 contentColor = colorScheme.primary,
-                                backdropState = backdropState,
                             )
                         }
                     }

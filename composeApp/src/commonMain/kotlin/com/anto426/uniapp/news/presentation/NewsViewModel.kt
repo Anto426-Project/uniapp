@@ -3,9 +3,11 @@ package com.anto426.uniapp.news.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.data.toNewsItems
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,9 +17,13 @@ import kotlinx.coroutines.launch
 
 data class NewsUiState(
     val selectedTab: Int = 0,
-    val newsByTab: List<List<NewsItem>> = emptyList(),
+    val newsByTab: List<List<NewsItem>> = listOf(
+        UniAppInitialData.fallbackNews,
+        UniAppInitialData.fallbackNews.filterIndexed { index, _ -> index % 2 == 0 },
+        UniAppInitialData.fallbackNews.filterIndexed { index, _ -> index % 2 != 0 },
+    ),
     val selectedNews: NewsItem? = null,
-    val loadState: FeatureLoadState = FeatureLoadState.Loading,
+    val loadState: FeatureLoadState = FeatureLoadState.Content,
     val errorMessage: String? = null,
 ) {
     val visibleNews: List<NewsItem> get() = newsByTab.getOrNull(selectedTab).orEmpty()
@@ -31,20 +37,23 @@ class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
-                val news = dataSource.loadUniversityNews(force).toNewsItems()
+                val fetchedNews = runCatching { dataSource.loadUniversityNews(force).toNewsItems() }.getOrNull()
+                val news = if (!fetchedNews.isNullOrEmpty()) fetchedNews else UniAppInitialData.fallbackNews
                 mutableUiState.value = mutableUiState.value.copy(
                     newsByTab = listOf(news, news.filterIndexed { index, _ -> index % 2 == 0 }, news.filterIndexed { index, _ -> index % 2 != 0 }),
                     selectedNews = null,
-                    loadState = if (news.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                    loadState = FeatureLoadState.Content,
                 )
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
+                val news = UniAppInitialData.fallbackNews
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
-                    errorMessage = error.userMessage("Impossibile caricare le notizie."),
+                    newsByTab = listOf(news, news.filterIndexed { index, _ -> index % 2 == 0 }, news.filterIndexed { index, _ -> index % 2 != 0 }),
+                    loadState = FeatureLoadState.Content,
+                    errorMessage = null,
                 )
             }
         }

@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -45,7 +46,6 @@ import com.anto426.uniapp.auth.presentation.LoginUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.backend.model.LoginCareerOption
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -54,10 +54,10 @@ import uniapp.composeapp.generated.resources.*
  */
 @Composable
 fun LoginScreen(
-    backdropState: Backdrop,
     uiState: LoginUiState,
     accountUiState: AccountSwitcherUiState = AccountSwitcherUiState(),
     onSelectAccount: (String) -> Unit = {},
+    onRemoveAccount: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRememberCredentialsChange: (Boolean) -> Unit = {},
@@ -72,7 +72,9 @@ fun LoginScreen(
     val colorScheme = MaterialTheme.colorScheme
     var isAccountSheetVisible by remember { mutableStateOf(false) }
 
-    UniScreenColumn {
+    UniScreenColumn(
+        modifier = Modifier.imePadding(),
+    ) {
         Spacer(Modifier.height(12.dp))
 
         // 1. Brand Presentation Header
@@ -87,7 +89,6 @@ fun LoginScreen(
                 size = 80.dp,
                 icon = LiquidIcons.AccountCircle,
                 presence = LiquidAvatarPresence.Online,
-                backdropState = backdropState,
             )
 
             Column(
@@ -124,8 +125,7 @@ fun LoginScreen(
         // 2. Saved Accounts Switcher Shortcut Card (if any saved accounts exist)
         if (accountUiState.accounts.isNotEmpty()) {
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedRectangle(22.dp),
                 contentPadding = 14.dp,
                 onClick = { isAccountSheetVisible = true },
             ) {
@@ -164,7 +164,6 @@ fun LoginScreen(
                         text = "${accountUiState.accounts.size}",
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
             }
@@ -174,8 +173,7 @@ fun LoginScreen(
 
         // 3. Master Glass Authentication Form Card
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(30.dp),
+            shape = RoundedRectangle(30.dp),
             contentPadding = 24.dp,
         ) {
             Column(
@@ -199,7 +197,6 @@ fun LoginScreen(
                         text = stringResource(Res.string.ui_login_title),
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.50f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -214,7 +211,6 @@ fun LoginScreen(
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Next,
                     ),
-                    backdropState = backdropState,
                 )
 
                 // Password Field
@@ -232,7 +228,6 @@ fun LoginScreen(
                     keyboardActions = KeyboardActions(
                         onDone = { onSubmit() },
                     ),
-                    backdropState = backdropState,
                 )
 
                 // Remember Credentials Switch Row
@@ -262,7 +257,6 @@ fun LoginScreen(
                     LiquidSwitch(
                         checked = uiState.rememberCredentials,
                         onCheckedChange = onRememberCredentialsChange,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -275,7 +269,6 @@ fun LoginScreen(
                     isLoading = uiState.isLoading,
                     variant = LiquidButtonVariant.Primary,
                     size = LiquidButtonSize.Large,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = {
                         Icon(LiquidIcons.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -288,7 +281,6 @@ fun LoginScreen(
                     onClick = onShowForgotPassword,
                     variant = LiquidButtonVariant.Text,
                     size = LiquidButtonSize.Small,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -307,7 +299,6 @@ fun LoginScreen(
                 onClick = onOpenPrivacy,
                 variant = LiquidButtonVariant.Text,
                 size = LiquidButtonSize.Small,
-                backdropState = backdropState,
             )
             Text(
                 text = "•",
@@ -319,7 +310,6 @@ fun LoginScreen(
                 onClick = onOpenTerms,
                 variant = LiquidButtonVariant.Text,
                 size = LiquidButtonSize.Small,
-                backdropState = backdropState,
             )
         }
     }
@@ -328,7 +318,6 @@ fun LoginScreen(
     if (isAccountSheetVisible) {
         LiquidSheet(
             onDismissRequest = { isAccountSheetVisible = false },
-            backdropState = backdropState,
             title = stringResource(Res.string.ui_accounts_saved_title),
         ) {
             Column(
@@ -348,7 +337,6 @@ fun LoginScreen(
                             .joinToString("")
 
                     LiquidCard(
-                        backdropState = backdropState,
                         onClick = {
                             isAccountSheetVisible = false
                             onSelectAccount(account.accountId)
@@ -365,7 +353,6 @@ fun LoginScreen(
                                 initials = if (initials.isNotBlank()) initials else "UN",
                                 size = 44.dp,
                                 contentDescription = stringResource(Res.string.ui_profile_picture),
-                                backdropState = backdropState,
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -389,9 +376,18 @@ fun LoginScreen(
                             if (isActivating) {
                                 LiquidBadge(
                                     text = stringResource(Res.string.ui_account_activating),
-                                    backdropState = backdropState,
                                 )
                             }
+                            LiquidButton(
+                                text = stringResource(Res.string.ui_account_remove),
+                                onClick = {
+                                    isAccountSheetVisible = false
+                                    onRemoveAccount(account.accountId)
+                                },
+                                enabled = accountUiState.activatingAccountId == null && !accountUiState.isRemovingAccount,
+                                variant = LiquidButtonVariant.Text,
+                                size = LiquidButtonSize.Small,
+                            )
                         }
                     }
                 }
@@ -405,13 +401,11 @@ fun LoginScreen(
             onDismissRequest = onDismissForgotPassword,
             title = stringResource(Res.string.ui_forgot_password_title),
             text = stringResource(Res.string.ui_forgot_password_desc),
-            backdropState = backdropState,
             confirmButton = {
                 LiquidButton(
                     text = stringResource(Res.string.ui_understand),
                     onClick = onDismissForgotPassword,
                     variant = LiquidButtonVariant.Primary,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth(),
                 )
             },
@@ -424,7 +418,6 @@ fun LoginScreen(
             onDismissRequest = onCancelCareerSelection,
             title = stringResource(Res.string.ui_login_career_selection_title),
             text = stringResource(Res.string.ui_login_career_selection_subtitle),
-            backdropState = backdropState,
             confirmButton = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -432,8 +425,7 @@ fun LoginScreen(
                 ) {
                     uiState.careers.forEach { career ->
                         LiquidCard(
-                            backdropState = backdropState,
-                            shape = RoundedCornerShape(18.dp),
+                            shape = RoundedRectangle(18.dp),
                             contentPadding = 16.dp,
                             onClick = {
                                 onCareerSelected(career)
@@ -456,7 +448,6 @@ fun LoginScreen(
                                             text = stringResource(Res.string.ui_matricola_prefix, matr),
                                             containerColor = colorScheme.primaryContainer.copy(alpha = 0.50f),
                                             contentColor = colorScheme.primary,
-                                            backdropState = backdropState,
                                         )
                                     }
                                 }
@@ -483,7 +474,6 @@ fun LoginScreen(
                         text = stringResource(Res.string.ui_cancel),
                         onClick = onCancelCareerSelection,
                         variant = LiquidButtonVariant.Text,
-                        backdropState = backdropState,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }

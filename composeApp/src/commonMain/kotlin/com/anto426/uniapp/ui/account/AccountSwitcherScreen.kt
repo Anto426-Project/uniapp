@@ -21,21 +21,20 @@ import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.state.AppLoadingState
-import com.kyant.backdrop.Backdrop
 
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 internal fun AccountSwitcherScreen(
-    backdropState: Backdrop,
     uiState: AccountSwitcherUiState,
     onSelectAccount: (String) -> Unit,
     onSelectProfile: (String) -> Unit,
     onAddAccount: () -> Unit,
+    onRemoveAccount: (String) -> Unit,
 ) {
     if (uiState.isLoading && uiState.accounts.isEmpty()) {
-        AppLoadingState(backdropState = backdropState)
+        AppLoadingState()
         return
     }
 
@@ -52,16 +51,14 @@ internal fun AccountSwitcherScreen(
                     description = uiState.errorMessage ?: stringResource(Res.string.ui_accounts_empty_desc),
                     actionButtonText = stringResource(Res.string.ui_accounts_add),
                     onActionClick = onAddAccount,
-                    backdropState = backdropState,
                 )
 
             else -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 uiState.accounts.forEach { account ->
                 val isActive = account.accountId == uiState.activeAccountId
                 val isActivating = account.accountId == uiState.activatingAccountId
-                val isSwitching = uiState.activatingAccountId != null || uiState.activatingProfileId != null
+                val isSwitching = uiState.activatingAccountId != null || uiState.activatingProfileId != null || uiState.isRemovingAccount
                 LiquidCard(
-                    backdropState = backdropState,
                     onClick = if (isActive || isSwitching) null else ({ onSelectAccount(account.accountId) }),
                     contentPadding = 16.dp,
                 ) {
@@ -83,7 +80,6 @@ internal fun AccountSwitcherScreen(
                             initials = initials,
                             size = 46.dp,
                             contentDescription = stringResource(Res.string.ui_profile_picture),
-                            backdropState = backdropState,
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
@@ -107,10 +103,15 @@ internal fun AccountSwitcherScreen(
                             if (isActive || isActivating) {
                                 LiquidBadge(
                                     text = if (isActivating) stringResource(Res.string.ui_account_activating) else stringResource(Res.string.ui_account_active),
-                                    backdropState = backdropState,
                                 )
                             }
                         }
+                        LiquidButton(
+                            text = stringResource(Res.string.ui_account_remove),
+                            onClick = { onRemoveAccount(account.accountId) },
+                            enabled = !isSwitching,
+                            variant = LiquidButtonVariant.Text,
+                        )
                         if (isActive && account.profiles.size > 1) {
                             Text(
                                 text = stringResource(Res.string.ui_account_profiles_title),
@@ -132,7 +133,6 @@ internal fun AccountSwitcherScreen(
                                     enabled = !profileIsActive && uiState.activatingProfileId == null,
                                     isLoading = profileIsActivating,
                                     variant = if (profileIsActive) LiquidButtonVariant.Primary else LiquidButtonVariant.Secondary,
-                                    backdropState = backdropState,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
@@ -148,7 +148,6 @@ internal fun AccountSwitcherScreen(
                 text = stringResource(Res.string.ui_accounts_add),
                 onClick = onAddAccount,
                 variant = LiquidButtonVariant.Primary,
-                backdropState = backdropState,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

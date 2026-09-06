@@ -1,7 +1,11 @@
 package com.anto426.uniapp.navigation.ui
 
+import androidx.lifecycle.repeatOnLifecycle
+
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import com.anto426.uniapp.settings.presentation.AppThemeMode
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,12 +51,13 @@ import com.anto426.liquidmonet.glass.LiquidBackground
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
 import com.anto426.liquidmonet.glass.LiquidGlassScene
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.theme.monet.LiquidMonetPresets
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.app.runtime.UniAppRuntime
+import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.feedback.runtime.AppToastHost
 import com.anto426.uniapp.feedback.runtime.AppToastManager
+import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.info
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.appTopLevelRoutes
@@ -61,21 +66,22 @@ import com.anto426.uniapp.navigation.model.topLevelParent
 import com.anto426.uniapp.navigation.presentation.AppShellViewModel
 import com.anto426.uniapp.navigation.runtime.AppNavigator
 import com.anto426.uniapp.navigation.runtime.rememberAppNavigationState
+import com.anto426.uniapp.localization.BindAppLanguage
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.session.presentation.AppSessionViewModel
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
+import com.anto426.uniapp.settings.presentation.LanguageViewModel
+import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
+import com.anto426.uniapp.ui.theme.UniTheme
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
 import com.anto426.unisdk.backend.model.BackendCareerType
 import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.Res
-import uniapp.composeapp.generated.resources.ui_home_switch_career
-import uniapp.composeapp.generated.resources.ui_professor_role
-import uniapp.composeapp.generated.resources.ui_student_role
+import uniapp.composeapp.generated.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,6 +109,19 @@ internal fun AppNavigationHost(
             accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
                 ?: runtime.dataSource
         }
+    val themeViewModel =
+        viewModel(key = "app-theme") {
+            ThemeViewModel(runtime.localDataStore, toastManager)
+        }
+    val themeUiState by themeViewModel.uiState.collectAsStateWithLifecycle()
+    val languageViewModel =
+        viewModel(key = "app-language") {
+            LanguageViewModel(UniAppInitialData.languages, runtime.localDataStore, toastManager)
+        }
+    val languageUiState by languageViewModel.uiState.collectAsStateWithLifecycle()
+    if (languageUiState.isLoaded) {
+        BindAppLanguage(languageUiState.selectedLanguageCode)
+    }
     val deviceSessionsViewModel =
         viewModel(key = "device-sessions-actions|$accountId") {
             DeviceSessionsActionViewModel(accountDataSource, toastManager)
@@ -110,6 +129,20 @@ internal fun AppNavigationHost(
     val deviceSessionsUiState by deviceSessionsViewModel.uiState.collectAsStateWithLifecycle()
     val updateViewModel = viewModel { AppUpdateViewModel(runtime.updateController, toastManager) }
     val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
+    val notificationState by runtime.notificationManager.state.collectAsStateWithLifecycle()
+    com.anto426.uniapp.updates.platform.NotifyAvailableAppUpdate(updateUiState, notificationState.enabled)
+    val updateLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(updateLifecycle, runtime) {
+        updateLifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            while (true) {
+                runtime.updateController.refresh()
+                kotlinx.coroutines.delay(15 * 60 * 1000L)
+            }
+        }
+    }
+    LaunchedEffect(runtime) {
+        runtime.notificationManager.messages.collect { runtime.updateController.refresh() }
+    }
     val navigationRoute = navigator.currentRoute
     val isMandatoryUpdate = updateUiState.isMandatory
     val route = if (isMandatoryUpdate) AppRoute.Updates else navigationRoute
@@ -119,7 +152,7 @@ internal fun AppNavigationHost(
     val showTopBar = route != AppRoute.Bootstrap && route != AppRoute.Login
     val showBottomBar =
         isAuthenticated && !isMandatoryUpdate && route != AppRoute.Bootstrap && route != AppRoute.Login
-    var topBarHeight by remember { mutableStateOf(152.dp) }
+    var topBarHeight by remember { mutableStateOf(136.dp) }
     val topLevelRoutes = appTopLevelRoutes
     val topLevelNavigationItems = topLevelRoutes.map { item ->
         val presentation = item.presentation(isProfessor)
@@ -151,26 +184,38 @@ internal fun AppNavigationHost(
             }
         }
 
+    UniTheme(state = themeUiState) {
     LiquidGlassScene(
         modifier = Modifier.fillMaxSize(),
-        scrollBehavior = scrollBehavior,
+        scrollBehavior = if (showTopBar) scrollBehavior else null,
         background = {
+            val isDark = when (themeUiState.themeMode) {
+                AppThemeMode.System -> isSystemInDarkTheme()
+                AppThemeMode.Light -> false
+                AppThemeMode.Dark -> true
+            }
+            val monetSeed = if (themeUiState.selectedThemeIndex == 0) null else themeUiState.resolveMonetSeed()
             LiquidBackground(
-                effect = LiquidBackgroundEffect.Aurora,
-                monetSeed = LiquidMonetPresets.Sapphire,
-                intensity = 1f,
-                speedFactor = .28f,
+                effect = when (themeUiState.selectedBackgroundStyle) {
+                    "Mesh Glow" -> LiquidBackgroundEffect.MeshGlow
+                    "Orbital Pulse" -> LiquidBackgroundEffect.OrbitalPulse
+                    "Radiant Beam" -> LiquidBackgroundEffect.RadiantBeam
+                    else -> LiquidBackgroundEffect.Aurora
+                },
+                isDark = isDark,
+                monetSeed = monetSeed,
+                intensity = 0.90f,
+                speedFactor = 1.0f,
             )
         },
-        topBar = { backdrop ->
+        topBar = {
             if (showTopBar) {
                 val presentation = route.presentation(isProfessor)
                 LiquidTopBar(
                     title = presentation.title,
                     subtitle = presentation.subtitle,
-                    backdropState = backdrop,
                     scrollBehavior = scrollBehavior,
-                    showNavigationIcon = navigator.canNavigateUp,
+                    showNavigationIcon = !isMandatoryUpdate && navigator.canNavigateUp,
                     onNavigationClick = navigator::goBack,
                     isSearchActive = shellUiState.isSearchActive,
                     searchQuery = shellUiState.searchQuery,
@@ -184,6 +229,8 @@ internal fun AppNavigationHost(
                         navigator = navigator,
                         shellViewModel = shellViewModel,
                         onRefreshUpdate = updateViewModel::refresh,
+                        currentUpdateChannel = updateUiState.channel,
+                        onSelectUpdateChannel = updateViewModel::selectChannel,
                         onRequestDisconnectAll = deviceSessionsViewModel::requestDisconnectAll,
                         account = authenticatedAccount,
                         onSelectProfile = topBarAccountSwitcherViewModel::selectProfile,
@@ -191,7 +238,7 @@ internal fun AppNavigationHost(
                 )
             }
         },
-        bottomBar = { backdrop ->
+        bottomBar = {
             if (showBottomBar) {
                 Box(Modifier.fillMaxWidth().align(Alignment.BottomCenter)) {
                     val selectedRoot = navigator.currentTopLevelRoute ?: route.topLevelParent()
@@ -201,19 +248,17 @@ internal fun AppNavigationHost(
                         onItemSelected = { navigator.selectTopLevel(topLevelRoutes[it]) },
                         items = topLevelNavigationItems,
                         visible = shellUiState.isNavigationBarVisible,
-                        backdropState = backdrop,
                     )
                 }
             }
         },
-        overlay = { backdrop ->
+        overlay = {
             when (route) {
                 AppRoute.Transport ->
                     LiquidFloatingActionButton(
                         onClick = { navigator.navigate(AppRoute.TransportBooking) },
                         modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 112.dp),
                         visible = shellUiState.isNavigationBarVisible,
-                        backdropState = backdrop,
                     ) {
                         Icon(LiquidIcons.Add, contentDescription = null, tint = Color.White)
                     }
@@ -223,16 +268,27 @@ internal fun AppNavigationHost(
             AppToastHost(
                 manager = toastManager,
                 modifier = Modifier.fillMaxSize(),
-                backdropState = backdrop,
             )
         },
-    ) { backdrop ->
+    ) {
         Scaffold(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    .nestedScroll(navigationBarScrollConnection),
+                    .then(
+                        if (showTopBar) {
+                            Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .then(
+                        if (showBottomBar) {
+                            Modifier.nestedScroll(navigationBarScrollConnection)
+                        } else {
+                            Modifier
+                        }
+                    ),
             containerColor = Color.Transparent,
             topBar = {
                 if (showTopBar) {
@@ -246,16 +302,17 @@ internal fun AppNavigationHost(
                     bottom = if (showBottomBar) 110.dp else 24.dp,
                 )
             CompositionLocalProvider(
+                LocalAppToastSink provides toastManager,
                 LocalUniScreenPadding provides screenPadding,
                 LocalNavigationBarVisible provides shellUiState.isNavigationBarVisible,
             ) {
                 if (isMandatoryUpdate) {
                     UpdatesScreen(
-                        backdropState = backdrop,
                         uiState = updateUiState,
                         onRetry = updateViewModel::refresh,
                         onOpenUpdate = updateViewModel::openUpdate,
                         onOpenChangelog = {},
+                        onSelectChannel = updateViewModel::selectChannel,
                     )
                 } else {
                     val entries =
@@ -266,10 +323,10 @@ internal fun AppNavigationHost(
                                     if (navigator.canRender(entryRoute)) {
                                         AppRouteContent(
                                             route = entryRoute,
-                                            backdropState = backdrop,
                                             navigator = navigator,
                                             sessionController = runtime.sessionController,
                                             dataSource = accountDataSource,
+                                            localDataStore = runtime.localDataStore,
                                             accountId = accountId,
                                             searchQuery = shellUiState.searchQuery,
                                             isSearchActive = shellUiState.isSearchActive,
@@ -280,10 +337,21 @@ internal fun AppNavigationHost(
                                             sessionState = sessionState,
                                             unlockUiState = unlockUiState,
                                             onRequestUnlock = { sessionViewModel.requestUnlock(biometricAuthenticator) },
+                                            onPasswordUnlock = sessionViewModel::requestPasswordUnlock,
                                             onCancelUnlock = sessionViewModel::cancelUnlock,
                                             devicesRefreshRevision = deviceSessionsUiState.refreshRevision,
                                             onRetryUpdate = updateViewModel::refresh,
                                             onOpenUpdate = updateViewModel::openUpdate,
+                                            onSelectUpdateChannel = updateViewModel::selectChannel,
+                                            themeUiState = themeUiState,
+                                            onThemeModeSelected = themeViewModel::selectThemeMode,
+                                            onThemeSelected = themeViewModel::selectTheme,
+                                            onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
+                                            onReducedMotionChanged = themeViewModel::setReducedMotion,
+                                            onResetTheme = themeViewModel::reset,
+                                            onCustomColorSelected = themeViewModel::selectCustomColor,
+                                            languageUiState = languageUiState,
+                                            onLanguageSelected = languageViewModel::selectLanguage,
                                             onSignOut = {
                                                 toastManager.info("Disconnessione in corso…")
                                                 sessionViewModel.signOut()
@@ -319,14 +387,21 @@ internal fun AppNavigationHost(
             }
         }
 
-        if (deviceSessionsUiState.isConfirmationVisible) {
+        if (updateUiState.showUpdateSheet) {
+            com.anto426.uniapp.ui.updates.AppUpdateSheet(
+                state = updateUiState,
+                onDismiss = updateViewModel::dismissUpdateSheet,
+                onUpdate = updateViewModel::openUpdate,
+            )
+        }
+        if (!isMandatoryUpdate && deviceSessionsUiState.isConfirmationVisible) {
             DisconnectAllDialog(
-                backdrop = backdrop,
                 state = deviceSessionsUiState,
                 onDismiss = deviceSessionsViewModel::dismissConfirmation,
                 onConfirm = deviceSessionsViewModel::confirmDisconnectAll,
             )
         }
+    }
     }
 }
 
@@ -356,33 +431,29 @@ private fun com.anto426.uniapp.navigation.runtime.AppNavigationState.rememberDec
 
 @Composable
 private fun DisconnectAllDialog(
-    backdrop: com.kyant.backdrop.Backdrop,
     state: DeviceSessionsActionUiState,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
     LiquidDialog(
         onDismissRequest = onDismiss,
-        title = "Disconnetti tutti",
-        text = "Confermi la chiusura delle altre sessioni attive?",
-        backdropState = backdrop,
+        title = stringResource(Res.string.ui_device_disconnect_all_title),
+        text = stringResource(Res.string.ui_device_disconnect_all_confirm),
         confirmButton = {
             LiquidButton(
-                text = "Disconnetti",
+                text = stringResource(Res.string.ui_device_disconnect_all_action),
                 onClick = onConfirm,
                 enabled = !state.isDisconnecting,
                 variant = LiquidButtonVariant.Primary,
-                backdropState = backdrop,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
         dismissButton = {
             LiquidButton(
-                text = "Annulla",
+                text = stringResource(Res.string.ui_cancel),
                 onClick = onDismiss,
                 enabled = !state.isDisconnecting,
                 variant = LiquidButtonVariant.Text,
-                backdropState = backdrop,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
@@ -396,6 +467,8 @@ private fun topBarActions(
     navigator: AppNavigator,
     shellViewModel: AppShellViewModel,
     onRefreshUpdate: () -> Unit,
+    currentUpdateChannel: String,
+    onSelectUpdateChannel: (String) -> Unit,
     onRequestDisconnectAll: () -> Unit,
     account: UniAccountSummary?,
     onSelectProfile: (String) -> Unit,
@@ -418,8 +491,21 @@ private fun topBarActions(
             listOf(
                 LiquidTopBarAction(
                     icon = LiquidIcons.Refresh,
-                    label = "Controlla aggiornamenti",
+                    label = stringResource(Res.string.ui_update_search),
                     onClick = onRefreshUpdate,
+                ),
+                LiquidTopBarAction(
+                    icon = LiquidIcons.MoreVert,
+                    label = stringResource(Res.string.ui_update_channel),
+                    subItems = listOf("Stabile", "Beta").map { channel ->
+                        val isSelected = currentUpdateChannel.equals(channel, ignoreCase = true)
+                        LiquidTopBarAction(
+                            icon = if (isSelected) LiquidIcons.Check else LiquidIcons.Star,
+                            label = channel,
+                            selected = isSelected,
+                            onClick = { onSelectUpdateChannel(channel) },
+                        )
+                    },
                 ),
             )
 
@@ -448,7 +534,13 @@ private fun topBarActions(
         AppRoute.Transport -> emptyList()
 
         AppRoute.Home ->
-            account
+            listOf(
+                LiquidTopBarAction(
+                    icon = LiquidIcons.AccountCircle,
+                    label = stringResource(Res.string.ui_accounts_saved_title),
+                    onClick = { navigator.navigate(AppRoute.Accounts) },
+                ),
+            ) + (account
                 ?.profiles
                 ?.distinctBy { it.profileId }
                 ?.takeIf { it.size > 1 }
@@ -478,7 +570,7 @@ private fun topBarActions(
                         ),
                     )
                 }
-                .orEmpty()
+                .orEmpty())
 
         else -> emptyList()
     }

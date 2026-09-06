@@ -18,52 +18,16 @@ jobs:
       RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
       RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
       RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-      UNIAPP_API_SHARED_SECRET: ${{ secrets.UNIAPP_API_SHARED_SECRET }}
-      ORG_GRADLE_PROJECT_UNIAPP_API_SHARED_SECRET: ${{ secrets.UNIAPP_API_SHARED_SECRET }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Normalize API secret for Gradle
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          normalize_secret() {
-            local value="${1:-}"
-            value="${value//$'\r'/}"
-            value="${value//$'\n'/}"
-            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-
-            if [[ ${#value} -ge 2 && "$value" == \"* && "$value" == *\" ]]; then
-              value="${value:1:${#value}-2}"
-            fi
-            if [[ ${#value} -ge 2 && "$value" == \'* && "$value" == *\' ]]; then
-              value="${value:1:${#value}-2}"
-            fi
-
-            printf '%s' "$value"
-          }
-
-          NORMALIZED_SECRET="$(normalize_secret "${UNIAPP_API_SHARED_SECRET:-}")"
-          if [ -z "${NORMALIZED_SECRET}" ]; then
-            echo "❌ Missing UNIAPP_API_SHARED_SECRET"
-            exit 1
-          fi
-
-          if [ "${NORMALIZED_SECRET}" != "${UNIAPP_API_SHARED_SECRET:-}" ]; then
-            echo "⚠️ UNIAPP_API_SHARED_SECRET had wrapping quotes/whitespace; normalized before Gradle build"
-          fi
-
-          {
-            printf 'UNIAPP_API_SHARED_SECRET=%s\n' "${NORMALIZED_SECRET}"
-            printf 'ORG_GRADLE_PROJECT_UNIAPP_API_SHARED_SECRET=%s\n' "${NORMALIZED_SECRET}"
-          } >> "${GITHUB_ENV}"
+        with:
+          submodules: recursive
 
       - name: Validate signing secrets
         run: |
-          for v in RELEASE_KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD UNIAPP_API_SHARED_SECRET; do
+          for v in RELEASE_KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
             if [ -z "${!v}" ]; then
               echo "❌ Missing $v"
               exit 1
@@ -99,67 +63,6 @@ jobs:
             -PRELEASE_STORE_PASSWORD="$RELEASE_STORE_PASSWORD" \
             -PRELEASE_KEY_ALIAS="$RELEASE_KEY_ALIAS" \
             -PRELEASE_KEY_PASSWORD="$RELEASE_KEY_PASSWORD"
-
-      - name: Verify API secret survives release build
-        shell: bash
-        run: |
-          BUILD_CONFIG_PATH="$(find androidApp/build/generated/source/buildConfig/release -name "BuildConfig.java" | head -n 1)"
-          if [ -z "${BUILD_CONFIG_PATH}" ] || [ ! -f "${BUILD_CONFIG_PATH}" ]; then
-            echo "❌ Release BuildConfig.java not found"
-            exit 1
-          fi
-          if grep -q 'UNIAPP_API_SHARED_SECRET = "";' "${BUILD_CONFIG_PATH}"; then
-            echo "❌ UNIAPP_API_SHARED_SECRET was compiled empty"
-            exit 1
-          fi
-          if grep -q 'UNIAPP_API_SHARED_SECRET = "\\\"' "${BUILD_CONFIG_PATH}"; then
-            echo "❌ UNIAPP_API_SHARED_SECRET was compiled with wrapping quotes"
-            exit 1
-          fi
-          if ! grep -q 'UNIAPP_API_SHARED_SECRET = "' "${BUILD_CONFIG_PATH}"; then
-            echo "❌ UNIAPP_API_SHARED_SECRET field missing from BuildConfig"
-            exit 1
-          fi
-
-          python3 - <<'PY'
-          import os
-          import pathlib
-          import sys
-          import zipfile
-
-          secret = os.environ.get("UNIAPP_API_SHARED_SECRET", "")
-          secret = secret.strip().strip('"').strip("'").strip()
-          if not secret:
-              print("❌ UNIAPP_API_SHARED_SECRET is empty during APK verification")
-              sys.exit(1)
-
-          apks = sorted(pathlib.Path("androidApp/build/outputs/apk/release").glob("*.apk"))
-          if not apks:
-              print("❌ No release APKs found for API secret verification")
-              sys.exit(1)
-
-          needle = secret.encode("utf-8")
-          missing = []
-          for apk in apks:
-              with zipfile.ZipFile(apk) as archive:
-                  dex_entries = [
-                      name for name in archive.namelist()
-                      if pathlib.PurePosixPath(name).name.startswith("classes")
-                      and name.endswith(".dex")
-                  ]
-                  found = any(needle in archive.read(name) for name in dex_entries)
-
-              if found:
-                  print(f"✔ API secret present in final dex: {apk}")
-              else:
-                  missing.append(str(apk))
-
-          if missing:
-              print("❌ UNIAPP_API_SHARED_SECRET was not present in final dex for:")
-              for apk in missing:
-                  print(f" - {apk}")
-              sys.exit(1)
-          PY
 
       - name: List generated APKs
         run: |
@@ -199,13 +102,14 @@ jobs:
       - name: Detect release channel
         id: release_context
         run: |
-          BUILD_CONFIG_PATH=$(find androidApp/build/generated/source/buildConfig/release -name "BuildConfig.java" | head -n 1)
-
-          if grep -q "BETA_BUILD = true" "$BUILD_CONFIG_PATH"; then
-            echo "release_channel=beta" >> $GITHUB_OUTPUT
-          else
-            echo "release_channel=stable" >> $GITHUB_OUTPUT
-          fi
+          python3 - <<'PYCODE'
+          import json, os
+          with open("androidApp/build/outputs/apk/release/output-metadata.json") as handle:
+              version = json.load(handle)["elements"][0]["versionName"]
+          channel = "beta" if "beta" in version.lower() else "stable"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as handle:
+              handle.write(f"release_channel={channel}\n")
+          PYCODE
 
       - name: Save build context
         run: |

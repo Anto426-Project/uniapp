@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,7 +25,6 @@ import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.components.display.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.StudyCourse
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -33,7 +32,7 @@ import uniapp.composeapp.generated.resources.*
  * Tab 0: Programma, Obiettivi e Syllabus dettagliato del corso.
  */
 @Composable
-fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
+fun CourseProgramTab(course: StudyCourse) {
     val colorScheme = MaterialTheme.colorScheme
 
     Column(
@@ -47,8 +46,7 @@ fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
 
         // Card Obiettivi e Descrizione
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedRectangle(20.dp),
             contentPadding = 16.dp,
         ) {
             Column(
@@ -86,8 +84,7 @@ fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
 
         // Card Modalità d'Esame
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedRectangle(20.dp),
             contentPadding = 16.dp,
         ) {
             Column(
@@ -123,8 +120,7 @@ fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
 
         // Card Materiale e Bibliografia
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedRectangle(20.dp),
             contentPadding = 16.dp,
         ) {
             Column(
@@ -164,7 +160,7 @@ fun CourseProgramTab(course: StudyCourse, backdropState: Backdrop) {
  * Tab 1: Docente, Contatti e Ricevimento studenti.
  */
 @Composable
-fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
+fun CourseProfessorTab(course: StudyCourse) {
     val colorScheme = MaterialTheme.colorScheme
     val profName = course.professor.ifBlank { stringResource(Res.string.ui_professor) }
     val initials = profName.split(" ").mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("")
@@ -180,8 +176,7 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
 
         // Card Profilo Docente
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
         ) {
             Row(
@@ -192,7 +187,6 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
                 LiquidAvatar(
                     initials = if (initials.isNotBlank()) initials else "DC",
                     size = 52.dp,
-                    backdropState = backdropState,
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -219,7 +213,7 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedRectangle(18.dp))
                     .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
                     .padding(14.dp),
             ) {
@@ -258,7 +252,7 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedRectangle(18.dp))
                     .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
                     .padding(14.dp),
             ) {
@@ -301,7 +295,7 @@ fun CourseProfessorTab(course: StudyCourse, backdropState: Backdrop) {
  * Tab 2: Dati Accademici, Tipologia Crediti e Vincoli del Corso.
  */
 @Composable
-fun CourseDataTab(course: StudyCourse, backdropState: Backdrop) {
+fun CourseDataTab(course: StudyCourse) {
     val colorScheme = MaterialTheme.colorScheme
 
     Column(
@@ -323,14 +317,12 @@ fun CourseDataTab(course: StudyCourse, backdropState: Backdrop) {
                     label = stringResource(Res.string.ui_course_activity_type),
                     value = stringResource(Res.string.ui_course_activity_characterizing),
                     subvalue = stringResource(Res.string.ui_course_activity_base),
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
                 AcademicInfoTile(
                     label = stringResource(Res.string.ui_course_attendance),
                     value = stringResource(Res.string.ui_course_attendance_recommended),
                     subvalue = stringResource(Res.string.ui_course_attendance_no_obligation),
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -343,14 +335,12 @@ fun CourseDataTab(course: StudyCourse, backdropState: Backdrop) {
                     label = stringResource(Res.string.ui_course_scientific_sector),
                     value = "ING-INF / INF",
                     subvalue = stringResource(Res.string.ui_course_sector_label),
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
                 AcademicInfoTile(
                     label = stringResource(Res.string.ui_course_language),
                     value = stringResource(Res.string.ui_course_lang_italian),
                     subvalue = stringResource(Res.string.ui_course_lang_material_note),
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -358,8 +348,7 @@ fun CourseDataTab(course: StudyCourse, backdropState: Backdrop) {
 
         // Propedeuticità Card
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedRectangle(20.dp),
             contentPadding = 16.dp,
         ) {
             Column(
@@ -391,14 +380,13 @@ fun CourseHeroStatTile(
     label: String,
     value: String,
     icon: ImageVector,
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedRectangle(16.dp))
             .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
             .padding(12.dp),
     ) {
@@ -440,14 +428,13 @@ fun AcademicInfoTile(
     label: String,
     value: String,
     subvalue: String,
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedRectangle(18.dp))
             .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
             .padding(14.dp),
     ) {

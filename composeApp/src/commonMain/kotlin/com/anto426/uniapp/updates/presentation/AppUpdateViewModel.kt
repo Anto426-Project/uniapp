@@ -10,8 +10,10 @@ import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
 import com.anto426.uniapp.updates.runtime.AppUpdateController
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,30 +22,53 @@ data class AppUpdateUiState(
     val bannerState: UpdateState = UpdateState.CHECKING,
     val installedVersion: String = "",
     val displayedVersion: String = "",
-    val channel: String = "stable",
+    val channel: String = "Stabile",
     val statusText: String? = null,
     val releaseNotes: String? = null,
     val publishedAt: String? = null,
     val isMandatory: Boolean = false,
     val canOpenUpdate: Boolean = false,
     val errorMessage: String? = null,
+    val isBusy: Boolean = false,
+    val progress: Float? = null,
+    val downloadedMb: Float = 0f,
+    val totalMb: Float = 0f,
+    val availableUpdateKey: String? = null,
+    val showUpdateSheet: Boolean = false,
 )
 
 internal class AppUpdateViewModel(
     private val controller: AppUpdateController,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
+    private val dismissedUpdate = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<AppUpdateUiState> =
-        controller.state
-            .map(AppUpdateState::toUiState)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Eagerly,
-                initialValue = controller.state.value.toUiState(),
-            )
+        combine(controller.state, dismissedUpdate) { state, dismissed ->
+            val ui = state.toUiState()
+            ui.copy(showUpdateSheet = ui.availableUpdateKey != null && ui.availableUpdateKey != dismissed && !state.isBusy)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = controller.state.value.toUiState(),
+        )
 
     init {
+        viewModelScope.launch { controller.observeInstallation() }
         viewModelScope.launch { controller.refresh() }
+    }
+
+    fun selectChannel(channel: String) {
+        val key = when (channel) {
+            "Stabile" -> "stable"
+            "Beta" -> "beta"
+            else -> return
+        }
+        viewModelScope.launch { controller.refresh(key) }
+    }
+
+    fun dismissUpdateSheet() {
+        dismissedUpdate.value = controller.state.value.toUiState().availableUpdateKey
     }
 
     fun refresh() {
@@ -61,6 +86,7 @@ internal class AppUpdateViewModel(
                 )
                 AppUpdatePhase.Idle,
                 AppUpdatePhase.Checking,
+                AppUpdatePhase.Verifying,
                 AppUpdatePhase.Downloading,
                 AppUpdatePhase.Installing,
                 -> Unit
@@ -69,6 +95,8 @@ internal class AppUpdateViewModel(
     }
 
     fun openUpdate() {
+        if (!controller.state.value.canStartUpdate) return
+        dismissUpdateSheet()
         viewModelScope.launch {
             if (controller.startUpdate()) {
                 toastSink.info("Aggiornamento avviato…")
@@ -81,7 +109,7 @@ internal class AppUpdateViewModel(
     }
 }
 
-private fun AppUpdateState.toUiState(): AppUpdateUiState {
+internal fun AppUpdateState.toUiState(): AppUpdateUiState {
     val info = updateInfo
     return AppUpdateUiState(
         bannerState =
@@ -91,20 +119,21 @@ private fun AppUpdateState.toUiState(): AppUpdateUiState {
                 -> UpdateState.CHECKING
 
                 AppUpdatePhase.UpToDate -> UpdateState.UP_TO_DATE
-                AppUpdatePhase.Available,
-                AppUpdatePhase.Downloading,
-                AppUpdatePhase.Installing,
-                -> UpdateState.AVAILABLE
+                AppUpdatePhase.Available -> UpdateState.AVAILABLE
+                AppUpdatePhase.Downloading -> UpdateState.DOWNLOADING
+                AppUpdatePhase.Verifying -> UpdateState.VERIFYING
+                AppUpdatePhase.Installing -> UpdateState.INSTALLING
                 AppUpdatePhase.Failed -> UpdateState.ERROR
             },
         installedVersion = installedBuild.versionName,
-        displayedVersion = info?.latestVersion ?: installedBuild.versionName,
-        channel = info?.channel ?: "stable",
+        displayedVersion = if (info?.isUpdateAvailable == true) info.latestVersion else installedBuild.versionName,
+        channel = if (selectedChannel == "beta") "Beta" else "Stabile",
         statusText =
             when {
-                isMandatory -> "Aggiornamento obbligatorio"
+                phase == AppUpdatePhase.Verifying -> "Verifica dell’aggiornamento…"
                 phase == AppUpdatePhase.Downloading -> "Download dell’aggiornamento…"
-                phase == AppUpdatePhase.Installing -> "Installazione e riavvio…"
+                phase == AppUpdatePhase.Installing -> "Attendi la conferma dell’installazione…"
+                isMandatory -> "Aggiornamento obbligatorio"
                 phase == AppUpdatePhase.Available -> "Nuovo aggiornamento disponibile"
                 phase == AppUpdatePhase.UpToDate -> "Versione aggiornata"
                 else -> null
@@ -112,10 +141,14 @@ private fun AppUpdateState.toUiState(): AppUpdateUiState {
         releaseNotes = info?.notes,
         publishedAt = info?.publishedAt,
         isMandatory = isMandatory,
-        canOpenUpdate =
-            downloadUrl != null &&
-                phase != AppUpdatePhase.Downloading &&
-                phase != AppUpdatePhase.Installing,
+        canOpenUpdate = canStartUpdate,
+        isBusy = isBusy,
+        progress = totalBytes?.takeIf { it > 0 }?.let { (downloadedBytes.toFloat() / it).coerceIn(0f, 1f) },
+        downloadedMb = downloadedBytes / (1024f * 1024f),
+        totalMb = (totalBytes ?: 0) / (1024f * 1024f),
+        availableUpdateKey = info?.takeIf { it.isUpdateAvailable }?.let {
+            "${it.channel}:${it.latestVersionCode}:${it.latestVersion}:${it.isMandatory}"
+        },
         errorMessage = message,
     )
 }

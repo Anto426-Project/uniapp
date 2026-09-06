@@ -1,6 +1,7 @@
 package com.anto426.uniapp.home.presentation
 
 import androidx.compose.runtime.Immutable
+import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -13,7 +14,7 @@ data class HomeDashboardUiState(
     val departmentName: String = "",
     val profileInitials: String = "",
     val profilePhotoData: ByteArray? = null,
-    val news: List<NewsItem> = emptyList(),
+    val news: List<NewsItem> = UniAppInitialData.fallbackNews,
     val quickActions: List<QuickActionItem> = emptyList(),
     val degreeName: String = "",
     val academicYear: String = "",

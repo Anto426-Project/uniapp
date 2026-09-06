@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,12 +41,11 @@ import com.anto426.liquidmonet.components.feedback.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.AttendanceData
 import com.anto426.uniapp.model.didactics.SingleAttendanceEntry
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
-fun AttendanceItem(data: AttendanceData, backdropState: Backdrop) {
+fun AttendanceItem(data: AttendanceData) {
     val colorScheme = MaterialTheme.colorScheme
     var expanded by remember { mutableStateOf(false) }
 
@@ -64,8 +63,7 @@ fun AttendanceItem(data: AttendanceData, backdropState: Backdrop) {
     }
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedRectangle(22.dp),
         contentPadding = 16.dp,
         onClick = if (data.records.isNotEmpty()) { { expanded = !expanded } } else null,
     ) {
@@ -90,7 +88,7 @@ fun AttendanceItem(data: AttendanceData, backdropState: Backdrop) {
                             containerSize = 40.dp,
                             iconSize = 20.dp,
                             containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedRectangle(12.dp),
                         ),
                     )
 
@@ -139,13 +137,11 @@ fun AttendanceItem(data: AttendanceData, backdropState: Backdrop) {
                     text = data.percentage,
                     containerColor = badgeBg,
                     contentColor = badgeFg,
-                    backdropState = backdropState,
                 )
             }
 
             LiquidLinearProgressIndicator(
                 progress = progress.coerceIn(0f, 1f),
-                backdropState = backdropState,
             )
 
             if (data.records.isNotEmpty()) {
@@ -186,7 +182,7 @@ private fun SingleAttendanceRow(record: SingleAttendanceEntry) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedRectangle(12.dp))
             .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {

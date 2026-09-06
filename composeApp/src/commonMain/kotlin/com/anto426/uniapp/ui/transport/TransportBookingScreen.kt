@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,7 +60,6 @@ import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.transport.presentation.TransportBookingUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.transport.TransportDirection
-import com.kyant.backdrop.Backdrop
 import com.kyant.shapes.Capsule
 import kotlin.time.Clock
 import kotlinx.datetime.DatePeriod
@@ -75,7 +74,6 @@ import uniapp.composeapp.generated.resources.*
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TransportBookingScreen(
-    backdropState: Backdrop,
     uiState: TransportBookingUiState,
     onRouteSelected: (String) -> Unit,
     onBook: (List<LocalDate>, TransportDirection) -> Unit,
@@ -121,7 +119,6 @@ fun TransportBookingScreen(
             selectedItem = uiState.selectedRoute,
             onItemSelected = onRouteSelected,
             label = stringResource(Res.string.ui_trip_route),
-            backdropState = backdropState,
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -141,21 +138,18 @@ fun TransportBookingScreen(
                 selected = selectedDirection == TransportDirection.OUTBOUND,
                 onClick = { selectedDirection = TransportDirection.OUTBOUND },
                 leadingIcon = LiquidIcons.ArrowForward,
-                backdropState = backdropState,
             )
             LiquidChip(
                 label = stringResource(Res.string.ui_trip_return),
                 selected = selectedDirection == TransportDirection.RETURN,
                 onClick = { selectedDirection = TransportDirection.RETURN },
                 leadingIcon = LiquidIcons.ArrowBack,
-                backdropState = backdropState,
             )
             LiquidChip(
                 label = stringResource(Res.string.ui_transport_round_trip),
                 selected = selectedDirection == TransportDirection.ROUND_TRIP,
                 onClick = { selectedDirection = TransportDirection.ROUND_TRIP },
                 leadingIcon = LiquidIcons.Refresh,
-                backdropState = backdropState,
             )
         }
 
@@ -174,29 +168,25 @@ fun TransportBookingScreen(
                 label = stringResource(Res.string.ui_transport_preset_today),
                 selected = selectedDates == setOf(today),
                 onClick = { selectedDates = setOf(today) },
-                backdropState = backdropState,
                 modifier = Modifier.weight(1f),
             )
             LiquidChip(
                 label = stringResource(Res.string.ui_transport_preset_today_tomorrow),
                 selected = selectedDates == setOf(today, today.plus(DatePeriod(days = 1))),
                 onClick = { selectedDates = setOf(today, today.plus(DatePeriod(days = 1))) },
-                backdropState = backdropState,
                 modifier = Modifier.weight(1.3f),
             )
             LiquidChip(
                 label = stringResource(Res.string.ui_transport_preset_week),
                 selected = selectedDates.size == 5 && (0..4).all { today.plus(DatePeriod(days = it)) in selectedDates },
                 onClick = { selectedDates = (0..4).map { today.plus(DatePeriod(days = it)) }.toSet() },
-                backdropState = backdropState,
                 modifier = Modifier.weight(1.2f),
             )
         }
 
         // Calendario Multi-Selezione in Vetro Liquido
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 16.dp,
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -234,7 +224,6 @@ fun TransportBookingScreen(
                                     displayedMonth -= 1
                                 }
                             },
-                            backdropState = backdropState,
                         )
                         LiquidIconButton(
                             icon = LiquidIcons.ChevronRight,
@@ -246,7 +235,6 @@ fun TransportBookingScreen(
                                     displayedMonth += 1
                                 }
                             },
-                            backdropState = backdropState,
                         )
                     }
                 }
@@ -303,7 +291,6 @@ fun TransportBookingScreen(
                                                 alpha = if (isPast) 0.35f else 1f
                                             }
                                             .liquidGlass(
-                                                backdrop = backdropState,
                                                 shape = Capsule(),
                                                 role = LiquidGlassRole.Control,
                                                 containerColor = if (isSelected) {
@@ -363,7 +350,6 @@ fun TransportBookingScreen(
                                     }
                                 },
                                 selected = true,
-                                backdropState = backdropState,
                             )
                         }
                     }
@@ -380,8 +366,7 @@ fun TransportBookingScreen(
             val totalRides = selectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
 
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedRectangle(24.dp),
                 contentPadding = 20.dp,
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -424,7 +409,6 @@ fun TransportBookingScreen(
                                 TransportDirection.RETURN -> stringResource(Res.string.ui_transport_return_only_caps)
                                 else -> stringResource(Res.string.ui_transport_outbound_only_caps)
                             },
-                            backdropState = backdropState,
                         )
                     }
 
@@ -599,9 +583,6 @@ fun TransportBookingScreen(
             isLoading = uiState.isSubmitting,
             modifier = Modifier.fillMaxWidth(),
             variant = LiquidButtonVariant.Primary,
-            backdropState = backdropState,
         )
-
-        Spacer(Modifier.height(32.dp))
     }
 }

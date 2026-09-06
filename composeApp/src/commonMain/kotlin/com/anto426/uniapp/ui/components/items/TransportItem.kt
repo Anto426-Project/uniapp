@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,20 +30,17 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TransportRoute
 import com.anto426.uniapp.model.transport.TransportTicket
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun TransportReservationItem(
     reservation: TransportReservation,
-    backdropState: Backdrop,
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val isAndata = reservation.direction == com.anto426.uniapp.model.transport.TripDirection.ANDATA
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
@@ -65,7 +62,7 @@ fun TransportReservationItem(
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
 
@@ -93,7 +90,6 @@ fun TransportReservationItem(
                     text = if (isAndata) stringResource(Res.string.ui_trip_outbound) else stringResource(Res.string.ui_trip_return),
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.primary,
-                    backdropState = backdropState,
                     modifier = Modifier.graphicsLayer {
                         scaleX = 1.05f
                         scaleY = 1.05f
@@ -107,14 +103,12 @@ fun TransportReservationItem(
 @Composable
 fun TransportTicketItem(
     ticket: TransportTicket,
-    backdropState: Backdrop,
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
@@ -136,7 +130,7 @@ fun TransportTicketItem(
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
 
@@ -172,14 +166,12 @@ fun TransportTicketItem(
 @Composable
 fun TransportRouteItem(
     route: TransportRoute,
-    backdropState: Backdrop,
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
@@ -201,7 +193,7 @@ fun TransportRouteItem(
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
 
@@ -229,7 +221,6 @@ fun TransportRouteItem(
                     text = route.countdown,
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.primary,
-                    backdropState = backdropState,
                     modifier = Modifier.graphicsLayer {
                         scaleX = 1.05f
                         scaleY = 1.05f

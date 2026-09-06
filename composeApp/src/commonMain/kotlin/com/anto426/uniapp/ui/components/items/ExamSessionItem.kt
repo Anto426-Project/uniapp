@@ -28,14 +28,12 @@ import com.anto426.liquidmonet.components.cards.LiquidAccordionItem
 import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ExamSession
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun ExamSessionItem(
     exam: ExamSession,
-    backdropState: Backdrop,
     isMutating: Boolean = false,
     onToggleBooking: () -> Unit = {},
 ) {
@@ -46,7 +44,6 @@ fun ExamSessionItem(
         leadingIcon = if (exam.isBooked) LiquidIcons.Check else LiquidIcons.Calendar,
         isExpanded = isExpanded,
         onExpandedChange = { isExpanded = it },
-        backdropState = backdropState
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (exam.professor.isNotBlank()) {
@@ -58,7 +55,6 @@ fun ExamSessionItem(
                     LiquidAvatar(
                         initials = exam.professor.split(" ").filter(String::isNotEmpty).map { it.first() }.joinToString("").take(2),
                         size = 36.dp,
-                        backdropState = backdropState
                     )
                     Text(
                         text = exam.professor,
@@ -127,7 +123,6 @@ fun ExamSessionItem(
                         modifier = Modifier.fillMaxWidth(),
                         variant = LiquidButtonVariant.Tonal,
                         size = LiquidButtonSize.Small,
-                        backdropState = backdropState
                     )
                     LiquidButton(
                         text = stringResource(Res.string.ui_cancel_booking),
@@ -136,7 +131,6 @@ fun ExamSessionItem(
                         modifier = Modifier.fillMaxWidth(),
                         variant = LiquidButtonVariant.Secondary,
                         size = LiquidButtonSize.Small,
-                        backdropState = backdropState
                     )
                 }
             } else {
@@ -149,7 +143,6 @@ fun ExamSessionItem(
                     modifier = Modifier.fillMaxWidth(),
                     variant = LiquidButtonVariant.Primary,
                     size = LiquidButtonSize.Small,
-                    backdropState = backdropState
                 )
             }
         }

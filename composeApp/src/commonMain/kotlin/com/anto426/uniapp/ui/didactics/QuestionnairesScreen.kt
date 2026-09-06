@@ -3,7 +3,6 @@ package com.anto426.uniapp.ui.didactics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,13 +21,11 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.QuestionnairesUiState
 import com.anto426.uniapp.ui.components.items.QuestionnaireItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun QuestionnairesScreen(
-    backdropState: Backdrop,
     uiState: QuestionnairesUiState,
     onQuestionnaireClick: (com.anto426.uniapp.model.didactics.QuestionnaireData) -> Unit,
 ) {
@@ -46,7 +43,7 @@ fun QuestionnairesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 uiState.pending.forEach { data ->
-                    QuestionnaireItem(data, backdropState) { onQuestionnaireClick(data) }
+                    QuestionnaireItem(data) { onQuestionnaireClick(data) }
                 }
             }
         }
@@ -61,7 +58,7 @@ fun QuestionnairesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 uiState.completed.forEach { data ->
-                    QuestionnaireItem(data, backdropState)
+                    QuestionnaireItem(data)
                 }
             }
         }
@@ -76,7 +73,7 @@ fun QuestionnairesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 uiState.unavailable.forEach { data ->
-                    QuestionnaireItem(data, backdropState)
+                    QuestionnaireItem(data)
                 }
             }
         }
@@ -86,7 +83,6 @@ fun QuestionnairesScreen(
                 title = stringResource(Res.string.ui_questionnaires_empty_title),
                 description = stringResource(Res.string.ui_questionnaires_empty_desc),
                 icon = LiquidIcons.Feedback,
-                backdropState = backdropState,
             )
         }
     }

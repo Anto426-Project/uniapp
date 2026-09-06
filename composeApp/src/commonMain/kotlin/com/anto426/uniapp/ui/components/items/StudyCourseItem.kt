@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,12 +29,10 @@ import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun StudyCourseItem(
     course: StudyCourse,
-    backdropState: Backdrop,
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -58,8 +56,7 @@ fun StudyCourseItem(
     }
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
@@ -80,7 +77,7 @@ fun StudyCourseItem(
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = iconContainerColor,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
 
@@ -126,7 +123,6 @@ fun StudyCourseItem(
                         CourseStatus.ACTIVE -> colorScheme.onSecondaryContainer
                         CourseStatus.PLANNED -> colorScheme.onSurfaceVariant
                     },
-                    backdropState = backdropState,
                     modifier = Modifier.graphicsLayer {
                         scaleX = 1.02f
                         scaleY = 1.02f

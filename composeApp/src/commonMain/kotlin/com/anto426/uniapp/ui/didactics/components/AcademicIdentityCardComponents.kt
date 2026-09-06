@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -57,18 +57,12 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.glass.LiquidGlass
-import com.anto426.liquidmonet.glass.LiquidGlassBackdropPolicy
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.banners.logUniAppShaderError
 import com.anto426.uniapp.ui.components.banners.supportsUniAppRuntimeShader
 import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.RuntimeShader
-import com.kyant.backdrop.asComposeShader
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 import kotlin.math.abs
@@ -90,25 +84,21 @@ import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
 fun AcademicIdentityBannerCard(
     uiState: AcademicIdentityUiState,
     rawCode: String,
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
 ) {
     UniHeroGlassCard(
-        backdropState = backdropState,
         modifier = modifier,
         height = 370.dp,
         flipTrigger = UniHeroFlipTrigger.CLICK,
         frontContent = {
             AcademicIdentityFrontFace(
                 uiState = uiState,
-                backdropState = backdropState,
             )
         },
         backContent = {
             AcademicIdentityBackFace(
                 uiState = uiState,
                 rawCode = rawCode,
-                backdropState = backdropState,
             )
         },
     )
@@ -118,7 +108,6 @@ fun AcademicIdentityBannerCard(
 @Composable
 private fun AcademicIdentityFrontFace(
     uiState: AcademicIdentityUiState,
-    backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -176,7 +165,7 @@ private fun AcademicIdentityFrontFace(
                 modifier = Modifier
                     .background(
                         color = colorScheme.surface.copy(alpha = 0.22f),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedRectangle(16.dp),
                     )
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
@@ -212,7 +201,6 @@ private fun AcademicIdentityFrontFace(
                 initials = uiState.initials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
                 size = 86.dp,
                 contentDescription = stringResource(Res.string.ui_profile_picture),
-                backdropState = backdropState,
             )
 
             Column(
@@ -259,7 +247,6 @@ private fun AcademicIdentityFrontFace(
                 },
                 containerColor = colorScheme.primaryContainer.copy(alpha = 0.65f),
                 contentColor = colorScheme.primary,
-                backdropState = backdropState,
             )
         }
 
@@ -292,7 +279,6 @@ private fun AcademicIdentityFrontFace(
 private fun AcademicIdentityBackFace(
     uiState: AcademicIdentityUiState,
     rawCode: String,
-    backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -350,7 +336,7 @@ private fun AcademicIdentityBackFace(
                 modifier = Modifier
                     .background(
                         color = colorScheme.surface.copy(alpha = 0.22f),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedRectangle(16.dp),
                     )
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
@@ -385,7 +371,7 @@ private fun AcademicIdentityBackFace(
                 modifier = Modifier
                     .background(
                         color = colorScheme.surface.copy(alpha = 0.35f),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedRectangle(20.dp),
                     )
                     .padding(14.dp),
                 contentAlignment = Alignment.Center,
@@ -554,7 +540,7 @@ fun QrCodeMatrixCanvas(
     }
 }
 
-fun DrawScope.drawFinderPattern(
+private fun DrawScope.drawFinderPattern(
     x: Float,
     y: Float,
     cellSize: Float,

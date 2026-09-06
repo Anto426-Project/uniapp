@@ -15,23 +15,20 @@ import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.uniapp.settings.presentation.LanguageUiState
 import com.anto426.uniapp.ui.components.items.LanguageItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun LanguageScreen(
-    backdropState: Backdrop,
     uiState: LanguageUiState,
     onLanguageSelected: (String) -> Unit,
 ) {
     UniScreenColumn {
         // Language Selection Group without title and nested containers
-        LiquidPreferenceGroup(backdropState = backdropState) {
+        LiquidPreferenceGroup {
             uiState.languages.forEachIndexed { index, language ->
                 LanguageItem(
                     language = language,
                     isSelected = uiState.selectedLanguageCode == language.code,
                     onClick = { onLanguageSelected(language.code) },
-                    backdropState = backdropState
                 )
 
                 if (index < uiState.languages.lastIndex) {

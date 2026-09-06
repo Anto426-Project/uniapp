@@ -8,6 +8,8 @@ data class AccountSwitcherUiState(
     val profileImages: Map<String, ByteArray> = emptyMap(),
     val activatingAccountId: String? = null,
     val activatingProfileId: String? = null,
+    val pendingRemovalAccountId: String? = null,
+    val isRemovingAccount: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
 )

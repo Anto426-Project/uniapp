@@ -1,10 +1,12 @@
-package com.anto426.uniapp.ui.data
+package com.anto426.uniapp.data
 
 import androidx.compose.ui.graphics.Color
+import com.anto426.liquidmonet.components.cards.LiquidStatusType
 import com.anto426.liquidmonet.components.pickers.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.legal.LegalSectionData
+import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.model.services.ServiceData
 import com.anto426.uniapp.model.settings.LanguageInfo
 import com.anto426.uniapp.model.updates.ChangelogItemData
@@ -14,7 +16,34 @@ import uniapp.composeapp.generated.resources.*
 /**
  * Static configuration metadata, legal disclosures, service directory links, and changelogs.
  */
-object UiInitialData {
+object UniAppInitialData {
+    val fallbackNews = listOf(
+        NewsItem(
+            title = "Inaugurazione Anno Accademico",
+            description = "La cerimonia ufficiale di apertura dell'anno accademico si terrà il 15 Ottobre presso l'Aula Magna con le massime autorità.",
+            fullContent = "L'Università è lieta di invitare tutta la comunità accademica alla solenne cerimonia di inaugurazione del nuovo anno accademico. Saranno presenti le massime autorità accademiche, regionali e nazionali. Al termine della prolusione inaugurale del Magnifico Rettore seguirà un rinfresco per tutti gli studenti e il personale.",
+            type = LiquidStatusType.Info,
+        ),
+        NewsItem(
+            title = "Bando Borse di Studio e Alloggi 2026/27",
+            description = "Pubblicate le graduatorie definitive e le istruzioni per l'erogazione dei contributi economici e posti alloggio per gli studenti idonei.",
+            fullContent = "Sono disponibili sul portale dedicato agli studenti le graduatorie definitive relative all'assegnazione di borse di studio e posti alloggio per l'anno accademico in corso. Gli studenti risultati idonei e beneficiari riceveranno una notifica via email con le modalità operative di accredito.",
+            type = LiquidStatusType.Success,
+        ),
+        NewsItem(
+            title = "Sessione Straordinaria Appelli d'Esame",
+            description = "Apertura delle prenotazioni per gli appelli della sessione straordinaria. Termine ultimo fissato a 5 giorni prima dell'esame.",
+            fullContent = "Si avvisano tutti gli studenti che è aperta la finestra di prenotazione per gli appelli della sessione d'esame. Si ricorda che le iscrizioni si chiudono improrogabilmente 5 giorni prima della data della prova d'esame. Consultare l'area 'Appelli' per il calendario completo.",
+            type = LiquidStatusType.Warning,
+        ),
+        NewsItem(
+            title = "Workshop AI & Data Science nel Campus",
+            description = "Ciclo di seminari pratici e laboratori con aziende partner del settore tecnologico. Riconoscimento CFU per gli iscritti.",
+            fullContent = "Il Dipartimento organizza una serie di laboratori applicati sulle moderne tecnologie di intelligenza artificiale, machine learning e analisi avanzata dei dati. I seminari si terranno nei laboratori informatici e permetteranno agli studenti partecipanti di acquisire CFU aggiuntivi.",
+            type = LiquidStatusType.Info,
+        ),
+    )
+
     val studentServices = listOf(
         ServiceData(titleRes = Res.string.service_student_transport_title, subtitleRes = Res.string.service_student_transport_sub, icon = LiquidIcons.Time, id = "transport"),
         ServiceData(titleRes = Res.string.service_student_taxes_title, subtitleRes = Res.string.service_student_taxes_sub, icon = LiquidIcons.CreditCard, id = "taxes"),
@@ -84,18 +113,6 @@ object UiInitialData {
         LegalSectionData(Res.string.app_info_sec_4_title, Res.string.app_info_sec_4_content),
         LegalSectionData(Res.string.app_info_sec_5_title, Res.string.app_info_sec_5_content),
         LegalSectionData(Res.string.app_info_sec_6_title, Res.string.app_info_sec_6_content),
-        LegalSectionData(Res.string.app_info_sec_7_title, Res.string.app_info_sec_7_content),
-        LegalSectionData(Res.string.app_info_sec_8_title, Res.string.app_info_sec_8_content),
-        LegalSectionData(Res.string.app_info_sec_9_title, Res.string.app_info_sec_9_content),
-        LegalSectionData(Res.string.app_info_sec_10_title, Res.string.app_info_sec_10_content),
-        LegalSectionData(Res.string.app_info_sec_11_title, Res.string.app_info_sec_11_content),
-        LegalSectionData(Res.string.app_info_sec_12_title, Res.string.app_info_sec_12_content),
-        LegalSectionData(Res.string.app_info_sec_13_title, Res.string.app_info_sec_13_content),
-        LegalSectionData(Res.string.app_info_sec_14_title, Res.string.app_info_sec_14_content),
-        LegalSectionData(Res.string.app_info_sec_15_title, Res.string.app_info_sec_15_content),
-        LegalSectionData(Res.string.app_info_sec_16_title, Res.string.app_info_sec_16_content),
-        LegalSectionData(Res.string.app_info_sec_17_title, Res.string.app_info_sec_17_content),
-        LegalSectionData(Res.string.app_info_sec_18_title, Res.string.app_info_sec_18_content),
     )
 
     val privacySections = listOf(
@@ -108,19 +125,6 @@ object UiInitialData {
         LegalSectionData(Res.string.privacy_sec_7_title, Res.string.privacy_sec_7_content),
         LegalSectionData(Res.string.privacy_sec_8_title, Res.string.privacy_sec_8_content),
         LegalSectionData(Res.string.privacy_sec_9_title, Res.string.privacy_sec_9_content),
-        LegalSectionData(Res.string.privacy_sec_10_title, Res.string.privacy_sec_10_content),
-        LegalSectionData(Res.string.privacy_sec_11_title, Res.string.privacy_sec_11_content),
-        LegalSectionData(Res.string.privacy_sec_12_title, Res.string.privacy_sec_12_content),
-        LegalSectionData(Res.string.privacy_sec_13_title, Res.string.privacy_sec_13_content),
-        LegalSectionData(Res.string.privacy_sec_14_title, Res.string.privacy_sec_14_content),
-        LegalSectionData(Res.string.privacy_sec_15_title, Res.string.privacy_sec_15_content),
-        LegalSectionData(Res.string.privacy_sec_16_title, Res.string.privacy_sec_16_content),
-        LegalSectionData(Res.string.privacy_sec_17_title, Res.string.privacy_sec_17_content),
-        LegalSectionData(Res.string.privacy_sec_18_title, Res.string.privacy_sec_18_content),
-        LegalSectionData(Res.string.privacy_sec_19_title, Res.string.privacy_sec_19_content),
-        LegalSectionData(Res.string.privacy_sec_20_title, Res.string.privacy_sec_20_content),
-        LegalSectionData(Res.string.privacy_sec_21_title, Res.string.privacy_sec_21_content),
-        LegalSectionData(Res.string.privacy_sec_22_title, Res.string.privacy_sec_22_content),
     )
 
     val termsSections = listOf(
@@ -132,32 +136,17 @@ object UiInitialData {
         LegalSectionData(Res.string.terms_sec_6_title, Res.string.terms_sec_6_content),
         LegalSectionData(Res.string.terms_sec_7_title, Res.string.terms_sec_7_content),
         LegalSectionData(Res.string.terms_sec_8_title, Res.string.terms_sec_8_content),
-        LegalSectionData(Res.string.terms_sec_9_title, Res.string.terms_sec_9_content),
-        LegalSectionData(Res.string.terms_sec_10_title, Res.string.terms_sec_10_content),
-        LegalSectionData(Res.string.terms_sec_11_title, Res.string.terms_sec_11_content),
-        LegalSectionData(Res.string.terms_sec_12_title, Res.string.terms_sec_12_content),
-        LegalSectionData(Res.string.terms_sec_13_title, Res.string.terms_sec_13_content),
-        LegalSectionData(Res.string.terms_sec_14_title, Res.string.terms_sec_14_content),
-        LegalSectionData(Res.string.terms_sec_15_title, Res.string.terms_sec_15_content),
-        LegalSectionData(Res.string.terms_sec_16_title, Res.string.terms_sec_16_content),
-        LegalSectionData(Res.string.terms_sec_17_title, Res.string.terms_sec_17_content),
-        LegalSectionData(Res.string.terms_sec_18_title, Res.string.terms_sec_18_content),
-        LegalSectionData(Res.string.terms_sec_19_title, Res.string.terms_sec_19_content),
-        LegalSectionData(Res.string.terms_sec_20_title, Res.string.terms_sec_20_content),
-        LegalSectionData(Res.string.terms_sec_21_title, Res.string.terms_sec_21_content),
-        LegalSectionData(Res.string.terms_sec_22_title, Res.string.terms_sec_22_content),
-        LegalSectionData(Res.string.terms_sec_23_title, Res.string.terms_sec_23_content),
     )
 
     val cookieSections = listOf(
         LegalSectionData(Res.string.cookie_sec_1_title, Res.string.cookie_sec_1_content),
         LegalSectionData(Res.string.cookie_sec_2_title, Res.string.cookie_sec_2_content),
         LegalSectionData(Res.string.cookie_sec_3_title, Res.string.cookie_sec_3_content),
+        LegalSectionData(Res.string.cookie_sec_4_title, Res.string.cookie_sec_4_content),
     )
 
     val languages = listOf(
         LanguageInfo("Italiano", "Italiano (Predefinito)", "it"),
-        LanguageInfo("Inglese", "English (UK)", "en"),
     )
 
     val palettes = listOf(
@@ -167,3 +156,5 @@ object UiInitialData {
         LiquidPaletteOption("Violet", Color(0xFF9B59B6)),
     )
 }
+
+typealias UiInitialData = UniAppInitialData

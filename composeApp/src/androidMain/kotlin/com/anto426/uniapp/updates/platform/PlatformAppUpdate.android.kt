@@ -1,6 +1,7 @@
 package com.anto426.uniapp.updates.platform
 
 import android.app.PendingIntent
+import android.provider.Settings
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -11,6 +12,18 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.anto426.uniapp.app.info.AppBuildMetadata
+import com.anto426.unisdk.platform.AppInfo
+import com.anto426.unisdk.platform.AppInfoProvider
+import com.anto426.uniapp.updates.model.AppUpdatePhase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.filterNotNull
 import androidx.compose.ui.platform.LocalContext
 import com.anto426.uniapp.updates.model.InstalledAppBuild
 import java.io.File
@@ -22,17 +35,39 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnvironment {
-    val context = LocalContext.current.applicationContext
+    val activityContext = LocalContext.current
+    val context = activityContext.applicationContext
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(context, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            UpdateInstallStatus.confirmation.filterNotNull().collect { confirmation ->
+                try {
+                    activityContext.startActivity(confirmation.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    UpdateInstallStatus.confirmationLaunched()
+                } catch (error: Exception) {
+                    UpdateInstallStatus.failed(context, "Impossibile aprire la conferma di installazione: ${error.message.orEmpty()}")
+                }
+            }
+        }
+    }
     return remember(context) {
+        UpdateInstallStatus.restore(context)
         val packageInfo = context.packageManager.installedPackageInfo(context.packageName)
-        PlatformAppUpdateEnvironment(
-            installedBuild =
-                InstalledAppBuild(
+        val info = AppInfo(
                     versionName = packageInfo.versionName.orEmpty().ifBlank { "unknown" },
                     versionCode = packageInfo.compatVersionCode(),
                     isDebuggable =
                         context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0,
-                ),
+                    applicationId = context.packageName,
+                    platform = "android",
+                    osVersion = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+                    deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
+                    sourceRevision = AppBuildMetadata.sourceRevision,
+                    modules = AppBuildMetadata.modules,
+                )
+        AppInfoProvider.initialize(info)
+        PlatformAppUpdateEnvironment(
+            installedBuild = info,
             launcher = AndroidDirectUpdateLauncher(context),
         )
     }
@@ -41,21 +76,36 @@ internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnv
 private class AndroidDirectUpdateLauncher(
     private val context: Context,
 ) : PlatformUpdateLauncher {
+    override val updates = UpdateInstallStatus.progress.filterNotNull()
+
     override suspend fun start(
         downloadUrl: String,
         expectedVersionCode: Int?,
     ): PlatformUpdateLaunchResult =
         withContext(Dispatchers.IO) {
-            runCatching {
+            try {
+                if (!context.packageManager.canRequestPackageInstalls()) {
+                    withContext(Dispatchers.Main) {
+                        context.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }
+                    return@withContext PlatformUpdateLaunchResult.Failed(
+                        "Abilita l’installazione da UniApp, torna nell’app e premi di nuovo Scarica.")
+                }
                 val apkFile = downloadApk(downloadUrl)
                 try {
+                    currentCoroutineContext().ensureActive()
+                    UpdateInstallStatus.report(AppUpdatePhase.Verifying)
                     validateApk(apkFile, expectedVersionCode)
+                    currentCoroutineContext().ensureActive()
                     enqueueInstall(apkFile, downloadUrl)
                     PlatformUpdateLaunchResult.Started
                 } finally {
                     apkFile.delete()
                 }
-            }.getOrElse { error ->
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
                 PlatformUpdateLaunchResult.Failed(
                     error.message?.takeIf(String::isNotBlank)
                         ?: "Impossibile scaricare o installare l’aggiornamento.",
@@ -63,22 +113,20 @@ private class AndroidDirectUpdateLauncher(
             }
         }
 
-    private fun downloadApk(downloadUrl: String): File {
+    private suspend fun downloadApk(downloadUrl: String): File {
         val sourceUrl = URL(downloadUrl)
         require(sourceUrl.protocol.equals("https", ignoreCase = true)) {
             "Il download dell’aggiornamento deve usare HTTPS."
         }
 
         val updateDirectory = File(context.cacheDir, "app-updates").apply { mkdirs() }
-        val destination = File(updateDirectory, "pending-update.apk")
-        destination.delete()
-
-        val connection = sourceUrl.openConnection() as HttpURLConnection
-        connection.instanceFollowRedirects = true
-        connection.connectTimeout = CONNECT_TIMEOUT_MILLIS
-        connection.readTimeout = READ_TIMEOUT_MILLIS
-        connection.setRequestProperty("Accept", "application/vnd.android.package-archive")
-        connection.setRequestProperty("User-Agent", "UniApp-Updater")
+        val connection = openDownloadConnection(sourceUrl)
+        val destination = try {
+            File.createTempFile("update-", ".apk", updateDirectory)
+        } catch (error: Exception) {
+            connection.disconnect()
+            throw error
+        }
 
         try {
             val status = connection.responseCode
@@ -95,7 +143,9 @@ private class AndroidDirectUpdateLauncher(
                 destination.outputStream().buffered().use { output ->
                     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                     var total = 0L
+                    var lastReported = 0L
                     while (true) {
+                        currentCoroutineContext().ensureActive()
                         val count = input.read(buffer)
                         if (count < 0) break
                         total += count
@@ -103,7 +153,13 @@ private class AndroidDirectUpdateLauncher(
                             "Il pacchetto di aggiornamento supera il limite consentito."
                         }
                         output.write(buffer, 0, count)
+                        if (total - lastReported >= 256 * 1024) {
+                            UpdateInstallStatus.downloaded(total, declaredLength.takeIf { it > 0 })
+                            lastReported = total
+                        }
                     }
+                    require(declaredLength < 0 || total == declaredLength) { "Download incompleto. Riprova." }
+                    UpdateInstallStatus.downloaded(total, declaredLength.takeIf { it > 0 })
                     require(total > 0L) { "Il pacchetto di aggiornamento è vuoto." }
                 }
             }
@@ -114,6 +170,32 @@ private class AndroidDirectUpdateLauncher(
         } finally {
             connection.disconnect()
         }
+    }
+
+    private suspend fun openDownloadConnection(initial: URL): HttpURLConnection {
+        var url = initial
+        repeat(6) { attempt ->
+            currentCoroutineContext().ensureActive()
+            require(url.protocol.equals("https", true)) { "Il download deve usare HTTPS anche dopo i reindirizzamenti." }
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                instanceFollowRedirects = false
+                connectTimeout = CONNECT_TIMEOUT_MILLIS
+                readTimeout = READ_TIMEOUT_MILLIS
+                setRequestProperty("Accept", "application/vnd.android.package-archive")
+                setRequestProperty("User-Agent", "UniApp-Updater")
+            }
+            try {
+                if (connection.responseCode !in listOf(301, 302, 303, 307, 308)) return connection
+                require(attempt < 5) { "Troppi reindirizzamenti durante il download." }
+                val location = connection.getHeaderField("Location") ?: error("Reindirizzamento senza destinazione.")
+                url = URL(url, location)
+            } catch (error: Throwable) {
+                connection.disconnect()
+                throw error
+            }
+            connection.disconnect()
+        }
+        error("Download non disponibile.")
     }
 
     private fun validateApk(
@@ -159,6 +241,7 @@ private class AndroidDirectUpdateLauncher(
             }
         }
         val sessionId = installer.createSession(params)
+        UpdateInstallStatus.beginSession(context, sessionId)
         try {
             installer.openSession(sessionId).use { session ->
                 FileInputStream(apkFile).use { input ->
@@ -188,6 +271,7 @@ private class AndroidDirectUpdateLauncher(
             }
         } catch (error: Throwable) {
             runCatching { installer.abandonSession(sessionId) }
+            UpdateInstallStatus.failed(context, error.message ?: "Installazione non riuscita.")
             throw error
         }
     }
@@ -224,11 +308,17 @@ private fun PackageManager.archivePackageInfo(apkFile: File): PackageInfo? =
     }
 
 private fun PackageInfo.hasSignerInCommonWith(other: PackageInfo): Boolean {
-    val installedSigners = signingInfo?.signingCertificateHistory.orEmpty()
-    val candidateSigners = other.signingInfo?.signingCertificateHistory.orEmpty()
-    return installedSigners.any { installed ->
-        candidateSigners.any { candidate -> installed.toByteArray().contentEquals(candidate.toByteArray()) }
+    val installed = signingInfo ?: return false
+    val candidate = other.signingInfo ?: return false
+    val current = installed.apkContentsSigners.orEmpty()
+    if (current.isEmpty()) return false
+    if (installed.hasMultipleSigners() || candidate.hasMultipleSigners()) {
+        val target = candidate.apkContentsSigners.orEmpty()
+        return current.size == target.size && current.all { it in target }
     }
+    // Accept the installed signer or a forward signing-key rotation; PackageInstaller
+    // remains responsible for verifying the cryptographic APK signing lineage.
+    return current.all { it in candidate.signingCertificateHistory.orEmpty() }
 }
 
 @Suppress("DEPRECATION")

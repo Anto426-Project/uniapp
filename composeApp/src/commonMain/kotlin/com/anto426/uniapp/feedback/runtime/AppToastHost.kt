@@ -7,14 +7,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import com.anto426.liquidmonet.components.feedback.LiquidToastHost
 import com.anto426.liquidmonet.components.feedback.LiquidToastType
 import com.anto426.liquidmonet.components.feedback.rememberLiquidToastState
-import com.kyant.backdrop.Backdrop
 import kotlinx.coroutines.flow.collect
 
 /** The only Compose bridge between application feedback events and the Liquid toast renderer. */
 @Composable
 fun AppToastHost(
     manager: AppToastManager,
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
 ) {
     val state = rememberLiquidToastState()
@@ -30,7 +28,6 @@ fun AppToastHost(
     LiquidToastHost(
         state = state,
         modifier = modifier.graphicsLayer(clip = false),
-        backdropState = backdropState,
     )
 }
 

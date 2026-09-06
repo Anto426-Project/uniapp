@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,12 +41,11 @@ import com.anto426.uniapp.ui.didactics.components.CourseDataTab
 import com.anto426.uniapp.ui.didactics.components.CourseHeroStatTile
 import com.anto426.uniapp.ui.didactics.components.CourseProfessorTab
 import com.anto426.uniapp.ui.didactics.components.CourseProgramTab
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
-fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
+fun CourseDetailScreen(course: StudyCourse) {
     val colorScheme = MaterialTheme.colorScheme
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -68,8 +67,7 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
         // 1. HERO COURSE CARD (VETRO LIQUID MONET)
         // ==========================================
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 18.dp,
         ) {
             Column(
@@ -107,7 +105,6 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
                         text = course.cfu,
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -138,14 +135,12 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
                             label = stringResource(Res.string.ui_course_period),
                             value = course.semester.ifBlank { "—" },
                             icon = LiquidIcons.Calendar,
-                            backdropState = backdropState,
                             modifier = Modifier.weight(1f),
                         )
                         CourseHeroStatTile(
                             label = stringResource(Res.string.ui_course_credits),
                             value = course.cfu,
                             icon = LiquidIcons.Star,
-                            backdropState = backdropState,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -158,14 +153,12 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
                             label = stringResource(Res.string.ui_course_status_header),
                             value = statusLabel,
                             icon = if (isCompleted) LiquidIcons.Check else LiquidIcons.Time,
-                            backdropState = backdropState,
                             modifier = Modifier.weight(1f),
                         )
                         CourseHeroStatTile(
                             label = stringResource(Res.string.ui_course_code_header),
                             value = if (course.id.isNotBlank()) course.id else "—",
                             icon = LiquidIcons.Lock,
-                            backdropState = backdropState,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -182,7 +175,6 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
             items = tabs,
             selectedIndex = selectedTab,
             onTabSelected = { selectedTab = it },
-            backdropState = backdropState,
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -193,9 +185,9 @@ fun CourseDetailScreen(course: StudyCourse, backdropState: Backdrop) {
             label = "courseDetailTabTransition",
         ) { tabIndex ->
             when (tabIndex) {
-                0 -> CourseProgramTab(course = course, backdropState = backdropState)
-                1 -> CourseProfessorTab(course = course, backdropState = backdropState)
-                else -> CourseDataTab(course = course, backdropState = backdropState)
+                0 -> CourseProgramTab(course = course)
+                1 -> CourseProfessorTab(course = course)
+                else -> CourseDataTab(course = course)
             }
         }
     }

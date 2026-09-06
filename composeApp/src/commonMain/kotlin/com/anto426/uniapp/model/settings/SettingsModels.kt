@@ -23,3 +23,4 @@ data class ThemeOption(
     val color: Color?,
     val isCustom: Boolean = false,
 )
+

@@ -6,6 +6,8 @@ import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toStudyYears
 import com.anto426.uniapp.model.didactics.StudyYear
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +33,7 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val years = dataSource.loadStudyPlan(force).toStudyYears()
                 val maxIndex = (years.size - 1).coerceAtLeast(0)
@@ -44,7 +46,7 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare il piano di studi."),
                 )
             }

@@ -6,7 +6,7 @@ import uniapp.composeapp.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,12 +25,10 @@ import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.settings.DeviceInfo
 import com.anto426.uniapp.model.settings.DeviceType
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun DevicePreferenceItem(
     device: DeviceInfo,
-    backdropState: Backdrop,
     onRevoke: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -45,7 +43,6 @@ fun DevicePreferenceItem(
         title = device.name,
         subtitle = "${device.location}\n${device.lastSeen}",
         icon = deviceIcon,
-        backdropState = backdropState,
         onClick = { /* Device detail logic */ },
         trailingContent = {
             if (!device.isCurrent && !device.revocationToken.isNullOrBlank()) {
@@ -53,7 +50,6 @@ fun DevicePreferenceItem(
                     text = stringResource(Res.string.ui_revoke),
                     onClick = onRevoke,
                     variant = LiquidButtonVariant.Text,
-                    backdropState = backdropState
                 )
             } else if (device.isCurrent) {
                 Text(
@@ -68,7 +64,7 @@ fun DevicePreferenceItem(
 }
 
 @Composable
-fun CurrentDeviceHero(device: DeviceInfo, backdropState: Backdrop) {
+fun CurrentDeviceHero(device: DeviceInfo) {
     val colorScheme = MaterialTheme.colorScheme
     val icon = when(device.type) {
         DeviceType.PHONE -> LiquidIcons.Phone
@@ -77,8 +73,7 @@ fun CurrentDeviceHero(device: DeviceInfo, backdropState: Backdrop) {
     }
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedRectangle(24.dp),
         contentPadding = 16.dp,
     ) {
         Row(
@@ -93,7 +88,7 @@ fun CurrentDeviceHero(device: DeviceInfo, backdropState: Backdrop) {
                     containerSize = 40.dp,
                     iconSize = 20.dp,
                     containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedRectangle(12.dp),
                 ),
             )
             Spacer(modifier = Modifier.width(14.dp))

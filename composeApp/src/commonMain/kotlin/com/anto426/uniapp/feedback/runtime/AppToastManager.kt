@@ -1,5 +1,7 @@
 package com.anto426.uniapp.feedback.runtime
 
+import androidx.compose.runtime.staticCompositionLocalOf
+
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -20,6 +22,8 @@ fun interface AppToastSink {
         val None = AppToastSink { }
     }
 }
+
+internal val LocalAppToastSink = staticCompositionLocalOf<AppToastSink> { AppToastSink.None }
 
 class AppToastManager : AppToastSink {
     private val messageQueue = Channel<AppToastMessage>(capacity = Channel.UNLIMITED)

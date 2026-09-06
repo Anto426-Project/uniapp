@@ -17,8 +17,6 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.anto426.liquidmonet.components.display.LiquidAvatar
-import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.backdrops.emptyBackdrop
 
 /** Displays the account photo when available and preserves the SDK initials fallback. */
 @Composable
@@ -28,15 +26,12 @@ fun UniAccountAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 44.dp,
     contentDescription: String? = null,
-    backdrop: Backdrop = emptyBackdrop(),
-    backdropState: Backdrop = backdrop,
 ) {
     if (imageData == null || imageData.isEmpty()) {
         LiquidAvatar(
             modifier = modifier,
             initials = initials.ifBlank { "UN" },
             size = size,
-            backdropState = backdropState,
         )
         return
     }
@@ -59,7 +54,6 @@ fun UniAccountAvatar(
         initials = if (imageLoaded) null else initials.ifBlank { "UN" },
         icon = null,
         size = size,
-        backdropState = backdropState,
         content =
             if (imageLoaded) {
                 {

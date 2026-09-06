@@ -3,6 +3,7 @@ package com.anto426.uniapp.session.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.PasswordUnlockResult
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.security.biometric.BiometricAuthenticationResult
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
@@ -18,7 +19,10 @@ import kotlinx.coroutines.launch
 data class AppUnlockUiState(
     val isAuthenticating: Boolean = false,
     val errorMessage: String? = null,
+    val passwordError: AppPasswordUnlockError? = null,
 )
+
+enum class AppPasswordUnlockError { Invalid, RetryLater, Failed }
 
 class AppSessionViewModel(
     private val sessionController: AppSessionController,
@@ -82,6 +86,29 @@ class AppSessionViewModel(
         viewModelScope.launch {
             sessionController.cancelUnlock()
             mutableUnlockUiState.value = AppUnlockUiState()
+        }
+    }
+
+    fun requestPasswordUnlock(password: String) {
+        if (state.value !is AppSessionState.UnlockRequired || unlockJob?.isActive == true) return
+        unlockJob = viewModelScope.launch {
+            mutableUnlockUiState.value = AppUnlockUiState(isAuthenticating = true)
+            try {
+                val result = sessionController.unlockWithPassword(password)
+                mutableUnlockUiState.value = AppUnlockUiState(
+                    passwordError = when (result) {
+                        PasswordUnlockResult.Unlocked -> null
+                        PasswordUnlockResult.Invalid -> AppPasswordUnlockError.Invalid
+                        PasswordUnlockResult.RetryLater -> AppPasswordUnlockError.RetryLater
+                    },
+                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                mutableUnlockUiState.value = AppUnlockUiState(passwordError = AppPasswordUnlockError.Failed)
+            } finally {
+                mutableUnlockUiState.update { it.copy(isAuthenticating = false) }
+            }
         }
     }
 }

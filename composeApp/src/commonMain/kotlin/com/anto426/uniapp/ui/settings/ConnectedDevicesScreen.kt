@@ -18,11 +18,9 @@ import com.anto426.uniapp.ui.components.items.CurrentDeviceHero
 import com.anto426.uniapp.ui.components.items.DevicePreferenceItem
 import com.anto426.uniapp.model.settings.DeviceInfo
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesUiState
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ConnectedDevicesScreen(
-    backdropState: Backdrop,
     uiState: ConnectedDevicesUiState,
     onRequestRevocation: (DeviceInfo) -> Unit,
     onDismissRevocation: () -> Unit,
@@ -31,19 +29,17 @@ fun ConnectedDevicesScreen(
     UniScreenColumn {
         uiState.currentDevice?.let { device ->
             LiquidSectionHeader(title = stringResource(Res.string.ui_current_device), subtitle = stringResource(Res.string.ui_protected_session))
-            CurrentDeviceHero(device = device, backdropState = backdropState)
+            CurrentDeviceHero(device = device)
         }
 
         if (uiState.otherDevices.isNotEmpty()) {
             LiquidPreferenceGroup(
                 title = stringResource(Res.string.ui_other_sessions),
                 subtitle = stringResource(Res.string.ui_manage_access),
-                backdropState = backdropState
             ) {
                 uiState.otherDevices.forEachIndexed { index, device ->
                     DevicePreferenceItem(
                         device = device,
-                        backdropState = backdropState,
                         onRevoke = { onRequestRevocation(device) }
                     )
                     if (index < uiState.otherDevices.size - 1) {
@@ -59,7 +55,6 @@ fun ConnectedDevicesScreen(
             onDismissRequest = onDismissRevocation,
             title = stringResource(Res.string.ui_revoke_access),
             text = stringResource(Res.string.ui_revoke_question, device.name),
-            backdropState = backdropState,
             confirmButton = {
                 LiquidButton(
                     text = stringResource(Res.string.ui_revoke),
@@ -67,7 +62,6 @@ fun ConnectedDevicesScreen(
                     variant = LiquidButtonVariant.Primary,
                     isLoading = uiState.isMutating,
                     enabled = !uiState.isMutating,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth()
                 )
             },
@@ -77,7 +71,6 @@ fun ConnectedDevicesScreen(
                     onClick = onDismissRevocation,
                     variant = LiquidButtonVariant.Text,
                     enabled = !uiState.isMutating,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -6,6 +6,8 @@ import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toExamRecords
 import com.anto426.uniapp.model.didactics.ExamRecord
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +39,7 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
 
     fun refresh(force: Boolean = false) {
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val exams = dataSource.loadCareer(force).toExamRecords()
                 val examsByYear = exams.groupBy { it.year }
@@ -53,7 +55,7 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare il libretto."),
                 )
             }

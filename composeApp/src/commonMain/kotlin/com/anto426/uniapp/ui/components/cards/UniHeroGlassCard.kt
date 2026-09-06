@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,6 +51,7 @@ import com.anto426.uniapp.ui.components.banners.supportsUniAppRuntimeShader
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.RuntimeShader
 import com.kyant.backdrop.asComposeShader
+import com.kyant.backdrop.backdrops.emptyBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
@@ -289,10 +290,9 @@ enum class UniHeroFlipTrigger {
  */
 @Composable
 fun UniHeroGlassCard(
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
     height: Dp = 480.dp,
-    shape: Shape = RoundedCornerShape(32.dp),
+    shape: Shape = RoundedRectangle(32.dp),
     flipTrigger: UniHeroFlipTrigger = UniHeroFlipTrigger.LONG_PRESS,
     isFlipped: Boolean = false,
     onFlippedChange: ((Boolean) -> Unit)? = null,
@@ -332,7 +332,6 @@ fun UniHeroGlassCard(
                 rotationY = rotation
                 cameraDistance = 14f * density
             },
-        backdropState = backdropState,
         shape = shape,
         contentPadding = 0.dp,
         colors = LiquidCardDefaults.colors(containerColor = Color.Transparent),

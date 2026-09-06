@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,14 +56,14 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.AttendanceUiState
 import com.anto426.uniapp.ui.components.items.AttendanceItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
+import com.anto426.uniapp.ui.didactics.components.AttendanceKpiCard
+import com.anto426.uniapp.ui.didactics.components.AttendanceQrScannerDialog
 import com.kyant.shapes.Capsule
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun AttendanceScreen(
-    backdropState: Backdrop,
     uiState: AttendanceUiState,
     onRegisterAttendance: (String) -> Unit = {},
     onClearRegistrationStatus: () -> Unit = {},
@@ -76,8 +76,7 @@ fun AttendanceScreen(
         // 1. UNIVERSAL QR SCANNER HERO CARD
         // ==========================================
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedRectangle(28.dp),
             contentPadding = 20.dp,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -98,7 +97,7 @@ fun AttendanceScreen(
                                 containerSize = 48.dp,
                                 iconSize = 26.dp,
                                 containerColor = colorScheme.primary.copy(alpha = 0.16f),
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedRectangle(16.dp),
                             ),
                         )
 
@@ -126,7 +125,6 @@ fun AttendanceScreen(
                         text = stringResource(Res.string.ui_attendance_scanner_live_badge),
                         containerColor = colorScheme.primaryContainer,
                         contentColor = colorScheme.primary,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -142,7 +140,7 @@ fun AttendanceScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedRectangle(14.dp))
                             .background(colorScheme.primaryContainer.copy(alpha = 0.6f))
                             .padding(12.dp),
                     ) {
@@ -170,7 +168,7 @@ fun AttendanceScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedRectangle(14.dp))
                             .background(colorScheme.errorContainer.copy(alpha = 0.6f))
                             .padding(12.dp),
                     ) {
@@ -208,7 +206,6 @@ fun AttendanceScreen(
                             showScannerDialog = true
                         },
                         variant = LiquidButtonVariant.Primary,
-                        backdropState = backdropState,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Icon(
@@ -239,7 +236,6 @@ fun AttendanceScreen(
                     value = "${uiState.totalCoursesCount}",
                     subvalue = stringResource(Res.string.ui_attendance_kpi_courses_sub),
                     icon = LiquidIcons.MenuBook,
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
                 AttendanceKpiCard(
@@ -247,7 +243,6 @@ fun AttendanceScreen(
                     value = "${uiState.averageAttendancePercent}%",
                     subvalue = stringResource(Res.string.ui_attendance_kpi_average_sub),
                     icon = LiquidIcons.Analytics,
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
                 AttendanceKpiCard(
@@ -255,7 +250,6 @@ fun AttendanceScreen(
                     value = "${uiState.totalAttendedLectures}",
                     subvalue = stringResource(Res.string.ui_attendance_kpi_lectures_sub),
                     icon = LiquidIcons.Check,
-                    backdropState = backdropState,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -274,7 +268,6 @@ fun AttendanceScreen(
                 title = stringResource(Res.string.ui_attendance_empty_title),
                 description = stringResource(Res.string.ui_attendance_empty_desc),
                 icon = LiquidIcons.QrCode,
-                backdropState = backdropState,
             )
         } else {
             Column(
@@ -282,7 +275,7 @@ fun AttendanceScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 uiState.records.forEach { data ->
-                    AttendanceItem(data, backdropState)
+                    AttendanceItem(data)
                 }
             }
         }
@@ -299,199 +292,7 @@ fun AttendanceScreen(
             onConfirmCode = { code ->
                 onRegisterAttendance(code)
             },
-            backdropState = backdropState,
         )
     }
 }
 
-@Composable
-private fun AttendanceQrScannerDialog(
-    isRegistering: Boolean,
-    errorMessage: String?,
-    onDismiss: () -> Unit,
-    onConfirmCode: (String) -> Unit,
-    backdropState: Backdrop,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    var qrInput by remember { mutableStateOf("") }
-
-    // Laser scan animation
-    val infiniteTransition = rememberInfiniteTransition(label = "laserTransition")
-    val laserPosition by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1600, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "laserScan",
-    )
-
-    LiquidDialog(
-        onDismissRequest = onDismiss,
-        title = stringResource(Res.string.ui_attendance_dialog_title),
-        backdropState = backdropState,
-        confirmButton = {
-            LiquidButton(
-                onClick = { onConfirmCode(qrInput) },
-                variant = LiquidButtonVariant.Primary,
-                isLoading = isRegistering,
-                enabled = qrInput.isNotBlank() && !isRegistering,
-                backdropState = backdropState,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(stringResource(Res.string.ui_attendance_dialog_confirm), fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            LiquidButton(
-                onClick = onDismiss,
-                variant = LiquidButtonVariant.Glass,
-                enabled = !isRegistering,
-                backdropState = backdropState,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(Res.string.ui_attendance_dialog_close))
-            }
-        },
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // Optical Viewfinder Animation Box
-            Box(
-                modifier = Modifier
-                    .size(170.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .border(2.dp, colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                // Background subtle QR Icon
-                Icon(
-                    imageVector = LiquidIcons.QrCode,
-                    contentDescription = null,
-                    tint = colorScheme.primary.copy(alpha = 0.25f),
-                    modifier = Modifier.size(90.dp),
-                )
-
-                // Laser scan line
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(2.5.dp)
-                        .graphicsLayer(translationY = (laserPosition - 0.5f) * 120f)
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    Color.Transparent,
-                                    colorScheme.primary,
-                                    colorScheme.primary,
-                                    Color.Transparent,
-                                )
-                            )
-                        )
-                )
-
-                // Corner brackets visual indicator
-                Text(
-                    text = stringResource(Res.string.ui_attendance_dialog_frame_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 9.sp,
-                    letterSpacing = 1.2.sp,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp),
-                )
-            }
-
-            // Input field for manual or scanned code
-            LiquidTextField(
-                value = qrInput,
-                onValueChange = { qrInput = it },
-                label = stringResource(Res.string.ui_attendance_dialog_input_label),
-                placeholder = stringResource(Res.string.ui_attendance_dialog_input_placeholder),
-                backdropState = backdropState,
-            )
-
-            Text(
-                text = stringResource(Res.string.ui_attendance_dialog_input_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                fontSize = 11.5.sp,
-                lineHeight = 15.sp,
-            )
-
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.error,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AttendanceKpiCard(
-    label: String,
-    value: String,
-    subvalue: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    backdropState: Backdrop,
-    modifier: Modifier = Modifier,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-
-    LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
-        contentPadding = 12.dp,
-        modifier = modifier,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.size(14.dp),
-                )
-                Text(
-                    text = label,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
-            }
-            Text(
-                text = value,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Black,
-                color = colorScheme.primary,
-            )
-            Text(
-                text = subvalue,
-                fontSize = 10.sp,
-                color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            )
-        }
-    }
-}

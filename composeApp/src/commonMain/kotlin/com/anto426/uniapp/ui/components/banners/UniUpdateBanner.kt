@@ -8,7 +8,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.LiquidButton
@@ -39,31 +39,30 @@ import com.anto426.uniapp.model.updates.UpdateState
 import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
-import com.kyant.backdrop.Backdrop
 import kotlin.math.roundToInt
 
 @Composable
 fun UniAppUpdateBanner(
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
+    height: Dp = 480.dp,
     state: UpdateState = UpdateState.UP_TO_DATE,
-    version: String = "2.0",
-    progress: Float = 0f,
+    version: String,
+    progress: Float? = null,
     downloadedMb: Float = 0f,
     totalMb: Float = 0f,
     onDownload: () -> Unit = {},
+    canDownload: Boolean = true,
     onRestart: () -> Unit = {},
     onRetry: () -> Unit = {},
     onClick: (() -> Unit)? = null,
-    title: String = "UniApp",
-    subtitle: String = "Università degli Studi del Molise",
+    title: String,
+    subtitle: String,
     statusText: String? = null,
     channel: String? = null,
 ) {
     UniHeroGlassCard(
-        backdropState = backdropState,
         modifier = modifier,
-        height = 480.dp,
+        height = height,
         flipTrigger = UniHeroFlipTrigger.LONG_PRESS,
         onClick = onClick,
         frontContent = {
@@ -76,8 +75,8 @@ fun UniAppUpdateBanner(
                 progress = progress,
                 downloadedMb = downloadedMb,
                 totalMb = totalMb,
-                backdropState = backdropState,
                 onDownload = onDownload,
+                canDownload = canDownload,
                 onRestart = onRestart,
                 onRetry = onRetry,
             )
@@ -95,11 +94,11 @@ private fun UpdateBannerFrontFace(
     title: String,
     subtitle: String,
     statusText: String?,
-    progress: Float,
+    progress: Float?,
     downloadedMb: Float,
     totalMb: Float,
-    backdropState: Backdrop,
     onDownload: () -> Unit,
+    canDownload: Boolean,
     onRestart: () -> Unit,
     onRetry: () -> Unit,
 ) {
@@ -124,28 +123,24 @@ private fun UpdateBannerFrontFace(
                 version = version,
                 title = title,
                 subtitle = statusText ?: stringResource(Res.string.ui_update_new_available),
-                backdropState = backdropState,
                 onDownload = onDownload,
+                canDownload = canDownload,
             )
             UpdateState.DOWNLOADING -> DownloadingContent(
                 version = version,
                 progress = progress,
                 downloadedMb = downloadedMb,
                 totalMb = totalMb,
-                backdropState = backdropState,
             )
             UpdateState.VERIFYING -> VerifyingContent()
             UpdateState.INSTALLING -> InstallingContent(
                 progress = progress,
-                backdropState = backdropState,
             )
             UpdateState.RESTART_REQUIRED -> RestartContent(
                 onRestart = onRestart,
-                backdropState = backdropState,
             )
             UpdateState.ERROR -> ErrorContent(
                 onRetry = onRetry,
-                backdropState = backdropState,
             )
         }
     }
@@ -251,8 +246,8 @@ private fun AvailableContent(
     version: String,
     title: String,
     subtitle: String,
-    backdropState: Backdrop,
     onDownload: () -> Unit,
+    canDownload: Boolean,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -284,8 +279,8 @@ private fun AvailableContent(
         LiquidButton(
             text = stringResource(Res.string.ui_update_download),
             onClick = onDownload,
+            enabled = canDownload,
             variant = LiquidButtonVariant.Glass,
-            backdropState = backdropState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .width(200.dp),
@@ -296,13 +291,12 @@ private fun AvailableContent(
 @Composable
 private fun DownloadingContent(
     version: String,
-    progress: Float,
+    progress: Float?,
     downloadedMb: Float,
     totalMb: Float,
-    backdropState: Backdrop,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val percent = (progress.coerceIn(0f, 1f) * 100).roundToInt()
+    val percent = progress?.let { (it.coerceIn(0f, 1f) * 100).roundToInt() }
 
     Column(
         modifier = Modifier
@@ -336,7 +330,7 @@ private fun DownloadingContent(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
-                text = "$percent%",
+                text = percent?.let { "$it%" } ?: "…",
                 color = scheme.onSurface,
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Light,
@@ -353,7 +347,6 @@ private fun DownloadingContent(
         ) {
             LiquidLinearProgressIndicator(
                 progress = progress,
-                backdropState = backdropState,
                 modifier = Modifier.fillMaxWidth(),
             )
             if (totalMb > 0f) {
@@ -450,8 +443,7 @@ private fun VerifyingContent() {
 
 @Composable
 private fun InstallingContent(
-    progress: Float,
-    backdropState: Backdrop,
+    progress: Float?,
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(
@@ -497,7 +489,6 @@ private fun InstallingContent(
         // Bottom Progress Indicator
         LiquidLinearProgressIndicator(
             progress = progress,
-            backdropState = backdropState,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -506,7 +497,6 @@ private fun InstallingContent(
 @Composable
 private fun RestartContent(
     onRestart: () -> Unit,
-    backdropState: Backdrop,
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(
@@ -551,7 +541,6 @@ private fun RestartContent(
             text = stringResource(Res.string.ui_update_restart),
             onClick = onRestart,
             variant = LiquidButtonVariant.Glass,
-            backdropState = backdropState,
             modifier = Modifier.width(200.dp),
         )
     }
@@ -560,7 +549,6 @@ private fun RestartContent(
 @Composable
 private fun ErrorContent(
     onRetry: () -> Unit,
-    backdropState: Backdrop,
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(
@@ -605,7 +593,6 @@ private fun ErrorContent(
             text = stringResource(Res.string.ui_retry),
             onClick = onRetry,
             variant = LiquidButtonVariant.Glass,
-            backdropState = backdropState,
             modifier = Modifier.width(200.dp),
         )
     }

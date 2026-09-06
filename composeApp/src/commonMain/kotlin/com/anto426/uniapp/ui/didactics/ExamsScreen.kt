@@ -18,11 +18,9 @@ import com.anto426.uniapp.ui.components.items.ExamSessionItem
 import com.anto426.uniapp.ui.components.items.ProfessorExamItem
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.unisdk.backend.model.ProfessorContentItem
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ExamsScreen(
-    backdropState: Backdrop,
     uiState: ExamsUiState,
     onTabSelected: (Int) -> Unit,
     onToggleBooking: (String) -> Unit,
@@ -47,7 +45,6 @@ fun ExamsScreen(
                     items = studentTabs,
                     selectedIndex = uiState.selectedTab,
                     onTabSelected = onTabSelected,
-                    backdropState = backdropState,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
@@ -60,7 +57,6 @@ fun ExamsScreen(
                 LiquidEmptyState(
                     title = stringResource(Res.string.ui_no_exams_in_section),
                     description = stringResource(Res.string.ui_no_exams_in_section_description),
-                    backdropState = backdropState,
                 )
             }
         }
@@ -71,7 +67,6 @@ fun ExamsScreen(
             ) { _, exam ->
                 ProfessorExamItem(
                     exam = exam,
-                    backdropState = backdropState,
                     onClickDetail = { onProfessorExamClick(exam) },
                 )
             }
@@ -84,7 +79,6 @@ fun ExamsScreen(
             ) { _, exam ->
                 ExamSessionItem(
                     exam = exam,
-                    backdropState = backdropState,
                     isMutating = uiState.mutatingExamId == exam.id,
                     onToggleBooking = { onToggleBooking(exam.id) },
                 )

@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,19 +25,16 @@ import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.services.ContactData
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ContactItem(
     contact: ContactData,
-    backdropState: Backdrop,
     onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
@@ -54,7 +51,6 @@ fun ContactItem(
                 LiquidAvatar(
                     initials = contact.initials,
                     size = 46.dp,
-                    backdropState = backdropState
                 )
 
                 Column(

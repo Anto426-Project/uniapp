@@ -15,14 +15,12 @@ import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
 import com.anto426.uniapp.ui.components.items.StudyCourseItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun StudyPlanScreen(
-    backdropState: Backdrop,
     uiState: StudyPlanUiState,
     onYearSelected: (Int) -> Unit,
     onCourseClick: (StudyCourse) -> Unit = {}
@@ -36,7 +34,6 @@ fun StudyPlanScreen(
                 items = tabs,
                 selectedIndex = uiState.selectedYearIndex.coerceIn(0, tabs.lastIndex),
                 onTabSelected = onYearSelected,
-                backdropState = backdropState,
             )
         }
 
@@ -61,7 +58,6 @@ fun StudyPlanScreen(
                 yearGroup.courses.forEach { course ->
                     StudyCourseItem(
                         course = course,
-                        backdropState = backdropState,
                         onClick = { onCourseClick(course) },
                     )
                 }

@@ -8,11 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.anto426.uniapp.model.services.TaxPaymentData
-import com.kyant.backdrop.Backdrop
 
 @Composable
-fun TaxPaymentList(payments: List<TaxPaymentData>, backdropState: Backdrop) {
+fun TaxPaymentList(payments: List<TaxPaymentData>) {
     Column(Modifier.fillMaxWidth().graphicsLayer(clip = false), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        payments.forEach { TaxPaymentItem(it, backdropState) }
+        payments.forEach { TaxPaymentItem(it) }
     }
 }

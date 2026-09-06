@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,12 +26,10 @@ import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.QuestionnaireData
 import com.anto426.uniapp.model.didactics.QuestionnaireStatus
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun QuestionnaireItem(
     data: QuestionnaireData,
-    backdropState: Backdrop,
     onClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -51,8 +49,7 @@ fun QuestionnaireItem(
     }
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedRectangle(22.dp),
         contentPadding = 16.dp,
         onClick = if (isPending) onClick else null,
     ) {
@@ -69,7 +66,7 @@ fun QuestionnaireItem(
                     containerSize = 42.dp,
                     iconSize = 20.dp,
                     containerColor = iconBg,
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedRectangle(14.dp),
                 ),
             )
 
@@ -104,7 +101,6 @@ fun QuestionnaireItem(
                 text = badgeText,
                 containerColor = badgeBg,
                 contentColor = badgeFg,
-                backdropState = backdropState,
             )
         }
     }

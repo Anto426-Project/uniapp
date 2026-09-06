@@ -121,14 +121,16 @@ def resolve_apk_metadata(path: Path) -> tuple[str, int, str, dict[str, str]]:
         if candidate_version_code <= 0:
             raise ValueError(f"{path} has a non-positive versionCode: {candidate_version_code}")
 
-        version_name = version_name or candidate_version_name
-        version_code = version_code or candidate_version_code
+        if version_name is not None and (version_name != candidate_version_name or version_code != candidate_version_code):
+            raise ValueError(f"{path} contains APKs with different versions; publish one build at a time.")
+        version_name = candidate_version_name
+        version_code = candidate_version_code
 
         abi_key = resolve_output_abi(element)
         if abi_key and abi_key not in output_files_by_abi:
             output_files_by_abi[abi_key] = output_file
 
-        if default_output_file is None and abi_key == "universal":
+        if abi_key == "universal":
             default_output_file = output_file
         elif default_output_file is None:
             default_output_file = output_file

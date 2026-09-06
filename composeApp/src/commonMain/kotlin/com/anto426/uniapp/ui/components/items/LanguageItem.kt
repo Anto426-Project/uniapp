@@ -15,14 +15,12 @@ import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.settings.LanguageInfo
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun LanguageItem(
     language: LanguageInfo,
     isSelected: Boolean,
     onClick: () -> Unit,
-    backdropState: Backdrop
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -30,12 +28,10 @@ fun LanguageItem(
         title = language.name,
         subtitle = language.region,
         onClick = onClick,
-        backdropState = backdropState,
         leadingContent = {
             LiquidAvatar(
                 initials = language.code.uppercase(),
                 size = 40.dp,
-                backdropState = backdropState
             )
         },
         trailingContent = {

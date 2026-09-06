@@ -6,6 +6,7 @@ import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +42,7 @@ class ContactDetailViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = ContactDetailUiState(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare il contatto."),
                 )
             }

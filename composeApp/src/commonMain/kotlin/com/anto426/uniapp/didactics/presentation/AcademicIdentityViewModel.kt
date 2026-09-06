@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,7 +72,7 @@ class AcademicIdentityViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = AcademicIdentityUiState(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage(
                         if (account?.isProfessor == true) "Impossibile caricare l’identità docente."
                         else "Impossibile caricare il badge studente.",

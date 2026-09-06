@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.buttons.LiquidButton
+import com.anto426.uniapp.model.didactics.toFixedTwoDecimals
 import com.anto426.liquidmonet.components.buttons.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.LiquidIconButton
@@ -65,7 +66,6 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.GradesUiState
 import com.anto426.uniapp.didactics.presentation.TargetFeasibility
 import com.anto426.uniapp.model.didactics.SimulationItem
-import com.kyant.backdrop.Backdrop
 import com.kyant.shapes.Capsule
 import kotlin.math.abs
 import kotlin.math.round
@@ -84,7 +84,6 @@ fun SimulationTab(
     onSetAllGrades: (Int) -> Unit,
     onApplyCurrentAverage: () -> Unit,
     onResetSimulation: () -> Unit,
-    backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -99,8 +98,7 @@ fun SimulationTab(
     ) {
         // 1. Hero Hub Card: Live Projections & Presets (Light & Clean)
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 18.dp,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -123,14 +121,12 @@ fun SimulationTab(
                             text = "$deltaString • ${uiState.activeSimulatedCount} esami (${uiState.activeSimulatedCfu} CFU)",
                             containerColor = colorScheme.primaryContainer,
                             contentColor = colorScheme.primary,
-                            backdropState = backdropState,
                         )
                     } else {
                         LiquidBadge(
                             text = stringResource(Res.string.ui_grades_no_simulation),
-                            containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            contentColor = colorScheme.onSurfaceVariant,
-                            backdropState = backdropState,
+                            containerColor = colorScheme.primary.copy(alpha = 0.08f),
+                            contentColor = colorScheme.primary,
                         )
                     }
                 }
@@ -211,7 +207,6 @@ fun SimulationTab(
                     }
                     LiquidLinearProgressIndicator(
                         progress = uiState.careerProgress,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -228,27 +223,22 @@ fun SimulationTab(
                     LiquidChip(
                         label = stringResource(Res.string.ui_grades_preset_all_30),
                         onClick = { onSetAllGrades(30) },
-                        backdropState = backdropState,
                     )
                     LiquidChip(
                         label = stringResource(Res.string.ui_grades_preset_all_28),
                         onClick = { onSetAllGrades(28) },
-                        backdropState = backdropState,
                     )
                     LiquidChip(
                         label = stringResource(Res.string.ui_grades_preset_all_24),
                         onClick = { onSetAllGrades(24) },
-                        backdropState = backdropState,
                     )
                     LiquidChip(
                         label = stringResource(Res.string.ui_grades_preset_current_average),
                         onClick = onApplyCurrentAverage,
-                        backdropState = backdropState,
                     )
                     LiquidChip(
                         label = stringResource(Res.string.ui_grades_preset_reset),
                         onClick = onResetSimulation,
-                        backdropState = backdropState,
                     )
                 }
             }
@@ -271,8 +261,7 @@ fun SimulationTab(
 
         if (uiState.simulationItems.isEmpty()) {
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedRectangle(20.dp),
                 contentPadding = 24.dp,
             ) {
                 Column(
@@ -304,7 +293,6 @@ fun SimulationTab(
                         onToggle = { onToggleItem(item.id) },
                         onGradeChange = { newGrade -> onGradeChange(item.id, newGrade) },
                         onRemove = if (item.isCustom) { { onRemoveCustomExam(item.id) } } else null,
-                        backdropState = backdropState,
                     )
                 }
             }
@@ -320,7 +308,6 @@ private fun SimulationExamCard(
     onToggle: () -> Unit,
     onGradeChange: (Int) -> Unit,
     onRemove: (() -> Unit)?,
-    backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val isIncluded = item.isEnabled
@@ -333,8 +320,7 @@ private fun SimulationExamCard(
     } else 0.0
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onToggle,
         colors = if (isIncluded) {
@@ -362,12 +348,12 @@ private fun SimulationExamCard(
                     Icon(
                         imageVector = if (item.isCustom) LiquidIcons.Star else if (isIncluded) LiquidIcons.Check else LiquidIcons.MenuBook,
                         contentDescription = null,
-                        tint = if (isIncluded) colorScheme.primary else colorScheme.onSurfaceVariant,
+                        tint = if (isIncluded) colorScheme.primary else colorScheme.primary.copy(alpha = 0.70f),
                         modifier = Modifier.liquidIconContainer(
                             containerSize = 40.dp,
                             iconSize = 20.dp,
-                            containerColor = if (isIncluded) colorScheme.primary.copy(alpha = 0.14f) else colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(12.dp),
+                            containerColor = if (isIncluded) colorScheme.primary.copy(alpha = 0.14f) else colorScheme.primary.copy(alpha = 0.06f),
+                            shape = RoundedRectangle(12.dp),
                         ),
                     )
 
@@ -422,14 +408,12 @@ private fun SimulationExamCard(
                             text = if (item.grade >= 31) "30L" else "${item.grade}",
                             containerColor = colorScheme.primaryContainer,
                             contentColor = colorScheme.primary,
-                            backdropState = backdropState,
                         )
                     } else {
                         LiquidBadge(
                             text = stringResource(Res.string.ui_grades_simulate_badge),
-                            containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            contentColor = colorScheme.onSurfaceVariant,
-                            backdropState = backdropState,
+                            containerColor = colorScheme.primary.copy(alpha = 0.08f),
+                            contentColor = colorScheme.primary,
                         )
                     }
 
@@ -437,7 +421,6 @@ private fun SimulationExamCard(
                         LiquidIconButton(
                             icon = LiquidIcons.Delete,
                             onClick = onRemove,
-                            backdropState = backdropState,
                         )
                     }
                 }
@@ -477,22 +460,21 @@ private fun SimulationExamCard(
                                 onClick = {
                                     if (item.grade > 18) onGradeChange(item.grade - 1)
                                 },
-                                backdropState = backdropState,
                             )
 
                             Box(
                                 modifier = Modifier
                                     .size(width = 56.dp, height = 36.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(colorScheme.surfaceVariant.copy(alpha = 0.6f))
-                                    .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                                    .clip(RoundedRectangle(12.dp))
+                                    .background(colorScheme.primary.copy(alpha = 0.08f))
+                                    .border(1.dp, colorScheme.primary.copy(alpha = 0.15f), RoundedRectangle(12.dp)),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
                                     text = if (item.grade >= 31) "30L" else "${item.grade}",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (item.grade >= 30) colorScheme.primary else colorScheme.onSurface,
+                                    color = colorScheme.primary,
                                 )
                             }
 
@@ -501,7 +483,6 @@ private fun SimulationExamCard(
                                 onClick = {
                                     if (item.grade < 31) onGradeChange(item.grade + 1)
                                 },
-                                backdropState = backdropState,
                             )
                         }
                     }
@@ -524,7 +505,12 @@ private fun SimulationExamCard(
                                     .clip(Capsule())
                                     .background(
                                         if (isCurrent) colorScheme.primary
-                                        else colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        else colorScheme.primary.copy(alpha = 0.08f)
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isCurrent) colorScheme.primary else colorScheme.primary.copy(alpha = 0.15f),
+                                        shape = Capsule(),
                                     )
                                     .clickable { onGradeChange(gradeOption) }
                                     .padding(horizontal = 12.dp),
@@ -534,7 +520,7 @@ private fun SimulationExamCard(
                                     text = label,
                                     fontSize = 13.sp,
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isCurrent) colorScheme.onPrimary else colorScheme.onSurface,
+                                    color = if (isCurrent) colorScheme.onPrimary else colorScheme.primary,
                                 )
                             }
                         }
@@ -554,7 +540,6 @@ fun GraduationTargetTab(
     onTargetDegreeChange: (Int) -> Unit,
     onThesisPointsChange: (Int) -> Unit,
     onBonusPointsChange: (Int) -> Unit,
-    backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -568,8 +553,7 @@ fun GraduationTargetTab(
     ) {
         // 1. Hero Calculation Card
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(26.dp),
+            shape = RoundedRectangle(26.dp),
             contentPadding = 20.dp,
         ) {
             Column(
@@ -602,7 +586,6 @@ fun GraduationTargetTab(
                         text = badgeText,
                         containerColor = badgeBg,
                         contentColor = badgeFg,
-                        backdropState = backdropState,
                     )
                 }
 
@@ -713,21 +696,18 @@ fun GraduationTargetTab(
                         label = stringResource(Res.string.ui_grades_current_base),
                         value = "${uiState.currentGraduationBase.toFixedTwoDecimals()}",
                         subvalue = "/ 110",
-                        backdropState = backdropState,
                         modifier = Modifier.weight(1f),
                     )
                     GraduationPillarTile(
                         label = stringResource(Res.string.ui_grades_thesis_bonus),
                         value = "+${uiState.thesisPoints + uiState.bonusPoints}",
                         subvalue = "pt",
-                        backdropState = backdropState,
                         modifier = Modifier.weight(1f),
                     )
                     GraduationPillarTile(
                         label = stringResource(Res.string.ui_grades_current_estimate),
                         value = "${(uiState.currentGraduationBase + uiState.thesisPoints + uiState.bonusPoints).toFixedTwoDecimals()}",
                         subvalue = "/ 110",
-                        backdropState = backdropState,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -742,8 +722,7 @@ fun GraduationTargetTab(
 
         // Target Final Score Selector (Chips + Stepper)
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -772,7 +751,6 @@ fun GraduationTargetTab(
                             label = label,
                             selected = uiState.targetDegree == targetVal,
                             onClick = { onTargetDegreeChange(targetVal) },
-                            backdropState = backdropState,
                         )
                     }
                 }
@@ -801,15 +779,14 @@ fun GraduationTargetTab(
                                 val current = if (uiState.targetDegree >= 111) 110 else uiState.targetDegree
                                 if (current > 66) onTargetDegreeChange(current - 1)
                             },
-                            backdropState = backdropState,
                         )
 
                         Box(
                             modifier = Modifier
                                 .size(width = 64.dp, height = 36.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(colorScheme.surfaceVariant.copy(alpha = 0.6f))
-                                .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                                .clip(RoundedRectangle(12.dp))
+                                .background(colorScheme.primary.copy(alpha = 0.08f))
+                                .border(1.dp, colorScheme.primary.copy(alpha = 0.15f), RoundedRectangle(12.dp)),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
@@ -826,7 +803,6 @@ fun GraduationTargetTab(
                                 val current = if (uiState.targetDegree >= 111) 110 else uiState.targetDegree
                                 if (current < 110) onTargetDegreeChange(current + 1)
                             },
-                            backdropState = backdropState,
                         )
                     }
                 }
@@ -841,7 +817,6 @@ fun GraduationTargetTab(
             maxValue = 15,
             label = stringResource(Res.string.ui_grades_thesis_points_label),
             unit = "pt",
-            backdropState = backdropState,
         )
 
         // Bonus Carriera Stepper (Standalone Glass Stepper)
@@ -852,7 +827,6 @@ fun GraduationTargetTab(
             maxValue = 10,
             label = stringResource(Res.string.ui_grades_career_bonus_label),
             unit = "pt",
-            backdropState = backdropState,
         )
     }
 }
@@ -863,7 +837,6 @@ fun GraduationTargetTab(
 @Composable
 fun SimulationChartTab(
     uiState: GradesUiState,
-    backdropState: Backdrop,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -889,8 +862,7 @@ fun SimulationChartTab(
         )
 
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(26.dp),
+            shape = RoundedRectangle(26.dp),
             contentPadding = 18.dp,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -900,7 +872,6 @@ fun SimulationChartTab(
                         weightedAverageEntries = uiState.weightedAverageEntries,
                         arithmeticAverageEntries = uiState.arithmeticAverageEntries,
                         height = 210.dp,
-                        backdropState = backdropState,
                         minValue = uiState.gradeMin,
                         maxValue = uiState.gradeMax,
                         showLegend = true,
@@ -924,8 +895,7 @@ fun SimulationChartTab(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedRectangle(22.dp),
                 contentPadding = 14.dp,
                 modifier = Modifier.weight(1f),
             ) {
@@ -962,8 +932,7 @@ fun SimulationChartTab(
             }
 
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedRectangle(22.dp),
                 contentPadding = 14.dp,
                 modifier = Modifier.weight(1f),
             ) {
@@ -1007,8 +976,7 @@ fun SimulationChartTab(
         )
 
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(26.dp),
+            shape = RoundedRectangle(26.dp),
             contentPadding = 20.dp,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -1016,7 +984,6 @@ fun SimulationChartTab(
                     LiquidBarChart(
                         entries = uiState.cfuEntries,
                         height = 195.dp,
-                        backdropState = backdropState,
                         maxValue = uiState.cfuMax,
                         valueSuffix = "CFU",
                         detailDescription = stringResource(Res.string.ui_grades_cfu_chart_detail),
@@ -1041,8 +1008,7 @@ fun SimulationChartTab(
             )
 
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(26.dp),
+                shape = RoundedRectangle(26.dp),
                 contentPadding = 20.dp,
             ) {
                 LiquidDonutChart(
@@ -1050,7 +1016,6 @@ fun SimulationChartTab(
                     size = 190.dp,
                     centerLabel = stringResource(Res.string.ui_exams),
                     centerValue = uiState.currentExams.size.toString(),
-                    backdropState = backdropState,
                 )
             }
 
@@ -1064,8 +1029,7 @@ fun SimulationChartTab(
                     val tierColor = entry.color ?: colorScheme.primary
 
                     LiquidCard(
-                        backdropState = backdropState,
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedRectangle(18.dp),
                         contentPadding = 14.dp,
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1130,7 +1094,6 @@ fun SimulationChartTab(
 fun AddCustomExamDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, Int, Int) -> Unit,
-    backdropState: Backdrop,
 ) {
     var name by remember { mutableStateOf("") }
     var cfu by remember { mutableIntStateOf(6) }
@@ -1139,12 +1102,10 @@ fun AddCustomExamDialog(
     LiquidDialog(
         onDismissRequest = onDismiss,
         title = stringResource(Res.string.ui_grades_add_custom_exam_title),
-        backdropState = backdropState,
         confirmButton = {
             LiquidButton(
                 onClick = { onConfirm(name, cfu, grade) },
                 variant = LiquidButtonVariant.Primary,
-                backdropState = backdropState,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(Res.string.ui_add), fontWeight = FontWeight.Bold)
@@ -1154,7 +1115,6 @@ fun AddCustomExamDialog(
             LiquidButton(
                 onClick = onDismiss,
                 variant = LiquidButtonVariant.Glass,
-                backdropState = backdropState,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(Res.string.ui_cancel))
@@ -1170,7 +1130,6 @@ fun AddCustomExamDialog(
                 onValueChange = { name = it },
                 label = stringResource(Res.string.ui_grades_custom_exam_name),
                 placeholder = stringResource(Res.string.ui_grades_custom_exam_name_placeholder),
-                backdropState = backdropState,
             )
 
             LiquidStepper(
@@ -1180,7 +1139,6 @@ fun AddCustomExamDialog(
                 maxValue = 30,
                 label = stringResource(Res.string.ui_grades_custom_exam_cfu),
                 unit = "CFU",
-                backdropState = backdropState,
             )
 
             LiquidStepper(
@@ -1190,7 +1148,6 @@ fun AddCustomExamDialog(
                 maxValue = 30,
                 label = stringResource(Res.string.ui_grades_custom_exam_grade),
                 unit = "/30",
-                backdropState = backdropState,
             )
         }
     }
@@ -1201,15 +1158,19 @@ private fun GraduationPillarTile(
     label: String,
     value: String,
     subvalue: String,
-    backdropState: Backdrop,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(colorScheme.surface.copy(alpha = 0.65f))
+            .clip(RoundedRectangle(14.dp))
+            .background(colorScheme.primary.copy(alpha = 0.08f))
+            .border(
+                width = 1.dp,
+                color = colorScheme.primary.copy(alpha = 0.15f),
+                shape = RoundedRectangle(14.dp),
+            )
             .padding(10.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -1219,6 +1180,7 @@ private fun GraduationPillarTile(
                 color = colorScheme.onSurfaceVariant,
                 fontSize = 10.sp,
                 maxLines = 1,
+                fontWeight = FontWeight.Medium,
             )
             Row(
                 verticalAlignment = Alignment.Bottom,
@@ -1228,12 +1190,12 @@ private fun GraduationPillarTile(
                     text = value,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
+                    color = colorScheme.primary,
                 )
                 Text(
                     text = subvalue,
                     style = MaterialTheme.typography.labelSmall,
-                    color = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = colorScheme.primary.copy(alpha = 0.7f),
                     modifier = Modifier.padding(bottom = 1.dp),
                 )
             }
@@ -1241,10 +1203,3 @@ private fun GraduationPillarTile(
     }
 }
 
-fun Double.toFixedTwoDecimals(): String {
-    val scaled = round(this * 100.0).toLong()
-    val magnitude = abs(scaled)
-    val sign = if (scaled < 0) "-" else ""
-    val fraction = (magnitude % 100).toString().padStart(2, '0')
-    return "$sign${magnitude / 100}.$fraction"
-}

@@ -6,6 +6,7 @@ import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toStudyCourse
 import com.anto426.uniapp.model.didactics.StudyCourse
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,7 @@ class CourseDetailViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = CourseDetailUiState(
-                    loadState = FeatureLoadState.Error,
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage("Impossibile caricare il corso."),
                 )
             }

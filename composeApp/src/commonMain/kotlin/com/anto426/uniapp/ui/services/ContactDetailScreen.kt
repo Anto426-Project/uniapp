@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +22,13 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.model.services.ContactData
-import com.kyant.backdrop.Backdrop
 
 @Composable
-fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
+fun ContactDetailScreen(contact: ContactData) {
     UniScreenColumn {
         // 1. Contact Header Card
         LiquidCard(
-            backdropState = backdropState,
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 18.dp,
         ) {
             Row(
@@ -41,7 +39,6 @@ fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
                 LiquidAvatar(
                     initials = contact.initials,
                     size = 56.dp,
-                    backdropState = backdropState
                 )
 
                 Column(
@@ -64,13 +61,12 @@ fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
         }
 
         // 2. Contact Actions
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_contact_info_group), backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_contact_info_group)) {
             if (contact.email.isNotBlank()) {
                 LiquidPreferenceItem(
                     title = stringResource(Res.string.ui_email),
                     subtitle = contact.email,
                     icon = LiquidIcons.Share,
-                    backdropState = backdropState,
                     onClick = { /* Intent to email */ }
                 )
             }
@@ -84,20 +80,18 @@ fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
                     title = stringResource(Res.string.ui_phone),
                     subtitle = contact.phone,
                     icon = LiquidIcons.Phone,
-                    backdropState = backdropState,
                     onClick = { /* Intent to call */ }
                 )
             }
         }
 
         // 3. Additional Info
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_department_label), backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_department_label)) {
             if (contact.department.isNotBlank()) {
                 LiquidPreferenceItem(
                     title = stringResource(Res.string.ui_department_label),
                     subtitle = contact.department,
                     icon = LiquidIcons.Info,
-                    backdropState = backdropState
                 )
                 LiquidHorizontalDivider()
             }
@@ -106,7 +100,6 @@ fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
                     title = stringResource(Res.string.ui_office),
                     subtitle = contact.office,
                     icon = LiquidIcons.Home,
-                    backdropState = backdropState
                 )
                 LiquidHorizontalDivider()
             }
@@ -115,7 +108,6 @@ fun ContactDetailScreen(contact: ContactData, backdropState: Backdrop) {
                     title = stringResource(Res.string.ui_office_hours),
                     subtitle = contact.officeHours,
                     icon = LiquidIcons.Time,
-                    backdropState = backdropState
                 )
             }
         }

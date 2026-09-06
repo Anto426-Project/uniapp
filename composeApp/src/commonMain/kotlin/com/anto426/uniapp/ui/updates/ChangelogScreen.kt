@@ -1,25 +1,27 @@
 package com.anto426.uniapp.ui.updates
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.anto426.uniapp.ui.document.UniDocumentScreen
+import com.anto426.uniapp.ui.document.toMarkdownString
 import com.anto426.uniapp.updates.presentation.ChangelogUiState
-import com.anto426.uniapp.ui.components.items.ChangelogVersion
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.kyant.backdrop.Backdrop
 
 @Composable
 fun ChangelogScreen(
-    backdropState: Backdrop,
     uiState: ChangelogUiState,
-    onExpansionChanged: (String, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    onExpansionChanged: ((String, Boolean) -> Unit)? = null,
+    onBack: (() -> Unit)? = null,
 ) {
-    UniScreenColumn {
-        uiState.versions.forEach { version ->
-            ChangelogVersion(
-                version,
-                uiState.expandedVersion == version.version,
-                { expanded -> onExpansionChanged(version.version, expanded) },
-                backdropState,
-            )
-        }
+    val content = if (uiState.versions.isEmpty()) {
+        "Nessun aggiornamento o nota di rilascio disponibile al momento."
+    } else {
+        uiState.toMarkdownString()
     }
+
+    UniDocumentScreen(
+        content = content,
+        modifier = modifier,
+        onBack = onBack,
+    )
 }

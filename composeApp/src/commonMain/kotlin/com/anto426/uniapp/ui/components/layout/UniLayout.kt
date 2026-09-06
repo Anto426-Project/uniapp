@@ -2,7 +2,7 @@ package com.anto426.uniapp.ui.components.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Icon
@@ -23,16 +23,18 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.kyant.backdrop.Backdrop
 
 val LocalUniScreenPadding = compositionLocalOf { PaddingValues(0.dp) }
 val LocalNavigationBarVisible = compositionLocalOf { true }
 
 @Composable
-fun UniScreenColumn(content: @Composable ColumnScope.() -> Unit) {
+fun UniScreenColumn(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val padding = LocalUniScreenPadding.current
     LazyColumn(
-        modifier = Modifier.fillMaxSize().graphicsLayer(clip = false),
+        modifier = modifier.fillMaxSize().graphicsLayer(clip = false),
         contentPadding =
             PaddingValues(
                 start = 18.dp,
@@ -74,14 +76,12 @@ fun UniScreenLazyColumn(content: LazyListScope.() -> Unit) {
  */
 @Composable
 fun UniNeverSettleCard(
-    backdropState: Backdrop,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LiquidCard(
-        backdropState = backdropState,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
+        shape = RoundedRectangle(32.dp),
         colors = LiquidCardDefaults.colors(
             containerColor = colorScheme.primaryContainer.copy(alpha = 0.15f)
         ),
@@ -118,7 +118,7 @@ fun UniNeverSettleCard(
 
                     Surface(
                         color = colorScheme.primary,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedRectangle(12.dp)
                     ) {
                         Text(
                             text = "SETTLE",
@@ -136,7 +136,7 @@ fun UniNeverSettleCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(14.dp)),
+                    .background(colorScheme.primary.copy(alpha = 0.1f), RoundedRectangle(14.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

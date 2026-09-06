@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,25 +44,34 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.settings.presentation.SettingsUiState
+import com.anto426.uniapp.settings.presentation.AppPasswordSetupError
+import com.anto426.liquidmonet.components.inputs.LiquidTextField
+import com.anto426.liquidmonet.components.inputs.LiquidTextFieldType
 import com.anto426.uniapp.security.biometric.BiometricAvailability
-import com.kyant.backdrop.Backdrop
+import com.anto426.unisdk.platform.AppInfoProvider
 
 @Composable
 fun SettingsScreen(
-    backdropState: Backdrop,
     uiState: SettingsUiState,
     accountUiState: AccountSwitcherUiState = AccountSwitcherUiState(),
+    installedVersion: String = "",
+    updateSubtitle: String? = null,
     onSelectAccount: (String) -> Unit = {},
+    onRemoveAccount: (String) -> Unit,
     onAddAccount: () -> Unit = {},
     onOpenInfo: () -> Unit,
     onOpenTheme: () -> Unit,
     onOpenUpdates: () -> Unit = {},
     onOpenDevices: () -> Unit = {},
     onOpenLanguage: () -> Unit = {},
+    onOpenContribute: () -> Unit = {},
+    onOpenReportBug: () -> Unit = {},
     onOpenLogin: () -> Unit = {},
     onSignOut: () -> Unit = onOpenLogin,
     onNotificationsEnabledChange: (Boolean) -> Unit,
     onBiometricEnabledChange: (Boolean) -> Unit,
+    onSubmitBiometricPassword: (String, String) -> Unit,
+    onDismissBiometricPassword: () -> Unit,
     onRequestSignOut: () -> Unit,
     onDismissSignOut: () -> Unit,
 ) {
@@ -83,14 +93,17 @@ fun SettingsScreen(
     val activeAccount = accountUiState.accounts.firstOrNull { it.accountId == accountUiState.activeAccountId }
         ?: accountUiState.accounts.firstOrNull()
 
+    val appInfo by AppInfoProvider.info.collectAsState()
+    val realVersion = installedVersion.ifBlank { appInfo.versionName.ifBlank { "2.0" } }
+    val effectiveUpdateSubtitle = updateSubtitle ?: "Versione $realVersion"
+
     UniScreenColumn {
         // 0. Active Account Card
         activeAccount?.let { account ->
             val initials = account.displayName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
 
             LiquidCard(
-                backdropState = backdropState,
-                shape = RoundedCornerShape(26.dp),
+                shape = RoundedRectangle(26.dp),
                 contentPadding = 18.dp,
                 onClick = { isAccountSheetVisible = true },
             ) {
@@ -104,7 +117,6 @@ fun SettingsScreen(
                         initials = if (initials.isNotBlank()) initials else "UN",
                         size = 50.dp,
                         contentDescription = stringResource(Res.string.ui_profile_picture),
-                        backdropState = backdropState,
                     )
 
                     Column(
@@ -141,20 +153,18 @@ fun SettingsScreen(
                         onClick = { isAccountSheetVisible = true },
                         variant = LiquidButtonVariant.Tonal,
                         size = LiquidButtonSize.Small,
-                        backdropState = backdropState,
                     )
                 }
             }
         }
 
         // 1. Sicurezza e Accesso
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_security), backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_security)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_connected_devices),
                 subtitle = stringResource(Res.string.ui_active_sessions),
                 icon = LiquidIcons.Lock,
                 onClick = onOpenDevices,
-                backdropState = backdropState
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
             LiquidPreferenceItem(
@@ -169,7 +179,6 @@ fun SettingsScreen(
                         else -> stringResource(Res.string.ui_biometric_unlock)
                     },
                 icon = LiquidIcons.Check,
-                backdropState = backdropState,
                 trailingContent = {
                     LiquidSwitch(
                         checked = uiState.biometricEnabled,
@@ -177,32 +186,28 @@ fun SettingsScreen(
                         enabled =
                             uiState.biometricAvailability == BiometricAvailability.Available &&
                                 !uiState.isBiometricAuthenticating,
-                        backdropState = backdropState
                     )
                 }
             )
         }
 
         // 2. Aspetto e Personalizzazione
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_appearance), backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_appearance)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_theme_colors),
                 subtitle = stringResource(Res.string.ui_theme_subtitle),
                 icon = LiquidIcons.Star,
                 onClick = onOpenTheme,
-                backdropState = backdropState
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_push_notifications),
                 subtitle = stringResource(Res.string.ui_academic_alerts),
                 icon = LiquidIcons.Notifications,
-                backdropState = backdropState,
                 trailingContent = {
                     LiquidSwitch(
                         checked = uiState.notificationsEnabled,
                         onCheckedChange = onNotificationsEnabledChange,
-                        backdropState = backdropState
                     )
                 }
             )
@@ -212,18 +217,16 @@ fun SettingsScreen(
                 subtitle = stringResource(Res.string.ui_language_current),
                 icon = LiquidIcons.Info,
                 onClick = onOpenLanguage,
-                backdropState = backdropState
             )
         }
 
         // 3. Sistema e Informazioni
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_system_and_info), backdropState = backdropState) {
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_system_and_info)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_updates),
-                subtitle = stringResource(Res.string.ui_update_version),
+                subtitle = effectiveUpdateSubtitle,
                 icon = LiquidIcons.Refresh,
                 onClick = onOpenUpdates,
-                backdropState = backdropState
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
             LiquidPreferenceItem(
@@ -231,19 +234,87 @@ fun SettingsScreen(
                 subtitle = stringResource(Res.string.ui_app_information_subtitle),
                 icon = LiquidIcons.Info,
                 onClick = onOpenInfo,
-                backdropState = backdropState
             )
         }
 
-        // 4. Sessione
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_session_title), backdropState = backdropState) {
+        // 4. Partecipa al progetto
+        LiquidPreferenceGroup(title = "Partecipa al progetto") {
+            LiquidPreferenceItem(
+                title = "Diventa un collaboratore",
+                subtitle = "Invia una Pull Request con correzioni, traduzioni o nuove funzioni su GitHub.",
+                icon = LiquidIcons.Star,
+                onClick = onOpenContribute,
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            LiquidPreferenceItem(
+                title = "Segnala idee o anomalie",
+                subtitle = "Aiuta a migliorare l'esperienza utente aprendo una segnalazione su GitHub.",
+                icon = LiquidIcons.Feedback,
+                onClick = onOpenReportBug,
+            )
+        }
+
+        // 5. Sessione
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_session_title)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_sign_out),
                 icon = LiquidIcons.Close,
                 onClick = onRequestSignOut,
-                backdropState = backdropState
             )
         }
+    }
+
+    if (uiState.isPasswordSetupVisible) {
+        var password by remember { mutableStateOf("") }
+        var confirmation by remember { mutableStateOf("") }
+        LiquidDialog(
+            title = stringResource(Res.string.ui_app_password_setup_title),
+            onDismissRequest = onDismissBiometricPassword,
+            content = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(Res.string.ui_app_password_setup_description))
+                    LiquidTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        type = LiquidTextFieldType.Password,
+                        label = stringResource(Res.string.ui_app_password_label),
+                        enabled = !uiState.isBiometricAuthenticating,
+                    )
+                    LiquidTextField(
+                        value = confirmation,
+                        onValueChange = { confirmation = it },
+                        type = LiquidTextFieldType.Password,
+                        label = stringResource(Res.string.ui_app_password_confirm),
+                        enabled = !uiState.isBiometricAuthenticating,
+                    )
+                    uiState.passwordSetupError?.let { error ->
+                        Text(
+                            stringResource(when (error) {
+                                AppPasswordSetupError.TooShort -> Res.string.ui_app_password_too_short
+                                AppPasswordSetupError.TooLong -> Res.string.ui_app_password_too_long
+                                AppPasswordSetupError.Mismatch -> Res.string.ui_app_password_mismatch
+                            }),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                LiquidButton(
+                    text = stringResource(Res.string.ui_app_password_enable),
+                    onClick = { onSubmitBiometricPassword(password, confirmation) },
+                    enabled = !uiState.isBiometricAuthenticating,
+                )
+            },
+            dismissButton = {
+                LiquidButton(
+                    text = stringResource(Res.string.ui_cancel),
+                    onClick = onDismissBiometricPassword,
+                    enabled = !uiState.isBiometricAuthenticating,
+                    variant = LiquidButtonVariant.Text,
+                )
+            },
+        )
     }
 
     if (uiState.isSignOutConfirmationVisible) {
@@ -251,7 +322,6 @@ fun SettingsScreen(
             onDismissRequest = onDismissSignOut,
             title = stringResource(Res.string.ui_sign_out),
             text = stringResource(Res.string.ui_sign_out_confirm_message),
-            backdropState = backdropState,
             confirmButton = {
                 LiquidButton(
                     text = stringResource(Res.string.ui_sign_out),
@@ -260,7 +330,6 @@ fun SettingsScreen(
                         onSignOut()
                     },
                     variant = LiquidButtonVariant.Primary,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth()
                 )
             },
@@ -269,7 +338,6 @@ fun SettingsScreen(
                     text = stringResource(Res.string.ui_cancel),
                     onClick = onDismissSignOut,
                     variant = LiquidButtonVariant.Text,
-                    backdropState = backdropState,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -281,7 +349,6 @@ fun SettingsScreen(
             onDismissRequest = { isAccountSheetVisible = false },
             title = stringResource(Res.string.ui_accounts_saved_title),
             subtitle = stringResource(Res.string.ui_accounts_saved_sub),
-            backdropState = backdropState,
         ) {
             Column(
                 modifier = Modifier
@@ -298,7 +365,6 @@ fun SettingsScreen(
                             isAccountSheetVisible = false
                             onAddAccount()
                         },
-                        backdropState = backdropState,
                     )
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -309,13 +375,12 @@ fun SettingsScreen(
                             val initials = account.displayName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
 
                             LiquidCard(
-                                backdropState = backdropState,
                                 onClick = if (isActive || isSwitching) null else ({
                                     requestedAccountId = account.accountId
                                     onSelectAccount(account.accountId)
                                 }),
                                 contentPadding = 14.dp,
-                                shape = RoundedCornerShape(18.dp),
+                                shape = RoundedRectangle(18.dp),
                                 colors = if (isActive) {
                                     LiquidCardDefaults.colors(
                                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
@@ -334,7 +399,6 @@ fun SettingsScreen(
                                         initials = if (initials.isNotBlank()) initials else "UN",
                                         size = 44.dp,
                                         contentDescription = stringResource(Res.string.ui_profile_picture),
-                                        backdropState = backdropState,
                                     )
 
                                     Column(modifier = Modifier.weight(1f)) {
@@ -368,9 +432,18 @@ fun SettingsScreen(
                                             text = if (isActivating) stringResource(Res.string.ui_account_activating) else stringResource(Res.string.ui_account_active),
                                             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                                             contentColor = MaterialTheme.colorScheme.primary,
-                                            backdropState = backdropState,
                                         )
                                     }
+                                    LiquidButton(
+                                        text = stringResource(Res.string.ui_account_remove),
+                                        onClick = {
+                                            isAccountSheetVisible = false
+                                            onRemoveAccount(account.accountId)
+                                        },
+                                        enabled = !isSwitching && !accountUiState.isRemovingAccount,
+                                        variant = LiquidButtonVariant.Text,
+                                        size = LiquidButtonSize.Small,
+                                    )
                                 }
                             }
                         }
@@ -383,7 +456,6 @@ fun SettingsScreen(
                             onAddAccount()
                         },
                         variant = LiquidButtonVariant.Primary,
-                        backdropState = backdropState,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }

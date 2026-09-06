@@ -5,20 +5,16 @@ import com.anto426.unisdk.backend.UniBackendService
 import com.anto426.unisdk.backend.model.AppUpdateInfo
 
 internal fun interface AppUpdateSource {
-    suspend fun load(installedBuild: InstalledAppBuild): AppUpdateInfo?
+    suspend fun load(installedBuild: InstalledAppBuild, channel: String): AppUpdateInfo?
 }
 
 internal class UniSdkAppUpdateSource(
     private val backend: UniBackendService,
 ) : AppUpdateSource {
-    override suspend fun load(installedBuild: InstalledAppBuild): AppUpdateInfo? =
+    override suspend fun load(installedBuild: InstalledAppBuild, channel: String): AppUpdateInfo? =
         backend.loadAppUpdateInfo(
             currentVersion = installedBuild.versionName,
             currentVersionCode = installedBuild.versionCode,
-            preferredUpdateChannel = STABLE_UPDATE_CHANNEL,
+            preferredUpdateChannel = channel,
         )
-
-    private companion object {
-        const val STABLE_UPDATE_CHANNEL = "stable"
-    }
 }

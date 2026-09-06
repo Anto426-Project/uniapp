@@ -31,3 +31,7 @@ raw
 !androidApp/src/main/res/raw/
 !androidApp/src/main/res/raw/network_security_no_system_ca.pem
 !androidApp/src/main/res/raw/tls_bundle_signing_public_key.pem
+.next/
+website/.next/
+website/out/
+

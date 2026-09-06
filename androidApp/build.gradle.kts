@@ -12,7 +12,20 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 200
-        versionName = "2.0"
+        versionName = "2.0.0"
+    }
+
+    val signingValues = listOf("RELEASE_STORE_FILE", "RELEASE_STORE_PASSWORD", "RELEASE_KEY_ALIAS", "RELEASE_KEY_PASSWORD")
+        .associateWith { key -> providers.gradleProperty(key).orElse(providers.environmentVariable(key)).orNull }
+    if (signingValues.values.any { !it.isNullOrBlank() }) {
+        require(signingValues.values.all { !it.isNullOrBlank() }) { "Incomplete release signing configuration." }
+        val releaseSigning = signingConfigs.create("release") {
+            storeFile = rootProject.file(signingValues.getValue("RELEASE_STORE_FILE")!!)
+            storePassword = signingValues.getValue("RELEASE_STORE_PASSWORD")
+            keyAlias = signingValues.getValue("RELEASE_KEY_ALIAS")
+            keyPassword = signingValues.getValue("RELEASE_KEY_PASSWORD")
+        }
+        buildTypes.getByName("release").signingConfig = releaseSigning
     }
 
     compileOptions {

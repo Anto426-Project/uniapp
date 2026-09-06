@@ -3,11 +3,13 @@ package com.anto426.uniapp.navigation.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.auth.presentation.LoginViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsViewModel
@@ -41,9 +43,10 @@ import com.anto426.uniapp.session.presentation.AppUnlockUiState
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesViewModel
 import com.anto426.uniapp.settings.presentation.ColorLabViewModel
-import com.anto426.uniapp.settings.presentation.LanguageViewModel
+import com.anto426.uniapp.settings.presentation.LanguageUiState
 import com.anto426.uniapp.settings.presentation.SettingsViewModel
-import com.anto426.uniapp.settings.presentation.ThemeViewModel
+import com.anto426.uniapp.settings.presentation.AppThemeMode
+import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
 import com.anto426.uniapp.transport.presentation.TransportCatalogViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
@@ -52,9 +55,10 @@ import com.anto426.uniapp.transport.presentation.TicketDetailViewModel
 import com.anto426.uniapp.updates.presentation.ChangelogViewModel
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import com.anto426.uniapp.ui.account.AccountSwitcherScreen
+import com.anto426.uniapp.ui.account.AccountRemovalDialog
 import com.anto426.uniapp.ui.auth.LoginScreen
 import com.anto426.uniapp.ui.bootstrap.AppBootstrapScreen
-import com.anto426.uniapp.ui.data.UiInitialData
+import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.ui.components.state.FeatureStateContent
 import com.anto426.uniapp.ui.didactics.AttendanceScreen
 import com.anto426.uniapp.ui.didactics.CourseDetailScreen
@@ -82,7 +86,7 @@ import com.anto426.uniapp.ui.services.ServicesScreen
 import com.anto426.uniapp.ui.services.TaxesScreen
 import com.anto426.uniapp.ui.settings.AboutUniAppScreen
 import com.anto426.uniapp.ui.settings.AppInfoScreen
-import com.anto426.uniapp.ui.settings.AuthorScreen
+import com.anto426.uniapp.ui.settings.CreatorCreditsScreen
 import com.anto426.uniapp.ui.settings.ColorLabScreen
 import com.anto426.uniapp.ui.settings.ConnectedDevicesScreen
 import com.anto426.uniapp.ui.settings.LanguageScreen
@@ -95,15 +99,16 @@ import com.anto426.uniapp.ui.transport.TransportCatalogScreen
 import com.anto426.uniapp.ui.transport.TransportScreen
 import com.anto426.uniapp.ui.updates.ChangelogScreen
 import com.anto426.uniapp.ui.updates.UpdatesScreen
-import com.kyant.backdrop.Backdrop
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 internal fun AppRouteContent(
     route: AppRoute,
-    backdropState: Backdrop,
     navigator: AppNavigator,
     sessionController: AppSessionController,
     dataSource: UniAppDataSource,
+    localDataStore: UniLocalDataStore,
     accountId: String,
     searchQuery: String,
     isSearchActive: Boolean,
@@ -114,21 +119,34 @@ internal fun AppRouteContent(
     sessionState: AppSessionState,
     unlockUiState: AppUnlockUiState,
     onRequestUnlock: () -> Unit,
+    onPasswordUnlock: (String) -> Unit,
     onCancelUnlock: () -> Unit,
     devicesRefreshRevision: Int,
     onRetryUpdate: () -> Unit,
     onOpenUpdate: () -> Unit,
+    onSelectUpdateChannel: (String) -> Unit = {},
+    themeUiState: ThemeUiState,
+    onThemeModeSelected: (AppThemeMode) -> Unit,
+    onThemeSelected: (Int) -> Unit,
+    onBackgroundStyleSelected: (String) -> Unit,
+    onReducedMotionChanged: (Boolean) -> Unit,
+    onResetTheme: () -> Unit,
+    onCustomColorSelected: (Color) -> Unit = {},
+    languageUiState: LanguageUiState,
+    onLanguageSelected: (String) -> Unit,
     onSignOut: () -> Unit,
 ) {
-    val viewModelKey = "$accountId|$route"
+    val activeProfileId = (sessionState as? AppSessionState.Authenticated)?.account?.activeProfileId
+    val viewModelKey = "$accountId|${activeProfileId.orEmpty()}|$route"
     val uriHandler = LocalUriHandler.current
     when (route) {
         AppRoute.Bootstrap ->
             AppBootstrapScreen(
-                backdropState = backdropState,
                 accountName = (sessionState as? AppSessionState.UnlockRequired)?.account?.displayName,
                 unlockUiState = unlockUiState,
                 onRequestUnlock = onRequestUnlock,
+                onPasswordUnlock = onPasswordUnlock,
+                accountId = (sessionState as? AppSessionState.UnlockRequired)?.account?.accountId,
                 onCancelUnlock = onCancelUnlock,
             )
 
@@ -139,11 +157,16 @@ internal fun AppRouteContent(
             val accountViewModel =
                 viewModel(key = "${viewModelKey}_account") { AccountSwitcherViewModel(sessionController, toastSink) }
             val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
+            AccountRemovalDialog(
+                state = accountUiState,
+                onConfirm = { accountViewModel.confirmAccountRemoval(biometricAuthenticator) },
+                onDismiss = accountViewModel::dismissAccountRemoval,
+            )
             LoginScreen(
-                backdropState = backdropState,
                 uiState = loginUiState,
                 accountUiState = accountUiState,
                 onSelectAccount = accountViewModel::selectAccount,
+                onRemoveAccount = accountViewModel::requestAccountRemoval,
                 onUsernameChange = loginViewModel::updateUsername,
                 onPasswordChange = loginViewModel::updatePassword,
                 onRememberCredentialsChange = loginViewModel::updateRememberCredentials,
@@ -164,14 +187,13 @@ internal fun AppRouteContent(
                     HomeDashboardViewModel(
                         dataSource = dataSource,
                         quickActions =
-                            if (account?.isProfessor == true) UiInitialData.professorQuickActions
-                            else UiInitialData.allQuickActions,
+                            if (account?.isProfessor == true) UniAppInitialData.professorQuickActions
+                            else UniAppInitialData.allQuickActions,
                         account = account,
                     )
                 }
             val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
             HomeScreen(
-                backdropState = backdropState,
                 uiState = homeUiState,
                 onOpenStatistics = { navigator.navigate(AppRoute.Statistics) },
                 onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
@@ -202,13 +224,12 @@ internal fun AppRouteContent(
             val servicesViewModel =
                 viewModel(key = viewModelKey) {
                     ServicesViewModel(
-                        studentServices = if (isProfessor) UiInitialData.professorServices else UiInitialData.studentServices,
-                        universityPortals = if (isProfessor) UiInitialData.professorPortals else UiInitialData.universityPortals,
+                        studentServices = if (isProfessor) UniAppInitialData.professorServices else UniAppInitialData.studentServices,
+                        universityPortals = if (isProfessor) UniAppInitialData.professorPortals else UniAppInitialData.universityPortals,
                     )
                 }
             val servicesUiState by servicesViewModel.uiState.collectAsStateWithLifecycle()
             ServicesScreen(
-                backdropState = backdropState,
                 uiState = servicesUiState,
             ) { service ->
                 when (service) {
@@ -238,11 +259,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 state = didacticsUiState.loadState,
                 errorMessage = didacticsUiState.errorMessage,
-                backdropState = backdropState,
                 onRetry = { didacticsViewModel.refresh(force = true) },
             ) {
                 DidacticsScreen(
-                    backdropState = backdropState,
                     uiState = didacticsUiState,
                     onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
                     onOpenGrades = { navigator.navigate(AppRoute.Grades) },
@@ -268,7 +287,6 @@ internal fun AppRouteContent(
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
                 searchQuery = searchQuery,
-                backdropState = backdropState,
                 navigator = navigator,
             )
 
@@ -278,7 +296,6 @@ internal fun AppRouteContent(
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
                 searchQuery = searchQuery,
-                backdropState = backdropState,
                 navigator = navigator,
             )
 
@@ -288,7 +305,6 @@ internal fun AppRouteContent(
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
                 searchQuery = searchQuery,
-                backdropState = backdropState,
                 navigator = navigator,
             )
 
@@ -298,7 +314,6 @@ internal fun AppRouteContent(
                 itemKey = route.itemKey,
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
-                backdropState = backdropState,
             )
 
         is AppRoute.ProfessorExamDetail ->
@@ -307,7 +322,6 @@ internal fun AppRouteContent(
                 itemKey = route.itemKey,
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
-                backdropState = backdropState,
             )
 
         is AppRoute.ThesisDetail ->
@@ -316,7 +330,6 @@ internal fun AppRouteContent(
                 itemKey = route.itemKey,
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
-                backdropState = backdropState,
             )
 
         is AppRoute.ReportDetail ->
@@ -325,14 +338,14 @@ internal fun AppRouteContent(
                 itemKey = route.itemKey,
                 viewModelKey = viewModelKey,
                 dataSource = dataSource,
-                backdropState = backdropState,
             )
 
         AppRoute.Settings -> {
             val settingsViewModel =
                 viewModel(key = viewModelKey) {
                     SettingsViewModel(
-                        dataSource = dataSource,
+                        localDataStore = localDataStore,
+                        accountId = accountId,
                         toastSink = toastSink,
                         biometricAuthenticator = biometricAuthenticator,
                         notificationController = notificationController,
@@ -342,21 +355,36 @@ internal fun AppRouteContent(
             val accountViewModel =
                 viewModel(key = "${viewModelKey}_account") { AccountSwitcherViewModel(sessionController, toastSink) }
             val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
+            AccountRemovalDialog(
+                state = accountUiState,
+                onConfirm = { accountViewModel.confirmAccountRemoval(biometricAuthenticator) },
+                onDismiss = accountViewModel::dismissAccountRemoval,
+            )
             SettingsScreen(
-                backdropState = backdropState,
                 uiState = settingsUiState,
                 accountUiState = accountUiState,
+                installedVersion = updateUiState.installedVersion,
+                updateSubtitle = if (updateUiState.bannerState == com.anto426.uniapp.model.updates.UpdateState.AVAILABLE) {
+                    updateUiState.statusText ?: "Aggiornamento disponibile"
+                } else {
+                    "Versione ${updateUiState.installedVersion.ifBlank { "2.0" }}"
+                },
                 onSelectAccount = accountViewModel::selectAccount,
+                onRemoveAccount = accountViewModel::requestAccountRemoval,
                 onAddAccount = accountViewModel::addAccount,
                 onOpenInfo = { navigator.navigate(AppRoute.Info) },
                 onOpenTheme = { navigator.navigate(AppRoute.Theme) },
                 onOpenUpdates = { navigator.navigate(AppRoute.Updates) },
                 onOpenDevices = { navigator.navigate(AppRoute.Devices) },
                 onOpenLanguage = { navigator.navigate(AppRoute.Language) },
+                onOpenContribute = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.repositoryUrl) },
+                onOpenReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.issuesUrl) },
                 onOpenLogin = accountViewModel::addAccount,
                 onSignOut = onSignOut,
                 onNotificationsEnabledChange = settingsViewModel::setNotificationsEnabled,
                 onBiometricEnabledChange = settingsViewModel::setBiometricEnabled,
+                onSubmitBiometricPassword = settingsViewModel::submitBiometricPassword,
+                onDismissBiometricPassword = settingsViewModel::dismissBiometricPasswordSetup,
                 onRequestSignOut = settingsViewModel::requestSignOut,
                 onDismissSignOut = settingsViewModel::dismissSignOut,
             )
@@ -366,10 +394,15 @@ internal fun AppRouteContent(
             val accountViewModel =
                 viewModel(key = viewModelKey) { AccountSwitcherViewModel(sessionController, toastSink) }
             val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
+            AccountRemovalDialog(
+                state = accountUiState,
+                onConfirm = { accountViewModel.confirmAccountRemoval(biometricAuthenticator) },
+                onDismiss = accountViewModel::dismissAccountRemoval,
+            )
             AccountSwitcherScreen(
-                backdropState = backdropState,
                 uiState = accountUiState,
                 onSelectAccount = accountViewModel::selectAccount,
+                onRemoveAccount = accountViewModel::requestAccountRemoval,
                 onSelectProfile = accountViewModel::selectProfile,
                 onAddAccount = accountViewModel::addAccount,
             )
@@ -382,12 +415,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 transcriptsUiState.loadState,
                 transcriptsUiState.errorMessage,
-                backdropState,
                 onRetry = { transcriptsViewModel.refresh(force = true) },
-                emptyMessage = "Il libretto non contiene esami verbalizzati.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_transcripts),
             ) {
                 TranscriptsScreen(
-                    backdropState = backdropState,
                     uiState = transcriptsUiState,
                     onYearSelected = transcriptsViewModel::selectYear,
                 )
@@ -396,38 +427,40 @@ internal fun AppRouteContent(
 
         AppRoute.Info ->
             AppInfoScreen(
-                backdropState = backdropState,
-                installedVersion = updateUiState.installedVersion,
-                onOpenSource = { uriHandler.openUri("https://github.com/Anto426-Project/uniapp") },
+                onReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.bugReportUrl()) },
+                updateUiState = updateUiState,
+                onOpenSource = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.repositoryUrl) },
                 onOpenAboutUniApp = { navigator.navigate(AppRoute.AboutUniApp) },
                 onOpenPrivacy = { navigator.navigate(AppRoute.Privacy) },
                 onOpenTerms = { navigator.navigate(AppRoute.Terms) },
                 onOpenCookies = { navigator.navigate(AppRoute.Cookies) },
-                onOpenAuthor = { navigator.navigate(AppRoute.Author) },
+                onOpenCreatorCredits = { navigator.navigate(AppRoute.Author) },
+                onOpenUpdates = { navigator.navigate(AppRoute.Updates) },
+                onOpenChangelog = { navigator.navigate(AppRoute.Changelog) },
             )
 
         AppRoute.Theme -> {
-            val themeViewModel = viewModel(key = viewModelKey) { ThemeViewModel(dataSource, toastSink) }
-            val themeUiState by themeViewModel.uiState.collectAsStateWithLifecycle()
             ThemeScreen(
-                backdropState = backdropState,
                 uiState = themeUiState,
-                onThemeSelected = { index ->
-                    if (themeViewModel.selectTheme(index)) navigator.navigate(AppRoute.Colors)
-                },
-                onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
-                onGlassIntensityChanged = themeViewModel::setGlassIntensity,
-                onEffectSpeedChanged = themeViewModel::setEffectSpeed,
+                onThemeModeSelected = onThemeModeSelected,
+                onThemeSelected = onThemeSelected,
+                onBackgroundStyleSelected = onBackgroundStyleSelected,
+                onReducedMotionChanged = onReducedMotionChanged,
+                onReset = onResetTheme,
+                onCustomColorSelected = onCustomColorSelected,
+                onNavigateToColorLab = { navigator.navigate(AppRoute.Colors) },
             )
         }
 
         AppRoute.Colors -> {
-            val colorLabViewModel = viewModel(key = viewModelKey) { ColorLabViewModel(dataSource) }
+            val colorLabViewModel = viewModel(key = "app-color-lab") { ColorLabViewModel(localDataStore) }
             val colorLabUiState by colorLabViewModel.uiState.collectAsStateWithLifecycle()
             ColorLabScreen(
-                backdropState = backdropState,
                 uiState = colorLabUiState,
-                onColorSelected = colorLabViewModel::selectColor,
+                onColorSelected = { color ->
+                    colorLabViewModel.selectColor(color)
+                    onCustomColorSelected(color)
+                },
             )
         }
         AppRoute.Taxes -> {
@@ -436,10 +469,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 taxesUiState.loadState,
                 taxesUiState.errorMessage,
-                backdropState,
                 onRetry = { taxesViewModel.refresh(force = true) },
-                emptyMessage = "Non risultano tasse per questo account.",
-            ) { TaxesScreen(backdropState, taxesUiState) }
+                emptyMessage = stringResource(Res.string.ui_state_empty_taxes),
+            ) { TaxesScreen(taxesUiState) }
         }
         AppRoute.Grades -> {
             val gradesViewModel =
@@ -450,11 +482,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 gradesUiState.loadState,
                 gradesUiState.errorMessage,
-                backdropState,
                 onRetry = { gradesViewModel.refresh(force = true) },
             ) {
                 GradesScreen(
-                    backdropState = backdropState,
                     uiState = gradesUiState,
                     onTabSelected = gradesViewModel::selectTab,
                     onToggleSimulationItem = gradesViewModel::toggleSimulationItem,
@@ -477,11 +507,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 statisticsUiState.loadState,
                 statisticsUiState.errorMessage,
-                backdropState,
                 onRetry = { statisticsViewModel.refresh(force = true) },
             ) {
                 StatisticsScreen(
-                    backdropState = backdropState,
                     uiState = statisticsUiState,
                     onTabSelected = statisticsViewModel::selectTab,
                 )
@@ -499,11 +527,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 contactsUiState.loadState,
                 contactsUiState.errorMessage,
-                backdropState,
                 onRetry = { contactsViewModel.refresh(force = true) },
             ) {
                 ContactsScreen(
-                    backdropState = backdropState,
                     uiState = contactsUiState,
                     onCategorySelected = contactsViewModel::selectCategory,
                     onContactClick = { contact ->
@@ -519,9 +545,8 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 detailUiState.loadState,
                 detailUiState.errorMessage,
-                backdropState,
                 onRetry = { detailViewModel.refresh(force = true) },
-            ) { detailUiState.contact?.let { contact -> ContactDetailScreen(contact, backdropState) } }
+            ) { detailUiState.contact?.let { contact -> ContactDetailScreen(contact) } }
         }
 
         AppRoute.Transport -> {
@@ -530,12 +555,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 transportUiState.loadState,
                 transportUiState.errorMessage,
-                backdropState,
                 onRetry = { transportViewModel.refresh(force = true) },
-                emptyMessage = "Non ci sono prenotazioni trasporto salvate.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_transport_reservations),
             ) {
                 TransportScreen(
-                    backdropState = backdropState,
                     uiState = transportUiState,
                     onReservationClick = { reservation ->
                         navigator.navigate(
@@ -555,11 +578,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 catalogUiState.loadState,
                 catalogUiState.errorMessage,
-                backdropState,
                 onRetry = { catalogViewModel.refresh(force = true) },
             ) {
                 TransportCatalogScreen(
-                    backdropState = backdropState,
                     uiState = catalogUiState,
                     onTicketClick = { ticket ->
                         navigator.navigate(
@@ -587,12 +608,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 bookingUiState.loadState,
                 bookingUiState.errorMessage,
-                backdropState,
                 onRetry = { bookingViewModel.refresh(force = true) },
-                emptyMessage = "Il portale non ha restituito linee prenotabili.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_transport_lines),
             ) {
                 TransportBookingScreen(
-                    backdropState = backdropState,
                     uiState = bookingUiState,
                     onRouteSelected = bookingViewModel::selectRoute,
                     onBook = { dates, direction -> bookingViewModel.book(dates, direction) },
@@ -605,11 +624,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 detailUiState.loadState,
                 detailUiState.errorMessage,
-                backdropState,
                 onRetry = { detailViewModel.refresh(force = true) },
             ) {
                 detailUiState.ticket?.let { ticket ->
-                    TicketDetailScreen(ticket, backdropState) { navigator.navigate(AppRoute.TransportBooking) }
+                    TicketDetailScreen(ticket) { navigator.navigate(AppRoute.TransportBooking) }
                 }
             }
         }
@@ -626,13 +644,11 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 detailUiState.loadState,
                 detailUiState.errorMessage,
-                backdropState,
                 onRetry = { detailViewModel.refresh(force = true) },
             ) {
                 detailUiState.reservation?.let { reservation ->
                     ReservationDetailScreen(
                         reservation = reservation,
-                        backdropState = backdropState,
                         isDeleting = detailUiState.isDeleting,
                         onDelete = detailViewModel::delete,
                     )
@@ -647,12 +663,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 examsUiState.loadState,
                 examsUiState.errorMessage,
-                backdropState,
                 onRetry = { examsViewModel.refresh(force = true) },
-                emptyMessage = "Non sono disponibili appelli.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_exams),
             ) {
                 ExamsScreen(
-                    backdropState = backdropState,
                     uiState = examsUiState,
                     onTabSelected = examsViewModel::selectTab,
                     onToggleBooking = examsViewModel::toggleBooking,
@@ -673,9 +687,8 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 historyUiState.loadState,
                 historyUiState.errorMessage,
-                backdropState,
                 onRetry = { historyViewModel.refresh(force = true) },
-            ) { ExamsHistoryScreen(backdropState, historyUiState) }
+            ) { ExamsHistoryScreen(historyUiState) }
         }
         AppRoute.StudyPlan -> {
             val studyPlanViewModel = viewModel(key = viewModelKey) { StudyPlanViewModel(dataSource) }
@@ -683,12 +696,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 studyPlanUiState.loadState,
                 studyPlanUiState.errorMessage,
-                backdropState,
                 onRetry = { studyPlanViewModel.refresh(force = true) },
-                emptyMessage = "Il piano di studi non contiene corsi.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_study_plan),
             ) {
                 StudyPlanScreen(
-                    backdropState = backdropState,
                     uiState = studyPlanUiState,
                     onYearSelected = studyPlanViewModel::selectYear,
                     onCourseClick = { course -> if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id)) },
@@ -702,9 +713,8 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 detailUiState.loadState,
                 detailUiState.errorMessage,
-                backdropState,
                 onRetry = { detailViewModel.refresh(force = true) },
-            ) { detailUiState.course?.let { course -> CourseDetailScreen(course, backdropState) } }
+            ) { detailUiState.course?.let { course -> CourseDetailScreen(course) } }
         }
 
         AppRoute.Questionnaires -> {
@@ -713,12 +723,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 questionnairesUiState.loadState,
                 questionnairesUiState.errorMessage,
-                backdropState,
                 onRetry = { questionnairesViewModel.refresh(force = true) },
-                emptyMessage = "Non risultano questionari associati ai corsi.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_questionnaires),
             ) {
                 QuestionnairesScreen(
-                    backdropState = backdropState,
                     uiState = questionnairesUiState,
                     onQuestionnaireClick = { questionnaire ->
                         navigator.navigate(
@@ -747,12 +755,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 questionnaireUiState.loadState,
                 questionnaireUiState.errorMessage,
-                backdropState,
                 onRetry = questionnaireViewModel::refresh,
-                emptyMessage = "Il questionario non contiene domande.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_questionnaire_detail),
             ) {
                 QuestionnaireDetailScreen(
-                    backdropState = backdropState,
                     uiState = questionnaireUiState,
                     onAnswerSelected = questionnaireViewModel::selectAnswer,
                     onFreeTextChanged = questionnaireViewModel::updateFreeText,
@@ -768,15 +774,13 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 identityUiState.loadState,
                 identityUiState.errorMessage,
-                backdropState,
                 onRetry = { identityViewModel.refresh(force = true) },
-            ) { AcademicIdentityScreen(backdropState, identityUiState) }
+            ) { AcademicIdentityScreen(identityUiState) }
         }
         AppRoute.Attendance -> {
             val attendanceViewModel = viewModel(key = viewModelKey) { AttendanceViewModel(dataSource) }
             val attendanceUiState by attendanceViewModel.uiState.collectAsStateWithLifecycle()
             AttendanceScreen(
-                backdropState = backdropState,
                 uiState = attendanceUiState,
                 onRegisterAttendance = { code ->
                     attendanceViewModel.registerAttendance(code)
@@ -786,24 +790,28 @@ internal fun AppRouteContent(
                 },
             )
         }
-        AppRoute.AboutUniApp -> AboutUniAppScreen(backdropState, UiInitialData.appInfoSections)
-        AppRoute.Privacy -> PrivacyScreen(backdropState, UiInitialData.privacySections)
-        AppRoute.Terms -> TermsScreen(backdropState, UiInitialData.termsSections)
-        AppRoute.Cookies -> CookiesScreen(backdropState, UiInitialData.cookieSections)
+        AppRoute.AboutUniApp ->
+            AboutUniAppScreen(
+                sections = UniAppInitialData.appInfoSections,
+                onReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.bugReportUrl()) },
+                onBack = { navigator.goBack() },
+            )
+        AppRoute.Privacy -> PrivacyScreen(UniAppInitialData.privacySections, onBack = { navigator.goBack() })
+        AppRoute.Terms -> TermsScreen(UniAppInitialData.termsSections, onBack = { navigator.goBack() })
+        AppRoute.Cookies -> CookiesScreen(UniAppInitialData.cookieSections)
         AppRoute.Updates ->
             UpdatesScreen(
-                backdropState = backdropState,
                 uiState = updateUiState,
                 onRetry = onRetryUpdate,
                 onOpenUpdate = onOpenUpdate,
                 onOpenChangelog = { navigator.navigate(AppRoute.Changelog) },
+                onSelectChannel = onSelectUpdateChannel,
             )
 
         AppRoute.Changelog -> {
             val changelogViewModel = viewModel(key = viewModelKey) { ChangelogViewModel(updateUiState) }
             val changelogUiState by changelogViewModel.uiState.collectAsStateWithLifecycle()
             ChangelogScreen(
-                backdropState = backdropState,
                 uiState = changelogUiState,
                 onExpansionChanged = changelogViewModel::setExpanded,
             )
@@ -814,12 +822,10 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 newsUiState.loadState,
                 newsUiState.errorMessage,
-                backdropState,
                 onRetry = { newsViewModel.refresh(force = true) },
-                emptyMessage = "Non ci sono nuove comunicazioni.",
+                emptyMessage = stringResource(Res.string.ui_state_empty_news),
             ) {
                 NewsScreen(
-                    backdropState = backdropState,
                     uiState = newsUiState,
                     onTabSelected = newsViewModel::selectTab,
                     onNewsSelected = { news ->
@@ -840,7 +846,7 @@ internal fun AppRouteContent(
                 title = route.title,
                 description = route.description,
                 fullContent = route.fullContent,
-                backdropState = backdropState,
+                onBack = { navigator.goBack() },
             )
         }
 
@@ -854,11 +860,9 @@ internal fun AppRouteContent(
             FeatureStateContent(
                 devicesUiState.loadState,
                 devicesUiState.errorMessage,
-                backdropState,
                 onRetry = { devicesViewModel.refresh(force = true) },
             ) {
                 ConnectedDevicesScreen(
-                    backdropState = backdropState,
                     uiState = devicesUiState,
                     onRequestRevocation = devicesViewModel::requestRevocation,
                     onDismissRevocation = devicesViewModel::dismissRevocation,
@@ -868,23 +872,25 @@ internal fun AppRouteContent(
         }
 
         AppRoute.Language -> {
-            val languageViewModel =
-                viewModel(key = viewModelKey) {
-                    LanguageViewModel(UiInitialData.languages, dataSource, toastSink)
-                }
-            val languageUiState by languageViewModel.uiState.collectAsStateWithLifecycle()
             LanguageScreen(
-                backdropState = backdropState,
                 uiState = languageUiState,
-                onLanguageSelected = languageViewModel::selectLanguage,
+                onLanguageSelected = onLanguageSelected,
             )
         }
-        AppRoute.Author ->
-            AuthorScreen(
-                backdropState = backdropState,
-                onOpenGitHub = { uriHandler.openUri("https://github.com/Anto426") },
-                onOpenProject = { uriHandler.openUri("https://github.com/Anto426-Project/uniapp") },
+        AppRoute.Author -> {
+            val projectViewModel = viewModel(key = "public-project-info") {
+                com.anto426.uniapp.project.presentation.ProjectInfoViewModel(localDataStore)
+            }
+            val projectState by projectViewModel.uiState.collectAsStateWithLifecycle()
+            CreatorCreditsScreen(
+                state = projectState,
+                onRefresh = { projectViewModel.refresh(force = true) },
+                onOpenLink = { url ->
+                    val parsed = runCatching { io.ktor.http.Url(url) }.getOrNull()
+                    if (parsed?.protocol?.name == "https") uriHandler.openUri(url)
+                },
             )
+        }
     }
 }
 
@@ -894,7 +900,6 @@ private fun AcademicSectionRouteContent(
     viewModelKey: String,
     dataSource: UniAppDataSource,
     searchQuery: String,
-    backdropState: Backdrop,
     navigator: AppNavigator,
 ) {
     val sectionViewModel =
@@ -908,12 +913,10 @@ private fun AcademicSectionRouteContent(
     FeatureStateContent(
         state = sectionUiState.loadState,
         errorMessage = sectionUiState.errorMessage,
-        backdropState = backdropState,
         onRetry = { sectionViewModel.refresh(force = true) },
-        emptyMessage = "Non sono disponibili contenuti in questa sezione.",
+        emptyMessage = stringResource(Res.string.ui_state_empty_academic_section),
     ) {
         AcademicSectionScreen(
-            backdropState = backdropState,
             uiState = sectionUiState,
             onItemClick = { item ->
                 val route =
@@ -939,7 +942,6 @@ private fun AcademicItemDetailRouteContent(
     itemKey: String,
     viewModelKey: String,
     dataSource: UniAppDataSource,
-    backdropState: Backdrop,
 ) {
     val detailViewModel =
         viewModel(key = "$viewModelKey|$section|$itemKey") {
@@ -953,12 +955,10 @@ private fun AcademicItemDetailRouteContent(
     FeatureStateContent(
         state = detailUiState.loadState,
         errorMessage = detailUiState.errorMessage,
-        backdropState = backdropState,
         onRetry = { detailViewModel.refresh(force = true) },
-        emptyMessage = "Il dettaglio selezionato non è più disponibile.",
+        emptyMessage = stringResource(Res.string.ui_state_empty_academic_detail),
     ) {
         AcademicItemDetailScreen(
-            backdropState = backdropState,
             uiState = detailUiState,
             section = section,
             onTabSelected = detailViewModel::selectTab,

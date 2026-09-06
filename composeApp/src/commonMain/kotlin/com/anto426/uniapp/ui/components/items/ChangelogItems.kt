@@ -18,17 +18,15 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.updates.ChangelogItemData
 import com.anto426.uniapp.model.updates.ChangelogVersionData
-import com.kyant.backdrop.Backdrop
 
 @Composable
-fun ChangelogVersion(version: ChangelogVersionData, isExpanded: Boolean, onExpand: (Boolean) -> Unit, backdropState: Backdrop) {
+fun ChangelogVersion(version: ChangelogVersionData, isExpanded: Boolean, onExpand: (Boolean) -> Unit) {
     LiquidAccordionItem(
         title = version.version,
         subtitle = version.date,
         leadingIcon = LiquidIcons.Refresh,
         isExpanded = isExpanded,
         onExpandedChange = onExpand,
-        backdropState = backdropState
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             version.items.forEach { ChangelogItem(it) }

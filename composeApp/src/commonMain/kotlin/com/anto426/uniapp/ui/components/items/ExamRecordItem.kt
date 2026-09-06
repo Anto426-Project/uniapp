@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,15 +25,13 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ExamRecord
-import com.kyant.backdrop.Backdrop
 
 @Composable
-fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
+fun ExamRecordItem(exam: ExamRecord) {
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
     ) {
         Row(
@@ -53,7 +51,7 @@ fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
                         containerSize = 40.dp,
                         iconSize = 20.dp,
                         containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedRectangle(12.dp),
                     ),
                 )
 
@@ -86,7 +84,6 @@ fun ExamRecordItem(exam: ExamRecord, backdropState: Backdrop) {
                     text = exam.grade,
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.primary,
-                    backdropState = backdropState,
                     modifier = Modifier.graphicsLayer {
                         scaleX = 1.05f
                         scaleY = 1.05f

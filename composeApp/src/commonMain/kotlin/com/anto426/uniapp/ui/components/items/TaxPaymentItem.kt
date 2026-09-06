@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,12 +25,11 @@ import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.services.TaxPaymentData
-import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
-fun TaxPaymentItem(data: TaxPaymentData, backdropState: Backdrop) {
+fun TaxPaymentItem(data: TaxPaymentData) {
     val colorScheme = MaterialTheme.colorScheme
     val statusColor = if (data.isPaid) colorScheme.primary else colorScheme.error
     val statusContainer = if (data.isPaid) colorScheme.primary.copy(alpha = 0.12f) else colorScheme.error.copy(alpha = 0.12f)
@@ -45,8 +44,7 @@ fun TaxPaymentItem(data: TaxPaymentData, backdropState: Backdrop) {
     }
 
     LiquidCard(
-        backdropState = backdropState,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedRectangle(22.dp),
         contentPadding = 16.dp,
         modifier = Modifier.graphicsLayer(clip = false),
     ) {
@@ -64,7 +62,7 @@ fun TaxPaymentItem(data: TaxPaymentData, backdropState: Backdrop) {
                     containerSize = 42.dp,
                     iconSize = 20.dp,
                     containerColor = statusContainer,
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedRectangle(14.dp),
                 ),
             )
 
@@ -118,7 +116,6 @@ fun TaxPaymentItem(data: TaxPaymentData, backdropState: Backdrop) {
                     text = if (data.isPaid) stringResource(Res.string.ui_tax_paid_badge) else stringResource(Res.string.ui_tax_pending_badge),
                     containerColor = statusColor.copy(alpha = 0.14f),
                     contentColor = statusColor,
-                    backdropState = backdropState,
                 )
             }
         }
