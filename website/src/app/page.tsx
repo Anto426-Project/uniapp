@@ -8,7 +8,6 @@ import { FeaturesGrid } from '@/components/FeaturesGrid';
 import { Architecture } from '@/components/Architecture';
 import { DownloadHub } from '@/components/DownloadHub';
 import { SecuritySection } from '@/components/SecuritySection';
-import { InstallationGuide } from '@/components/InstallationGuide';
 import { Footer } from '@/components/Footer';
 import { DEFAULT_MANIFEST, SCREENSHOTS_DATA } from '@/data/default-manifest';
 import { UpdateManifest } from '@/data/types';
@@ -69,7 +68,6 @@ export default function HomePage() {
         <FeaturesGrid />
         <Architecture />
         <SecuritySection />
-        <InstallationGuide />
         <DownloadHub manifest={manifest} theme={theme} />
       </main>
 

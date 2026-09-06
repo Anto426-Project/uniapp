@@ -10,10 +10,10 @@ import {
   Copy,
   Check,
   ExternalLink,
-  Tag,
   Calendar,
   GitCommit,
   FileCode,
+  ShieldCheck,
 } from 'lucide-react';
 import { UpdateManifest, ReleaseChannelData } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
@@ -45,7 +45,7 @@ function parseChangelog(notes?: string): ChangelogItem[] {
     return [
       {
         category: 'Info',
-        badgeClass: 'bg-white/10 text-slate-300 border-white/10',
+        badgeClass: 'badge-info',
         text: 'Nessuna nota di rilascio specificata per questo canale.',
       },
     ];
@@ -66,7 +66,7 @@ function parseChangelog(notes?: string): ChangelogItem[] {
 
     const lower = content.toLowerCase();
     let category = 'Novità';
-    let badgeClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+    let badgeClass = 'badge-feature';
 
     if (
       lower.includes('corretto') ||
@@ -75,7 +75,7 @@ function parseChangelog(notes?: string): ChangelogItem[] {
       lower.includes('bug')
     ) {
       category = 'Bug Fix';
-      badgeClass = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+      badgeClass = 'badge-fix';
     } else if (
       lower.includes('migliorat') ||
       lower.includes('ottimizzat') ||
@@ -83,14 +83,14 @@ function parseChangelog(notes?: string): ChangelogItem[] {
       lower.includes('velocizzat')
     ) {
       category = 'Miglioramento';
-      badgeClass = 'bg-violet-500/15 text-violet-300 border-violet-500/30';
+      badgeClass = 'badge-improvement';
     } else if (
       lower.includes('sicurezza') ||
       lower.includes('crittografia') ||
       lower.includes('privacy')
     ) {
       category = 'Sicurezza';
-      badgeClass = 'bg-sky-500/15 text-sky-400 border-sky-500/30';
+      badgeClass = 'badge-security';
     }
 
     items.push({ category, badgeClass, text: content });
@@ -101,7 +101,7 @@ function parseChangelog(notes?: string): ChangelogItem[] {
     : [
         {
           category: 'Info',
-          badgeClass: 'bg-white/10 text-slate-300 border-white/10',
+          badgeClass: 'badge-info',
           text: 'Nessun dettaglio disponibile.',
         },
       ];
@@ -160,16 +160,16 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
           <span className="section-tag">Distribuzione Ufficiale</span>
           <h2 className="section-title">Pacchetti APK &amp; Release</h2>
           <p className="section-description max-w-2xl mx-auto">
-            Scarica la build nativa compilata per l&apos;architettura del tuo processore. Supporto completo ad aggiornamenti continui e notifiche in-app.
+            Scarica la build nativa ottimizzata per il tuo dispositivo. Supporto ad aggiornamenti continui e notifiche in-app.
           </p>
         </div>
 
-        {/* Scheda Unificata Download Hub */}
-        <div className="download-unified-card" style={{ marginBottom: '40px' }}>
-          {/* Toolbar Canale & Versione */}
-          <div className="download-card-toolbar">
-            <div className="channel-switch-wrapper-inline">
-              <span className="toolbar-label">Canale di Rilascio:</span>
+        {/* 2-Column Release Deck */}
+        <div className="release-deck-grid">
+          {/* Left Column: Download Console */}
+          <div className="release-console-card">
+            {/* Console Header / Switcher */}
+            <div className="console-header-bar">
               <div className="channel-switch glass-pill">
                 <div
                   className="switch-pill"
@@ -182,67 +182,58 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                   className={`channel-tab ${channel === 'beta' ? 'active' : ''}`}
                   onClick={() => setChannel('beta')}
                 >
-                  Canale Beta
+                  Beta
                 </button>
                 <button
                   type="button"
                   className={`channel-tab ${channel === 'stable' ? 'active' : ''}`}
                   onClick={() => setChannel('stable')}
                 >
-                  Canale Stabile
+                  Stabile
                 </button>
               </div>
-            </div>
 
-            <div className="download-card-meta">
-              <span className="meta-pill version">
-                <Tag className="w-3.5 h-3.5" />
-                <span>{version}</span>
-              </span>
-              <span className="meta-pill date">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>{dateText}</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Elenco dei Pacchetti APK */}
-          <div className="download-rows-list">
-            {/* 1. ARM64-v8a (Consigliato) */}
-            <div className="abi-download-row recommended">
-              <div className="abi-row-left">
-                <div className="abi-row-icon">
-                  <Cpu className="w-6 h-6" />
-                </div>
-                <div className="abi-row-info">
-                  <div className="abi-row-title-line">
-                    <span className="abi-name">ARM64-v8a</span>
-                    <span className="abi-badge-rec">
-                      <Sparkles className="w-3 h-3 inline mr-1" />
-                      Consigliato
-                    </span>
-                    <span className="abi-target-pill">64-bit • Android 8.0+</span>
-                  </div>
-                  <p className="abi-desc-text">
-                    Compilazione nativa a 64-bit ottimizzata per oltre il 95% degli smartphone Android moderni. Massima fluidità a 120Hz e consumi ridotti.
-                  </p>
-                </div>
+              <div className="console-status-indicator">
+                <span className="status-live-dot" />
+                <span className="status-live-text">
+                  Canale {channel === 'beta' ? 'Beta' : 'Stabile'} attivo
+                </span>
               </div>
+            </div>
 
-              <div className="abi-row-actions">
+            {/* Version & Highlights */}
+            <div className="console-version-row">
+              <div className="console-version-tag">
+                <span className="ver-text">{version}</span>
+                <span className="ver-subbadge">Build Ufficiale</span>
+              </div>
+              <div className="console-pub-date">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Rilasciato il {dateText}</span>
+              </div>
+            </div>
+
+            {/* Hero Download Action (ARM64-v8a) */}
+            <div className="hero-download-block">
+              <div className="hero-download-action-group">
                 <a
                   href={arm64Url}
                   download
-                  className="btn-download-action-compact primary"
+                  className="btn-hero-download"
                 >
-                  <Download className="w-4 h-4" />
-                  <span>Scarica APK</span>
+                  <div className="btn-hero-icon-box">
+                    <Download className="w-5 h-5" />
+                  </div>
+                  <div className="btn-hero-labels">
+                    <span className="btn-hero-title">Scarica APK ARM64-v8a</span>
+                    <span className="btn-hero-subtitle">Consigliato • 64-bit • Android 8.0+</span>
+                  </div>
                 </a>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(arm64Url, 'arm64')}
-                  className="btn-copy-url-compact"
-                  title="Copia link diretto di download"
+                  className="btn-hero-copy"
+                  title="Copia link download ARM64"
                 >
                   {copiedId === 'arm64' ? (
                     <Check className="w-4 h-4 text-emerald-400" />
@@ -253,156 +244,158 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
               </div>
             </div>
 
-            {/* 2. Universale */}
-            <div className="abi-download-row">
-              <div className="abi-row-left">
-                <div className="abi-row-icon">
-                  <Layers className="w-6 h-6" />
-                </div>
-                <div className="abi-row-info">
-                  <div className="abi-row-title-line">
-                    <span className="abi-name">Universale</span>
-                    <span className="abi-target-pill">Tutte le CPU Android</span>
+            {/* Alternative Architectures (Compact, No Card-in-Card) */}
+            <div className="alt-arch-section">
+              <span className="alt-arch-label">Architetture alternative</span>
+
+              <div className="alt-arch-list">
+                {/* Universale */}
+                <div className="alt-arch-row">
+                  <div className="alt-arch-info">
+                    <Layers className="w-4 h-4 alt-arch-icon" />
+                    <div>
+                      <span className="alt-arch-name">Universale</span>
+                      <span className="alt-arch-note">Tutte le CPU • Emulatori</span>
+                    </div>
                   </div>
-                  <p className="abi-desc-text">
-                    Include le librerie native per tutte le architetture (ARM32, ARM64, x86). Funziona su qualsiasi dispositivo ed emulatore.
-                  </p>
-                </div>
-              </div>
-
-              <div className="abi-row-actions">
-                <a
-                  href={universalUrl}
-                  download
-                  className="btn-download-action-compact secondary"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Scarica APK</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(universalUrl, 'universal')}
-                  className="btn-copy-url-compact"
-                  title="Copia link diretto di download"
-                >
-                  {copiedId === 'universal' ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* 3. ARMeabi-v7a */}
-            <div className="abi-download-row">
-              <div className="abi-row-left">
-                <div className="abi-row-icon">
-                  <Smartphone className="w-6 h-6" />
-                </div>
-                <div className="abi-row-info">
-                  <div className="abi-row-title-line">
-                    <span className="abi-name">ARMeabi-v7a</span>
-                    <span className="abi-target-pill">Legacy 32-bit</span>
+                  <div className="alt-arch-actions">
+                    <a
+                      href={universalUrl}
+                      download
+                      className="btn-alt-download"
+                      title="Scarica APK Universale"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>APK</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(universalUrl, 'universal')}
+                      className="btn-alt-copy"
+                      title="Copia link Universale"
+                    >
+                      {copiedId === 'universal' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
                   </div>
-                  <p className="abi-desc-text">
-                    Pacchetto leggero per dispositivi Android più datati dotati di architettura processore a 32-bit.
-                  </p>
                 </div>
-              </div>
 
-              <div className="abi-row-actions">
-                <a
-                  href={armv7Url}
-                  download
-                  className="btn-download-action-compact secondary"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Scarica APK</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(armv7Url, 'armeabi-v7a')}
-                  className="btn-copy-url-compact"
-                  title="Copia link diretto di download"
-                >
-                  {copiedId === 'armeabi-v7a' ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Scheda Note di Rilascio / Changelog */}
-        <div
-          id="changelog"
-          className="changelog-card"
-          style={{ marginTop: '40px' }}
-        >
-          <div className="changelog-header-row">
-            <div className="cl-title-wrap">
-              <div className="abi-row-icon" style={{ width: 38, height: 38 }}>
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white leading-tight">
-                  Note di Rilascio
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="cl-version-badge">{version}</span>
-                  <span className="cl-channel-badge">
-                    Canale {channel === 'beta' ? 'Beta' : 'Stabile'}
-                  </span>
+                {/* ARMeabi-v7a */}
+                <div className="alt-arch-row">
+                  <div className="alt-arch-info">
+                    <Smartphone className="w-4 h-4 alt-arch-icon" />
+                    <div>
+                      <span className="alt-arch-name">ARMeabi-v7a</span>
+                      <span className="alt-arch-note">Legacy 32-bit</span>
+                    </div>
+                  </div>
+                  <div className="alt-arch-actions">
+                    <a
+                      href={armv7Url}
+                      download
+                      className="btn-alt-download"
+                      title="Scarica APK ARMeabi-v7a"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>APK</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(armv7Url, 'armeabi-v7a')}
+                      className="btn-alt-copy"
+                      title="Copia link ARMeabi-v7a"
+                    >
+                      {copiedId === 'armeabi-v7a' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="cl-date-meta">
-              <span>Pubblicato il {dateText}</span>
+            {/* Console Footer */}
+            <div className="console-footer-bar">
+              <a
+                href={commitUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="console-link"
+              >
+                <GitCommit className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
+                <span>Commit <code className="console-code">#{commitHash}</code></span>
+              </a>
+
+              <a
+                href={withBasePath('/update.json')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="console-link"
+              >
+                <FileCode className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
+                <span>Manifest <code className="console-code">update.json</code></span>
+                <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
+              </a>
             </div>
           </div>
 
-          <ul className="changelog-items-list">
-            {changelogItems.map((item, idx) => (
-              <li key={idx} className="changelog-item">
-                <span
-                  className={`text-[0.68rem] font-bold px-2.5 py-0.5 rounded-full border flex-shrink-0 uppercase tracking-wider mt-0.5 ${item.badgeClass}`}
-                >
-                  {item.category}
-                </span>
-                <span className="text-slate-200 leading-relaxed text-sm md:text-[0.95rem]">
-                  {item.text}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {/* Right Column: Release Notes / Changelog */}
+          <div className="release-changelog-card">
+            {/* Changelog Header */}
+            <div className="changelog-deck-header">
+              <div className="changelog-deck-title-wrap">
+                <div className="changelog-deck-icon">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="changelog-deck-title">Note di Rilascio</h3>
+                  <p className="changelog-deck-subtitle">
+                    Novità ed ottimizzazioni introdotte in {version}
+                  </p>
+                </div>
+              </div>
+              <span className="cl-deck-badge">
+                Canale {channel === 'beta' ? 'Beta' : 'Stabile'}
+              </span>
+            </div>
 
-          <div className="changelog-footer-row">
-            <a
-              href={commitUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="commit-pill"
-            >
-              <GitCommit className="w-4 h-4 text-[var(--theme-primary)]" />
-              <span>Commit di compilazione:</span>
-              <span id="cl-commit-link">#{commitHash}</span>
-            </a>
+            {/* Scrollable Items Feed */}
+            <div className="release-changelog-scroll">
+              <ul className="deck-changelog-list">
+                {changelogItems.map((item, idx) => (
+                  <li key={idx} className="deck-changelog-item">
+                    <span className={`deck-badge ${item.badgeClass}`}>
+                      {item.category}
+                    </span>
+                    <span className="deck-item-text">
+                      {item.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-            <a
-              href={withBasePath('/update.json')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="commit-pill hover:underline"
-            >
-              <FileCode className="w-4 h-4 text-[var(--theme-primary)]" />
-              <span>Manifest update.json</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            {/* Changelog Footer */}
+            <div className="changelog-deck-footer">
+              <div className="verified-build-pill">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Build GitHub Actions Verificata</span>
+              </div>
+              <a
+                href="https://github.com/Anto426-Project/Uniapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="console-link"
+              >
+                <span>Vedi sorgente</span>
+                <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
