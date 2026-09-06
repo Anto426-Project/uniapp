@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import {
   Download,
-  Cpu,
   Layers,
   Smartphone,
   Sparkles,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { UpdateManifest, ReleaseChannelData } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
+import { DEFAULT_MANIFEST } from '@/data/default-manifest';
 
 interface DownloadHubProps {
   manifest: UpdateManifest;
@@ -112,13 +112,15 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const releaseData: ReleaseChannelData | undefined =
-    manifest.channels?.[channel]?.release;
+    manifest.channels?.[channel]?.release ||
+    DEFAULT_MANIFEST.channels?.[channel]?.release ||
+    manifest.channels?.beta?.release;
 
   const version = releaseData?.latestVersion
     ? releaseData.latestVersion.startsWith('v')
       ? releaseData.latestVersion
       : `v${releaseData.latestVersion}`
-    : 'Release';
+    : 'v1.8.9-beta';
 
   const dateText = formatDate(releaseData?.publishedAt);
   const changelogItems = parseChangelog(releaseData?.notes);
@@ -160,7 +162,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
           <span className="section-tag">Distribuzione Ufficiale</span>
           <h2 className="section-title">Pacchetti APK &amp; Release</h2>
           <p className="section-description max-w-2xl mx-auto">
-            Scarica la build nativa ottimizzata per il tuo dispositivo. Supporto ad aggiornamenti continui e notifiche in-app.
+            Scarica la build nativa compilata per l&apos;architettura del tuo processore. Supporto completo ad aggiornamenti continui e notifiche in-app.
           </p>
         </div>
 
@@ -364,7 +366,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
               </span>
             </div>
 
-            {/* Scrollable Items Feed */}
+            {/* Scrollable Items Feed (Scrollbar hidden) */}
             <div className="release-changelog-scroll">
               <ul className="deck-changelog-list">
                 {changelogItems.map((item, idx) => (
