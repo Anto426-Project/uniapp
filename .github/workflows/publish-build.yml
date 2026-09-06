@@ -42,6 +42,13 @@ jobs:
             exit 1
           fi
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
       - name: Load signed Android artifact from runner filesystem
         shell: bash
         run: |
@@ -171,7 +178,21 @@ jobs:
             --virustotal-url "${{ steps.virustotal.outputs.analysis }}" \
             --output README.md
 
-          git add .gitattributes src/release assets update.json README.md
+          if [ -d "../website" ]; then
+            echo "==> Compilazione ed esportazione sito statico Next.js per GitHub Pages..."
+            cp update.json ../website/public/update.json
+            pushd ../website >/dev/null
+            npm ci || npm install
+            NEXT_PUBLIC_BASE_PATH="/uniapp-upstream" npm run build
+            popd >/dev/null
+            rm -rf docs
+            mkdir -p docs
+            cp -a ../website/out/. docs/
+            touch docs/.nojekyll
+            touch .nojekyll
+          fi
+
+          git add .gitattributes src/release assets update.json README.md docs .nojekyll
           if git diff --cached --quiet; then
             echo "No changes to publish."
             echo "DEPLOY_HAS_CHANGES=false" >> "${GITHUB_ENV}"

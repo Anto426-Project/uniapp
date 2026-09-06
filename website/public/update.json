@@ -1,0 +1,36 @@
+{
+  "channels": {
+    "stable": {
+      "release": {
+        "latestVersion": "1.5.2",
+        "minSupportedVersion": "1.1.0",
+        "mandatory": true,
+        "downloadUrl": "https://raw.githubusercontent.com/Anto426-Project/UniappUpstream/main/src/release/androidApp-release.apk",
+        "notes": "Bug fixes.",
+        "publishedAt": "2026-03-08",
+        "appEnabled": true
+      }
+    },
+    "beta": {
+      "release": {
+        "latestVersion": "1.8.9-beta",
+        "latestVersionCode": 199,
+        "minSupportedVersion": "1.8.5-beta",
+        "minSupportedVersionCode": 195,
+        "mandatory": true,
+        "releaseChannel": "beta",
+        "downloadUrl": "https://github.com/Anto426-Project/UniappUpstream/releases/download/v1.8.9-beta%2B199/androidApp-universal-release.apk",
+        "downloadUrlsByAbi": {
+          "universal": "https://github.com/Anto426-Project/UniappUpstream/releases/download/v1.8.9-beta%2B199/androidApp-universal-release.apk",
+          "armeabi-v7a": "https://github.com/Anto426-Project/UniappUpstream/releases/download/v1.8.9-beta%2B199/androidApp-armeabi-v7a-release.apk",
+          "arm64-v8a": "https://github.com/Anto426-Project/UniappUpstream/releases/download/v1.8.9-beta%2B199/androidApp-arm64-v8a-release.apk"
+        },
+        "notes": "Changelog 25 May 2026:\n- Aggiunta la compilazione dei questionari con supporto a piu' pagine, domande obbligatorie e domande opzionali.\n- Gestiti piu' questionari per materia e collegata la nuova schermata di compilazione dalla lista questionari.\n- Corretto il QR studente usando il contenuto badge corretto e una generazione piu' vicina al badge ufficiale.\n- Aggiunto il pulsante per annullare gli appelli prenotati quando la prenotazione e' cancellabile.\n- Migliorate prenotazioni e cancellazioni dei trasporti, inclusa la selezione dei soli giorni feriali.\n- Uniformato il padding inferiore delle schermate di dettaglio e rifiniti toast e componenti comuni.",
+        "publishedAt": "2026-05-25",
+        "buildCommit": "d8634232cf263241918d8a236de58262b3a3ff67",
+        "appEnabled": true,
+        "description": "Stanchi della vecchia app universitaria?\nScopri UniApp, l’app non ufficiale per gli studenti dell’Università degli Studi del Molise, sviluppata in autonomia da Anto426. Completamente riscritta in Kotlin nativo, utilizza le più recenti tecnologie Material 3 Design e Jetpack Compose per offrire un’esperienza moderna, fluida e intuitiva. Gestisci la tua carriera, consulta il libretto, prenota gli esami e accedi rapidamente alle informazioni più importanti, tutto in un’unica interfaccia veloce e curata."
+      }
+    }
+  }
+}
