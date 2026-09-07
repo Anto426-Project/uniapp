@@ -36,10 +36,11 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
             mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
                 val years = dataSource.loadStudyPlan(force).toStudyYears()
-                val maxIndex = (years.size - 1).coerceAtLeast(0)
+                val previous = mutableUiState.value
+                val selectedYear = previous.years.getOrNull(previous.selectedYearIndex)?.yearNumber
                 mutableUiState.value = mutableUiState.value.copy(
                     years = years,
-                    selectedYearIndex = mutableUiState.value.selectedYearIndex.coerceIn(0, maxIndex),
+                    selectedYearIndex = years.indexOfFirst { it.yearNumber == selectedYear }.coerceAtLeast(0),
                     loadState = if (years.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 )
             } catch (error: CancellationException) {

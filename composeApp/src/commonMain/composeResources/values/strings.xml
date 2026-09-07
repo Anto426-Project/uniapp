@@ -137,6 +137,7 @@
     <string name="ui_year_second">Secondo anno</string>
     <string name="ui_year_third">Terzo anno</string>
     <string name="ui_year_nth">%1$d° anno</string>
+    <string name="ui_year_unspecified">Anno non specificato</string>
     <string name="ui_transcripts_year_summary">%1$d CFU conseguiti • %2$d esami verbalizzati</string>
     <string name="ui_study_plan_year_summary">%1$d CFU totali • %2$d/%3$d superati</string>
 

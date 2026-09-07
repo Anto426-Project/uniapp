@@ -25,7 +25,9 @@ fun StudyPlanScreen(
     onYearSelected: (Int) -> Unit,
     onCourseClick: (StudyCourse) -> Unit = {}
 ) {
-    val tabs = uiState.years.map { year -> LiquidNavigationItem(label = year.yearName) }
+    val tabs = uiState.years.map { year -> LiquidNavigationItem(label =
+        if (year.yearNumber > 0) stringResource(Res.string.ui_year_nth, year.yearNumber)
+        else stringResource(Res.string.ui_year_unspecified)) }
 
     UniScreenColumn {
         // 1. Year Tab Selector
@@ -45,7 +47,8 @@ fun StudyPlanScreen(
             val completedCount = yearGroup.courses.count { it.status == CourseStatus.COMPLETED }
 
             LiquidSectionHeader(
-                title = yearGroup.yearName,
+                title = if (yearGroup.yearNumber > 0) stringResource(Res.string.ui_year_nth, yearGroup.yearNumber)
+                    else stringResource(Res.string.ui_year_unspecified),
                 subtitle = stringResource(Res.string.ui_study_plan_year_summary, totalYearCfu, completedCount, yearGroup.courses.size),
             )
 

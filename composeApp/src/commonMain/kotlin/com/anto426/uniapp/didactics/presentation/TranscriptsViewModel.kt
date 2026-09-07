@@ -20,15 +20,14 @@ data class TranscriptsUiState(
     val examsByYear: Map<Int, List<ExamRecord>> = emptyMap(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
+    val studyPlanYears: List<Int> = emptyList(),
 ) {
     val availableYears: List<Int>
-        get() {
-            val maxYear = maxOf(3, examsByYear.keys.maxOrNull() ?: 3)
-            return (1..maxYear).toList()
-        }
+        get() = (studyPlanYears + examsByYear.keys).distinct()
+            .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
 
     val displayedYears: List<Int>
-        get() = listOf(selectedYear)
+        get() = listOfNotNull(selectedYear.takeIf { it in availableYears })
 }
 
 class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
@@ -41,14 +40,25 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
         viewModelScope.launch {
             mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
             try {
-                val exams = dataSource.loadCareer(force).toExamRecords()
+                val career = dataSource.loadCareer(force)
+                val plan = try {
+                    dataSource.loadStudyPlan(force)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    null // The transcript remains available when its year metadata cannot be loaded.
+                }
+                val exams = career.toExamRecords(plan)
                 val examsByYear = exams.groupBy { it.year }
-                val maxYear = maxOf(3, examsByYear.keys.maxOrNull() ?: 3)
+                val planYears = plan?.courses.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct()
+                val availableYears = (planYears + examsByYear.keys).distinct()
+                    .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
                 val currentYear = mutableUiState.value.selectedYear
-                val selectedYear = if (currentYear in 1..maxYear) currentYear else 1
+                val selectedYear = currentYear.takeIf { it in availableYears } ?: availableYears.firstOrNull() ?: 0
                 mutableUiState.value = mutableUiState.value.copy(
                     examsByYear = examsByYear,
                     selectedYear = selectedYear,
+                    studyPlanYears = planYears,
                     loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 )
             } catch (error: CancellationException) {
@@ -65,7 +75,7 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
     fun selectYear(year: Int) {
         val available = mutableUiState.value.availableYears
         mutableUiState.value = mutableUiState.value.copy(
-            selectedYear = if (year in available) year else 1,
+            selectedYear = if (year in available) year else available.firstOrNull() ?: 0,
         )
     }
 }

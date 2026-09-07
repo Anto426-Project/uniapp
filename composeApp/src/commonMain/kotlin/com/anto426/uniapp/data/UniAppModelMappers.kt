@@ -31,16 +31,26 @@ import com.anto426.unisdk.backend.model.UniversityContact
 import com.anto426.unisdk.backend.model.UniversityNews
 import com.anto426.unisdk.transport.TransportData
 
-internal fun CareerData.toExamRecords(): List<ExamRecord> {
+internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<ExamRecord> {
     val validExams = exams.filter { it.grade.isValidExamGrade() }
-    val years = validExams.mapNotNull { it.date.calendarYearOrNull() }.distinct().sorted()
+    val courses = studyPlan?.courses.orEmpty()
+    val yearsById = courses.filter { !it.adsceId.isNullOrBlank() }.groupBy { it.adsceId!!.trim() }
+    val yearsByName = courses.groupBy { it.title.trim().lowercase() }
+    fun uniqueYear(candidates: List<com.anto426.unisdk.backend.model.StudyPlanCourseData>?): Int? =
+        candidates.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct().singleOrNull()
     return validExams.map { exam ->
         ExamRecord(
             name = exam.name,
             grade = exam.grade.trim(),
             cfu = exam.cfu?.let { "$it CFU" }.orEmpty(),
             date = exam.date,
-            year = years.indexOf(exam.date.calendarYearOrNull()).takeIf { it >= 0 }?.plus(1) ?: 1,
+            // Exam dates do not identify the course year: a first-year exam can be passed later.
+            // Keep missing/ambiguous years in an explicit unknown group instead of inventing year 1.
+            year = if (!exam.adsceId.isNullOrBlank() && yearsById.containsKey(exam.adsceId.trim())) {
+                uniqueYear(yearsById[exam.adsceId.trim()]) ?: 0
+            } else {
+                uniqueYear(yearsByName[exam.name.trim().lowercase()]) ?: 0
+            },
             code = exam.adsceId.orEmpty(),
             lode = exam.grade.contains("L", ignoreCase = true) || exam.grade.contains("lode", ignoreCase = true),
         )
@@ -95,13 +105,14 @@ internal fun StudyPlanData.toStudyYears(): List<StudyYear> =
                 status = if (course.completed) CourseStatus.COMPLETED else CourseStatus.PLANNED,
                 description = course.category.orEmpty(),
                 semester = course.completionDate.orEmpty(),
-            ) to (course.year ?: 1).coerceAtLeast(1)
+            ) to (course.year?.takeIf { it > 0 } ?: 0)
         }
         .groupBy(Pair<StudyCourse, Int>::second)
         .toList()
-        .sortedBy { (yearNumber, _) -> yearNumber }
+        .sortedWith(compareBy<Pair<Int, List<Pair<StudyCourse, Int>>>> { it.first == 0 }.thenBy { it.first })
         .map { (yearNumber, courses) ->
-            StudyYear(yearNumber, "${yearNumber}° Anno", courses.map(Pair<StudyCourse, Int>::first))
+            StudyYear(yearNumber, if (yearNumber > 0) "${yearNumber}° Anno" else "Anno non specificato",
+                courses.map(Pair<StudyCourse, Int>::first))
         }
 
 internal fun CourseSyllabusData.toStudyCourse(): StudyCourse =

@@ -228,6 +228,7 @@ internal fun AppNavigationHost(
                         isProfessor = isProfessor,
                         navigator = navigator,
                         shellViewModel = shellViewModel,
+                        isSearchActive = shellUiState.isSearchActive,
                         onRefreshUpdate = updateViewModel::refresh,
                         currentUpdateChannel = updateUiState.channel,
                         onSelectUpdateChannel = updateViewModel::selectChannel,
@@ -466,6 +467,7 @@ private fun topBarActions(
     isProfessor: Boolean,
     navigator: AppNavigator,
     shellViewModel: AppShellViewModel,
+    isSearchActive: Boolean,
     onRefreshUpdate: () -> Unit,
     currentUpdateChannel: String,
     onSelectUpdateChannel: (String) -> Unit,
@@ -481,9 +483,16 @@ private fun topBarActions(
         ->
             listOf(
                 LiquidTopBarAction(
-                    icon = LiquidIcons.Search,
-                    label = "Cerca",
-                    onClick = { shellViewModel.setSearchActive(true) },
+                    icon = if (isSearchActive) LiquidIcons.Close else LiquidIcons.Search,
+                    label = if (isSearchActive) "Chiudi ricerca" else "Cerca",
+                    onClick = {
+                        if (isSearchActive) {
+                            shellViewModel.setSearchActive(false)
+                            shellViewModel.updateSearchQuery("")
+                        } else {
+                            shellViewModel.setSearchActive(true)
+                        }
+                    },
                 ),
             )
 
@@ -534,20 +543,15 @@ private fun topBarActions(
         AppRoute.Transport -> emptyList()
 
         AppRoute.Home ->
-            listOf(
-                LiquidTopBarAction(
-                    icon = LiquidIcons.AccountCircle,
-                    label = stringResource(Res.string.ui_accounts_saved_title),
-                    onClick = { navigator.navigate(AppRoute.Accounts) },
-                ),
-            ) + (account
+            (account
+
                 ?.profiles
                 ?.distinctBy { it.profileId }
                 ?.takeIf { it.size > 1 }
                 ?.let { profiles ->
                     listOf(
                         LiquidTopBarAction(
-                            icon = LiquidIcons.AccountCircle,
+                            icon = LiquidIcons.SwitchAccount,
                             label = stringResource(Res.string.ui_home_switch_career),
                             subItems =
                                 profiles.map { profile ->
@@ -561,7 +565,7 @@ private fun topBarActions(
                                         )
                                     val profileName = profile.degreeName.ifBlank { profile.displayName }
                                     LiquidTopBarAction(
-                                        icon = LiquidIcons.AccountCircle,
+                                        icon = LiquidIcons.SwitchAccount,
                                         label = "$role · $profileName",
                                         selected = profile.profileId == account.activeProfileId,
                                         onClick = { onSelectProfile(profile.profileId) },

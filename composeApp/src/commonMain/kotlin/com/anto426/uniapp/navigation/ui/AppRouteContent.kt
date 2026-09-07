@@ -54,7 +54,6 @@ import com.anto426.uniapp.transport.presentation.ReservationDetailViewModel
 import com.anto426.uniapp.transport.presentation.TicketDetailViewModel
 import com.anto426.uniapp.updates.presentation.ChangelogViewModel
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
-import com.anto426.uniapp.ui.account.AccountSwitcherScreen
 import com.anto426.uniapp.ui.account.AccountRemovalDialog
 import com.anto426.uniapp.ui.auth.LoginScreen
 import com.anto426.uniapp.ui.bootstrap.AppBootstrapScreen
@@ -387,24 +386,6 @@ internal fun AppRouteContent(
                 onDismissBiometricPassword = settingsViewModel::dismissBiometricPasswordSetup,
                 onRequestSignOut = settingsViewModel::requestSignOut,
                 onDismissSignOut = settingsViewModel::dismissSignOut,
-            )
-        }
-
-        AppRoute.Accounts -> {
-            val accountViewModel =
-                viewModel(key = viewModelKey) { AccountSwitcherViewModel(sessionController, toastSink) }
-            val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
-            AccountRemovalDialog(
-                state = accountUiState,
-                onConfirm = { accountViewModel.confirmAccountRemoval(biometricAuthenticator) },
-                onDismiss = accountViewModel::dismissAccountRemoval,
-            )
-            AccountSwitcherScreen(
-                uiState = accountUiState,
-                onSelectAccount = accountViewModel::selectAccount,
-                onRemoveAccount = accountViewModel::requestAccountRemoval,
-                onSelectProfile = accountViewModel::selectProfile,
-                onAddAccount = accountViewModel::addAccount,
             )
         }
 

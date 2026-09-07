@@ -25,7 +25,8 @@ fun TranscriptsScreen(
 ) {
     val years = uiState.availableYears
     val tabs = years.map { year ->
-        LiquidNavigationItem(label = "${year}° Anno")
+        LiquidNavigationItem(label = if (year > 0) stringResource(Res.string.ui_year_nth, year)
+            else stringResource(Res.string.ui_year_unspecified))
     }
     val selectedTabIndex = years.indexOf(uiState.selectedYear).coerceAtLeast(0)
 
@@ -36,8 +37,7 @@ fun TranscriptsScreen(
                 items = tabs,
                 selectedIndex = selectedTabIndex,
                 onTabSelected = { index ->
-                    val year = years.getOrElse(index) { index + 1 }
-                    onYearSelected(year)
+                    years.getOrNull(index)?.let(onYearSelected)
                 },
             )
         }
@@ -52,6 +52,7 @@ fun TranscriptsScreen(
 
                 LiquidSectionHeader(
                     title = when (year) {
+                        0 -> stringResource(Res.string.ui_year_unspecified)
                         1 -> stringResource(Res.string.ui_year_first)
                         2 -> stringResource(Res.string.ui_year_second)
                         3 -> stringResource(Res.string.ui_year_third)
@@ -73,6 +74,7 @@ fun TranscriptsScreen(
             } else {
                 LiquidSectionHeader(
                     title = when (year) {
+                        0 -> stringResource(Res.string.ui_year_unspecified)
                         1 -> stringResource(Res.string.ui_year_first)
                         2 -> stringResource(Res.string.ui_year_second)
                         3 -> stringResource(Res.string.ui_year_third)

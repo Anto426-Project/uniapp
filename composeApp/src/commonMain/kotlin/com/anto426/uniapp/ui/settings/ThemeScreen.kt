@@ -4,45 +4,32 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.LiquidButton
 import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
-import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.feedback.LiquidSheet
-import com.anto426.liquidmonet.components.pickers.LiquidColorPicker
 import com.anto426.liquidmonet.components.selection.LiquidBackgroundSelector
 import com.anto426.liquidmonet.components.selection.LiquidSwitch
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
@@ -55,8 +42,9 @@ import uniapp.composeapp.generated.resources.*
 
 /**
  * Schermata Temi e personalizzazione visiva Liquid Monet.
- * Offre controlli interattivi in tempo reale per modalità tema, tavolozze Monet dinamiche,
- * gestione e decisione del colore personalizzato, sfondi ottici a sfumature pure e fisica del movimento.
+ * Offre controlli per modalità tema, tavolozze Monet,
+ * sfondi ottici e fisica del movimento.
+ * La personalizzazione del colore apre la schermata dedicata Laboratorio Colori.
  */
 @Composable
 fun ThemeScreen(
@@ -69,176 +57,8 @@ fun ThemeScreen(
     onCustomColorSelected: (Color) -> Unit = {},
     onNavigateToColorLab: () -> Unit = {}
 ) {
-    var showPickerSheet by remember { mutableStateOf(false) }
-    val activeCustomColor = uiState.customColor ?: Color(0xFF2979FF)
-
-    val curatedAccents = remember {
-        listOf(
-            Color(0xFF2979FF) to "Electric Blue",
-            Color(0xFF00B4D8) to "Cyber Teal",
-            Color(0xFF00E676) to "Neon Mint",
-            Color(0xFFFFD600) to "Sunny Gold",
-            Color(0xFFFF9100) to "Vivid Amber",
-            Color(0xFFFF1744) to "Laser Ruby",
-            Color(0xFFD500F9) to "Neon Magenta",
-            Color(0xFF7C4DFF) to "Deep Violet"
-        )
-    }
-
     UniScreenColumn {
-        val selectedTheme = uiState.themes.getOrElse(uiState.selectedThemeIndex) {
-            uiState.themes.first()
-        }
-
-        // 1. Hero Live Preview Card
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(42.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = LiquidIcons.Palette,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = "Liquid Monet ${com.anto426.unisdk.platform.AppInfoProvider.current.module("liquid-monet")?.version.orEmpty()}".trim(),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = "${selectedTheme.name} • ${uiState.selectedBackgroundStyle}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = when (uiState.themeMode) {
-                                AppThemeMode.System -> stringResource(Res.string.ui_theme_mode_system)
-                                AppThemeMode.Light -> stringResource(Res.string.ui_theme_mode_light)
-                                AppThemeMode.Dark -> stringResource(Res.string.ui_theme_mode_dark)
-                            },
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                // Barrette cromatiche dinamiche della palette attiva
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(22.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(22.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.secondary)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(22.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.tertiary)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(22.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    )
-                }
-
-                // Anteprima rapida componenti UI reali
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "Pulsante Primario",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "Superficie Tono",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.tertiaryContainer)
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "Accento",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        // 2. Modalità Aspetto (Selettore a 3 Vie Diretto)
+        // 1. Modalità Aspetto (Sistema / Chiaro / Scuro)
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_mode_group)) {
             Row(
                 modifier = Modifier
@@ -310,9 +130,7 @@ fun ThemeScreen(
             }
         }
 
-        Spacer(Modifier.height(4.dp))
-
-        // 3. Tavolozza Colori & Monet Seed (Palette Visive)
+        // 2. Tavolozza Colori & Monet Seed (Palette Visive)
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_palette_group)) {
             Column(
                 modifier = Modifier
@@ -324,14 +142,20 @@ fun ThemeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onThemeSelected(index) }
+                            .clickable {
+                                onThemeSelected(index)
+                                if (theme.isCustom) {
+                                    onNavigateToColorLab()
+                                }
+                            }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f, fill = false)
                         ) {
                             // Campione cromatico rotondo
                             Box(
@@ -395,17 +219,30 @@ fun ThemeScreen(
                             }
                         }
 
-                        if (isSelected) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Text(
-                                    text = "Attivo",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.primary
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (isSelected) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text(
+                                        text = "Attivo",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                            if (theme.isCustom) {
+                                Icon(
+                                    imageVector = LiquidIcons.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -418,148 +255,7 @@ fun ThemeScreen(
             }
         }
 
-        Spacer(Modifier.height(4.dp))
-
-        // 4. Gestione & Selezione del Colore Personalizzato
-        LiquidPreferenceGroup(title = "Gestione Colore Personalizzato") {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                // Info bar con campione attivo, codice Hex e stato
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(activeCustomColor)
-                                .border(2.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), CircleShape)
-                        )
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = "Colore Seme Attivo",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = activeCustomColor.toHexString(),
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontWeight = FontWeight.SemiBold
-                                ),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    val isCustomThemeActive = uiState.selectedThemeIndex == 5 ||
-                        (uiState.themes.getOrNull(uiState.selectedThemeIndex)?.isCustom == true)
-
-                    if (isCustomThemeActive) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "In Uso",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-
-                // Tavolozza Rapida di Accenti Vivaci ad 1 Tocco
-                Text(
-                    text = "Tonalità rapide consigliate",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    curatedAccents.forEach { (accentColor, label) ->
-                        val isCurrentAccent = activeCustomColor.value == accentColor.value
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(accentColor)
-                                .border(
-                                    width = if (isCurrentAccent) 2.5.dp else 1.dp,
-                                    color = if (isCurrentAccent) MaterialTheme.colorScheme.onSurface else Color.White.copy(alpha = 0.4f),
-                                    shape = CircleShape
-                                )
-                                .clickable { onCustomColorSelected(accentColor) },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (isCurrentAccent) {
-                                Icon(
-                                    imageVector = LiquidIcons.Check,
-                                    contentDescription = label,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                LiquidHorizontalDivider()
-
-                // Pulsante per aprire il Selettore Avanzato (Spettro, Sliders, Categorie)
-                LiquidButton(
-                    text = "Apri Selettore Avanzato (Spettro & Hex)",
-                    onClick = { showPickerSheet = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = LiquidButtonVariant.Secondary
-                )
-            }
-        }
-
-        // Modal Sheet Selettore Colore Avanzato
-        if (showPickerSheet) {
-            LiquidSheet(
-                onDismissRequest = { showPickerSheet = false },
-                title = "Selettore Colore Avanzato",
-                subtitle = "Spettro 2D, cursori HSV e codice esadecimale"
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    LiquidColorPicker(
-                        selectedColor = activeCustomColor,
-                        onColorSelected = { newColor ->
-                            onCustomColorSelected(newColor)
-                        }
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        // 5. Sfondo Ottico & Sfumature Fluide
+        // 3. Sfondo Ottico & Sfumature Fluide
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_engine_group)) {
             LiquidBackgroundSelector(
                 selectedEffect = uiState.selectedBackgroundStyle.toBackgroundEffect(),
@@ -568,9 +264,7 @@ fun ThemeScreen(
             )
         }
 
-        Spacer(Modifier.height(4.dp))
-
-        // 6. Fisica e Feedback Tattile
+        // 4. Fisica e Feedback Tattile
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_haptics_group)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_theme_reduced_motion_title),
@@ -585,9 +279,7 @@ fun ThemeScreen(
             )
         }
 
-        Spacer(Modifier.height(8.dp))
-
-        // 7. Ripristino Valori Predefiniti
+        // 5. Ripristino Valori Predefiniti
         LiquidButton(
             text = stringResource(Res.string.ui_theme_reset_button),
             onClick = onReset,

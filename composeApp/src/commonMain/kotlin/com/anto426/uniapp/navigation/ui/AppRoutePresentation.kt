@@ -116,11 +116,6 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
             subtitleRes = Res.string.nav_route_settings_subtitle,
             icon = LiquidIcons.Settings,
         )
-        AppRoute.Accounts -> AppRoutePresentation(
-            titleRes = Res.string.nav_route_accounts_title,
-            subtitleRes = Res.string.nav_route_accounts_subtitle,
-            icon = LiquidIcons.AccountCircle,
-        )
         AppRoute.Info -> AppRoutePresentation(
             titleRes = Res.string.nav_route_info_title,
             subtitleRes = Res.string.nav_route_info_subtitle,
@@ -129,12 +124,12 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
         AppRoute.Theme -> AppRoutePresentation(
             titleRes = Res.string.nav_route_theme_title,
             subtitleRes = Res.string.nav_route_theme_subtitle,
-            icon = LiquidIcons.Star,
+            icon = LiquidIcons.Palette,
         )
         AppRoute.Colors -> AppRoutePresentation(
             titleRes = Res.string.nav_route_colors_title,
             subtitleRes = Res.string.nav_route_colors_subtitle,
-            icon = LiquidIcons.Star,
+            icon = LiquidIcons.Palette,
         )
         AppRoute.Taxes -> AppRoutePresentation(
             titleRes = Res.string.nav_route_taxes_title,
@@ -279,7 +274,8 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
             icon = LiquidIcons.Notifications,
         )
         is AppRoute.NewsDetail -> AppRoutePresentation(
-            titleRes = Res.string.nav_route_news_detail_default_title,
+            titleString = title.ifBlank { null },
+            titleRes = if (title.isBlank()) Res.string.nav_route_news_detail_default_title else null,
             subtitleRes = Res.string.nav_route_news_detail_subtitle,
             icon = LiquidIcons.Notifications,
         )
