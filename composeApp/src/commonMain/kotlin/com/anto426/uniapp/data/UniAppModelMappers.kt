@@ -34,11 +34,15 @@ import com.anto426.unisdk.transport.TransportData
 internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<ExamRecord> {
     val validExams = exams.filter { it.grade.isValidExamGrade() }
     val courses = studyPlan?.courses.orEmpty()
-    val yearsById = courses.filter { !it.adsceId.isNullOrBlank() }.groupBy { it.adsceId!!.trim() }
+    val yearsById = courses.mapNotNull { course ->
+        val id = course.adsceId?.trim()
+        if (!id.isNullOrBlank()) id to course else null
+    }.groupBy({ it.first }, { it.second })
     val yearsByName = courses.groupBy { it.title.trim().lowercase() }
     fun uniqueYear(candidates: List<com.anto426.unisdk.backend.model.StudyPlanCourseData>?): Int? =
         candidates.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct().singleOrNull()
     return validExams.map { exam ->
+        val examAdsceId = exam.adsceId?.trim()
         ExamRecord(
             name = exam.name,
             grade = exam.grade.trim(),
@@ -46,8 +50,8 @@ internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<Ex
             date = exam.date,
             // Exam dates do not identify the course year: a first-year exam can be passed later.
             // Keep missing/ambiguous years in an explicit unknown group instead of inventing year 1.
-            year = if (!exam.adsceId.isNullOrBlank() && yearsById.containsKey(exam.adsceId.trim())) {
-                uniqueYear(yearsById[exam.adsceId.trim()]) ?: 0
+            year = if (!examAdsceId.isNullOrBlank() && yearsById.containsKey(examAdsceId)) {
+                uniqueYear(yearsById[examAdsceId]) ?: 0
             } else {
                 uniqueYear(yearsByName[exam.name.trim().lowercase()]) ?: 0
             },
