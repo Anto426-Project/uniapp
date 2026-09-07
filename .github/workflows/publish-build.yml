@@ -152,7 +152,7 @@ jobs:
           rm -rf "src/release/${RELEASE_ARTIFACT_DIR}"
           mkdir -p "src/release/${RELEASE_ARTIFACT_DIR}"
           cp -a ../incoming/release/. "src/release/${RELEASE_ARTIFACT_DIR}/"
-          cp ../androidApp/src/main/res/mipmap-xxxhdpi/ic_launcher.webp assets/uniapp-icon.webp
+          cp ../composeApp/src/androidMain/res/mipmap-xxxhdpi/ic_launcher.webp assets/uniapp-icon.webp
 
           if [ -d "../assets/screenshots" ]; then
             rm -rf assets/screenshots
