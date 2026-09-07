@@ -42,6 +42,63 @@ jobs:
             exit 1
           fi
 
+      - name: Ensure runner tools (git-lfs, gh)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Ensure git-lfs
+          if ! command -v git-lfs >/dev/null 2>&1; then
+            echo "git-lfs not found. Installing..."
+            if [ -n "${SUDO_PASSWORD:-}" ] && command -v apt-get >/dev/null 2>&1; then
+              echo "${SUDO_PASSWORD}" | sudo -S apt-get update -y
+              echo "${SUDO_PASSWORD}" | sudo -S apt-get install -y git-lfs
+            else
+              echo "❌ git-lfs is required but SUDO_PASSWORD is not set."
+              exit 1
+            fi
+          fi
+
+          # Ensure GitHub CLI (gh)
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "gh not found. Installing..."
+            if [ -n "${SUDO_PASSWORD:-}" ] && command -v apt-get >/dev/null 2>&1; then
+              (echo "${SUDO_PASSWORD}" | sudo -S apt-get update -y && echo "${SUDO_PASSWORD}" | sudo -S apt-get install -y gh) || true
+            fi
+
+            if ! command -v gh >/dev/null 2>&1; then
+              echo "Downloading standalone gh binary from GitHub releases..."
+              ARCH="amd64"
+              case "$(uname -m)" in
+                aarch64|arm64) ARCH="arm64" ;;
+                x86_64) ARCH="amd64" ;;
+              esac
+
+              TMP_DIR="$(mktemp -d)"
+              GH_VERSION="2.67.0"
+              TAR_NAME="gh_${GH_VERSION}_linux_${ARCH}.tar.gz"
+              TAR_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/${TAR_NAME}"
+
+              curl -sSL -f -o "${TMP_DIR}/${TAR_NAME}" "${TAR_URL}"
+              tar -xzf "${TMP_DIR}/${TAR_NAME}" -C "${TMP_DIR}"
+
+              if [ -n "${SUDO_PASSWORD:-}" ] && command -v sudo >/dev/null 2>&1; then
+                echo "${SUDO_PASSWORD}" | sudo -S mv "${TMP_DIR}/gh_${GH_VERSION}_linux_${ARCH}/bin/gh" /usr/local/bin/gh
+                echo "${SUDO_PASSWORD}" | sudo -S chmod +x /usr/local/bin/gh
+              else
+                mkdir -p "${HOME}/.local/bin"
+                mv "${TMP_DIR}/gh_${GH_VERSION}_linux_${ARCH}/bin/gh" "${HOME}/.local/bin/gh"
+                chmod +x "${HOME}/.local/bin/gh"
+                echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+                export PATH="${HOME}/.local/bin:${PATH}"
+              fi
+              rm -rf "${TMP_DIR}"
+            fi
+          fi
+
+          echo "✔ git-lfs: $(git-lfs --version)"
+          echo "✔ gh: $(gh --version | head -n 1)"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -131,20 +188,11 @@ jobs:
       - name: Publish APK to deploy repository
         shell: bash
         run: |
+          rm -rf deploy-repo
           git clone "https://x-access-token:${DEPLOY_TOKEN}@github.com/${DEPLOY_REPO}.git" deploy-repo
           cd deploy-repo
 
           git checkout "${DEPLOY_BRANCH}"
-
-          if ! command -v git-lfs >/dev/null 2>&1; then
-            if [ -z "${SUDO_PASSWORD}" ]; then
-              echo "git-lfs is not installed on the runner and SUDO_PASSWORD secret is not set."
-              echo "Set repository secret 'SUDO_PASSWORD' or install git-lfs on the self-hosted runner."
-              exit 1
-            fi
-            echo "${SUDO_PASSWORD}" | sudo -S apt-get update -y
-            echo "${SUDO_PASSWORD}" | sudo -S apt-get install -y git-lfs
-          fi
           git lfs install --local
           git lfs track "src/release/**/*.apk"
 
@@ -202,6 +250,13 @@ jobs:
             git commit -m "chore: publish APK from ${SOURCE_REPOSITORY}@${SOURCE_SHA::7}"
             echo "DEPLOY_HAS_CHANGES=true" >> "${GITHUB_ENV}"
           fi
+
+      - name: Push deploy repository
+        if: env.DEPLOY_HAS_CHANGES == 'true'
+        shell: bash
+        run: |
+          cd deploy-repo
+          git push origin "${DEPLOY_BRANCH}"
 
       - name: Prepare GitHub release metadata
         shell: bash
@@ -276,13 +331,6 @@ jobs:
 
             gh release create "${create_args[@]}"
           fi
-
-      - name: Push deploy repository
-        if: env.DEPLOY_HAS_CHANGES == 'true'
-        shell: bash
-        run: |
-          cd deploy-repo
-          git push origin "${DEPLOY_BRANCH}"
 
       - name: Cleanup consumed runner artifact
         if: ${{ success() }}
