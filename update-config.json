@@ -1,8 +1,8 @@
 {
   "appEnabled": true,
   "description": "UniApp è un progetto indipendente per consultare e utilizzare i servizi dell’Università degli Studi del Molise.",
-  "minSupportedVersion": "2.0.0",
-  "minSupportedVersionCode": 202,
+  "minSupportedVersion": "2.0.3",
+  "minSupportedVersionCode": 203,
   "mandatory": true,
   "notes": "- Corretto il crash della home quando non sono disponibili notizie.\n- Ripristinati i test Android e i controlli sul sito prima della pubblicazione"
 }
