@@ -18,4 +18,5 @@
 # Allow shrinking for generated Compose resources
 -keep,allowshrinking,allowobfuscation class com.anto426.uniapp.compose.generated.resources.** { *; }
 
-
+# Keep Android R$string class to avoid R8 missing class error from UpdateInstallReceiver/UpdateInstallStatus
+-keep class com.anto426.uniapp.compose.R$string { *; }
