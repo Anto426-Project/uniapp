@@ -1,7 +1,5 @@
 package com.anto426.uniapp.updates.platform
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
 
 import android.content.Context
 import android.content.Intent
@@ -33,7 +31,7 @@ internal object UpdateInstallStatus {
 
     fun pending(context: Context, intent: Intent) {
         preferences(context).edit().putString("confirmation", intent.toUri(Intent.URI_INTENT_SCHEME)).commit()
-        report(AppUpdatePhase.Installing, getString(Res.string.msg_conferma_laggiornamento_nella_schermata_di_android))
+        report(AppUpdatePhase.Installing, context.getString(com.anto426.uniapp.compose.R.string.android_conferma_laggiornamento_nella_schermata_di_android))
         confirmation.value = intent
     }
 
@@ -64,13 +62,13 @@ internal object UpdateInstallStatus {
         if (id >= 0) {
             val session = context.packageManager.packageInstaller.getSessionInfo(id)
             if (session == null) {
-                failed(context, getString(Res.string.msg_la_precedente_installazione_e_terminata_controlla_nuovamente_gli))
+                failed(context, context.getString(com.anto426.uniapp.compose.R.string.android_la_precedente_installazione_e_terminata_controlla_nuovamente_gli))
             } else {
-                report(AppUpdatePhase.Installing, getString(Res.string.msg_installazione_in_attesa_di_conferma))
+                report(AppUpdatePhase.Installing, context.getString(com.anto426.uniapp.compose.R.string.android_installazione_in_attesa_di_conferma))
                 prefs.getString("confirmation", null)?.let { encoded ->
                     runCatching { Intent.parseUri(encoded, Intent.URI_INTENT_SCHEME) }
                         .onSuccess { confirmation.value = it }
-                        .onFailure { failed(context, getString(Res.string.msg_impossibile_riprendere_linstallazione_riprova)) }
+                        .onFailure { failed(context, context.getString(com.anto426.uniapp.compose.R.string.android_impossibile_riprendere_linstallazione_riprova)) }
                 }
             }
         } else {

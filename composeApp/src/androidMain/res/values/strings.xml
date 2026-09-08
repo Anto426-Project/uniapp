@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="android_conferma_laggiornamento_nella_schermata_di_android">Conferma l’aggiornamento nella schermata di Android.</string>
+    <string name="android_la_precedente_installazione_e_terminata_controlla_nuovamente_gli">La precedente installazione è terminata. Controlla nuovamente gli aggiornamenti.</string>
+    <string name="android_installazione_in_attesa_di_conferma">Installazione in attesa di conferma.</string>
+    <string name="android_impossibile_riprendere_linstallazione_riprova">Impossibile riprendere l’installazione. Riprova.</string>
+    <string name="android_conferma_di_installazione_non_disponibile">Conferma di installazione non disponibile.</string>
+    <string name="android_android_non_ha_potuto_installare_laggiornamento">Android non ha potuto installare l’aggiornamento.</string>
+    <string name="android_installation_cancelled">Installazione annullata. Puoi riprovare.</string>
+</resources>
