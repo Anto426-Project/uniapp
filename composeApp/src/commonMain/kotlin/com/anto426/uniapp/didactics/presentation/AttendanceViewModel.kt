@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -55,7 +58,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Error else FeatureLoadState.Content,
-                    errorMessage = error.userMessage("Impossibile caricare le presenze."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_presenze)),
                 )
             }
         }
@@ -69,14 +72,14 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
         onSuccess: (() -> Unit)? = null,
     ) {
         val trimmedCode = qrCode.trim()
+        viewModelScope.launch {
         if (trimmedCode.isBlank()) {
             mutableUiState.value = mutableUiState.value.copy(
-                registrationErrorMessage = "Inserisci o inquadra un codice QR valido."
+                registrationErrorMessage = getString(Res.string.msg_inserisci_o_inquadra_un_codice_qr_valido)
             )
-            return
+            return@launch
         }
 
-        viewModelScope.launch {
             mutableUiState.value = mutableUiState.value.copy(
                 isRegistering = true,
                 registrationSuccessMessage = null,
@@ -91,7 +94,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 )
                 mutableUiState.value = mutableUiState.value.copy(
                     isRegistering = false,
-                    registrationSuccessMessage = result.ifBlank { "Presenza registrata con successo!" },
+                    registrationSuccessMessage = result.ifBlank { getString(Res.string.msg_presenza_registrata_con_successo) },
                     registrationErrorMessage = null,
                 )
                 refresh(force = true)
@@ -101,7 +104,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     isRegistering = false,
-                    registrationErrorMessage = error.userMessage("Errore durante la registrazione della presenza."),
+                    registrationErrorMessage = error.userMessage(getString(Res.string.msg_errore_durante_la_registrazione_della_presenza)),
                 )
             }
         }

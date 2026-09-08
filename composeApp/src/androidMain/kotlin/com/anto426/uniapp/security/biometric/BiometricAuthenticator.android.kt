@@ -1,5 +1,8 @@
 package com.anto426.uniapp.security.biometric
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import android.app.Activity
 import android.hardware.biometrics.BiometricManager
 import android.hardware.biometrics.BiometricPrompt
@@ -53,9 +56,9 @@ private class AndroidBiometricAuthenticator(
 
     override suspend fun authenticate(reason: String): BiometricAuthenticationResult {
         val currentActivity = activity
-            ?: return BiometricAuthenticationResult.Failed("Attività Android non disponibile.")
+            ?: return BiometricAuthenticationResult.Failed(getString(Res.string.msg_attivita_android_non_disponibile))
         if (availability() != BiometricAvailability.Available) {
-            return BiometricAuthenticationResult.Failed("Autenticazione del dispositivo non disponibile.")
+            return BiometricAuthenticationResult.Failed(getString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
         }
 
         return suspendCancellableCoroutine { continuation ->

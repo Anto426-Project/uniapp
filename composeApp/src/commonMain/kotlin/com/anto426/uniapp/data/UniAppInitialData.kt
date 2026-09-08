@@ -1,5 +1,7 @@
 package com.anto426.uniapp.data
 
+import org.jetbrains.compose.resources.getString
+
 import androidx.compose.ui.graphics.Color
 import com.anto426.liquidmonet.components.pickers.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -120,7 +122,7 @@ object UniAppInitialData {
     )
 
     val languages = listOf(
-        LanguageInfo("Italiano", "Italiano (Predefinito)", "it"),
+        LanguageInfo(Res.string.ui_course_lang_italian, Res.string.ui_language_italian_default, "it"),
     )
 
     val palettes = listOf(

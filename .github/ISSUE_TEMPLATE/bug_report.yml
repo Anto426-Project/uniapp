@@ -1,0 +1,47 @@
+name: Segnala un bug
+description: Un problema riproducibile nell’app o nel sito UniApp.
+title: '[Bug]: '
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: La segnalazione è pubblica. Non inserire password, token, matricole, dati accademici o altri dati personali. Controlla anche screenshot e log prima di allegarli.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Descrivi cosa non funziona e quanto spesso accade.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passaggi per riprodurlo
+      placeholder: '1. Apri…'
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento atteso
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Piattaforma
+      options: [Android, iOS, Sito web]
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versioni
+      description: Versione UniApp, numero di build, sistema operativo e modello del dispositivo (senza identificativi univoci).
+    validations:
+      required: true
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Allegati facoltativi
+      description: Inserisci solo materiale controllato e privo di dati personali.

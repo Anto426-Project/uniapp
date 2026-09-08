@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.settings
 
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -148,7 +150,7 @@ internal fun CreatorCreditsScreen(
                 }
 
                 val bioText = author?.bio?.takeIf(String::isNotBlank)
-                    ?: "Ideatore e sviluppatore principale dell'ecosistema UniApp per gli studenti universitari."
+                    ?: stringResource(Res.string.msg_ideatore_e_sviluppatore_principale_dell_ecosistema_uniapp_per)
                 Text(
                     text = bioText,
                     style = MaterialTheme.typography.bodyMedium,
@@ -236,7 +238,7 @@ internal fun CreatorCreditsScreen(
             if (contributors.isEmpty()) {
                 LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
                 LiquidPreferenceItem(
-                    title = "Contributori della community",
+                    title = stringResource(Res.string.msg_contributori_della_community),
                     subtitle = stringResource(Res.string.ui_credits_no_other_contributors),
                     icon = LiquidIcons.AccountCircle,
                 )

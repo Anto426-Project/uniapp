@@ -1,5 +1,8 @@
 package com.anto426.uniapp.settings.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -51,7 +54,7 @@ class ConnectedDevicesViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = FeatureLoadState.Error,
-                    errorMessage = error.userMessage("Impossibile caricare i dispositivi collegati."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)),
                 )
             }
         }
@@ -71,7 +74,7 @@ class ConnectedDevicesViewModel(
         val pending = mutableUiState.value.devicePendingRevocation ?: return
         val token = pending.revocationToken
         if (token.isNullOrBlank()) {
-            toastSink.warning("Questa sessione non espone un token revocabile.")
+            viewModelScope.launch { toastSink.warning(getString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile)) }
             dismissRevocation()
             return
         }
@@ -88,7 +91,7 @@ class ConnectedDevicesViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage("Impossibile revocare il dispositivo.")
+                val message = error.userMessage(getString(Res.string.msg_impossibile_revocare_il_dispositivo))
                 mutableUiState.value = mutableUiState.value.copy(
                     isMutating = false,
                 )

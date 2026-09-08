@@ -31,7 +31,7 @@ data class StatisticsUiState(
     val gradeMax: Float = 31f,
     val cfuMax: Float = 1f,
     val highestGradeLabel: String = "—",
-    val highestGradeCourses: String = "Nessun esame",
+    val highestGradeCourses: String = "",
     val recentTrend: Float = 0f,
     val totalCfu: Int = 0,
     val averageCfuPerExam: Float = 0f,

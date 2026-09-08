@@ -1,5 +1,8 @@
 package com.anto426.uniapp.session
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.session.ManagedAuthenticationResult
@@ -55,7 +58,7 @@ class AppSessionController internal constructor(
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Throwable) {
-                    AppSessionState.SignedOut(error.message ?: "Impossibile ripristinare la sessione protetta")
+                    AppSessionState.SignedOut(error.message ?: getString(Res.string.msg_impossibile_ripristinare_la_sessione_protetta))
                 }
         }
     }
@@ -138,7 +141,7 @@ class AppSessionController internal constructor(
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Throwable) {
-                    AppSessionState.SignedOut(error.message ?: "Accesso non riuscito")
+                    AppSessionState.SignedOut(error.message ?: getString(Res.string.msg_accesso_non_riuscito))
                 }
         }
     }
@@ -174,7 +177,7 @@ class AppSessionController internal constructor(
         lock.withLock {
             val current =
                 (mutableState.value as? AppSessionState.Authenticated)?.account
-                    ?: throw IllegalStateException("Nessun account attivo")
+                    ?: throw IllegalStateException(getString(Res.string.msg_nessun_account_attivo))
             if (current.activeProfileId == profileId) return@withLock mutableState.value
             coordinator.activateProfile(current.accountId, profileId).toAppState().also { nextState ->
                 mutableState.value = nextState

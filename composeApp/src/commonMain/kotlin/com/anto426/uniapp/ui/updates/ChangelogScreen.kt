@@ -1,5 +1,8 @@
 package com.anto426.uniapp.ui.updates
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.anto426.uniapp.ui.document.UniDocumentScreen
@@ -14,7 +17,7 @@ fun ChangelogScreen(
     onBack: (() -> Unit)? = null,
 ) {
     val content = if (uiState.versions.isEmpty()) {
-        "Nessun aggiornamento o nota di rilascio disponibile al momento."
+        stringResource(Res.string.msg_nessun_aggiornamento_o_nota_di_rilascio_disponibile_al)
     } else {
         uiState.toMarkdownString()
     }

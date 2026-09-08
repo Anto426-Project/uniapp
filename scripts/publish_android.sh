@@ -23,7 +23,7 @@ cp incoming/release/output-metadata.json deploy-repo/release/output-metadata.jso
 cp incoming/context.json deploy-repo/release/context.json
 touch deploy-repo/docs/.nojekyll deploy-repo/.nojekyll
 cd deploy-repo
-git add -A -- docs release src update.json README.md .nojekyll
+git add -A
 if ! git diff --cached --quiet; then
   git config user.name 'github-actions[bot]'
   git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

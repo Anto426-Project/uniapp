@@ -1,5 +1,8 @@
 package com.anto426.uniapp.settings.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.local.LocalDataKey
@@ -82,7 +85,7 @@ class SettingsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error("Impossibile leggere le preferenze protette.")
+                toastSink.error(getString(Res.string.msg_impossibile_leggere_le_preferenze_protette))
             }
         }
     }
@@ -150,9 +153,9 @@ class SettingsViewModel(
                 when (
                     val result = biometricAuthenticator.authenticate(
                         if (enabled) {
-                            "Conferma la tua identità per attivare la protezione di UniApp."
+                            getString(Res.string.msg_conferma_la_tua_identita_per_attivare_la_protezione)
                         } else {
-                            "Conferma la tua identità per disattivare la protezione di UniApp."
+                            getString(Res.string.msg_conferma_la_tua_identita_per_disattivare_la_protezione)
                         },
                     )
                 ) {
@@ -182,12 +185,12 @@ class SettingsViewModel(
 
                     BiometricAuthenticationResult.Cancelled -> Unit
                     is BiometricAuthenticationResult.Failed ->
-                        toastSink.error(result.message.ifBlank { "Autenticazione non riuscita." })
+                        toastSink.error(result.message.ifBlank { getString(Res.string.msg_autenticazione_non_riuscita) })
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                toastSink.error(error.message ?: "Impossibile aggiornare la protezione biometrica.")
+                toastSink.error(error.message ?: getString(Res.string.msg_impossibile_aggiornare_la_protezione_biometrica))
             } finally {
                 update {
                     copy(
@@ -219,7 +222,7 @@ class SettingsViewModel(
                 throw error
             } catch (_: Throwable) {
                 rollback()
-                toastSink.error("Impossibile salvare la preferenza.")
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_preferenza))
             }
         }
     }

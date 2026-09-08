@@ -1,5 +1,8 @@
 package com.anto426.uniapp.services.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -46,7 +49,7 @@ class TaxesViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare le tasse."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_tasse)),
                 )
             }
         }

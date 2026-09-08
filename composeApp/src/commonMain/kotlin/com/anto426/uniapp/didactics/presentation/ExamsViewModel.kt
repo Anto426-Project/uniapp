@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
@@ -86,7 +89,7 @@ class ExamsViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare gli appelli."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_gli_appelli)),
                     mutatingExamId = null,
                 )
             }
@@ -110,7 +113,7 @@ class ExamsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage("Operazione sull'appello non riuscita.")
+                val message = error.userMessage(getString(Res.string.msg_operazione_sull_appello_non_riuscita))
                 mutableUiState.value = mutableUiState.value.copy(mutatingExamId = null)
                 toastSink.error(message)
             }

@@ -34,7 +34,7 @@ fun UpdatesScreen(
             version = uiState.displayedVersion,
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
-            statusText = uiState.statusText,
+            statusText = uiState.statusText?.let { stringResource(it) },
             onDownload = onOpenUpdate,
             canDownload = uiState.canOpenUpdate,
             progress = uiState.progress,
@@ -49,7 +49,7 @@ fun UpdatesScreen(
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_software_version)) {
             LiquidPreferenceItem(
                 title = "${stringResource(Res.string.ui_app_name)} ${uiState.installedVersion}".trim(),
-                subtitle = uiState.errorMessage ?: uiState.statusText ?: stringResource(Res.string.ui_system_updated),
+                subtitle = uiState.errorMessage ?: uiState.statusText?.let { stringResource(it) } ?: stringResource(Res.string.ui_system_updated),
                 icon = LiquidIcons.Info,
             )
 

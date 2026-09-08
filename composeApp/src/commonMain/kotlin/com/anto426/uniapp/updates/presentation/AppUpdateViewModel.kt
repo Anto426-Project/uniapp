@@ -1,5 +1,8 @@
 package com.anto426.uniapp.updates.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.model.updates.UpdateState
@@ -22,7 +25,7 @@ data class AppUpdateUiState(
     val bannerState: UpdateState = UpdateState.CHECKING,
     val installedVersion: String = "",
     val displayedVersion: String = "",
-    val statusText: String? = null,
+    val statusText: org.jetbrains.compose.resources.StringResource? = null,
     val releaseNotes: String? = null,
     val publishedAt: String? = null,
     val isMandatory: Boolean = false,
@@ -66,13 +69,13 @@ internal class AppUpdateViewModel(
             controller.refresh()
             val state = controller.state.value
             when (state.phase) {
-                AppUpdatePhase.UpToDate -> toastSink.success("L’app è aggiornata.")
+                AppUpdatePhase.UpToDate -> toastSink.success(getString(Res.string.msg_lapp_e_aggiornata))
                 AppUpdatePhase.Available -> toastSink.info(
-                    if (state.isMandatory) "Aggiornamento obbligatorio disponibile."
-                    else "È disponibile un nuovo aggiornamento.",
+                    if (state.isMandatory) getString(Res.string.msg_aggiornamento_obbligatorio_disponibile)
+                    else getString(Res.string.msg_e_disponibile_un_nuovo_aggiornamento),
                 )
                 AppUpdatePhase.Failed -> toastSink.error(
-                    state.message ?: "Impossibile controllare gli aggiornamenti.",
+                    state.message ?: getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti),
                 )
                 AppUpdatePhase.Idle,
                 AppUpdatePhase.Checking,
@@ -92,7 +95,7 @@ internal class AppUpdateViewModel(
                 toastSink.info("Aggiornamento avviato…")
             } else {
                 toastSink.error(
-                    controller.state.value.message ?: "Impossibile avviare l’aggiornamento.",
+                    controller.state.value.message ?: getString(Res.string.msg_impossibile_avviare_laggiornamento),
                 )
             }
         }
@@ -117,16 +120,15 @@ internal fun AppUpdateState.toUiState(): AppUpdateUiState {
             },
         installedVersion = installedBuild.versionName,
         displayedVersion = if (info?.isUpdateAvailable == true) info.latestVersion else installedBuild.versionName,
-        statusText =
-            when {
-                phase == AppUpdatePhase.Verifying -> "Verifica dell’aggiornamento…"
-                phase == AppUpdatePhase.Downloading -> "Download dell’aggiornamento…"
-                phase == AppUpdatePhase.Installing -> "Attendi la conferma dell’installazione…"
-                isMandatory -> "Aggiornamento obbligatorio"
-                phase == AppUpdatePhase.Available -> "Nuovo aggiornamento disponibile"
-                phase == AppUpdatePhase.UpToDate -> "Versione aggiornata"
-                else -> null
-            },
+        statusText = when {
+            phase == AppUpdatePhase.Verifying -> Res.string.ui_update_status_verifying
+            phase == AppUpdatePhase.Downloading -> Res.string.ui_update_status_downloading
+            phase == AppUpdatePhase.Installing -> Res.string.msg_attendi_la_conferma_dellinstallazione
+            isMandatory -> Res.string.ui_update_status_mandatory
+            phase == AppUpdatePhase.Available -> Res.string.ui_update_new_available
+            phase == AppUpdatePhase.UpToDate -> Res.string.ui_updated_version
+            else -> null
+        },
         releaseNotes = info?.notes,
         publishedAt = info?.publishedAt,
         isMandatory = isMandatory,

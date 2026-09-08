@@ -1,5 +1,8 @@
 package com.anto426.uniapp.home.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
@@ -79,9 +82,9 @@ class HomeDashboardViewModel(
                         completedExams = snapshot.career.exams.size,
                         progress = if (targetCfu > 0) (acquiredCfu.toFloat() / targetCfu).coerceIn(0f, 1f) else 0f,
                         openExamRounds = snapshot.rounds.count { it.open && !it.booked },
-                        nextExamLabel = nextRound?.let { "${it.courseName} • ${it.dateTime}" } ?: "Nessun appello disponibile",
+                        nextExamLabel = nextRound?.let { "${it.courseName} • ${it.dateTime}" } ?: getString(Res.string.msg_nessun_appello_disponibile),
                         dueAmount = snapshot.taxes.dueAmount,
-                        nextTaxLabel = nextTax?.let { "${it.title} • ${it.deadline}" } ?: "Nessuna rata in scadenza",
+                        nextTaxLabel = nextTax?.let { "${it.title} • ${it.deadline}" } ?: getString(Res.string.ui_home_no_due_taxes),
                         loadState = FeatureLoadState.Content,
                     )
                 }
@@ -98,7 +101,7 @@ class HomeDashboardViewModel(
                 mutableUiState.update {
                     it.copy(
                         loadState = if (it.degreeName.isBlank()) FeatureLoadState.Error else FeatureLoadState.Content,
-                        errorMessage = error.userMessage("Impossibile aggiornare la panoramica."),
+                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_aggiornare_la_panoramica)),
                     )
                 }
             }
@@ -137,7 +140,7 @@ class HomeDashboardViewModel(
                 loadState = FeatureLoadState.Content,
                 errorMessage =
                     dashboard.unavailableSections.takeIf { it.isNotEmpty() }
-                        ?.let { "Alcuni dati docente non sono momentaneamente disponibili." },
+                        ?.let { getString(Res.string.msg_alcuni_dati_docente_non_sono_momentaneamente_disponibili) },
             )
         }
         professor.photoUrl?.takeIf(String::isNotBlank)?.let { source ->

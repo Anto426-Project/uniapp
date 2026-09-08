@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,7 +78,7 @@ class DidacticsDashboardViewModel(
                             loadState = FeatureLoadState.Content,
                             errorMessage =
                                 dashboard.unavailableSections.takeIf { it.isNotEmpty() }
-                                    ?.let { "Alcune sezioni docente non sono momentaneamente disponibili." },
+                                    ?.let { getString(Res.string.msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili) },
                         )
                     return@launch
                 }
@@ -134,7 +137,7 @@ class DidacticsDashboardViewModel(
                 mutableUiState.update {
                     it.copy(
                         loadState = if (it.degreeName.isBlank()) FeatureLoadState.Error else FeatureLoadState.Content,
-                        errorMessage = error.userMessage("Impossibile caricare la panoramica didattica."),
+                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_la_panoramica_didattica)),
                     )
                 }
             }

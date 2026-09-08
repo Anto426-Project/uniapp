@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.didactics.components
 
+
+
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -192,7 +194,7 @@ fun AttendanceQrScannerDialog(
                                 ) {
                                     Icon(
                                         imageVector = LiquidIcons.Settings,
-                                        contentDescription = "Flash",
+                                        contentDescription = stringResource(Res.string.msg_flash),
                                         tint = if (torchEnabled) colorScheme.primary else Color.White,
                                         modifier = Modifier.size(16.dp),
                                     )

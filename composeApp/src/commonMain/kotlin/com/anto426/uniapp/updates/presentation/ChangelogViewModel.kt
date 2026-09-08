@@ -1,5 +1,8 @@
 package com.anto426.uniapp.updates.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import com.anto426.uniapp.model.updates.ChangelogItemData
@@ -24,8 +27,8 @@ class ChangelogViewModel(update: AppUpdateUiState) : ViewModel() {
                         ChangelogItemData(
                             tag = "UPDATE",
                             tagColor = Color(0xFF4A90D9),
-                            title = "Note di rilascio",
-                            description = notes,
+                            titleRes = Res.string.nav_route_changelog_title,
+                            rawDescription = notes,
                         ),
                     ),
                 ),

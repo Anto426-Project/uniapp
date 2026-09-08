@@ -25,8 +25,8 @@ fun LanguageItem(
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidPreferenceItem(
-        title = language.name,
-        subtitle = language.region,
+        title = org.jetbrains.compose.resources.stringResource(language.nameRes),
+        subtitle = org.jetbrains.compose.resources.stringResource(language.regionRes),
         onClick = onClick,
         leadingContent = {
             LiquidAvatar(

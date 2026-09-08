@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.components.items
 
+
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,7 +41,7 @@ fun TaxPaymentItem(data: TaxPaymentData) {
         data.date.isNotBlank() && data.date != "-" -> {
             if (data.isPaid) "Pagata il ${data.date}" else "Scadenza: ${data.date}"
         }
-        data.isPaid -> "Versamento completato"
+        data.isPaid -> stringResource(Res.string.msg_versamento_completato)
         else -> "Scadenza in definizione"
     }
 

@@ -15,7 +15,11 @@ data class DeviceInfo(
     val revocationToken: String? = null,
 )
 
-data class LanguageInfo(val name: String, val region: String, val code: String)
+data class LanguageInfo(
+    val nameRes: org.jetbrains.compose.resources.StringResource,
+    val regionRes: org.jetbrains.compose.resources.StringResource,
+    val code: String,
+)
 
 data class ThemeOption(
     val name: String,

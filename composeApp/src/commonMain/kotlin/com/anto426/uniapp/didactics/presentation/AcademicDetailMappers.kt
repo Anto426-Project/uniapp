@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import com.anto426.uniapp.model.didactics.ThesisData
 import com.anto426.unisdk.backend.model.ProfessorContentItem
 
@@ -93,7 +96,7 @@ fun extractThesisData(item: ProfessorContentItem): ThesisData {
     )
 }
 
-fun ProfessorContentItem.orderedAcademicDetailFields(
+suspend fun ProfessorContentItem.orderedAcademicDetailFields(
     section: AcademicSection,
 ): List<Pair<String, String>> {
     val parsed =
@@ -105,9 +108,9 @@ fun ProfessorContentItem.orderedAcademicDetailFields(
         .map { (label, value) ->
             val normalizedLabel =
                 when (label.lowercase()) {
-                    "discussione", "data tesi" -> "Data Discussione"
-                    "titolo tesi" -> "Titolo Tesi"
-                    "cds" -> "Corso di Laurea"
+                    "discussione", "data tesi" -> getString(Res.string.ui_thesis_discussion_date)
+                    "titolo tesi" -> getString(Res.string.ui_thesis_title)
+                    "cds" -> getString(Res.string.msg_corso_di_laurea_2)
                     else -> label
                 }
             normalizedLabel to value

@@ -1,5 +1,8 @@
 package com.anto426.uniapp.account.session
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import com.anto426.unisdk.backend.UniBackendService
 import com.anto426.unisdk.backend.model.LoginCareerOption
 import com.anto426.uniapp.account.model.UniAccountCredentials
@@ -142,7 +145,7 @@ class UniSessionCoordinator(
                 val result = backend.login(credentials, selected)
                 val authenticated =
                     result as? AuthenticationResult.Authenticated
-                        ?: error("Il portale non ha attivato il profilo selezionato.")
+                        ?: error(getString(Res.string.msg_il_portale_non_ha_attivato_il_profilo_selezionato))
                 val catalog = account.profiles.map { it.toLoginCareerOption() }
                 val resolvedProfile =
                     authenticated.profile.withProfileCatalog(

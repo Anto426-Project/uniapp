@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.didactics
 
+
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,7 +66,7 @@ fun AcademicItemDetailScreen(
     val sectionTag = when (section) {
         AcademicSection.Theses -> "TESISTA • LAUREANDO"
         AcademicSection.Teachings -> "INSEGNAMENTO"
-        AcademicSection.Reports -> "VERBALE DI COMMISSIONE"
+        AcademicSection.Reports -> stringResource(Res.string.ui_academic_tag_report)
         AcademicSection.ExamRounds -> "APPELLO D'ESAME"
     }
 

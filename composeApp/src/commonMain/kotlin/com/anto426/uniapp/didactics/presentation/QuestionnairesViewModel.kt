@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -62,7 +65,7 @@ class QuestionnairesViewModel(private val dataSource: UniAppDataSource) : ViewMo
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare i questionari."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_questionari)),
                 )
             }
         }

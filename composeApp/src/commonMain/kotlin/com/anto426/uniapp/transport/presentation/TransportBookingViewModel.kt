@@ -1,5 +1,8 @@
 package com.anto426.uniapp.transport.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -57,7 +60,7 @@ class TransportBookingViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare le linee."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_linee)),
                 )
             }
         }
@@ -94,12 +97,12 @@ class TransportBookingViewModel(
                     toastSink.success(if (totalRides > 1) "$totalRides corse prenotate con successo." else "Prenotazione completata.")
                 } else {
                     mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
-                    toastSink.warning("Corse già prenotate per le date selezionate.")
+                    toastSink.warning(getString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage("Prenotazione non riuscita.")
+                val message = error.userMessage(getString(Res.string.msg_prenotazione_non_riuscita))
                 mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
                 toastSink.error(message)
             }

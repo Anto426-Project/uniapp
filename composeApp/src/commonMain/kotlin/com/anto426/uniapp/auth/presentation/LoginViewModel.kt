@@ -1,5 +1,8 @@
 package com.anto426.uniapp.auth.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountCredentials
@@ -65,7 +68,7 @@ class LoginViewModel(
     private fun authenticate(career: LoginCareerOption?) {
         val state = mutableUiState.value
         if (state.username.isBlank() || state.password.isBlank()) {
-            toastSink.warning("Inserisci sia il nome utente che la password.")
+            viewModelScope.launch { toastSink.warning(getString(Res.string.ui_login_error_empty)) }
             return
         }
         viewModelScope.launch {

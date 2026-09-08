@@ -1,5 +1,8 @@
 package com.anto426.uniapp.settings.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -138,7 +141,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error("Impossibile salvare la personalizzazione.")
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }
@@ -185,7 +188,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error("Impossibile salvare la personalizzazione.")
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }
@@ -198,7 +201,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error("Impossibile salvare la personalizzazione.")
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }

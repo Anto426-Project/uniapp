@@ -1,5 +1,7 @@
 package com.anto426.uniapp.navigation.ui
 
+
+
 import androidx.lifecycle.repeatOnLifecycle
 
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -221,7 +223,7 @@ internal fun AppNavigationHost(
                     searchQuery = shellUiState.searchQuery,
                     onQueryChange = shellViewModel::updateSearchQuery,
                     onSearchActiveChange = shellViewModel::setSearchActive,
-                    searchPlaceholder = "Cerca...",
+                    searchPlaceholder = stringResource(Res.string.msg_cerca),
                     onHeightChanged = { topBarHeight = it },
                     actionItems = topBarActions(
                         route = route,
@@ -311,7 +313,6 @@ internal fun AppNavigationHost(
                         onRetry = updateViewModel::refresh,
                         onOpenUpdate = updateViewModel::openUpdate,
                         onOpenChangelog = {},
-                        onSelectChannel = updateViewModel::selectChannel,
                     )
                 } else {
                     val entries =
@@ -479,7 +480,7 @@ private fun topBarActions(
             listOf(
                 LiquidTopBarAction(
                     icon = if (isSearchActive) LiquidIcons.Close else LiquidIcons.Search,
-                    label = if (isSearchActive) "Chiudi ricerca" else "Cerca",
+                    label = if (isSearchActive) "Chiudi ricerca" else stringResource(Res.string.msg_cerca_2),
                     onClick = {
                         if (isSearchActive) {
                             shellViewModel.setSearchActive(false)
@@ -508,7 +509,7 @@ private fun topBarActions(
             listOf(
                 LiquidTopBarAction(
                     icon = LiquidIcons.Time,
-                    label = "Storico",
+                    label = stringResource(Res.string.msg_storico),
                     onClick = { navigator.navigate(AppRoute.ExamsHistory) },
                 ),
             )

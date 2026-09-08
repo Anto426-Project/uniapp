@@ -1,5 +1,8 @@
 package com.anto426.uniapp.project.data
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import com.anto426.uniapp.project.model.*
 import com.anto426.unisdk.platform.ProjectInfo
 import com.anto426.unisdk.platform.currentEpochMillis
@@ -52,7 +55,7 @@ internal class GitHubProjectRepository(
                 .sortedByDescending { it.contributions }
         }
         if (author == null && project == null && repositories.isEmpty() && contributors.isEmpty()) {
-            error("GitHub non è disponibile. Riprova più tardi.")
+            error(getString(Res.string.msg_github_non_e_disponibile_riprova_piu_tardi))
         }
         return GitHubProjectSnapshot(author, project, repositories, contributors,
             if (incomplete) previous?.fetchedAt ?: 0 else now(), incomplete)

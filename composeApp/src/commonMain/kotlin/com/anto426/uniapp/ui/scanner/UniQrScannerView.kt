@@ -1,5 +1,8 @@
 package com.anto426.uniapp.ui.scanner
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,7 +110,7 @@ fun UniQrScannerScreen(
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = LiquidIcons.Close,
-                        contentDescription = "Chiudi",
+                        contentDescription = stringResource(Res.string.ui_attendance_dialog_close),
                         tint = Color.White,
                         modifier = Modifier.size(24.dp),
                     )

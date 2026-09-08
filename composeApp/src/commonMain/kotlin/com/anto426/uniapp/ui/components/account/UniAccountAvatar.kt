@@ -1,5 +1,8 @@
 package com.anto426.uniapp.ui.components.account
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
@@ -30,7 +33,7 @@ fun UniAccountAvatar(
     if (imageData == null || imageData.isEmpty()) {
         LiquidAvatar(
             modifier = modifier,
-            initials = initials.ifBlank { "UN" },
+            initials = initials.ifBlank { stringResource(Res.string.msg_un) },
             size = size,
         )
         return
@@ -51,7 +54,7 @@ fun UniAccountAvatar(
 
     LiquidAvatar(
         modifier = modifier,
-        initials = if (imageLoaded) null else initials.ifBlank { "UN" },
+        initials = if (imageLoaded) null else initials.ifBlank { stringResource(Res.string.msg_un) },
         icon = null,
         size = size,
         content =

@@ -1,5 +1,8 @@
 package com.anto426.uniapp.ui.components.cards
 
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -177,7 +180,7 @@ fun UniHeroFluidBackground(
             try {
                 RuntimeShader(UniHeroCardShader)
             } catch (error: Throwable) {
-                logUniAppShaderError("Impossibile creare lo shader AGSL della card", error)
+                logUniAppShaderError("Unable to create hero card AGSL shader", error)
                 null
             }
         } else null
@@ -201,7 +204,7 @@ fun UniHeroFluidBackground(
                 drawRect(brush = ShaderBrush(runtimeShader.asComposeShader()))
                 true
             } catch (error: Throwable) {
-                logUniAppShaderError("Errore durante il rendering dello shader AGSL", error)
+                logUniAppShaderError("Unable to draw hero card AGSL shader", error)
                 false
             }
         } ?: false

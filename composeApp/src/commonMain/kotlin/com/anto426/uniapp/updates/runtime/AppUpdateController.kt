@@ -1,5 +1,8 @@
 package com.anto426.uniapp.updates.runtime
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import com.anto426.uniapp.updates.data.AppUpdateSource
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
@@ -42,7 +45,7 @@ internal class AppUpdateController(
             if (previous.isBusy && !restoringInstall) return
             if (!restoringInstall) mutableState.value = previous.copy(phase = AppUpdatePhase.Checking, message = null)
             val info = source.load(previous.installedBuild)
-                ?: error("Informazioni di aggiornamento non disponibili per questo canale e piattaforma.")
+                ?: error(getString(Res.string.msg_informazioni_di_aggiornamento_non_disponibili_per_questo_canale))
             // Numeric build codes are authoritative when both ends supply them.
             val installedCode = previous.installedBuild.versionCode
             val latestCode = info.latestVersionCode
@@ -61,7 +64,7 @@ internal class AppUpdateController(
         } catch (error: Throwable) {
             mutableState.value = previous.copy(
                 phase = if (previous.updateInfo?.isUpdateAvailable == true) AppUpdatePhase.Available else AppUpdatePhase.Failed,
-                message = error.message ?: "Impossibile controllare gli aggiornamenti.",
+                message = error.message ?: getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti),
             )
         } finally {
             operationLock.unlock()
@@ -73,7 +76,7 @@ internal class AppUpdateController(
         val current = mutableState.value
         try {
             if (!current.canStartUpdate) {
-                if (!current.isBusy) mutableState.value = current.copy(message = "Nessun aggiornamento installabile disponibile.")
+                if (!current.isBusy) mutableState.value = current.copy(message = getString(Res.string.msg_nessun_aggiornamento_installabile_disponibile))
                 return false
             }
             mutableState.value = current.copy(phase = AppUpdatePhase.Downloading, message = null,
@@ -102,7 +105,7 @@ internal class AppUpdateController(
             throw error
         } catch (error: Throwable) {
             mutableState.update { it.copy(phase = AppUpdatePhase.Available,
-                message = error.message ?: "Impossibile avviare l’aggiornamento.") }
+                message = error.message ?: getString(Res.string.msg_impossibile_avviare_laggiornamento)) }
             return false
         } finally {
             operationLock.unlock()

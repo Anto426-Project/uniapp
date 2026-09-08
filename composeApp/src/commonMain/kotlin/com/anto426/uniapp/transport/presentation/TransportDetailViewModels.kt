@@ -1,5 +1,8 @@
 package com.anto426.uniapp.transport.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -50,7 +53,7 @@ class ReservationDetailViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = ReservationDetailUiState(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare la prenotazione."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_la_prenotazione)),
                 )
             }
         }
@@ -67,7 +70,7 @@ class ReservationDetailViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage("Impossibile annullare la prenotazione.")
+                val message = error.userMessage(getString(Res.string.msg_impossibile_annullare_la_prenotazione))
                 mutableUiState.value = mutableUiState.value.copy(isDeleting = false)
                 toastSink.error(message)
             }
@@ -103,7 +106,7 @@ class TicketDetailViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = TicketDetailUiState(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare la linea."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_la_linea)),
                 )
             }
         }

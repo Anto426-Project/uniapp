@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -39,7 +42,7 @@ class CourseDetailViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = CourseDetailUiState(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare il corso."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_corso)),
                 )
             }
         }

@@ -2,6 +2,9 @@
 
 package com.anto426.uniapp.updates.platform
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.anto426.uniapp.app.info.AppBuildMetadata
@@ -40,7 +43,7 @@ internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnv
             installedBuild = info,
             launcher = PlatformUpdateLauncher { _, _ ->
                 if (storeUrl == null) {
-                    PlatformUpdateLaunchResult.Failed("Configura UNIAPP_APP_STORE_URL per aprire l’App Store.")
+                    PlatformUpdateLaunchResult.Failed(getString(Res.string.msg_configura_uniapp_app_store_url_per_aprire_lapp))
                 } else {
                     val opened = suspendCancellableCoroutine<Boolean> { continuation ->
                         UIApplication.sharedApplication.openURL(NSURL.URLWithString(storeUrl)!!,
@@ -49,7 +52,7 @@ internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnv
                         }
                     }
                     if (opened) PlatformUpdateLaunchResult.OpenedExternalStore
-                    else PlatformUpdateLaunchResult.Failed("Impossibile aprire l’App Store.")
+                    else PlatformUpdateLaunchResult.Failed(getString(Res.string.msg_impossibile_aprire_lapp_store))
                 }
             },
         )

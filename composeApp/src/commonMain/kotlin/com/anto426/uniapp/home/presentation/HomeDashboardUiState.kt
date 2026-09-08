@@ -1,5 +1,8 @@
 package com.anto426.uniapp.home.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.runtime.Immutable
 import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.model.home.QuickActionItem
@@ -27,9 +30,9 @@ data class HomeDashboardUiState(
     val openExamRounds: Int = 0,
     val teachingCount: Int = 0,
     val thesisCount: Int = 0,
-    val nextExamLabel: String = "Nessun appello disponibile",
+    val nextExamLabel: String = "",
     val dueAmount: String = "—",
-    val nextTaxLabel: String = "Nessuna rata in scadenza",
+    val nextTaxLabel: String = "",
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
     val selectedNews: NewsItem? = null,

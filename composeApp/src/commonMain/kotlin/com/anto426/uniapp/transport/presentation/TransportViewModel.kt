@@ -1,5 +1,8 @@
 package com.anto426.uniapp.transport.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -48,7 +51,7 @@ class TransportViewModel(private val dataSource: UniAppDataSource) : ViewModel()
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare le prenotazioni trasporto."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_prenotazioni_trasporto)),
                 )
             }
         }

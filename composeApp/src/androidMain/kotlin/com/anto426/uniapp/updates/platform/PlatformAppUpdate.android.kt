@@ -1,5 +1,8 @@
 package com.anto426.uniapp.updates.platform
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import android.app.PendingIntent
 import android.provider.Settings
 import android.content.Context
@@ -90,7 +93,7 @@ private class AndroidDirectUpdateLauncher(
                             Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                     }
                     return@withContext PlatformUpdateLaunchResult.Failed(
-                        "Abilita l’installazione da UniApp, torna nell’app e premi di nuovo Scarica.")
+                        getString(Res.string.msg_abilita_linstallazione_da_uniapp_torna_nellapp_e_premi))
                 }
                 val apkFile = downloadApk(downloadUrl)
                 try {
@@ -108,7 +111,7 @@ private class AndroidDirectUpdateLauncher(
             } catch (error: Exception) {
                 PlatformUpdateLaunchResult.Failed(
                     error.message?.takeIf(String::isNotBlank)
-                        ?: "Impossibile scaricare o installare l’aggiornamento.",
+                        ?: getString(Res.string.msg_impossibile_scaricare_o_installare_laggiornamento),
                 )
             }
         }
@@ -116,7 +119,7 @@ private class AndroidDirectUpdateLauncher(
     private suspend fun downloadApk(downloadUrl: String): File {
         val sourceUrl = URL(downloadUrl)
         require(sourceUrl.protocol.equals("https", ignoreCase = true)) {
-            "Il download dell’aggiornamento deve usare HTTPS."
+            getString(Res.string.msg_il_download_dellaggiornamento_deve_usare_https)
         }
 
         val updateDirectory = File(context.cacheDir, "app-updates").apply { mkdirs() }
@@ -132,11 +135,11 @@ private class AndroidDirectUpdateLauncher(
             val status = connection.responseCode
             require(status in 200..299) { "Download aggiornamento non riuscito (HTTP $status)." }
             require(connection.url.protocol.equals("https", ignoreCase = true)) {
-                "Il server ha reindirizzato il download verso una connessione non sicura."
+                getString(Res.string.msg_il_server_ha_reindirizzato_il_download_verso_una)
             }
             val declaredLength = connection.contentLengthLong
             require(declaredLength <= MAX_APK_BYTES || declaredLength < 0L) {
-                "Il pacchetto di aggiornamento supera il limite consentito."
+                getString(Res.string.msg_il_pacchetto_di_aggiornamento_supera_il_limite_consentito)
             }
 
             connection.inputStream.use { input ->
@@ -150,7 +153,7 @@ private class AndroidDirectUpdateLauncher(
                         if (count < 0) break
                         total += count
                         require(total <= MAX_APK_BYTES) {
-                            "Il pacchetto di aggiornamento supera il limite consentito."
+                            getString(Res.string.msg_il_pacchetto_di_aggiornamento_supera_il_limite_consentito)
                         }
                         output.write(buffer, 0, count)
                         if (total - lastReported >= 256 * 1024) {
@@ -160,7 +163,7 @@ private class AndroidDirectUpdateLauncher(
                     }
                     require(declaredLength < 0 || total == declaredLength) { "Download incompleto. Riprova." }
                     UpdateInstallStatus.downloaded(total, declaredLength.takeIf { it > 0 })
-                    require(total > 0L) { "Il pacchetto di aggiornamento è vuoto." }
+                    require(total > 0L) { getString(Res.string.msg_il_pacchetto_di_aggiornamento_e_vuoto) }
                 }
             }
             return destination
@@ -176,7 +179,7 @@ private class AndroidDirectUpdateLauncher(
         var url = initial
         repeat(6) { attempt ->
             currentCoroutineContext().ensureActive()
-            require(url.protocol.equals("https", true)) { "Il download deve usare HTTPS anche dopo i reindirizzamenti." }
+            require(url.protocol.equals("https", true)) { getString(Res.string.msg_il_download_deve_usare_https_anche_dopo_i) }
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 instanceFollowRedirects = false
                 connectTimeout = CONNECT_TIMEOUT_MILLIS
@@ -186,7 +189,7 @@ private class AndroidDirectUpdateLauncher(
             }
             try {
                 if (connection.responseCode !in listOf(301, 302, 303, 307, 308)) return connection
-                require(attempt < 5) { "Troppi reindirizzamenti durante il download." }
+                require(attempt < 5) { getString(Res.string.msg_troppi_reindirizzamenti_durante_il_download) }
                 val location = connection.getHeaderField("Location") ?: error("Reindirizzamento senza destinazione.")
                 url = URL(url, location)
             } catch (error: Throwable) {
@@ -195,36 +198,36 @@ private class AndroidDirectUpdateLauncher(
             }
             connection.disconnect()
         }
-        error("Download non disponibile.")
+        error(getString(Res.string.msg_download_non_disponibile))
     }
 
-    private fun validateApk(
+    private suspend fun validateApk(
         apkFile: File,
         expectedVersionCode: Int?,
     ) {
         val packageManager = context.packageManager
         val candidate = packageManager.archivePackageInfo(apkFile)
-            ?: error("Il file scaricato non è un APK Android valido.")
+            ?: error(getString(Res.string.msg_il_file_scaricato_non_e_un_apk_android))
         require(candidate.packageName == context.packageName) {
-            "Il pacchetto scaricato non appartiene a UniApp."
+            getString(Res.string.msg_il_pacchetto_scaricato_non_appartiene_a_uniapp)
         }
 
         val installed = packageManager.installedPackageInfo(context.packageName, includeSigningInfo = true)
         val candidateCode = candidate.compatVersionCode()
-            ?: error("L’APK non dichiara un versionCode valido.")
+            ?: error(getString(Res.string.msg_lapk_non_dichiara_un_versioncode_valido))
         val installedCode = installed.compatVersionCode() ?: 0
         require(candidateCode > installedCode) {
-            "L’APK scaricato non è più recente della versione installata."
+            getString(Res.string.msg_lapk_scaricato_non_e_piu_recente_della_versione)
         }
         require(expectedVersionCode == null || candidateCode == expectedVersionCode) {
-            "La versione dell’APK non corrisponde al manifest di aggiornamento."
+            getString(Res.string.msg_la_versione_dellapk_non_corrisponde_al_manifest_di)
         }
         require(installed.hasSignerInCommonWith(candidate)) {
-            "La firma dell’APK non corrisponde alla firma di UniApp."
+            getString(Res.string.msg_la_firma_dellapk_non_corrisponde_alla_firma_di)
         }
     }
 
-    private fun enqueueInstall(
+    private suspend fun enqueueInstall(
         apkFile: File,
         sourceUrl: String,
     ) {
@@ -271,7 +274,7 @@ private class AndroidDirectUpdateLauncher(
             }
         } catch (error: Throwable) {
             runCatching { installer.abandonSession(sessionId) }
-            UpdateInstallStatus.failed(context, error.message ?: "Installazione non riuscita.")
+            UpdateInstallStatus.failed(context, error.message ?: getString(Res.string.msg_installazione_non_riuscita))
             throw error
         }
     }

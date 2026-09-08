@@ -1,5 +1,8 @@
 package com.anto426.uniapp.settings.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.local.LocalDataScope
@@ -65,7 +68,7 @@ class LanguageViewModel(
                 throw error
             } catch (_: Throwable) {
                 selectLanguageLocally(previous)
-                toastSink.error("Impossibile salvare la lingua.")
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_lingua))
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.anto426.uniapp.navigation.ui
 
+
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -363,7 +365,7 @@ internal fun AppRouteContent(
                 accountUiState = accountUiState,
                 installedVersion = updateUiState.installedVersion,
                 updateSubtitle = if (updateUiState.bannerState == com.anto426.uniapp.model.updates.UpdateState.AVAILABLE) {
-                    updateUiState.statusText ?: "Aggiornamento disponibile"
+                    updateUiState.statusText?.let { stringResource(it) } ?: stringResource(Res.string.msg_aggiornamento_disponibile)
                 } else {
                     "Versione ${updateUiState.installedVersion.ifBlank { "2.0" }}"
                 },

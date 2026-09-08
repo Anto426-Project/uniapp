@@ -1,5 +1,8 @@
 package com.anto426.uniapp.settings.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,7 +60,7 @@ class DeviceSessionsActionViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.update { it.copy(isConfirmationVisible = false, isDisconnecting = false) }
-                toastSink.error(error.userMessage("Impossibile chiudere le altre sessioni."))
+                toastSink.error(error.userMessage(getString(Res.string.msg_impossibile_chiudere_le_altre_sessioni)))
             }
         }
     }

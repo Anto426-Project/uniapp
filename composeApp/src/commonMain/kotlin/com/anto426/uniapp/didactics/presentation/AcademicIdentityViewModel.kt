@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
@@ -74,8 +77,8 @@ class AcademicIdentityViewModel(
                 mutableUiState.value = AcademicIdentityUiState(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
                     errorMessage = error.userMessage(
-                        if (account?.isProfessor == true) "Impossibile caricare l’identità docente."
-                        else "Impossibile caricare il badge studente.",
+                        if (account?.isProfessor == true) getString(Res.string.msg_impossibile_caricare_lidentita_docente)
+                        else getString(Res.string.msg_impossibile_caricare_il_badge_studente),
                     ),
                 )
             }

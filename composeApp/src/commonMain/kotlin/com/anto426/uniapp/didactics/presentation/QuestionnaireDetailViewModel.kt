@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -77,7 +80,7 @@ class QuestionnaireDetailViewModel(
                 mutableUiState.update {
                     it.copy(
                         loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                        errorMessage = error.userMessage("Impossibile caricare il questionario."),
+                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_questionario)),
                     )
                 }
             }
@@ -127,11 +130,11 @@ class QuestionnaireDetailViewModel(
                 val studentId =
                     listOfNotNull(details.stuId, details.matId, details.matricola)
                         .firstOrNull { it.isNotBlank() }
-                        ?: error("Identificativo studente non disponibile.")
+                        ?: error(getString(Res.string.msg_identificativo_studente_non_disponibile))
                 val userCompId = survey.userCompId?.takeIf(String::isNotBlank)
-                    ?: error("Identificativo compilazione non disponibile.")
+                    ?: error(getString(Res.string.msg_identificativo_compilazione_non_disponibile))
                 val questCompId = survey.questCompId?.takeIf(String::isNotBlank)
-                    ?: error("Identificativo questionario non disponibile.")
+                    ?: error(getString(Res.string.msg_identificativo_questionario_non_disponibile))
                 val request =
                     SurveySaveRequest(
                         studentId = studentId,
@@ -164,7 +167,7 @@ class QuestionnaireDetailViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage("Impossibile salvare il questionario.")
+                val message = error.userMessage(getString(Res.string.msg_impossibile_salvare_il_questionario))
                 mutableUiState.update { it.copy(isSubmitting = false) }
                 toastSink.error(message)
             }

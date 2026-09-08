@@ -1,5 +1,8 @@
 package com.anto426.uniapp.didactics.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniAppDataSource
@@ -90,7 +93,7 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                     gradeMax = gradeCeiling.coerceAtLeast(gradeFloor + 1f),
                     cfuMax = (highestCfu * 1.2f).coerceAtLeast(1f),
                     highestGradeLabel = highestGrade?.let { if (it == 30) "30" else it.toString() } ?: "—",
-                    highestGradeCourses = highestCourses.ifBlank { "Nessun esame" },
+                    highestGradeCourses = highestCourses.ifBlank { getString(Res.string.msg_nessun_esame) },
                     recentTrend = recentTrend,
                     totalCfu = cfuSum,
                     averageCfuPerExam = if (graded.isEmpty()) 0f else (cfuSum.toFloat() / graded.size).rounded(1),
@@ -101,7 +104,7 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage("Impossibile caricare le statistiche."),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_statistiche)),
                 )
             }
         }

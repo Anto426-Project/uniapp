@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.didactics.components
 
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,7 +75,7 @@ fun CourseProgramTab(course: StudyCourse) {
 
                 Text(
                     text = course.description.ifBlank {
-                        "Il corso approfondisce i principi cardine, le architetture di riferimento e le metodologie applicative standard richieste dal piano di studio."
+                        stringResource(Res.string.msg_il_corso_approfondisce_i_principi_cardine_le_architetture)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.onSurface.copy(alpha = 0.85f),

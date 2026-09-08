@@ -311,7 +311,7 @@ fun HomeQuickIndicatorsRow(
                     Text(
                         text = if (uiState.isProfessor) {
                             stringResource(Res.string.ui_professor_rounds_filtered)
-                        } else uiState.nextExamLabel,
+                        } else uiState.nextExamLabel.ifBlank { stringResource(Res.string.msg_nessun_appello_disponibile) },
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -363,7 +363,7 @@ fun HomeQuickIndicatorsRow(
                     Text(
                         text = if (uiState.isProfessor) {
                             stringResource(Res.string.ui_professor_theses_subtitle)
-                        } else uiState.nextTaxLabel,
+                        } else uiState.nextTaxLabel.ifBlank { stringResource(Res.string.ui_home_no_due_taxes) },
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 1,

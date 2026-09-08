@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.didactics.components
 
+
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -664,7 +666,7 @@ fun GraduationTargetTab(
                     feasibility == TargetFeasibility.EASY -> "Traguardo ampiamente alla portata: ti basta mantenere una media di ${uiState.requiredRemainingAverage.toFixedTwoDecimals()} sui restanti $remainingCfu CFU (uguale o inferiore alla tua media attuale di ${uiState.currentAverage.toFixedTwoDecimals()})."
                     feasibility == TargetFeasibility.FEASIBLE -> "Obiettivo raggiungibile con impegno: ti occorre una media del ${uiState.requiredRemainingAverage.toFixedTwoDecimals()} nei restanti $remainingCfu CFU."
                     feasibility == TargetFeasibility.HARD -> "Molto impegnativo: serve una media quasi perfetta (${uiState.requiredRemainingAverage.toFixedTwoDecimals()}). Puoi alzare la stima dei punti tesi se previsto."
-                    else -> "Obiettivo non matematicamente possibile con i parametri correnti (media richiesta > 30). Valuta di incrementare la stima dei punti tesi o bonus carriera."
+                    else -> stringResource(Res.string.msg_obiettivo_non_matematicamente_possibile_con_i_parametri_correnti)
                 }
 
                 Row(

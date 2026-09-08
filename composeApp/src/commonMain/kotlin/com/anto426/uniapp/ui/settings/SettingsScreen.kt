@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.settings
 
+
+
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 
 import androidx.compose.foundation.layout.Arrangement
@@ -114,7 +116,7 @@ fun SettingsScreen(
                 ) {
                     UniAccountAvatar(
                         imageData = accountUiState.profileImages[account.accountId],
-                        initials = if (initials.isNotBlank()) initials else "UN",
+                        initials = if (initials.isNotBlank()) initials else stringResource(Res.string.msg_un),
                         size = 50.dp,
                         contentDescription = stringResource(Res.string.ui_profile_picture),
                     )
@@ -240,15 +242,15 @@ fun SettingsScreen(
         // 4. Partecipa al progetto
         LiquidPreferenceGroup(title = "Partecipa al progetto") {
             LiquidPreferenceItem(
-                title = "Diventa un collaboratore",
-                subtitle = "Invia una Pull Request con correzioni, traduzioni o nuove funzioni su GitHub.",
+                title = stringResource(Res.string.msg_diventa_un_collaboratore),
+                subtitle = stringResource(Res.string.msg_invia_una_pull_request_con_correzioni_traduzioni_o),
                 icon = LiquidIcons.Star,
                 onClick = onOpenContribute,
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
             LiquidPreferenceItem(
                 title = "Segnala idee o anomalie",
-                subtitle = "Aiuta a migliorare l'esperienza utente aprendo una segnalazione su GitHub.",
+                subtitle = stringResource(Res.string.msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una),
                 icon = LiquidIcons.Feedback,
                 onClick = onOpenReportBug,
             )
@@ -396,7 +398,7 @@ fun SettingsScreen(
                                 ) {
                                     UniAccountAvatar(
                                         imageData = accountUiState.profileImages[account.accountId],
-                                        initials = if (initials.isNotBlank()) initials else "UN",
+                                        initials = if (initials.isNotBlank()) initials else stringResource(Res.string.msg_un),
                                         size = 44.dp,
                                         contentDescription = stringResource(Res.string.ui_profile_picture),
                                     )

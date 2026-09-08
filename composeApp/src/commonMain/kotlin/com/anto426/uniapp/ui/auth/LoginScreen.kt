@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.auth
 
+
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -350,7 +352,7 @@ fun LoginScreen(
                         ) {
                             UniAccountAvatar(
                                 imageData = accountUiState.profileImages[account.accountId],
-                                initials = if (initials.isNotBlank()) initials else "UN",
+                                initials = if (initials.isNotBlank()) initials else stringResource(Res.string.msg_un),
                                 size = 44.dp,
                                 contentDescription = stringResource(Res.string.ui_profile_picture),
                             )

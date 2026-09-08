@@ -1,5 +1,8 @@
 package com.anto426.uniapp.session.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.session.AppSessionController
@@ -48,12 +51,12 @@ class AppSessionViewModel(
                 try {
                     if (authenticator.availability() != BiometricAvailability.Available) {
                         mutableUnlockUiState.value =
-                            AppUnlockUiState(errorMessage = "Autenticazione del dispositivo non disponibile.")
+                            AppUnlockUiState(errorMessage = getString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
                         return@launch
                     }
                     when (
                         val result = authenticator.authenticate(
-                            "Conferma la tua identità per aprire l’account UniApp.",
+                            getString(Res.string.msg_conferma_la_tua_identita_per_aprire_laccount_uniapp),
                         )
                     ) {
                         BiometricAuthenticationResult.Authenticated -> {
@@ -62,19 +65,19 @@ class AppSessionViewModel(
                         }
 
                         BiometricAuthenticationResult.Cancelled ->
-                            mutableUnlockUiState.value = AppUnlockUiState(errorMessage = "Accesso annullato.")
+                            mutableUnlockUiState.value = AppUnlockUiState(errorMessage = getString(Res.string.msg_accesso_annullato))
 
                         is BiometricAuthenticationResult.Failed ->
                             mutableUnlockUiState.value =
                                 AppUnlockUiState(
-                                    errorMessage = result.message.ifBlank { "Autenticazione non riuscita." },
+                                    errorMessage = result.message.ifBlank { getString(Res.string.msg_autenticazione_non_riuscita) },
                                 )
                     }
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Throwable) {
                     mutableUnlockUiState.value =
-                        AppUnlockUiState(errorMessage = error.message ?: "Impossibile aprire l’account.")
+                        AppUnlockUiState(errorMessage = error.message ?: getString(Res.string.msg_impossibile_aprire_laccount))
                 } finally {
                     mutableUnlockUiState.update { it.copy(isAuthenticating = false) }
                 }

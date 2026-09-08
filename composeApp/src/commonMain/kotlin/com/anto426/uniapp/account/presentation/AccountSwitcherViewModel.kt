@@ -1,5 +1,8 @@
 package com.anto426.uniapp.account.presentation
 
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.session.AppSessionController
@@ -73,7 +76,7 @@ class AccountSwitcherViewModel(
                 } catch (error: Throwable) {
                     mutableUiState.value.copy(
                         isLoading = false,
-                        errorMessage = error.message ?: "Impossibile caricare gli account",
+                        errorMessage = error.message ?: getString(Res.string.msg_impossibile_caricare_gli_account),
                     )
                 }
         }
@@ -116,7 +119,7 @@ class AccountSwitcherViewModel(
 
                     else -> {
                         mutableUiState.update { it.copy(activatingAccountId = null) }
-                        toastSink.error("Impossibile attivare l’account.")
+                        toastSink.error(getString(Res.string.msg_impossibile_attivare_laccount))
                     }
                 }
             } catch (error: CancellationException) {
@@ -125,10 +128,10 @@ class AccountSwitcherViewModel(
                 mutableUiState.update {
                     it.copy(
                         activatingAccountId = null,
-                        errorMessage = error.message ?: "Impossibile attivare l’account",
+                        errorMessage = error.message ?: getString(Res.string.msg_impossibile_attivare_laccount_2),
                     )
                 }
-                toastSink.error(error.message ?: "Impossibile attivare l’account.")
+                toastSink.error(error.message ?: getString(Res.string.msg_impossibile_attivare_laccount))
             }
         }
     }
@@ -163,7 +166,7 @@ class AccountSwitcherViewModel(
 
                     else -> {
                         mutableUiState.update { it.copy(activatingProfileId = null) }
-                        toastSink.error("Impossibile attivare il profilo.")
+                        toastSink.error(getString(Res.string.msg_impossibile_attivare_il_profilo))
                     }
                 }
             } catch (error: CancellationException) {
@@ -172,18 +175,20 @@ class AccountSwitcherViewModel(
                 mutableUiState.update {
                     it.copy(
                         activatingProfileId = null,
-                        errorMessage = error.message ?: "Impossibile attivare il profilo",
+                        errorMessage = error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo_2),
                     )
                 }
-                toastSink.error(error.message ?: "Impossibile attivare il profilo.")
+                toastSink.error(error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo))
             }
         }
     }
 
     fun addAccount() {
         if (mutableUiState.value.isRemovingAccount) return
-        toastSink.info("Accedi con il nuovo account.")
-        viewModelScope.launch { sessionController.signOut() }
+        viewModelScope.launch {
+            toastSink.info(getString(Res.string.msg_accedi_con_il_nuovo_account))
+            sessionController.signOut()
+        }
     }
 
     fun requestAccountRemoval(accountId: String) {
@@ -213,12 +218,12 @@ class AccountSwitcherViewModel(
                             pendingRemovalAccountId = null,
                         )
                     }
-                    toastSink.success("Account rimosso dal dispositivo.")
+                    toastSink.success(getString(Res.string.msg_account_rimosso_dal_dispositivo))
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error("Impossibile completare la rimozione dell’account.")
+                toastSink.error(getString(Res.string.msg_impossibile_completare_la_rimozione_dellaccount))
             } finally {
                 mutableUiState.update { it.copy(isRemovingAccount = false) }
             }

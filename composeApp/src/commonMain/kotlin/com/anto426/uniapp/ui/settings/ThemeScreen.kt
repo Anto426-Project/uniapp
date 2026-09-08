@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.settings
 
+
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -231,7 +233,7 @@ fun ThemeScreen(
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Text(
-                                        text = "Attivo",
+                                        text = stringResource(Res.string.msg_attivo),
                                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                         color = MaterialTheme.colorScheme.primary
                                     )

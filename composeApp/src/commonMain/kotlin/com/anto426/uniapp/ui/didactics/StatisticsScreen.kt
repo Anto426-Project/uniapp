@@ -303,7 +303,7 @@ fun StatisticsScreen(
                                         color = colorScheme.primary,
                                     )
                                     Text(
-                                        text = uiState.highestGradeCourses,
+                                        text = uiState.highestGradeCourses.ifBlank { stringResource(Res.string.msg_nessun_esame) },
                                         fontSize = 11.sp,
                                         color = colorScheme.onSurfaceVariant,
                                         maxLines = 2,
