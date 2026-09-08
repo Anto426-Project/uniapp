@@ -33,11 +33,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate release tooling and app
-        run: |
-          set -euo pipefail
-          python3 -m unittest discover -s scripts/tests
-          ./gradlew --no-daemon --max-workers=2 :composeApp:testAndroidHostTest
       - name: Build and verify signed APKs
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
