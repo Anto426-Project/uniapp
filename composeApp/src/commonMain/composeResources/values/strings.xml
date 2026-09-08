@@ -1240,4 +1240,6 @@
     <string name="ui_thesis_title">Titolo della tesi</string>
     <string name="ui_home_no_due_taxes">Nessuna rata in scadenza</string>
     <string name="ui_language_italian_default">Italiano (predefinito)</string>
+    <string name="ui_home_news_empty_title">Nessuna notizia disponibile</string>
+    <string name="ui_home_news_empty_description">Le notizie verranno mostrate quando saranno disponibili dai servizi universitari.</string>
 </resources>

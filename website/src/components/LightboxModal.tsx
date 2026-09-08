@@ -22,9 +22,9 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl transition-opacity animate-in fade-in duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-4xl max-h-[90vh] flex flex-col items-center justify-center p-2 sm:p-4 outline-none focus:outline-none animate-in zoom-in-95 duration-200">
-          <div className="relative w-full max-h-[85vh] flex flex-col items-center justify-center bg-slate-950/85 border border-white/15 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-2xl backdrop-blur-2xl overflow-hidden">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 transition-opacity motion-safe:animate-in fade-in duration-200" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-4xl max-h-[90dvh] flex flex-col items-center justify-center p-2 sm:p-4 outline-none focus:outline-none motion-safe:animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-h-[85dvh] flex flex-col items-center justify-center bg-slate-950/85 border border-white/15 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-2xl overflow-hidden">
             <Dialog.Close
               asChild
               className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
@@ -35,11 +35,11 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
             </Dialog.Close>
 
             {imageUrl && (
-              <div className="relative max-h-[65vh] sm:max-h-[72vh] w-auto flex items-center justify-center overflow-hidden rounded-xl">
+              <div className="relative max-h-[65dvh] sm:max-h-[72dvh] w-auto flex items-center justify-center overflow-hidden rounded-xl">
                 <img
                   src={imageUrl}
                   alt={title}
-                  className="max-h-[65vh] sm:max-h-[72vh] w-auto object-contain rounded-xl shadow-lg"
+                  className="max-h-[65dvh] sm:max-h-[72dvh] w-auto object-contain rounded-xl shadow-lg"
                 />
               </div>
             )}

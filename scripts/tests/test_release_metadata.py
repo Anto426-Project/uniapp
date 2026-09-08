@@ -33,8 +33,10 @@ class ReleaseMetadataTest(unittest.TestCase):
         self.assertNotIn('beta', json.dumps(result))
         self.assertEqual({'ios': {'latestVersionCode': 3}}, result['platforms'])
         self.assertEqual(201, result['latestVersionCode'])
+        self.assertEqual({'arm64-v8a'}, set(result['downloadUrlsByAbi']))
+        self.assertEqual(result['downloadUrl'], result['downloadUrlsByAbi']['arm64-v8a'])
         self.assertIn('/v2.0.1%2B201/', result['downloadUrl'])
-        self.assertEqual(64, len(result['sha256ByAbi']['universal']))
+        self.assertEqual(64, len(result['sha256ByAbi']['arm64-v8a']))
 
     def test_rejects_32_bit_and_all_x86_architectures(self):
         for abi in ('armeabi-v7a', 'x86', 'x86_64'):

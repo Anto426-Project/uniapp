@@ -163,7 +163,8 @@ export default function Aurora(props: AuroraProps) {
       renderer = new Renderer({
         alpha: true,
         premultipliedAlpha: true,
-        antialias: true,
+        antialias: false,
+        dpr: 1,
       });
       gl = renderer.gl;
       gl.clearColor(0, 0, 0, 0);
@@ -204,8 +205,12 @@ export default function Aurora(props: AuroraProps) {
         ctn.appendChild(gl.canvas);
       }
 
+      let previousFrame = 0;
+      let previousStops = colorStops;
       const update = (t: number) => {
         animateId = requestAnimationFrame(update);
+        if (t - previousFrame < 1000 / 30) return;
+        previousFrame = t;
         const { time = t * 0.01, speed = 1.0 } = propsRef.current;
         if (program && renderer) {
           program.uniforms.uTime.value = time * speed * 0.1;
@@ -213,10 +218,13 @@ export default function Aurora(props: AuroraProps) {
           program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
           program.uniforms.uLightMode.value = (propsRef.current.lightMode ?? lightMode) ? 1 : 0;
           const stops = propsRef.current.colorStops ?? colorStops;
-          program.uniforms.uColorStops.value = stops.map((hex: string) => {
-            const c = new Color(hex);
-            return [c.r, c.g, c.b];
-          });
+          if (stops !== previousStops) {
+            program.uniforms.uColorStops.value = stops.map((hex: string) => {
+              const c = new Color(hex);
+              return [c.r, c.g, c.b];
+            });
+            previousStops = stops;
+          }
           renderer.render({ scene: mesh });
         }
       };

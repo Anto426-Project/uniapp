@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.0",
   "minSupportedVersionCode": 200,
   "mandatory": false,
-  "notes": "Aggiornamenti su un unico canale. Revisione dei testi informativi e della gestione delle segnalazioni."
+  "notes": "- Corretto il crash della home quando non sono disponibili notizie.\n- Ripristinati i test Android e i controlli sul sito prima della pubblicazione.\n- Carosello mobile ottimizzato, anteprime più leggere e un solo download ARM64."
 }

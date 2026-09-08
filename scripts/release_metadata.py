@@ -48,23 +48,23 @@ def read_apks(metadata_path: Path) -> dict:
         if not path.is_file() or path.is_symlink():
             raise ValueError(f"Missing regular APK file: {filename}")
         abi_filters = [f for f in element.get("filters", []) if f.get("filterType") == "ABI"]
-        abi = abi_filters[0]["value"] if abi_filters else "universal"
-        if abi != "universal" and abi not in SUPPORTED_ABIS:
+        abi = abi_filters[0]["value"] if abi_filters else "arm64-v8a"
+        if abi not in SUPPORTED_ABIS:
             raise ValueError(f"Unsupported APK architecture: {abi}")
         with zipfile.ZipFile(path) as apk:
             native_abis = {entry.split('/')[1] for entry in apk.namelist()
                            if entry.startswith('lib/') and entry.endswith('.so')}
         if not native_abis or not native_abis <= SUPPORTED_ABIS:
             raise ValueError(f"APK must contain only supported 64-bit libraries: {filename}")
-        if abi != "universal" and native_abis != {abi}:
+        if native_abis != {abi}:
             raise ValueError(f"APK native libraries do not match its ABI metadata: {filename}")
         if abi in files or filename in files.values():
             raise ValueError("Duplicate APK architecture or filename")
         files[abi] = filename
         with path.open("rb") as handle:
             hashes[filename] = hashlib.file_digest(handle, "sha256").hexdigest()
-    if "universal" not in files:
-        raise ValueError("A universal APK is required as the fallback download")
+    if "arm64-v8a" not in files:
+        raise ValueError("An ARM64 APK is required")
     return {"versionName": name, "versionCode": code, "files": files, "sha256": hashes,
             "tag": f"v{name}+{code}"}
 

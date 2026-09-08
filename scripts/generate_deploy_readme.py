@@ -20,7 +20,7 @@ def main() -> None:
     content += ["", "Gli APK e i relativi SHA-256 sono pubblicati nelle GitHub Releases. Su iOS la distribuzione agli utenti avviene tramite App Store.", "",
                 "## Note di rilascio", "", release.get("notes", ""), "", "## Contenuto del repository", "",
                 "- `update.json`: un solo rilascio Android, con versioni, requisiti e download per architettura.",
-                "- `docs/`: sito statico generato dalla stessa revisione del codice compilato.",
+                "- `docs/`: sito statico di distribuzione, aggiornabile anche con correzioni indipendenti dagli APK.",
                 "- `release/`: metadati della build pubblicata.", "",
                 f"[Codice e segnalazioni](https://github.com/{args.source_repo})", ""]
     args.output.write_text("\n".join(content), encoding="utf-8")

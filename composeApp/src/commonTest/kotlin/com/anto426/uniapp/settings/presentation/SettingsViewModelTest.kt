@@ -9,6 +9,7 @@ import com.anto426.uniapp.security.biometric.BiometricAuthenticationResult
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.security.biometric.BiometricAvailability
 import com.anto426.uniapp.security.password.AppPasswordVerifier
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -21,7 +22,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-class SettingsViewModelTest {
+class SettingsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun biometricPreferenceChangesOnlyAfterDeviceAuthentication() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
@@ -127,6 +128,7 @@ class SettingsViewModelTest {
             viewModel.submitBiometricPassword("test-password", "test-password")
             advanceUntilIdle()
             assertFalse(viewModel.uiState.value.biometricEnabled)
+            viewModel.uiState.first { !it.isBiometricAuthenticating }
             assertFalse(viewModel.uiState.value.isBiometricAuthenticating)
             assertFalse(dataStore.contains(LocalDataScope.Account(ACCOUNT_ID), UniAppDataKeys.BiometricUnlock))
         } finally {

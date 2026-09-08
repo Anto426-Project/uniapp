@@ -55,7 +55,7 @@ cd "${WEBSITE_DIR}"
 
 if [[ ! -d "node_modules" ]]; then
   echo "--> Installazione dipendenze..."
-  npm install
+  npm ci
 fi
 
 # Sincronizza il manifest più recente se esiste
@@ -67,6 +67,7 @@ fi
 echo "--> Generazione export statico (NEXT_PUBLIC_BASE_PATH='${BASE_PATH}')..."
 rm -rf .next out
 NEXT_PUBLIC_BASE_PATH="${BASE_PATH}" npm run build
+NEXT_PUBLIC_BASE_PATH="${BASE_PATH}" npm run check:export
 
 echo "✔ Build statico completato con successo in ${WEBSITE_DIR}/out"
 

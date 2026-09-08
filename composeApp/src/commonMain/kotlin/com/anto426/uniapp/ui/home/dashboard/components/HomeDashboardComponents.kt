@@ -414,9 +414,8 @@ fun HomeNewsSection(
     onNextNews: () -> Unit,
     onPreviousNews: () -> Unit,
 ) {
-    val effectiveNews = if (homeNews.isNotEmpty()) homeNews else UniAppInitialData.fallbackNews
-    val safeActiveIndex = activeNewsIndex.coerceIn(0, effectiveNews.lastIndex.coerceAtLeast(0))
-    val currentNews = effectiveNews[safeActiveIndex]
+    val safeActiveIndex = activeNewsIndex.coerceIn(0, homeNews.lastIndex.coerceAtLeast(0))
+    val currentNews = homeNews.getOrNull(safeActiveIndex)
 
     Column(
         modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
@@ -424,7 +423,11 @@ fun HomeNewsSection(
     ) {
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_home_news_eyebrow),
-            subtitle = stringResource(Res.string.ui_home_news_page_notice, safeActiveIndex + 1, effectiveNews.size),
+            subtitle = if (currentNews != null) {
+                stringResource(Res.string.ui_home_news_page_notice, safeActiveIndex + 1, homeNews.size)
+            } else {
+                stringResource(Res.string.ui_home_news_empty_description)
+            },
             trailingContent = {
                 LiquidButton(
                     text = stringResource(Res.string.ui_home_news_all),
@@ -435,7 +438,12 @@ fun HomeNewsSection(
             },
         )
 
-        LiquidAnimatedSwitcher(
+        if (currentNews == null) {
+            com.anto426.liquidmonet.components.display.LiquidEmptyState(
+                title = stringResource(Res.string.ui_home_news_empty_title),
+                description = stringResource(Res.string.ui_home_news_empty_description),
+            )
+        } else LiquidAnimatedSwitcher(
             targetState = safeActiveIndex,
             transition = LiquidSwitcherTransition.LiquidMorph,
             onSwipeForward = onNextNews,
@@ -443,7 +451,7 @@ fun HomeNewsSection(
             modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
             label = "homeNewsSwitcher",
         ) { index ->
-            val newsItem = effectiveNews.getOrNull(index) ?: currentNews
+            val newsItem = homeNews.getOrNull(index) ?: currentNews
             UniNewsCard(
                 news = newsItem,
                 onClick = { onShowNews(newsItem) },

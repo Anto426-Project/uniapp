@@ -4,16 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { ScreenshotItem } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
 import { LightboxModal } from './LightboxModal';
-// @ts-ignore
-import DepthCarousel from './DepthCarousel';
-
-interface DepthCarouselItem {
-  image: string;
-  alt: string;
-  title?: string;
-  description?: string;
-  raw?: ScreenshotItem;
-}
+import { ScreenshotCarousel, CarouselScreenshot } from './ScreenshotCarousel';
 
 interface ScreenshotsGalleryProps {
   screenshots: ScreenshotItem[];
@@ -23,13 +14,10 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  const carouselItems: DepthCarouselItem[] = useMemo(() => {
+  const carouselItems: CarouselScreenshot[] = useMemo(() => {
     return screenshots.map((item) => ({
-      image: withBasePath(`/assets/screenshots/${item.file}`),
+      image: withBasePath(`/assets/screenshots/previews/${item.file.replace(/\.[^.]+$/, '.webp')}`),
       alt: item.title || '',
-      title: item.title,
-      description: item.description,
-      raw: item,
     }));
   }, [screenshots]);
 
@@ -41,40 +29,18 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
           <span className="section-tag">Interfaccia Utente</span>
           <h2 className="section-title">Anteprima Schermate</h2>
           <p className="section-description max-w-2xl mx-auto">
-            Esplora l'interfaccia Material 3 Expressive e Liquid Monet di UniApp nel carosello 3D interattivo. Clicca sulla schermata per ingrandirla a tutto schermo.
+            Scorri le schermate di UniApp e tocca un’immagine per ingrandirla.
           </p>
         </div>
 
-        {/* 3D Depth Carousel Container */}
-        <div
-          className="relative w-full max-w-5xl mx-auto flex items-center justify-center"
-          style={{ height: '560px', position: 'relative', margin: '0 auto' }}
-        >
-          <DepthCarousel
-            items={carouselItems}
-            depth={180}
-            spread={100}
-            tilt={22}
-            tiltDirection="center"
-            perspective={1400}
-            visibleCards={2.5}
-            falloff={0.2}
-            blur={4}
-            autoplay={true}
-            autoplayDelay={3200}
-            loop={true}
-            cardWidth={260}
-            cardHeight={480}
-            radius={22}
-            tint="#05060a"
-            duration={700}
-            ease="power3.out"
-            showControls={false}
-            showIndicators={false}
-            onChange={(idx: number) => setCurrentIndex(idx)}
-            onItemClick={() => setIsLightboxOpen(true)}
-          />
-        </div>
+        <ScreenshotCarousel
+          items={carouselItems}
+          paused={isLightboxOpen}
+          onOpen={(index) => {
+            setCurrentIndex(index);
+            setIsLightboxOpen(true);
+          }}
+        />
       </div>
 
       <LightboxModal

@@ -32,7 +32,7 @@ def generate(metadata: Path, config: dict, existing: dict, repo: str, commit: st
     urls = {abi: asset_url(repo, build["tag"], name) for abi, name in build["files"].items()}
     result = dict(config)
     result.update(latestVersion=build["versionName"], latestVersionCode=code,
-                  downloadUrl=urls["universal"], downloadUrlsByAbi=urls,
+                  downloadUrl=urls["arm64-v8a"], downloadUrlsByAbi=urls,
                   sha256ByAbi={abi: build["sha256"][name] for abi, name in build["files"].items()},
                   publishedAt=published_at or datetime.now(timezone.utc).isoformat(), buildCommit=commit)
     # iOS has an independent version/build sequence and App Store destination.

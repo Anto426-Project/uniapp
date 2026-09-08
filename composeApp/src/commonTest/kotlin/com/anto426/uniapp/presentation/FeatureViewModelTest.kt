@@ -41,6 +41,7 @@ import com.anto426.unisdk.backend.model.TaxInstallmentData
 import com.anto426.unisdk.backend.model.TaxesData
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportData
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -54,7 +55,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-class FeatureViewModelTest {
+class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun taxesArePartitionedFromRepositoryData() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
@@ -414,6 +415,7 @@ class FeatureViewModelTest {
         val badge = AcademicIdentityViewModel(source)
         advanceUntilIdle()
 
+        home.uiState.first { it.profilePhotoData != null || it.loadState == FeatureLoadState.Error }
         assertContentEquals(expectedBytes, home.uiState.value.profilePhotoData)
         assertContentEquals(expectedBytes, badge.uiState.value.photoData)
     }
@@ -544,7 +546,9 @@ class FeatureViewModelTest {
             AcademicItemDetailViewModel(AcademicSection.ExamRounds, exam.academicItemKey(), source)
         advanceUntilIdle()
 
+        thesisDetail.uiState.first { it.loadState != FeatureLoadState.Loading }
         assertEquals(thesis, thesisDetail.uiState.value.item)
+        examDetail.uiState.first { it.loadState != FeatureLoadState.Loading }
         assertEquals(exam, examDetail.uiState.value.item)
     }
 

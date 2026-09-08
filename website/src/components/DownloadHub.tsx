@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import {
   Download,
-  Layers,
-  Smartphone,
   Sparkles,
   Copy,
   Check,
@@ -14,13 +12,8 @@ import {
   FileCode,
   ShieldCheck,
 } from 'lucide-react';
-import { UpdateManifest, ReleaseData } from '@/data/types';
+import { useRelease } from './SiteShell';
 import { withBasePath } from '@/utils/basePath';
-
-interface DownloadHubProps {
-  manifest: UpdateManifest;
-  theme?: string;
-}
 
 function formatDate(dateStr?: string) {
   if (!dateStr) return 'Non specificata';
@@ -45,7 +38,7 @@ function parseChangelog(notes?: string): ChangelogItem[] {
       {
         category: 'Info',
         badgeClass: 'badge-info',
-        text: 'Nessuna nota di rilascio specificata per questo canale.',
+        text: 'Nessuna nota di rilascio specificata per questa versione.',
       },
     ];
   }
@@ -106,10 +99,10 @@ function parseChangelog(notes?: string): ChangelogItem[] {
       ];
 }
 
-export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
+export const DownloadHub = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const releaseData: ReleaseData = manifest;
+  const releaseData = useRelease();
 
   const version = releaseData?.latestVersion
     ? releaseData.latestVersion.startsWith('v')
@@ -122,18 +115,14 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
 
   const copyToClipboard = (url: string, id: string) => {
     if (!url || url === '#') return;
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }).catch(() => setCopiedId(null));
   };
 
   const arm64Url =
     releaseData?.downloadUrlsByAbi?.['arm64-v8a'] ||
-    releaseData?.downloadUrl ||
-    '#';
-
-  const universalUrl =
-    releaseData?.downloadUrlsByAbi?.['universal'] ||
     releaseData?.downloadUrl ||
     '#';
 
@@ -149,8 +138,8 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
       <div className="container">
         {/* Intestazione Sezione */}
         <div className="section-header text-center mb-12">
-          <span className="section-tag">Distribuzione Ufficiale</span>
-          <h2 className="section-title">Pacchetti APK &amp; Release</h2>
+          <span className="section-tag">Download UniApp</span>
+          <h2 className="section-title">APK Android e note di rilascio</h2>
           <p className="section-description max-w-2xl mx-auto">
             Le nuove versioni richiedono Android 10 o successivo e un sistema a 64 bit. Sono supportati solo dispositivi ARM64; ARMv7, x86 e x86_64 sono esclusi.
           </p>
@@ -196,6 +185,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                 <button
                   type="button"
                   onClick={() => copyToClipboard(arm64Url, 'arm64')}
+                  disabled={arm64Url === '#'}
                   className="btn-hero-copy"
                   title="Copia link download ARM64"
                 >
@@ -205,49 +195,6 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                     <Copy className="w-4 h-4" />
                   )}
                 </button>
-              </div>
-            </div>
-
-            {/* Alternative Architectures (Compact, No Card-in-Card) */}
-            <div className="alt-arch-section">
-              <span className="alt-arch-label">Architetture alternative</span>
-
-              <div className="alt-arch-list">
-                {/* Universale */}
-                <div className="alt-arch-row">
-                  <div className="alt-arch-info">
-                    <Layers className="w-4 h-4 alt-arch-icon" />
-                    <div>
-                      <span className="alt-arch-name">Universale</span>
-                      <span className="alt-arch-note">Solo ARM64 • Sistema a 64 bit</span>
-                    </div>
-                  </div>
-                  <div className="alt-arch-actions">
-                    <a
-                      href={universalUrl === '#' ? undefined : universalUrl}
-                      aria-disabled={universalUrl === '#'}
-                      download
-                      className="btn-alt-download"
-                      title="Scarica APK Universale"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>APK</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(universalUrl, 'universal')}
-                      className="btn-alt-copy"
-                      title="Copia link Universale"
-                    >
-                      {copiedId === 'universal' ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
               </div>
             </div>
 
@@ -316,7 +263,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
             <div className="changelog-deck-footer">
               <div className="verified-build-pill">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Build GitHub Actions Verificata</span>
+                <span>Rilasci pubblicati su GitHub</span>
               </div>
               <a
                 href="https://github.com/Anto426-Project/Uniapp"

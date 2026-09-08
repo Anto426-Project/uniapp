@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      DEPLOY_REPO: Anto426-Project/UniappUpstream
+      DEPLOY_REPO: Anto426-Project/uniapp-upstream
       DEPLOY_BRANCH: main
     steps:
       - name: Resolve and validate source build
@@ -109,13 +109,27 @@ jobs:
             --source-repo "$GITHUB_REPOSITORY" --output incoming/README.md
       - name: Build distribution website
         env:
-          NEXT_PUBLIC_BASE_PATH: /UniappUpstream
+          NEXT_PUBLIC_BASE_PATH: /uniapp-upstream
         run: |
           set -euo pipefail
           cp incoming/update.json website/public/update.json
           cd website
           npm ci
           npm run build
+          npm run check:export
+      - name: Verify website on desktop and mobile
+        working-directory: website
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+      - name: Upload website failure reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-test-results-${{ github.run_id }}
+          path: website/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Publish release assets then update distribution
         env:
           GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}

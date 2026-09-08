@@ -11,8 +11,8 @@ android {
         applicationId = "com.anto426.uniapp"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 201
-        versionName = "2.0.1"
+        versionCode = 202
+        versionName = "2.0.2"
         ndk {
             abiFilters += "arm64-v8a"
         }

@@ -88,6 +88,10 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
 
+        getByName("androidHostTest").dependencies {
+            implementation("org.robolectric:robolectric:4.16")
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)

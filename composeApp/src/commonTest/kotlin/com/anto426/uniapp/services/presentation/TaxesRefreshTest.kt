@@ -4,6 +4,7 @@ import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.backend.model.TaxesData
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -15,7 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-class TaxesRefreshTest {
+class TaxesRefreshTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun openingUsesCachePolicyAndFailedRefreshKeepsTheLoadedScreen() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
@@ -44,6 +45,7 @@ class TaxesRefreshTest {
             advanceUntilIdle()
             assertEquals(listOf(false, true), flags)
             assertEquals(FeatureLoadState.Empty, viewModel.uiState.value.loadState)
+            viewModel.uiState.first { it.errorMessage != null }
             assertEquals("Network unavailable", viewModel.uiState.value.errorMessage)
         } finally {
             Dispatchers.resetMain()

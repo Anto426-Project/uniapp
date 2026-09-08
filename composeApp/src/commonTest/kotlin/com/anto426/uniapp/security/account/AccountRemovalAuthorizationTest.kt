@@ -11,7 +11,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
 
-class AccountRemovalAuthorizationTest {
+class AccountRemovalAuthorizationTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun unprotectedAccountDoesNotRequestBiometricAuthentication() = runTest {
         val authenticator = RemovalAuthenticator(BiometricAuthenticationResult.Cancelled)

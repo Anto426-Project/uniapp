@@ -22,7 +22,15 @@ export const Background: React.FC<BackgroundProps> = ({ theme }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const visibility = () => setMounted(!document.hidden && !motion.matches);
+    visibility();
+    motion.addEventListener('change', visibility);
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      motion.removeEventListener('change', visibility);
+      document.removeEventListener('visibilitychange', visibility);
+    };
   }, []);
 
   const stops = themeColorStops[theme] || themeColorStops.violet;

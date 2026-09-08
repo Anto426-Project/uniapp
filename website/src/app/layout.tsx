@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Plus_Jakarta_Sans, Geist } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { BASE_PATH } from '@/utils/basePath';
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({
   subsets: ['latin'],
@@ -19,8 +17,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'UniApp Upstream | Distribuzione Ufficiale Android',
-  description: "Sito di distribuzione ufficiale per UniApp: scarica l'APK nativo per Android per sistemi a 64 bit, consulta i changelog e le specifiche dell'applicazione.",
+  title: 'UniApp Upstream | Download Android ARM64',
+  description: "Sito del progetto indipendente UniApp: scarica l'APK nativo per Android per sistemi a 64 bit, consulta i changelog e le specifiche dell'applicazione.",
   authors: [{ name: 'Anto426' }],
   icons: {
     icon: [
@@ -34,9 +32,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    title: 'UniApp Upstream | Distribuzione Ufficiale Android',
+    title: 'UniApp Upstream | Download Android ARM64',
     description: "Scarica l'APK di UniApp per Android con design Liquid Monet e Kotlin nativo per gli studenti UniMol.",
-    url: 'https://anto426-project.github.io/UniappUpstream/',
+    url: 'https://anto426-project.github.io/uniapp-upstream/',
     siteName: 'UniApp Upstream',
   },
 };
@@ -53,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className={cn(inter.variable, plusJakartaSans.variable, "font-sans", geist.variable)}>
+    <html lang="it" className={cn(inter.variable, plusJakartaSans.variable, "font-sans")}>
       <body className="theme-violet">
         {children}
       </body>

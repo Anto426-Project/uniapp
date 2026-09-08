@@ -1,13 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ReleaseData } from '@/data/types';
+import { useRelease } from './SiteShell';
 
-interface HeroProps {
-  release?: ReleaseData;
-}
-
-export const Hero: React.FC<HeroProps> = ({ release }) => {
+export const Hero = () => {
+  const release = useRelease();
   const description =
     release?.description ||
     'UniApp è un progetto indipendente per consultare la carriera e utilizzare i servizi universitari dell’Università degli Studi del Molise.';

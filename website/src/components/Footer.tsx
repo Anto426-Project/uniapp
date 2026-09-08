@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { withBasePath } from '@/utils/basePath';
@@ -17,10 +15,7 @@ export const Footer: React.FC = () => {
                 src={withBasePath('/assets/uniapp-icon.webp')}
                 alt="Icona UniApp"
                 className="footer-brand-icon"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src =
-                    'https://raw.githubusercontent.com/Anto426-Project/UniappUpstream/main/assets/uniapp-icon.webp';
-                }}
+
               />
               <div className="footer-brand-text">
                 <span className="footer-brand-title">UniApp</span>
