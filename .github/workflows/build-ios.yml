@@ -1,15 +1,16 @@
 name: Build iOS (Kotlin Multiplatform)
 
 on:
-  push:
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-ios:
-    if: ${{ contains(join(github.event.commits.*.message, ' '), '[ios]') && !contains(join(github.event.commits.*.message, ' '), '[skip ci]') }}
+    if: github.ref == 'refs/heads/main'
     runs-on: macos-latest
+    timeout-minutes: 60
     env:
       UNIAPP_APP_STORE_URL: ${{ vars.UNIAPP_APP_STORE_URL }}
 
@@ -17,7 +18,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.DEPLOY_TOKEN }}
+          token: ${{ secrets.DEPLOY_TOKEN || github.token }}
+          persist-credentials: false
           submodules: recursive
 
       - name: Setup JDK
@@ -69,23 +71,10 @@ jobs:
             zip -qry ../iosApp-unsigned.ipa Payload
           )
 
-      - name: Publish GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          IPA_PATH="build/iosApp-unsigned.ipa"
-
-          if [ ! -f "$IPA_PATH" ]; then
-            echo "Unsigned IPA not found"
-            exit 1
-          fi
-
-          TAG="ios-build-${GITHUB_RUN_NUMBER}"
-
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$IPA_PATH" --clobber
-          else
-            gh release create "$TAG" "$IPA_PATH" \
-              --title "iOS Build $GITHUB_RUN_NUMBER" \
-              --notes "Automatic build from ${GITHUB_SHA}"
-          fi
+      - name: Store unsigned archive for development
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-${{ github.run_id }}
+          path: build/iosApp-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

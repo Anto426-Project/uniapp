@@ -20,7 +20,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: 'UniApp Upstream | Distribuzione Ufficiale Android',
-  description: "Sito di distribuzione ufficiale per UniApp: scarica l'APK nativo per Android (Beta e Stabile), consulta i changelog e le specifiche dell'applicazione.",
+  description: "Sito di distribuzione ufficiale per UniApp: scarica l'APK nativo per Android per sistemi a 64 bit, consulta i changelog e le specifiche dell'applicazione.",
   authors: [{ name: 'Anto426' }],
   icons: {
     icon: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     type: 'website',
     title: 'UniApp Upstream | Distribuzione Ufficiale Android',
     description: "Scarica l'APK di UniApp per Android con design Liquid Monet e Kotlin nativo per gli studenti UniMol.",
-    url: 'https://anto426-project.github.io/uniapp-upstream/',
+    url: 'https://anto426-project.github.io/UniappUpstream/',
     siteName: 'UniApp Upstream',
   },
 };

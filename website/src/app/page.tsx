@@ -42,7 +42,7 @@ export default function HomePage() {
         const res = await fetch(withBasePath('/update.json'), { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.channels) {
+          if (data && typeof data.latestVersion === 'string') {
             setManifest(data);
           }
         }
@@ -53,7 +53,6 @@ export default function HomePage() {
     fetchLiveManifest();
   }, []);
 
-  const betaRelease = manifest.channels?.beta?.release;
 
   return (
     <>
@@ -63,7 +62,7 @@ export default function HomePage() {
       <Navbar currentTheme={theme} onThemeChange={handleThemeChange} />
 
       <main id="main-content">
-        <Hero release={betaRelease} channel="beta" />
+        <Hero release={manifest} />
         <ScreenshotsGallery screenshots={SCREENSHOTS_DATA} />
         <FeaturesGrid />
         <Architecture />

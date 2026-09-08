@@ -1,17 +1,16 @@
 'use client';
 
 import React from 'react';
-import { ReleaseChannelData } from '@/data/types';
+import { ReleaseData } from '@/data/types';
 
 interface HeroProps {
-  release?: ReleaseChannelData;
-  channel: string;
+  release?: ReleaseData;
 }
 
 export const Hero: React.FC<HeroProps> = ({ release }) => {
   const description =
     release?.description ||
-    'Stanchi della vecchia app universitaria? Scopri UniApp, l’app non ufficiale per gli studenti dell’Università degli Studi del Molise, sviluppata in autonomia da Anto426. Completamente riscritta in Kotlin nativo, utilizza le più recenti tecnologie Material 3 Design e Jetpack Compose per offrire un’esperienza moderna, fluida e intuitiva. Gestisci la tua carriera, consulta il libretto, prenota gli esami e accedi rapidamente alle informazioni più importanti, tutto in un’unica interfaccia veloce e curata.';
+    'UniApp è un progetto indipendente per consultare la carriera e utilizzare i servizi universitari dell’Università degli Studi del Molise.';
 
   return (
     <section className="hero-section">

@@ -20,7 +20,6 @@ data class AppUpdateState(
     val phase: AppUpdatePhase = AppUpdatePhase.Idle,
     val updateInfo: AppUpdateInfo? = null,
     val message: String? = null,
-    val selectedChannel: String = installedBuild.releaseChannel,
     val downloadedBytes: Long = 0,
     val totalBytes: Long? = null,
 ) {

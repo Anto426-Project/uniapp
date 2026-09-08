@@ -22,7 +22,6 @@ data class AppUpdateUiState(
     val bannerState: UpdateState = UpdateState.CHECKING,
     val installedVersion: String = "",
     val displayedVersion: String = "",
-    val channel: String = "Stabile",
     val statusText: String? = null,
     val releaseNotes: String? = null,
     val publishedAt: String? = null,
@@ -56,15 +55,6 @@ internal class AppUpdateViewModel(
     init {
         viewModelScope.launch { controller.observeInstallation() }
         viewModelScope.launch { controller.refresh() }
-    }
-
-    fun selectChannel(channel: String) {
-        val key = when (channel) {
-            "Stabile" -> "stable"
-            "Beta" -> "beta"
-            else -> return
-        }
-        viewModelScope.launch { controller.refresh(key) }
     }
 
     fun dismissUpdateSheet() {
@@ -127,7 +117,6 @@ internal fun AppUpdateState.toUiState(): AppUpdateUiState {
             },
         installedVersion = installedBuild.versionName,
         displayedVersion = if (info?.isUpdateAvailable == true) info.latestVersion else installedBuild.versionName,
-        channel = if (selectedChannel == "beta") "Beta" else "Stabile",
         statusText =
             when {
                 phase == AppUpdatePhase.Verifying -> "Verifica dell’aggiornamento…"

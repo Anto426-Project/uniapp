@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
               </div>
             </a>
             <p className="footer-brand-desc">
-              L&apos;applicazione nativa per gli studenti dell’Università degli Studi del Molise. Progettata con Kotlin Multiplatform, Compose ed elevati standard di privacy.
+              Un progetto indipendente per gli utenti dei servizi universitari dell’Università degli Studi del Molise.
             </p>
 
             {/* Account GitHub Ufficiali */}

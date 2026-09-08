@@ -10,7 +10,7 @@ export const Architecture: React.FC = () => {
           <span className="section-tag">Architettura Nativa</span>
           <h2 className="section-title">Design Moderno &amp; Sicurezza</h2>
           <p className="section-description">
-            Tecnologie native all&apos;avanguardia con Liquid-Monet e protezione hardware sul dispositivo per garantire massima fluidità e privacy.
+            Kotlin Multiplatform e Compose condividono la logica e l’interfaccia. I moduli dedicati gestiscono grafica, servizi universitari e archiviazione.
           </p>
         </div>
 
@@ -46,15 +46,15 @@ export const Architecture: React.FC = () => {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
-            <h3 className="card-title">Sicurezza Zero-Trust &amp; Keystore Hardware</h3>
+            <h3 className="card-title">Archiviazione e accesso</h3>
             <p className="card-text">
-              Protezione hardware-backed direttamente sul dispositivo: le sessioni e l&apos;accesso biometrico (impronta o volto) sono custoditi nel chip sicuro dello smartphone, con comunicazioni dirette e cifrate verso i server universitari senza proxy intermedi e senza credenziali in chiaro.
+              Android Keystore e iOS Keychain proteggono l’archiviazione locale. L’accesso biometrico viene verificato dal sistema: UniApp non legge impronte digitali o modelli del volto. Le richieste di rete comunicano con i servizi necessari alla funzione selezionata.
             </p>
             <div className="card-tags">
               <span className="arch-tag highlight">Android Keystore</span>
               <span className="arch-tag">Autenticazione Biometrica</span>
-              <span className="arch-tag">Zero Proxy Server</span>
-              <span className="arch-tag">Zero Testo in Chiaro</span>
+              <span className="arch-tag">Sessioni separate</span>
+              <span className="arch-tag">Archiviazione cifrata</span>
             </div>
           </div>
         </div>

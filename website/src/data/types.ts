@@ -1,10 +1,9 @@
-export interface ReleaseChannelData {
+export interface ReleaseData {
   latestVersion?: string;
   latestVersionCode?: number;
   minSupportedVersion?: string;
   minSupportedVersionCode?: number;
   mandatory?: boolean;
-  releaseChannel?: string;
   downloadUrl?: string;
   downloadUrlsByAbi?: Record<string, string>;
   notes?: string;
@@ -14,18 +13,10 @@ export interface ReleaseChannelData {
   description?: string;
 }
 
-export interface UpdateManifest {
-  channels?: {
-    stable?: {
-      release?: ReleaseChannelData;
-    };
-    beta?: {
-      release?: ReleaseChannelData;
-    };
-    [key: string]: {
-      release?: ReleaseChannelData;
-    } | undefined;
-  };
+// One published Android release. No channel selection or prerelease fallback.
+export interface UpdateManifest extends ReleaseData {
+  sha256ByAbi?: Record<string, string>;
+  platforms?: Record<string, ReleaseData>;
 }
 
 export interface ScreenshotItem {

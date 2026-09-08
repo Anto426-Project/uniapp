@@ -10,7 +10,7 @@ export const SecuritySection: React.FC = () => {
           <span className="section-tag">Trasparenza</span>
           <h2 className="section-title">Integrità &amp; Sicurezza</h2>
           <p className="section-description">
-            La privacy dei tuoi dati accademici è la priorità assoluta. Nessun intermediario e codice trasparente.
+            Informazioni sul codice, sulla protezione dei dati locali e sui servizi utilizzati dall’app.
           </p>
         </div>
 
@@ -22,17 +22,17 @@ export const SecuritySection: React.FC = () => {
                 <path d="m9 12 2 2 4-4" />
               </svg>
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>VirusTotal Clean</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>Codice e build</h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-              Report di scansione automatizzata alla compilazione.
+              Versioni pubblicate con metadati e impronte SHA-256 dei file.
             </p>
             <a
-              href="https://www.virustotal.com/gui/file-analysis/NzQ4MmEyM2JhODg0NzdjMjc1NTE1NmYyNDEyZWRiMDY6MTc3OTcxMzA4MQ==/detection"
+              href="https://github.com/Anto426-Project/UniappUpstream/releases"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-vt-report"
             >
-              <span>Report VirusTotal</span>
+              <span>Consulta i rilasci</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
@@ -50,8 +50,8 @@ export const SecuritySection: React.FC = () => {
                 </svg>
               </div>
               <div className="sec-item-text">
-                <h4>Keystore Hardware &amp; Biometria</h4>
-                <p>Le credenziali non vengono salvate in chiaro e restano custodite nella memoria sicura protetta del dispositivo.</p>
+                <h4>Archiviazione protetta</h4>
+                <p>Le copie persistenti di credenziali e sessioni usano l’archiviazione protetta della piattaforma. Il livello di protezione disponibile dipende dal dispositivo.</p>
               </div>
             </li>
 
@@ -62,8 +62,8 @@ export const SecuritySection: React.FC = () => {
                 </svg>
               </div>
               <div className="sec-item-text">
-                <h4>Connessione Diretta Ateneo</h4>
-                <p>Le chiamate API verso Esse3 e Moodle avvengono direttamente dal telefono senza transitare da server intermedi non autorizzati.</p>
+                <h4>Servizi collegati</h4>
+                <p>Le funzioni accademiche contattano servizi dell’Ateneo, CINECA e, per alcune richieste, il proxy sync.faufas.it.</p>
               </div>
             </li>
 
@@ -75,8 +75,8 @@ export const SecuritySection: React.FC = () => {
                 </svg>
               </div>
               <div className="sec-item-text">
-                <h4>Nessun Tracciamento</h4>
-                <p>Nessun modulo pubblicitario, nessun dato ceduto a terzi e codice sorgente verificabile.</p>
+                <h4>Trasparenza sui dati</h4>
+                <p>L’app usa dati di autenticazione e accademici per le funzioni richieste. Notifiche, aggiornamenti e segnalazioni coinvolgono anche i rispettivi servizi esterni.</p>
               </div>
             </li>
           </ul>

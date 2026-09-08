@@ -199,6 +199,16 @@ class FeatureViewModelTest {
                         CareerExamData("Fisica", "28", "01/02/2026", 9, "B"),
                     ),
                 )
+
+            override suspend fun loadStudyPlan(forceRefresh: Boolean) =
+                StudyPlanData(
+                    listOf(
+                        StudyPlanCourseData("Analisi", year = 1, adsceId = "A"),
+                        StudyPlanCourseData("Tirocinio", year = 1, adsceId = "T"),
+                        StudyPlanCourseData("Programmazione", year = 1, adsceId = "P"),
+                        StudyPlanCourseData("Fisica", year = 2, adsceId = "B"),
+                    ),
+                )
         }
         val viewModel = TranscriptsViewModel(source)
         advanceUntilIdle()

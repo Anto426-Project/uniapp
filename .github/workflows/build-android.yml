@@ -1,148 +1,88 @@
 name: Build Android (Signed APK)
 
 on:
-  push:
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-android:
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
+  build:
+    if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
-
-    env:
-      RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-      RELEASE_STORE_FILE: key/release.keystore
-      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.DEPLOY_TOKEN }}
+          token: ${{ secrets.DEPLOY_TOKEN || github.token }}
           submodules: recursive
-
-      - name: Validate signing secrets
-        run: |
-          for v in RELEASE_KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
-            if [ -z "${!v}" ]; then
-              echo "❌ Missing $v"
-              exit 1
-            fi
-          done
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+          persist-credentials: false
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Restore keystore
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate release tooling and app
         run: |
-          mkdir -p "$(dirname "${RELEASE_STORE_FILE}")"
-          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
-
-      - name: Build release APK (signed)
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/tests
+          python3 scripts/check_app_strings.py
+          ./gradlew --no-daemon --max-workers=2 :composeApp:testAndroidHostTest
+      - name: Build and verify signed APKs
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_STORE_FILE: ${{ runner.temp }}/uniapp-release-${{ github.run_id }}.keystore
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          ./gradlew --no-daemon --stacktrace --max-workers=2 \
-            :androidApp:assembleRelease \
-            -PENABLE_ABI_SPLITS=true \
-            -PRELEASE_STORE_FILE="$RELEASE_STORE_FILE" \
-            -PRELEASE_STORE_PASSWORD="$RELEASE_STORE_PASSWORD" \
-            -PRELEASE_KEY_ALIAS="$RELEASE_KEY_ALIAS" \
-            -PRELEASE_KEY_PASSWORD="$RELEASE_KEY_PASSWORD"
-
-      - name: List generated APKs
-        run: |
-          echo "📦 APK generati:"
-          find androidApp/build/outputs/apk/release -type f -name "*.apk"
-
-      - name: Collect signed APKs
-        run: |
+          set -euo pipefail
+          trap 'rm -f "$RELEASE_STORE_FILE"' EXIT
+          for key in RELEASE_KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
+            test -n "${!key}" || { echo "Missing signing secret: $key"; exit 1; }
+          done
+          umask 077
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
+          ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease
           mkdir -p publish-input/release
-
-          APK_FILES=$(find androidApp/build/outputs/apk/release -type f -name "*release.apk")
-
-          if [ -z "$APK_FILES" ]; then
-            echo "❌ Nessun APK release trovato"
-            exit 1
-          fi
-
-          for apk in $APK_FILES; do
-            echo "✔ Copiando $apk"
-            cp "$apk" publish-input/release/
-          done
-
-          # Copia eventuale metadata di output prodotto da AGP
-          if [ -f "androidApp/build/outputs/apk/release/output-metadata.json" ]; then
-            echo "✔ Copiando output-metadata.json"
-            cp androidApp/build/outputs/apk/release/output-metadata.json publish-input/release/
-          fi
-
-      - name: Verify APK signature
-        run: |
+          cp androidApp/build/outputs/apk/release/*.apk publish-input/release/
+          cp androidApp/build/outputs/apk/release/output-metadata.json publish-input/release/
+          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
+          test -n "$APK_SIGNER"
           for apk in publish-input/release/*.apk; do
-            echo "🔐 Verifica firma: $apk"
-            jarsigner -verify -verbose -certs "$apk"
+            "$APK_SIGNER" verify --verbose "$apk"
           done
-
-      # 📦 CONTEXT
-      - name: Detect release channel
-        id: release_context
-        run: |
-          python3 - <<'PYCODE'
-          import json, os
-          with open("androidApp/build/outputs/apk/release/output-metadata.json") as handle:
-              version = json.load(handle)["elements"][0]["versionName"]
-          channel = "beta" if "beta" in version.lower() else "stable"
-          with open(os.environ["GITHUB_OUTPUT"], "a") as handle:
-              handle.write(f"release_channel={channel}\n")
-          PYCODE
-
-      - name: Save build context
-        run: |
-          mkdir -p publish-input/context
-          cat > publish-input/context/build-context.env <<EOF
-          RELEASE_CHANNEL=${{ steps.release_context.outputs.release_channel }}
-          RELEASE_ARTIFACT_DIR=${{ steps.release_context.outputs.release_channel }}
-          SOURCE_REPOSITORY=${GITHUB_REPOSITORY}
-          SOURCE_SHA=${GITHUB_SHA}
-          SOURCE_REF_NAME=${GITHUB_REF_NAME}
-          EOF
-
-      - name: Store artifact on runner filesystem
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
-          RUNNER_ARTIFACT_DIR="${RUNNER_ARTIFACTS_ROOT}/android-build-signed/${GITHUB_RUN_ID}"
-          mkdir -p "${RUNNER_ARTIFACT_DIR}"
-          cp -a publish-input/. "${RUNNER_ARTIFACT_DIR}/"
-
-          echo "Runner artifact saved in: ${RUNNER_ARTIFACT_DIR}"
-          find "${RUNNER_ARTIFACT_DIR}" -maxdepth 3 -type f | sort
-
-      - name: Cleanup old runner artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
-          ROOT="${RUNNER_ARTIFACTS_ROOT}/android-build-signed"
-          mkdir -p "${ROOT}"
-
-          find "${ROOT}" -mindepth 1 -maxdepth 1 -type d -mtime +14 -print -exec rm -rf {} +
+          python3 - <<'PY'
+          import json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts')
+          from release_metadata import read_apks, write_json
+          read_apks(Path('publish-input/release/output-metadata.json'))
+          write_json(Path('publish-input/context.json'), {
+              'sourceSha': os.environ['GITHUB_SHA'],
+              'sourceRepository': os.environ['GITHUB_REPOSITORY'],
+              'runId': os.environ['GITHUB_RUN_ID'],
+          })
+          PY
+      - name: Upload signed build
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-signed-${{ github.run_id }}
+          path: publish-input/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - name: Remove signing material
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/uniapp-release-${GITHUB_RUN_ID}.keystore"

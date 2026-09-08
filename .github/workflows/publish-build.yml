@@ -2,346 +2,122 @@ name: Publish Android Build
 
 on:
   workflow_run:
-    workflows:
-      - Build Android (Signed APK)
-    types:
-      - completed
+    workflows: [Build Android (Signed APK)]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: 'ID of the Build Android workflow run (leave empty for latest successful)'
+        description: 'Successful Android build run ID (empty for the latest on main)'
         required: false
         type: string
 
 permissions:
-  contents: write
+  contents: read
   actions: read
+
+concurrency:
+  group: uniapp-distribution
+  cancel-in-progress: false
 
 jobs:
   publish:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    runs-on: self-hosted
-
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       DEPLOY_REPO: Anto426-Project/UniappUpstream
       DEPLOY_BRANCH: main
-      DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-      SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
-
     steps:
-      - name: Checkout source repository at built commit
+      - name: Resolve and validate source build
+        id: source
+        uses: actions/github-script@v8
+        env:
+          REQUESTED_RUN_ID: ${{ inputs.source_run_id || github.event.workflow_run.id }}
+        with:
+          script: |
+            const repo = context.repo;
+            let id = process.env.REQUESTED_RUN_ID;
+            if (!id) {
+              const {data} = await github.rest.actions.listWorkflowRuns({
+                ...repo, workflow_id: 'build-android.yml', branch: 'main', status: 'success', per_page: 1
+              });
+              id = String(data.workflow_runs[0]?.id || '');
+            }
+            if (!/^\d+$/.test(id)) throw new Error('A successful build run ID is required');
+            const {data: run} = await github.rest.actions.getWorkflowRun({...repo, run_id: Number(id)});
+            const {data: workflow} = await github.rest.actions.getWorkflow({...repo, workflow_id: 'build-android.yml'});
+            if (run.workflow_id !== workflow.id || run.conclusion !== 'success' || run.head_branch !== 'main' ||
+                run.head_repository?.full_name !== `${repo.owner}/${repo.repo}` ||
+                run.event !== 'workflow_dispatch') {
+              throw new Error('Only successful trusted main-branch Android builds can be published');
+            }
+            core.setOutput('run_id', id);
+            core.setOutput('sha', run.head_sha);
+      - name: Checkout the exact built revision
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
-      - name: Validate deploy secret
-        shell: bash
-        run: |
-          if [ -z "${DEPLOY_TOKEN}" ]; then
-            echo "Missing required secret: DEPLOY_TOKEN"
-            exit 1
-          fi
-
-      - name: Ensure runner tools (git-lfs, gh)
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # Ensure git-lfs
-          if ! command -v git-lfs >/dev/null 2>&1; then
-            echo "git-lfs not found. Installing..."
-            if [ -n "${SUDO_PASSWORD:-}" ] && command -v apt-get >/dev/null 2>&1; then
-              echo "${SUDO_PASSWORD}" | sudo -S apt-get update -y
-              echo "${SUDO_PASSWORD}" | sudo -S apt-get install -y git-lfs
-            else
-              echo "❌ git-lfs is required but SUDO_PASSWORD is not set."
-              exit 1
-            fi
-          fi
-
-          # Ensure GitHub CLI (gh)
-          if ! command -v gh >/dev/null 2>&1; then
-            echo "gh not found. Installing..."
-            if [ -n "${SUDO_PASSWORD:-}" ] && command -v apt-get >/dev/null 2>&1; then
-              (echo "${SUDO_PASSWORD}" | sudo -S apt-get update -y && echo "${SUDO_PASSWORD}" | sudo -S apt-get install -y gh) || true
-            fi
-
-            if ! command -v gh >/dev/null 2>&1; then
-              echo "Downloading standalone gh binary from GitHub releases..."
-              ARCH="amd64"
-              case "$(uname -m)" in
-                aarch64|arm64) ARCH="arm64" ;;
-                x86_64) ARCH="amd64" ;;
-              esac
-
-              TMP_DIR="$(mktemp -d)"
-              GH_VERSION="2.67.0"
-              TAR_NAME="gh_${GH_VERSION}_linux_${ARCH}.tar.gz"
-              TAR_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/${TAR_NAME}"
-
-              curl -sSL -f -o "${TMP_DIR}/${TAR_NAME}" "${TAR_URL}"
-              tar -xzf "${TMP_DIR}/${TAR_NAME}" -C "${TMP_DIR}"
-
-              if [ -n "${SUDO_PASSWORD:-}" ] && command -v sudo >/dev/null 2>&1; then
-                echo "${SUDO_PASSWORD}" | sudo -S mv "${TMP_DIR}/gh_${GH_VERSION}_linux_${ARCH}/bin/gh" /usr/local/bin/gh
-                echo "${SUDO_PASSWORD}" | sudo -S chmod +x /usr/local/bin/gh
-              else
-                mkdir -p "${HOME}/.local/bin"
-                mv "${TMP_DIR}/gh_${GH_VERSION}_linux_${ARCH}/bin/gh" "${HOME}/.local/bin/gh"
-                chmod +x "${HOME}/.local/bin/gh"
-                echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
-                export PATH="${HOME}/.local/bin:${PATH}"
-              fi
-              rm -rf "${TMP_DIR}"
-            fi
-          fi
-
-          echo "✔ git-lfs: $(git-lfs --version)"
-          echo "✔ gh: $(gh --version | head -n 1)"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+          ref: ${{ steps.source.outputs.sha }}
+          persist-credentials: false
+      - name: Download signed build
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22
-          cache: 'npm'
+          name: android-signed-${{ steps.source.outputs.run_id }}
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: incoming
+      - name: Validate artifact context
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          context = json.loads(Path('incoming/context.json').read_text())
+          expected = {'sourceSha': os.environ['SOURCE_SHA'], 'sourceRepository': os.environ['GITHUB_REPOSITORY'], 'runId': os.environ['SOURCE_RUN_ID']}
+          if context != expected:
+              raise SystemExit('Artifact context does not match the selected build')
+          PY
+      - name: Checkout distribution repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DEPLOY_REPO }}
+          ref: ${{ env.DEPLOY_BRANCH }}
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: deploy-repo
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
           cache-dependency-path: website/package-lock.json
-
-      - name: Load signed Android artifact from runner filesystem
-        shell: bash
+      - name: Prepare manifest and release notes
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
-
-          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
-          SOURCE_RUN_ID="${{ github.event.inputs.source_run_id || github.event.workflow_run.id }}"
-
-          if [ -z "${SOURCE_RUN_ID:-}" ]; then
-            echo "Searching for the latest successful run of 'Build Android (Signed APK)'..."
-            export GH_TOKEN="${DEPLOY_TOKEN}"
-            SOURCE_RUN_ID="$(gh run list --workflow 'Build Android (Signed APK)' --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
-            if [ -z "${SOURCE_RUN_ID}" ] || [ "${SOURCE_RUN_ID}" = "null" ]; then
-              echo "❌ Could not find any successful run of Build Android"
-              exit 1
-            fi
-            echo "✔ Found latest run ID: ${SOURCE_RUN_ID}"
-          fi
-
-          echo "SOURCE_RUN_ID=${SOURCE_RUN_ID}" >> "${GITHUB_ENV}"
-          RUNNER_ARTIFACT_DIR="${RUNNER_ARTIFACTS_ROOT}/android-build-signed/${SOURCE_RUN_ID}"
-
-          if [ ! -d "${RUNNER_ARTIFACT_DIR}" ]; then
-            echo "❌ Runner artifact directory not found: ${RUNNER_ARTIFACT_DIR}"
-            echo "This usually means the publish workflow ran on a different self-hosted runner or the directory has been cleaned up."
-            exit 1
-          fi
-
-          mkdir -p incoming
-          cp -a "${RUNNER_ARTIFACT_DIR}/." incoming/
-
-      - name: Load build context
-        shell: bash
-        run: |
-          CONTEXT_FILE="incoming/context/build-context.env"
-          if [ ! -f "${CONTEXT_FILE}" ]; then
-            echo "Build context file not found: ${CONTEXT_FILE}"
-            exit 1
-          fi
-
-          set -a
-          source "${CONTEXT_FILE}"
-          set +a
-
-          if [ -z "${RELEASE_CHANNEL}" ] || [ -z "${RELEASE_ARTIFACT_DIR}" ] || [ -z "${SOURCE_SHA}" ]; then
-            echo "Invalid build context. Required values are missing."
-            exit 1
-          fi
-
-          if [ ! -f "incoming/release/output-metadata.json" ]; then
-            echo "Missing release metadata file: incoming/release/output-metadata.json"
-            exit 1
-          fi
-
-          APK_PATH="$(find incoming/release -type f -name '*.apk' | head -n 1)"
-          if [ -z "${APK_PATH}" ]; then
-            echo "No APK found in downloaded build artifact."
-            exit 1
-          fi
-
-          SOURCE_REF_NAME="${SOURCE_REF_NAME:-${{ github.event.workflow_run.head_branch || github.ref_name }}}"
-          SOURCE_REPOSITORY="${SOURCE_REPOSITORY:-${GITHUB_REPOSITORY}}"
-
-          echo "RELEASE_CHANNEL=${RELEASE_CHANNEL}" >> "${GITHUB_ENV}"
-          echo "RELEASE_ARTIFACT_DIR=${RELEASE_ARTIFACT_DIR}" >> "${GITHUB_ENV}"
-          echo "SOURCE_SHA=${SOURCE_SHA}" >> "${GITHUB_ENV}"
-          echo "SOURCE_REF_NAME=${SOURCE_REF_NAME}" >> "${GITHUB_ENV}"
-          echo "SOURCE_REPOSITORY=${SOURCE_REPOSITORY}" >> "${GITHUB_ENV}"
-          echo "APK_PATH=${APK_PATH}" >> "${GITHUB_ENV}"
-
-      - name: VirusTotal Scan
-        id: virustotal
-        uses: crazy-max/ghaction-virustotal@v4
-        if: env.APK_PATH != ''
-        with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          files: |
-            ${{ env.APK_PATH }}
-
-      - name: Publish APK to deploy repository
-        shell: bash
-        run: |
-          rm -rf deploy-repo
-          git clone "https://x-access-token:${DEPLOY_TOKEN}@github.com/${DEPLOY_REPO}.git" deploy-repo
-          cd deploy-repo
-
-          git checkout "${DEPLOY_BRANCH}"
-          git lfs install --local
-          git lfs track "src/release/**/*.apk"
-
-          mkdir -p assets/screenshots
-          rm -rf "src/release/${RELEASE_ARTIFACT_DIR}"
-          mkdir -p "src/release/${RELEASE_ARTIFACT_DIR}"
-          cp -a ../incoming/release/. "src/release/${RELEASE_ARTIFACT_DIR}/"
-          cp ../composeApp/src/androidMain/res/mipmap-xxxhdpi/ic_launcher.webp assets/uniapp-icon.webp
-
-          if [ -d "../assets/screenshots" ]; then
-            rm -rf assets/screenshots
-            cp -a ../assets/screenshots/. assets/screenshots/
-          fi
-
-          python3 ../scripts/generate_update_manifest.py \
-            --metadata ../incoming/release/output-metadata.json \
-            --manual-config ../update-config.json \
-            --existing update.json \
-            --deploy-repo "${DEPLOY_REPO}" \
-            --deploy-branch "${DEPLOY_BRANCH}" \
-            --release-channel "${RELEASE_CHANNEL}" \
-            --build-commit "${SOURCE_SHA}" \
-            --output update.json
-          python3 ../scripts/generate_deploy_readme.py \
-            --update-manifest update.json \
-            --metadata "src/release/${RELEASE_ARTIFACT_DIR}/output-metadata.json" \
-            --source-repo "${SOURCE_REPOSITORY}" \
-            --deploy-repo "${DEPLOY_REPO}" \
-            --release-channel "${RELEASE_CHANNEL}" \
-            --screenshots-dir "assets/screenshots" \
-            --virustotal-url "${{ steps.virustotal.outputs.analysis }}" \
-            --output README.md
-
-          if [ -d "../website" ]; then
-            echo "==> Compilazione ed esportazione sito statico Next.js per GitHub Pages..."
-            cp update.json ../website/public/update.json
-            pushd ../website >/dev/null
-            npm ci || npm install
-            NEXT_PUBLIC_BASE_PATH="/uniapp-upstream" npm run build
-            popd >/dev/null
-            rm -rf docs
-            mkdir -p docs
-            cp -a ../website/out/. docs/
-            touch docs/.nojekyll
-            touch .nojekyll
-          fi
-
-          git add .gitattributes src/release assets update.json README.md docs .nojekyll
-          if git diff --cached --quiet; then
-            echo "No changes to publish."
-            echo "DEPLOY_HAS_CHANGES=false" >> "${GITHUB_ENV}"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: publish APK from ${SOURCE_REPOSITORY}@${SOURCE_SHA::7}"
-            echo "DEPLOY_HAS_CHANGES=true" >> "${GITHUB_ENV}"
-          fi
-
-      - name: Push deploy repository
-        if: env.DEPLOY_HAS_CHANGES == 'true'
-        shell: bash
-        run: |
-          cd deploy-repo
-          git push origin "${DEPLOY_BRANCH}"
-
-      - name: Prepare GitHub release metadata
-        shell: bash
-        run: |
-          mkdir -p artifacts
-          python3 scripts/generate_github_release_metadata.py \
-            --update-manifest deploy-repo/update.json \
-            --metadata incoming/release/output-metadata.json \
-            --output artifacts/github-release-notes.md \
-            --github-env-output "${GITHUB_ENV}" \
-            --source-repo "${SOURCE_REPOSITORY}" \
-            --deploy-repo "${DEPLOY_REPO}" \
-            --deploy-branch "${DEPLOY_BRANCH}" \
-            --github-sha "${SOURCE_SHA}" \
-            --release-channel "${RELEASE_CHANNEL}" \
-            --asset-path-prefix incoming/release
-
-      - name: Add VirusTotal link to release notes
-        shell: bash
-        if: steps.virustotal.outputs.analysis != ''
-        run: |
-          {
-            echo ""
-            echo "## Security Scan"
-            echo "Analysis report: [VirusTotal Scan Results](${{ steps.virustotal.outputs.analysis }})"
-            echo ""
-            echo "[![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan_Report-blue)](${{ steps.virustotal.outputs.analysis }})"
-          } >> artifacts/github-release-notes.md
-
-      - name: Publish GitHub release
-        shell: bash
-        run: |
-          export GH_TOKEN="${DEPLOY_TOKEN}"
-
-          mapfile -t release_assets < <(find incoming/release -maxdepth 1 -type f -name '*.apk' | sort)
-          if [ "${#release_assets[@]}" -eq 0 ]; then
-            echo "No release APK assets found in incoming/release."
-            exit 1
-          fi
-
-          if gh release view "${RELEASE_TAG_NAME}" --repo "${DEPLOY_REPO}" >/dev/null 2>&1; then
-            gh release upload "${RELEASE_TAG_NAME}" "${release_assets[@]}" --clobber --repo "${DEPLOY_REPO}"
-
-            edit_args=(
-              "${RELEASE_TAG_NAME}"
-              "--repo" "${DEPLOY_REPO}"
-              "--title" "${RELEASE_TITLE}"
-              "--notes-file" "artifacts/github-release-notes.md"
-              "--target" "${DEPLOY_BRANCH}"
-            )
-            if [ "${RELEASE_IS_PRERELEASE}" = "true" ]; then
-              edit_args+=("--prerelease")
-            else
-              edit_args+=("--latest")
-            fi
-
-            gh release edit "${edit_args[@]}"
-          else
-            create_args=(
-              "${RELEASE_TAG_NAME}"
-              "${release_assets[@]}"
-              "--repo" "${DEPLOY_REPO}"
-              "--title" "${RELEASE_TITLE}"
-              "--notes-file" "artifacts/github-release-notes.md"
-              "--target" "${DEPLOY_BRANCH}"
-            )
-            if [ "${RELEASE_IS_PRERELEASE}" = "true" ]; then
-              create_args+=("--prerelease" "--latest=false")
-            else
-              create_args+=("--latest")
-            fi
-
-            gh release create "${create_args[@]}"
-          fi
-
-      - name: Cleanup consumed runner artifact
-        if: ${{ success() }}
-        shell: bash
+          python3 scripts/generate_update_manifest.py --metadata incoming/release/output-metadata.json \
+            --manual-config update-config.json --existing deploy-repo/update.json \
+            --deploy-repo "$DEPLOY_REPO" --build-commit "$SOURCE_SHA" --output incoming/update.json
+          python3 scripts/generate_github_release_metadata.py --metadata incoming/release/output-metadata.json \
+            --update-manifest incoming/update.json --source-repo "$GITHUB_REPOSITORY" \
+            --output incoming/release-notes.md --github-env-output "$GITHUB_ENV"
+          python3 scripts/generate_deploy_readme.py --update-manifest incoming/update.json \
+            --source-repo "$GITHUB_REPOSITORY" --output incoming/README.md
+      - name: Build distribution website
+        env:
+          NEXT_PUBLIC_BASE_PATH: /UniappUpstream
         run: |
           set -euo pipefail
-
-          RUNNER_ARTIFACTS_ROOT="${RUNNER_TEMP}/../uniapp-artifacts"
-          RUNNER_ARTIFACT_DIR="${RUNNER_ARTIFACTS_ROOT}/android-build-signed/${{ env.SOURCE_RUN_ID }}"
-
-          if [ -d "${RUNNER_ARTIFACT_DIR}" ]; then
-            rm -rf "${RUNNER_ARTIFACT_DIR}"
-            echo "Removed ${RUNNER_ARTIFACT_DIR}"
-          fi
+          cp incoming/update.json website/public/update.json
+          cd website
+          npm ci
+          npm run build
+      - name: Publish release assets then update distribution
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: bash scripts/publish_android.sh

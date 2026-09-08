@@ -123,7 +123,6 @@ internal fun AppRouteContent(
     devicesRefreshRevision: Int,
     onRetryUpdate: () -> Unit,
     onOpenUpdate: () -> Unit,
-    onSelectUpdateChannel: (String) -> Unit = {},
     themeUiState: ThemeUiState,
     onThemeModeSelected: (AppThemeMode) -> Unit,
     onThemeSelected: (Int) -> Unit,
@@ -786,7 +785,6 @@ internal fun AppRouteContent(
                 onRetry = onRetryUpdate,
                 onOpenUpdate = onOpenUpdate,
                 onOpenChangelog = { navigator.navigate(AppRoute.Changelog) },
-                onSelectChannel = onSelectUpdateChannel,
             )
 
         AppRoute.Changelog -> {

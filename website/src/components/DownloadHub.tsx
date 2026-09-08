@@ -14,9 +14,8 @@ import {
   FileCode,
   ShieldCheck,
 } from 'lucide-react';
-import { UpdateManifest, ReleaseChannelData } from '@/data/types';
+import { UpdateManifest, ReleaseData } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
-import { DEFAULT_MANIFEST } from '@/data/default-manifest';
 
 interface DownloadHubProps {
   manifest: UpdateManifest;
@@ -108,19 +107,15 @@ function parseChangelog(notes?: string): ChangelogItem[] {
 }
 
 export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
-  const [channel, setChannel] = useState<'beta' | 'stable'>('beta');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const releaseData: ReleaseChannelData | undefined =
-    manifest.channels?.[channel]?.release ||
-    DEFAULT_MANIFEST.channels?.[channel]?.release ||
-    manifest.channels?.beta?.release;
+  const releaseData: ReleaseData = manifest;
 
   const version = releaseData?.latestVersion
     ? releaseData.latestVersion.startsWith('v')
       ? releaseData.latestVersion
       : `v${releaseData.latestVersion}`
-    : 'v1.8.9-beta';
+    : 'Versione non disponibile';
 
   const dateText = formatDate(releaseData?.publishedAt);
   const changelogItems = parseChangelog(releaseData?.notes);
@@ -142,11 +137,6 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
     releaseData?.downloadUrl ||
     '#';
 
-  const armv7Url =
-    releaseData?.downloadUrlsByAbi?.['armeabi-v7a'] ||
-    releaseData?.downloadUrl ||
-    '#';
-
   const commitHash = releaseData?.buildCommit
     ? releaseData.buildCommit.substring(0, 7)
     : 'latest';
@@ -162,7 +152,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
           <span className="section-tag">Distribuzione Ufficiale</span>
           <h2 className="section-title">Pacchetti APK &amp; Release</h2>
           <p className="section-description max-w-2xl mx-auto">
-            Scarica la build nativa compilata per l&apos;architettura del tuo processore. Supporto completo ad aggiornamenti continui e notifiche in-app.
+            Le nuove versioni richiedono Android 10 o successivo e un sistema a 64 bit. Sono supportati solo dispositivi ARM64; ARMv7, x86 e x86_64 sono esclusi.
           </p>
         </div>
 
@@ -172,35 +162,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
           <div className="release-console-card">
             {/* Console Header / Switcher */}
             <div className="console-header-bar">
-              <div className="channel-switch glass-pill">
-                <div
-                  className="switch-pill"
-                  style={{
-                    transform: channel === 'beta' ? 'translateX(0)' : 'translateX(100%)',
-                  }}
-                />
-                <button
-                  type="button"
-                  className={`channel-tab ${channel === 'beta' ? 'active' : ''}`}
-                  onClick={() => setChannel('beta')}
-                >
-                  Beta
-                </button>
-                <button
-                  type="button"
-                  className={`channel-tab ${channel === 'stable' ? 'active' : ''}`}
-                  onClick={() => setChannel('stable')}
-                >
-                  Stabile
-                </button>
-              </div>
-
-              <div className="console-status-indicator">
-                <span className="status-live-dot" />
-                <span className="status-live-text">
-                  Canale {channel === 'beta' ? 'Beta' : 'Stabile'} attivo
-                </span>
-              </div>
+              <span>Ultima versione pubblicata</span>
             </div>
 
             {/* Version & Highlights */}
@@ -218,7 +180,8 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
             <div className="hero-download-block">
               <div className="hero-download-action-group">
                 <a
-                  href={arm64Url}
+                  href={arm64Url === '#' ? undefined : arm64Url}
+                  aria-disabled={arm64Url === '#'}
                   download
                   className="btn-hero-download"
                 >
@@ -227,7 +190,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                   </div>
                   <div className="btn-hero-labels">
                     <span className="btn-hero-title">Scarica APK ARM64-v8a</span>
-                    <span className="btn-hero-subtitle">Consigliato • 64-bit • Android 8.0+</span>
+                    <span className="btn-hero-subtitle">Android 10+ • Sistema a 64 bit</span>
                   </div>
                 </a>
                 <button
@@ -256,12 +219,13 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                     <Layers className="w-4 h-4 alt-arch-icon" />
                     <div>
                       <span className="alt-arch-name">Universale</span>
-                      <span className="alt-arch-note">Tutte le CPU • Emulatori</span>
+                      <span className="alt-arch-note">Solo ARM64 • Sistema a 64 bit</span>
                     </div>
                   </div>
                   <div className="alt-arch-actions">
                     <a
-                      href={universalUrl}
+                      href={universalUrl === '#' ? undefined : universalUrl}
+                      aria-disabled={universalUrl === '#'}
                       download
                       className="btn-alt-download"
                       title="Scarica APK Universale"
@@ -284,39 +248,6 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                   </div>
                 </div>
 
-                {/* ARMeabi-v7a */}
-                <div className="alt-arch-row">
-                  <div className="alt-arch-info">
-                    <Smartphone className="w-4 h-4 alt-arch-icon" />
-                    <div>
-                      <span className="alt-arch-name">ARMeabi-v7a</span>
-                      <span className="alt-arch-note">Legacy 32-bit</span>
-                    </div>
-                  </div>
-                  <div className="alt-arch-actions">
-                    <a
-                      href={armv7Url}
-                      download
-                      className="btn-alt-download"
-                      title="Scarica APK ARMeabi-v7a"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>APK</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(armv7Url, 'armeabi-v7a')}
-                      className="btn-alt-copy"
-                      title="Copia link ARMeabi-v7a"
-                    >
-                      {copiedId === 'armeabi-v7a' ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -361,7 +292,7 @@ export const DownloadHub: React.FC<DownloadHubProps> = ({ manifest }) => {
                 </div>
               </div>
               <span className="cl-deck-badge">
-                Canale {channel === 'beta' ? 'Beta' : 'Stabile'}
+                Android 64 bit
               </span>
             </div>
 

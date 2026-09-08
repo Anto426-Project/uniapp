@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceDropdown
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
@@ -27,7 +26,6 @@ fun UpdatesScreen(
     onRetry: () -> Unit,
     onOpenUpdate: () -> Unit,
     onOpenChangelog: () -> Unit,
-    onSelectChannel: (String) -> Unit = {},
 ) {
     UniScreenColumn {
         // 1. New High-Fidelity App Update Banner
@@ -37,7 +35,6 @@ fun UpdatesScreen(
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
             statusText = uiState.statusText,
-            channel = uiState.channel,
             onDownload = onOpenUpdate,
             canDownload = uiState.canOpenUpdate,
             progress = uiState.progress,
@@ -54,16 +51,6 @@ fun UpdatesScreen(
                 title = "${stringResource(Res.string.ui_app_name)} ${uiState.installedVersion}".trim(),
                 subtitle = uiState.errorMessage ?: uiState.statusText ?: stringResource(Res.string.ui_system_updated),
                 icon = LiquidIcons.Info,
-            )
-
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-            LiquidPreferenceDropdown(
-                title = stringResource(Res.string.ui_update_channel),
-                selectedItem = uiState.channel,
-                items = if (uiState.isBusy || uiState.isMandatory) listOf(uiState.channel) else listOf("Stabile", "Beta"),
-                onItemSelected = onSelectChannel,
-                icon = LiquidIcons.Refresh,
             )
 
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))

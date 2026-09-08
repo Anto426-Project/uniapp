@@ -58,7 +58,6 @@ fun UniAppUpdateBanner(
     title: String,
     subtitle: String,
     statusText: String? = null,
-    channel: String? = null,
 ) {
     UniHeroGlassCard(
         modifier = modifier,

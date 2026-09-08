@@ -1,7 +1,6 @@
 package com.anto426.uniapp.data
 
 import androidx.compose.ui.graphics.Color
-import com.anto426.liquidmonet.components.cards.LiquidStatusType
 import com.anto426.liquidmonet.components.pickers.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.home.QuickActionItem
@@ -17,32 +16,7 @@ import uniapp.composeapp.generated.resources.*
  * Static configuration metadata, legal disclosures, service directory links, and changelogs.
  */
 object UniAppInitialData {
-    val fallbackNews = listOf(
-        NewsItem(
-            title = "Inaugurazione Anno Accademico",
-            description = "La cerimonia ufficiale di apertura dell'anno accademico si terrà il 15 Ottobre presso l'Aula Magna con le massime autorità.",
-            fullContent = "L'Università è lieta di invitare tutta la comunità accademica alla solenne cerimonia di inaugurazione del nuovo anno accademico. Saranno presenti le massime autorità accademiche, regionali e nazionali. Al termine della prolusione inaugurale del Magnifico Rettore seguirà un rinfresco per tutti gli studenti e il personale.",
-            type = LiquidStatusType.Info,
-        ),
-        NewsItem(
-            title = "Bando Borse di Studio e Alloggi 2026/27",
-            description = "Pubblicate le graduatorie definitive e le istruzioni per l'erogazione dei contributi economici e posti alloggio per gli studenti idonei.",
-            fullContent = "Sono disponibili sul portale dedicato agli studenti le graduatorie definitive relative all'assegnazione di borse di studio e posti alloggio per l'anno accademico in corso. Gli studenti risultati idonei e beneficiari riceveranno una notifica via email con le modalità operative di accredito.",
-            type = LiquidStatusType.Success,
-        ),
-        NewsItem(
-            title = "Sessione Straordinaria Appelli d'Esame",
-            description = "Apertura delle prenotazioni per gli appelli della sessione straordinaria. Termine ultimo fissato a 5 giorni prima dell'esame.",
-            fullContent = "Si avvisano tutti gli studenti che è aperta la finestra di prenotazione per gli appelli della sessione d'esame. Si ricorda che le iscrizioni si chiudono improrogabilmente 5 giorni prima della data della prova d'esame. Consultare l'area 'Appelli' per il calendario completo.",
-            type = LiquidStatusType.Warning,
-        ),
-        NewsItem(
-            title = "Workshop AI & Data Science nel Campus",
-            description = "Ciclo di seminari pratici e laboratori con aziende partner del settore tecnologico. Riconoscimento CFU per gli iscritti.",
-            fullContent = "Il Dipartimento organizza una serie di laboratori applicati sulle moderne tecnologie di intelligenza artificiale, machine learning e analisi avanzata dei dati. I seminari si terranno nei laboratori informatici e permetteranno agli studenti partecipanti di acquisire CFU aggiuntivi.",
-            type = LiquidStatusType.Info,
-        ),
-    )
+    val fallbackNews = emptyList<NewsItem>()
 
     val studentServices = listOf(
         ServiceData(titleRes = Res.string.service_student_transport_title, subtitleRes = Res.string.service_student_transport_sub, icon = LiquidIcons.Time, id = "transport"),

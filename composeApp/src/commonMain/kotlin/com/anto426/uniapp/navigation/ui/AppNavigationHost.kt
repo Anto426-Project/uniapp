@@ -230,8 +230,6 @@ internal fun AppNavigationHost(
                         shellViewModel = shellViewModel,
                         isSearchActive = shellUiState.isSearchActive,
                         onRefreshUpdate = updateViewModel::refresh,
-                        currentUpdateChannel = updateUiState.channel,
-                        onSelectUpdateChannel = updateViewModel::selectChannel,
                         onRequestDisconnectAll = deviceSessionsViewModel::requestDisconnectAll,
                         account = authenticatedAccount,
                         onSelectProfile = topBarAccountSwitcherViewModel::selectProfile,
@@ -343,7 +341,6 @@ internal fun AppNavigationHost(
                                             devicesRefreshRevision = deviceSessionsUiState.refreshRevision,
                                             onRetryUpdate = updateViewModel::refresh,
                                             onOpenUpdate = updateViewModel::openUpdate,
-                                            onSelectUpdateChannel = updateViewModel::selectChannel,
                                             themeUiState = themeUiState,
                                             onThemeModeSelected = themeViewModel::selectThemeMode,
                                             onThemeSelected = themeViewModel::selectTheme,
@@ -469,8 +466,6 @@ private fun topBarActions(
     shellViewModel: AppShellViewModel,
     isSearchActive: Boolean,
     onRefreshUpdate: () -> Unit,
-    currentUpdateChannel: String,
-    onSelectUpdateChannel: (String) -> Unit,
     onRequestDisconnectAll: () -> Unit,
     account: UniAccountSummary?,
     onSelectProfile: (String) -> Unit,
@@ -503,19 +498,7 @@ private fun topBarActions(
                     label = stringResource(Res.string.ui_update_search),
                     onClick = onRefreshUpdate,
                 ),
-                LiquidTopBarAction(
-                    icon = LiquidIcons.MoreVert,
-                    label = stringResource(Res.string.ui_update_channel),
-                    subItems = listOf("Stabile", "Beta").map { channel ->
-                        val isSelected = currentUpdateChannel.equals(channel, ignoreCase = true)
-                        LiquidTopBarAction(
-                            icon = if (isSelected) LiquidIcons.Check else LiquidIcons.Star,
-                            label = channel,
-                            selected = isSelected,
-                            onClick = { onSelectUpdateChannel(channel) },
-                        )
-                    },
-                ),
+
             )
 
         AppRoute.Exams ->

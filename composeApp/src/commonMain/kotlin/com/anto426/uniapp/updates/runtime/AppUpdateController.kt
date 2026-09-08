@@ -34,14 +34,14 @@ internal class AppUpdateController(
         }
     }
 
-    suspend fun refresh(channel: String = state.value.selectedChannel) {
-        if (channel !in setOf("stable", "beta") || !operationLock.tryLock()) return
+    suspend fun refresh() {
+        if (!operationLock.tryLock()) return
         val previous = mutableState.value
         try {
             val restoringInstall = previous.phase == AppUpdatePhase.Installing && previous.updateInfo == null
-            if ((previous.isBusy && !restoringInstall) || (previous.isMandatory && channel != previous.selectedChannel)) return
+            if (previous.isBusy && !restoringInstall) return
             if (!restoringInstall) mutableState.value = previous.copy(phase = AppUpdatePhase.Checking, message = null)
-            val info = source.load(previous.installedBuild, channel)
+            val info = source.load(previous.installedBuild)
                 ?: error("Informazioni di aggiornamento non disponibili per questo canale e piattaforma.")
             // Numeric build codes are authoritative when both ends supply them.
             val installedCode = previous.installedBuild.versionCode
@@ -53,7 +53,7 @@ internal class AppUpdateController(
             mutableState.value = previous.copy(
                 phase = if (restoringInstall) mutableState.value.phase else if (available) AppUpdatePhase.Available else AppUpdatePhase.UpToDate,
                 updateInfo = info.copy(isUpdateAvailable = available, isMandatory = available && info.isMandatory),
-                selectedChannel = channel, message = null, downloadedBytes = 0, totalBytes = null,
+                message = null, downloadedBytes = 0, totalBytes = null,
             )
         } catch (error: CancellationException) {
             mutableState.value = previous

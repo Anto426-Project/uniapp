@@ -19,7 +19,7 @@ class AppUpdateControllerTest {
         var openedUrl: String? = null
         val controller =
             controller(
-                source = AppUpdateSource { _, _ -> updateInfo(isAvailable = true) },
+                source = AppUpdateSource { _ -> updateInfo(isAvailable = true) },
                 launcher = PlatformUpdateLauncher { url, _ ->
                     openedUrl = url
                     PlatformUpdateLaunchResult.Started
@@ -41,7 +41,7 @@ class AppUpdateControllerTest {
         val controller =
             controller(
                 source =
-                    AppUpdateSource { _, _ ->
+                    AppUpdateSource { _ ->
                         attempt++
                         if (attempt == 1) updateInfo(isAvailable = true, isMandatory = true)
                         else error("offline")
@@ -62,7 +62,7 @@ class AppUpdateControllerTest {
         val controller =
             controller(
                 source =
-                    AppUpdateSource { _, _ ->
+                    AppUpdateSource { _ ->
                         updateInfo(isAvailable = true).copy(downloadUrl = "http://example.invalid/app.apk")
                     },
                 launcher = PlatformUpdateLauncher { _, _ ->
@@ -79,7 +79,7 @@ class AppUpdateControllerTest {
 
     @Test
     fun currentBuildIsPublishedAsUpToDate() = runTest {
-        val controller = controller(AppUpdateSource { _, _ -> updateInfo(isAvailable = false) })
+        val controller = controller(AppUpdateSource { _ -> updateInfo(isAvailable = false) })
 
         controller.refresh()
 
@@ -90,7 +90,7 @@ class AppUpdateControllerTest {
     fun debugBuildAlsoEnforcesMandatoryGate() = runTest {
         val controller =
             AppUpdateController(
-                source = AppUpdateSource { _, _ -> updateInfo(isAvailable = true, isMandatory = true) },
+                source = AppUpdateSource { _ -> updateInfo(isAvailable = true, isMandatory = true) },
                 installedBuild = InstalledAppBuild("1.0", 1, isDebuggable = true),
                 launcher = successfulLauncher(),
             )
@@ -104,7 +104,7 @@ class AppUpdateControllerTest {
     @Test
     fun newerInstalledBuildNeverOffersRemoteDowngradeEvenIfMarkedMandatory() = runTest {
         val controller = AppUpdateController(
-            AppUpdateSource { _, _ -> updateInfo(true, true).copy(latestVersion = "1.8.9-beta", latestVersionCode = 199) },
+            AppUpdateSource { _ -> updateInfo(true, true).copy(latestVersion = "1.8.9-beta", latestVersionCode = 199) },
             InstalledAppBuild("2.0", 200), successfulLauncher(),
         )
         controller.refresh()
@@ -115,22 +115,10 @@ class AppUpdateControllerTest {
     }
 
     @Test
-    fun betaSelectionIsSentToSource() = runTest {
-        var requested = ""
-        val controller = controller(AppUpdateSource { _, channel ->
-            requested = channel
-            updateInfo(true).copy(channel = channel)
-        })
-        controller.refresh("beta")
-        assertEquals("beta", requested)
-        assertEquals("beta", controller.state.value.selectedChannel)
-    }
-
-    @Test
     fun installCannotBeStartedTwiceOrOverwrittenByRefresh() = runTest {
         var launches = 0
         var checks = 0
-        val controller = controller(AppUpdateSource { _, _ -> checks++; updateInfo(true) },
+        val controller = controller(AppUpdateSource { _ -> checks++; updateInfo(true) },
             PlatformUpdateLauncher { _, _ -> launches++; PlatformUpdateLaunchResult.Started })
         controller.refresh()
         assertTrue(controller.startUpdate())
@@ -143,14 +131,14 @@ class AppUpdateControllerTest {
 
     @Test
     fun cancelledCheckRestoresPreviousState() = runTest {
-        val controller = controller(AppUpdateSource { _, _ -> throw kotlinx.coroutines.CancellationException() })
+        val controller = controller(AppUpdateSource { _ -> throw kotlinx.coroutines.CancellationException() })
         kotlin.test.assertFailsWith<kotlinx.coroutines.CancellationException> { controller.refresh() }
         assertEquals(AppUpdatePhase.Idle, controller.state.value.phase)
     }
 
     @Test
     fun thrownLauncherFailureCanBeRetried() = runTest {
-        val controller = controller(AppUpdateSource { _, _ -> updateInfo(true) },
+        val controller = controller(AppUpdateSource { _ -> updateInfo(true) },
             PlatformUpdateLauncher { _, _ -> error("Installer failed") })
         controller.refresh()
         assertFalse(controller.startUpdate())
@@ -160,14 +148,13 @@ class AppUpdateControllerTest {
     }
 
     @Test
-    fun mandatoryUpdateCannotBeBypassedByChangingChannel() = runTest {
+    fun mandatoryUpdateRemainsRequiredAfterRefresh() = runTest {
         var checks = 0
-        val controller = controller(AppUpdateSource { _, _ -> checks++; updateInfo(true, true) })
+        val controller = controller(AppUpdateSource { _ -> checks++; updateInfo(true, true) })
         controller.refresh()
-        controller.refresh("beta")
-        assertEquals(1, checks)
+        controller.refresh()
+        assertEquals(2, checks)
         assertTrue(controller.state.value.isMandatory)
-        assertEquals("stable", controller.state.value.selectedChannel)
     }
 
     private fun controller(

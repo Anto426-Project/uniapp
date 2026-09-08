@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.experimental.ExperimentalNativeApi::class)
+
 package com.anto426.uniapp.updates.platform
 
 import androidx.compose.runtime.Composable
