@@ -21,12 +21,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-// In CI (GitHub Actions sets CI=true automatically) we resolve SDK dependencies
-// from GitHub Packages where pre-built, R8-obfuscated AARs are published on every push.
-// Locally the includeBuild blocks below substitute the module with the submodule source,
-// giving the same fast-iteration experience as before.
-val isCI = providers.environmentVariable("CI").orElse("false").get() == "true"
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
@@ -42,10 +36,11 @@ dependencyResolutionManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://maven.pkg.jetbrains.space/kotlin/kotlin-dev")
 
-        // GitHub Packages — pre-built SDK AARs published by each SDK's CI workflow.
-        // Authentication uses a read-only token; the GITHUB_TOKEN secret is available
-        // in every workflow automatically. For local development, set GITHUB_ACTOR and
-        // GITHUB_TOKEN in your environment or local.properties.
+        // GitHub Packages — pre-built SDK AARs with R8 full-mode obfuscation,
+        // published automatically on every push to main by each SDK's CI workflow.
+        // GITHUB_TOKEN is injected automatically by GitHub Actions in CI.
+        // For local development add gpr.user and gpr.token to local.properties,
+        // or export GITHUB_ACTOR / GITHUB_TOKEN in your shell.
         maven {
             name = "GitHubPackages-LiquidMonet"
             url = uri("https://maven.pkg.github.com/Anto426/Liquid-Monet")
@@ -92,42 +87,3 @@ dependencyResolutionManagement {
 include(":composeApp")
 include(":androidApp")
 
-// includeBuild is skipped in CI: the pre-built AARs from GitHub Packages are used instead.
-// Locally the submodule source is used directly (faster incremental builds, full IDE support).
-if (!isCI) {
-    val liquidMonetDir = file("libs/liquid-monet")
-    if (liquidMonetDir.exists()) {
-        includeBuild(liquidMonetDir) {
-            dependencySubstitution {
-                substitute(module("com.anto426:antosdk")).using(project(":sdk"))
-            }
-        }
-    }
-
-    val uniSdkDir = file("libs/uni-sdk")
-    if (uniSdkDir.exists()) {
-        includeBuild(uniSdkDir) {
-            dependencySubstitution {
-                substitute(module("com.anto426:unisdk")).using(project(":"))
-            }
-        }
-    }
-
-    val secureStorageSdkDir = file("libs/secure-storage-sdk")
-    if (secureStorageSdkDir.exists()) {
-        includeBuild(secureStorageSdkDir) {
-            dependencySubstitution {
-                substitute(module("com.anto426:secure-storage-sdk")).using(project(":"))
-            }
-        }
-    }
-
-    val firebaseConnectorSdkDir = file("libs/firebase-connector-sdk")
-    if (firebaseConnectorSdkDir.exists()) {
-        includeBuild(firebaseConnectorSdkDir) {
-            dependencySubstitution {
-                substitute(module("com.anto426:firebase-connector-sdk")).using(project(":"))
-            }
-        }
-    }
-}
