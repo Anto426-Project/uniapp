@@ -6,6 +6,7 @@ import uniapp.composeapp.generated.resources.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -45,47 +46,45 @@ class AcademicIdentityViewModel(
     private val mutableUiState = MutableStateFlow(AcademicIdentityUiState())
     val uiState: StateFlow<AcademicIdentityUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
-
-    fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            try {
-                if (account?.isProfessor == true) {
-                    loadProfessorIdentity(force)
-                    return@launch
-                }
-                val details = dataSource.loadStudentDetails(force)
-                mutableUiState.value = AcademicIdentityUiState(
-                    fullName = details.fullName,
-                    matricola = details.matricola.orEmpty(),
-                    degreeName = details.degreeName.orEmpty(),
-                    departmentName = details.departmentName.orEmpty(),
-                    badgeCode = details.badgeCode.orEmpty(),
-                    badgeQrValue = details.badgeQrValue.orEmpty(),
-                    loadState = FeatureLoadState.Content,
-                )
-                details.photoUrl?.takeIf(String::isNotBlank)?.let { source ->
-                    runCatching { dataSource.loadProfileImage(source, force) }
-                        .getOrNull()
-                        ?.let { image ->
-                            mutableUiState.value = mutableUiState.value.copy(photoData = image)
-                        }
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = AcademicIdentityUiState(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(
-                        if (account?.isProfessor == true) getString(Res.string.msg_impossibile_caricare_lidentita_docente)
-                        else getString(Res.string.msg_impossibile_caricare_il_badge_studente),
-                    ),
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = if (account?.isProfessor == true) emptyList() else listOf(UniAppDataRequests.Student)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        try {
+            if (account?.isProfessor == true) {
+                loadProfessorIdentity()
+            } else {
+                val details = snapshot.require(UniAppDataRequests.Student)
+                mutableUiState.value = mutableUiState.value.copy(
+                    fullName = details.fullName, matricola = details.matricola.orEmpty(),
+                    degreeName = details.degreeName.orEmpty(), departmentName = details.departmentName.orEmpty(),
+                    badgeCode = details.badgeCode.orEmpty(), badgeQrValue = details.badgeQrValue.orEmpty(),
+                    loadState = FeatureLoadState.Content, errorMessage = null,
                 )
             }
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_badge_studente)),
+            )
         }
     }
 
-    private suspend fun loadProfessorIdentity(force: Boolean) {
+    init {
+        sharedData.startPortrait(account)
+        viewModelScope.launch {
+            sharedData.portrait.collect { image -> mutableUiState.value = mutableUiState.value.copy(photoData = image) }
+        }
+    }
+
+    fun refresh(force: Boolean = false) {
+        sharedData.refresh(dataRequests, force)
+        if (force) sharedData.refreshPortrait()
+    }
+
+    private fun loadProfessorIdentity() {
         val professor = checkNotNull(account)
         val profile =
             professor.profiles.firstOrNull { it.profileId == professor.activeProfileId }
@@ -93,7 +92,7 @@ class AcademicIdentityViewModel(
                     it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR
                 }
         mutableUiState.value =
-            AcademicIdentityUiState(
+            mutableUiState.value.copy(
                 isProfessor = true,
                 fullName = professor.displayName,
                 username = professor.serverUserId,
@@ -103,10 +102,6 @@ class AcademicIdentityViewModel(
                 departmentId = profile?.dipId.orEmpty(),
                 loadState = FeatureLoadState.Content,
             )
-        professor.photoUrl?.takeIf(String::isNotBlank)?.let { source ->
-            runCatching { dataSource.loadProfileImage(source, force) }
-                .getOrNull()
-                ?.let { image -> mutableUiState.value = mutableUiState.value.copy(photoData = image) }
-        }
+
     }
 }

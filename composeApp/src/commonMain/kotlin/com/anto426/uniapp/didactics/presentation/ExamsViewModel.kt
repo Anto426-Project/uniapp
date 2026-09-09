@@ -6,6 +6,7 @@ import uniapp.composeapp.generated.resources.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.stableUiId
 import com.anto426.uniapp.data.toExamSessions
@@ -57,43 +58,47 @@ class ExamsViewModel(
     val uiState: StateFlow<ExamsUiState> = mutableUiState.asStateFlow()
     private var roundsById: Map<String, ExamRoundData> = emptyMap()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(if (account?.isProfessor == true) UniAppDataRequests.Professor else UniAppDataRequests.Exams)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            if (account?.isProfessor == true) {
+                val rounds = snapshot.require(UniAppDataRequests.Professor).examRounds
+                mutableUiState.value =
+                    mutableUiState.value.copy(
+                        isProfessor = true,
+                        professorExamRounds = rounds,
+                        loadState = if (rounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                        mutatingExamId = null,
+                    )
+                return@observeIn
+            }
+            val rounds = snapshot.require(UniAppDataRequests.Exams)
+            val upcomingRounds = rounds
+                .filterNot { it.isPastExamRound(today()) }
+                .sortedWith(EXAM_ROUND_ASCENDING)
+            roundsById = upcomingRounds.associateBy(ExamRoundData::stableUiId)
+            mutableUiState.value = mutableUiState.value.copy(
+                exams = upcomingRounds.toExamSessions(),
+                loadState = if (upcomingRounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                mutatingExamId = null,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_gli_appelli)),
+                mutatingExamId = null,
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                if (account?.isProfessor == true) {
-                    val rounds = dataSource.loadProfessorDashboard(force).examRounds
-                    mutableUiState.value =
-                        mutableUiState.value.copy(
-                            isProfessor = true,
-                            professorExamRounds = rounds,
-                            loadState = if (rounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                            mutatingExamId = null,
-                        )
-                    return@launch
-                }
-                val rounds = dataSource.loadExamRounds(force)
-                val upcomingRounds = rounds
-                    .filterNot { it.isPastExamRound(today()) }
-                    .sortedWith(EXAM_ROUND_ASCENDING)
-                roundsById = upcomingRounds.associateBy(ExamRoundData::stableUiId)
-                mutableUiState.value = mutableUiState.value.copy(
-                    exams = upcomingRounds.toExamSessions(),
-                    loadState = if (upcomingRounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                    mutatingExamId = null,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_gli_appelli)),
-                    mutatingExamId = null,
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun selectTab(index: Int) {
@@ -107,9 +112,8 @@ class ExamsViewModel(
         viewModelScope.launch {
             mutableUiState.value = mutableUiState.value.copy(mutatingExamId = examId, errorMessage = null)
             try {
-                val message = if (round.booked) dataSource.cancelExamRound(round) else dataSource.bookExamRound(round)
+                val message = if (round.booked) sharedData.cancelExamRound(round) else sharedData.bookExamRound(round)
                 toastSink.success(message)
-                refresh(force = true)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {

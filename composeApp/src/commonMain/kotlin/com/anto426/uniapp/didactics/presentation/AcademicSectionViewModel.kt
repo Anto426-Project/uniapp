@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
@@ -50,39 +51,41 @@ class AcademicSectionViewModel(
     private val mutableUiState = MutableStateFlow(AcademicSectionUiState())
     val uiState: StateFlow<AcademicSectionUiState> = mutableUiState.asStateFlow()
 
-    init {
-        refresh()
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Professor)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
+        try {
+            val dashboard = snapshot.require(UniAppDataRequests.Professor)
+            val items =
+                when (section) {
+                    AcademicSection.Teachings -> dashboard.teachings
+                    AcademicSection.ExamRounds -> dashboard.examRounds
+                    AcademicSection.Theses -> dashboard.theses
+                    AcademicSection.Reports -> dashboard.reports
+                }
+            mutableUiState.update {
+                it.copy(
+                    items = items,
+                    loadState = if (items.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                )
+            }
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.update {
+                it.copy(
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dati_della_docenza)),
+                )
+            }
+        }
+
     }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
-            try {
-                val dashboard = dataSource.loadProfessorDashboard(force)
-                val items =
-                    when (section) {
-                        AcademicSection.Teachings -> dashboard.teachings
-                        AcademicSection.ExamRounds -> dashboard.examRounds
-                        AcademicSection.Theses -> dashboard.theses
-                        AcademicSection.Reports -> dashboard.reports
-                    }
-                mutableUiState.update {
-                    it.copy(
-                        items = items,
-                        loadState = if (items.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                    )
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.update {
-                    it.copy(
-                        loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dati_della_docenza)),
-                    )
-                }
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun updateQuery(query: String) {

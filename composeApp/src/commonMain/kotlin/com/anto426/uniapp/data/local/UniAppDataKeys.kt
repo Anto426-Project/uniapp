@@ -6,6 +6,12 @@ import kotlinx.serialization.builtins.serializer
 
 /** Canonical catalog of local values. Keys must never be duplicated inside feature packages. */
 object UniAppDataKeys {
+    val GitHubProject = LocalDataKey(
+        "project.github.v1",
+        com.anto426.uniapp.project.model.GitHubProjectSnapshot.serializer(),
+        com.anto426.uniapp.project.model.GitHubProjectSnapshot(),
+    )
+
     val ThemeSelection =
         LocalDataKey(
             name = "theme.selection",

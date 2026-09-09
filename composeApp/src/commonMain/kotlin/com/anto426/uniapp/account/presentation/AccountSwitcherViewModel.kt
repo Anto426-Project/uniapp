@@ -30,6 +30,11 @@ class AccountSwitcherViewModel(
 
     init {
         viewModelScope.launch {
+            sessionController.avatars.images.collect { images ->
+                mutableUiState.update { it.copy(profileImages = images.mapValues { (_, image) -> image.bytes }) }
+            }
+        }
+        viewModelScope.launch {
             sessionController.accountsRevision.collect { refresh() }
         }
         viewModelScope.launch {
@@ -61,14 +66,11 @@ class AccountSwitcherViewModel(
                         (sessionController.state.value as? AppSessionState.Authenticated)
                             ?.account
                             ?.accountId
-                    val profileImages =
-                        snapshot.mapNotNull { account ->
-                            sessionController.cachedProfileImage(account)?.let { account.accountId to it }
-                        }.toMap()
+                    sessionController.avatars.restore(snapshot)
                     mutableUiState.value.copy(
                         accounts = snapshot,
                         activeAccountId = activeId,
-                        profileImages = profileImages,
+                        profileImages = sessionController.avatars.images.value.mapValues { (_, image) -> image.bytes },
                         isLoading = false,
                     )
                 } catch (error: CancellationException) {

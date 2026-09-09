@@ -6,6 +6,7 @@ import uniapp.composeapp.generated.resources.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.liquidmonet.components.charts.LiquidChartEntry
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toGradeExams
 import com.anto426.uniapp.model.didactics.GradeExam
@@ -229,68 +230,72 @@ class GradesViewModel(
     private val mutableUiState = MutableStateFlow(GradesUiState())
     val uiState: StateFlow<GradesUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Career, UniAppDataRequests.StudyPlan, UniAppDataRequests.Exams)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val career = snapshot.require(UniAppDataRequests.Career)
+            val studyPlan = runCatching { snapshot.require(UniAppDataRequests.StudyPlan) }.getOrNull()
+            val examRounds = runCatching { snapshot.require(UniAppDataRequests.Exams) }.getOrNull().orEmpty()
 
-    fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val career = dataSource.loadCareer(force)
-                val studyPlan = runCatching { dataSource.loadStudyPlan(force) }.getOrNull()
-                val examRounds = runCatching { dataSource.loadExamRounds(force) }.getOrNull().orEmpty()
+            val currentExams = career.toGradeExams()
+            val targetCfu = career.cfuTarget ?: 180
 
-                val currentExams = career.toGradeExams()
-                val targetCfu = career.cfuTarget ?: 180
+            val existingCustomItems = mutableUiState.value.simulationItems.filter { it.isCustom }
+            val passedTitles = currentExams.map { it.name.trim().lowercase() }.toSet()
 
-                val existingCustomItems = mutableUiState.value.simulationItems.filter { it.isCustom }
-                val passedTitles = currentExams.map { it.name.trim().lowercase() }.toSet()
+            val planSimulationItems = studyPlan?.courses
+                ?.filterNot { it.completed || it.title.trim().lowercase() in passedTitles }
+                ?.map { course ->
+                    val cfuVal = course.cfu ?: 6
+                    SimulationItem(
+                        id = course.adsceId?.takeIf { it.isNotBlank() } ?: "plan_${course.title.hashCode()}",
+                        name = course.title,
+                        cfu = cfuVal,
+                        grade = 28,
+                        isEnabled = false,
+                        isCustom = false,
+                    )
+                }.orEmpty()
 
-                val planSimulationItems = studyPlan?.courses
-                    ?.filterNot { it.completed || it.title.trim().lowercase() in passedTitles }
-                    ?.map { course ->
-                        val cfuVal = course.cfu ?: 6
+            val fallbackItems = if (planSimulationItems.isEmpty()) {
+                examRounds.filterNot { it.booked || it.courseName.trim().lowercase() in passedTitles }
+                    .distinctBy { it.courseName }
+                    .map { round ->
                         SimulationItem(
-                            id = course.adsceId?.takeIf { it.isNotBlank() } ?: "plan_${course.title.hashCode()}",
-                            name = course.title,
-                            cfu = cfuVal,
+                            id = "round_${round.courseName.hashCode()}",
+                            name = round.courseName,
+                            cfu = 6,
                             grade = 28,
                             isEnabled = false,
                             isCustom = false,
                         )
-                    }.orEmpty()
+                    }
+            } else emptyList()
 
-                val fallbackItems = if (planSimulationItems.isEmpty()) {
-                    examRounds.filterNot { it.booked || it.courseName.trim().lowercase() in passedTitles }
-                        .distinctBy { it.courseName }
-                        .map { round ->
-                            SimulationItem(
-                                id = "round_${round.courseName.hashCode()}",
-                                name = round.courseName,
-                                cfu = 6,
-                                grade = 28,
-                                isEnabled = false,
-                                isCustom = false,
-                            )
-                        }
-                } else emptyList()
+            val combinedSimulationItems = (planSimulationItems.ifEmpty { fallbackItems }) + existingCustomItems
 
-                val combinedSimulationItems = (planSimulationItems.ifEmpty { fallbackItems }) + existingCustomItems
-
-                mutableUiState.value = mutableUiState.value.copy(
-                    currentExams = currentExams,
-                    simulationItems = combinedSimulationItems,
-                    degreeCfuTarget = targetCfu,
-                    loadState = if (currentExams.isEmpty() && combinedSimulationItems.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_voti_e_simulazione)),
-                )
-            }
+            mutableUiState.value = mutableUiState.value.copy(
+                currentExams = currentExams,
+                simulationItems = combinedSimulationItems,
+                degreeCfuTarget = targetCfu,
+                loadState = if (currentExams.isEmpty() && combinedSimulationItems.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_voti_e_simulazione)),
+            )
         }
+
+    }
+
+    fun refresh(force: Boolean = false) {
+        sharedData.refresh(dataRequests, force)
     }
 
     fun selectTab(index: Int) {

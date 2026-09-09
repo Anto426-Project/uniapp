@@ -103,14 +103,13 @@ internal fun AppNavigationHost(
     val unlockUiState by sessionViewModel.unlockUiState.collectAsStateWithLifecycle()
     val shellViewModel = viewModel { AppShellViewModel() }
     val shellUiState by shellViewModel.uiState.collectAsStateWithLifecycle()
+    val accountAvatars by runtime.sessionController.avatars.images.collectAsStateWithLifecycle()
     val authenticatedAccount = (sessionState as? AppSessionState.Authenticated)?.account
     val accountId = authenticatedAccount?.accountId.orEmpty()
     val profileId = authenticatedAccount?.activeProfileId
-    val accountDataSource =
-        remember(runtime, accountId, profileId) {
-            accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
-                ?: runtime.dataSource
-        }
+    val accountDataSource = accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
+        ?: runtime.dataSource
+    val dataGeneration = (accountDataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.generation ?: 0L
     val themeViewModel =
         viewModel(key = "app-theme") {
             ThemeViewModel(runtime.localDataStore, toastManager)
@@ -125,7 +124,7 @@ internal fun AppNavigationHost(
         BindAppLanguage(languageUiState.selectedLanguageCode)
     }
     val deviceSessionsViewModel =
-        viewModel(key = "device-sessions-actions|$accountId") {
+        viewModel(key = "device-sessions-actions|$accountId|$profileId|$dataGeneration") {
             DeviceSessionsActionViewModel(accountDataSource, toastManager)
         }
     val deviceSessionsUiState by deviceSessionsViewModel.uiState.collectAsStateWithLifecycle()
@@ -134,6 +133,12 @@ internal fun AppNavigationHost(
     val notificationState by runtime.notificationManager.state.collectAsStateWithLifecycle()
     com.anto426.uniapp.updates.platform.NotifyAvailableAppUpdate(updateUiState, notificationState.enabled)
     val updateLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(updateLifecycle, accountDataSource) {
+        updateLifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            (accountDataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.maintainFreshData()
+            kotlinx.coroutines.awaitCancellation()
+        }
+    }
     LaunchedEffect(updateLifecycle, runtime) {
         updateLifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
             while (true) {
@@ -303,6 +308,8 @@ internal fun AppNavigationHost(
                     bottom = if (showBottomBar) 110.dp else 24.dp,
                 )
             CompositionLocalProvider(
+        com.anto426.uniapp.ui.components.account.LocalAccountAvatars provides accountAvatars,
+                com.anto426.uniapp.ui.components.display.LocalApplicationImages provides runtime.applicationImages,
                 LocalAppToastSink provides toastManager,
                 LocalUniScreenPadding provides screenPadding,
                 LocalNavigationBarVisible provides shellUiState.isNavigationBarVisible,
@@ -327,6 +334,7 @@ internal fun AppNavigationHost(
                                             sessionController = runtime.sessionController,
                                             dataSource = accountDataSource,
                                             localDataStore = runtime.localDataStore,
+                                            projectData = runtime.projectData,
                                             accountId = accountId,
                                             searchQuery = shellUiState.searchQuery,
                                             isSearchActive = shellUiState.isSearchActive,
@@ -339,7 +347,6 @@ internal fun AppNavigationHost(
                                             onRequestUnlock = { sessionViewModel.requestUnlock(biometricAuthenticator) },
                                             onPasswordUnlock = sessionViewModel::requestPasswordUnlock,
                                             onCancelUnlock = sessionViewModel::cancelUnlock,
-                                            devicesRefreshRevision = deviceSessionsUiState.refreshRevision,
                                             onRetryUpdate = updateViewModel::refresh,
                                             onOpenUpdate = updateViewModel::openUpdate,
                                             themeUiState = themeUiState,

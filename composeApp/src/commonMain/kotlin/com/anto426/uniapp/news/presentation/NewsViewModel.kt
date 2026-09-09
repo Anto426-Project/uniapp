@@ -2,6 +2,10 @@ package com.anto426.uniapp.news.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.data.toNewsItems
@@ -17,13 +21,9 @@ import kotlinx.coroutines.launch
 
 data class NewsUiState(
     val selectedTab: Int = 0,
-    val newsByTab: List<List<NewsItem>> = listOf(
-        UniAppInitialData.fallbackNews,
-        UniAppInitialData.fallbackNews.filterIndexed { index, _ -> index % 2 == 0 },
-        UniAppInitialData.fallbackNews.filterIndexed { index, _ -> index % 2 != 0 },
-    ),
+    val newsByTab: List<List<NewsItem>> = listOf(emptyList(), emptyList(), emptyList()),
     val selectedNews: NewsItem? = null,
-    val loadState: FeatureLoadState = FeatureLoadState.Content,
+    val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
 ) {
     val visibleNews: List<NewsItem> get() = newsByTab.getOrNull(selectedTab).orEmpty()
@@ -33,31 +33,33 @@ class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
     private val mutableUiState = MutableStateFlow(NewsUiState())
     val uiState: StateFlow<NewsUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
-
-    fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val fetchedNews = runCatching { dataSource.loadUniversityNews(force).toNewsItems() }.getOrNull()
-                val news = if (!fetchedNews.isNullOrEmpty()) fetchedNews else UniAppInitialData.fallbackNews
-                mutableUiState.value = mutableUiState.value.copy(
-                    newsByTab = listOf(news, news.filterIndexed { index, _ -> index % 2 == 0 }, news.filterIndexed { index, _ -> index % 2 != 0 }),
-                    selectedNews = null,
-                    loadState = FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                val news = UniAppInitialData.fallbackNews
-                mutableUiState.value = mutableUiState.value.copy(
-                    newsByTab = listOf(news, news.filterIndexed { index, _ -> index % 2 == 0 }, news.filterIndexed { index, _ -> index % 2 != 0 }),
-                    loadState = FeatureLoadState.Content,
-                    errorMessage = null,
-                )
-            }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.News)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        try {
+            val news = snapshot.require(UniAppDataRequests.News)
+            val tabs = listOf(
+                news.toNewsItems(),
+                news.filter { it.category?.contains("dipartiment", ignoreCase = true) == true }.toNewsItems(),
+                news.filter { it.category?.contains("event", ignoreCase = true) == true }.toNewsItems(),
+            )
+            mutableUiState.value = mutableUiState.value.copy(
+                newsByTab = tabs,
+                loadState = if (news.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                errorMessage = null,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.ui_news_empty_desc)),
+            )
         }
     }
+
+    fun refresh(force: Boolean = false) { sharedData.refresh(dataRequests, force) }
 
     fun selectTab(index: Int) {
         val lastIndex = mutableUiState.value.newsByTab.lastIndex.coerceAtLeast(0)

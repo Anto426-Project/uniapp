@@ -67,33 +67,6 @@ interface UniAppDataSource {
     suspend fun deleteTransportBooking(bookingId: String): TransportActionResult
 }
 
-data class UniAppCachePolicy(val maxAgeMillis: Long) {
-    init {
-        require(maxAgeMillis >= 0L)
-    }
-}
-
-object UniAppCachePolicies {
-    val Transport = UniAppCachePolicy(minutes(2))
-    val ConnectedDevices = UniAppCachePolicy(minutes(5))
-    val ExamRounds = UniAppCachePolicy(minutes(15))
-    val StudyPlan = UniAppCachePolicy(hours(6))
-    val SurveyCourses = UniAppCachePolicy(minutes(30))
-    val Attendance = UniAppCachePolicy(minutes(30))
-    val SurveyStatus = UniAppCachePolicy(minutes(30))
-    val News = UniAppCachePolicy(hours(1))
-    val Taxes = UniAppCachePolicy(hours(2))
-    val Career = UniAppCachePolicy(hours(6))
-    val ProfessorDashboard = UniAppCachePolicy(minutes(15))
-    val StudentDetails = UniAppCachePolicy(hours(6))
-    val ProfileImage = UniAppCachePolicy(hours(24 * 7))
-    val Contacts = UniAppCachePolicy(hours(24))
-    val CourseSyllabus = UniAppCachePolicy(hours(24 * 7))
-
-    private fun minutes(value: Long): Long = value * 60_000L
-    private fun hours(value: Long): Long = value * 60L * 60_000L
-}
-
 /**
  * Cache entries live inside the active account's encrypted vault. Fresh entries avoid network
  * access; stale entries are used only as an offline fallback after a failed refresh.
@@ -104,6 +77,7 @@ class SessionUniAppDataSource(
     private val fixedAccountId: String? = null,
     private val fixedProfileId: String? = null,
     private val nowMillis: () -> Long = ::currentEpochMillis,
+    private val fallbackToStaleCache: Boolean = true,
 ) : UniAppDataSource {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val requestLocksGuard = Mutex()
@@ -128,6 +102,27 @@ class SessionUniAppDataSource(
         if (sessions.state.value !== context.sessionState) {
             throw CancellationException("The account or profile changed while loading data")
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    internal suspend fun <T : Any> readCached(request: com.anto426.uniapp.data.runtime.UniAppDataRequest<T>): CachedValue<T>? {
+        val context = activeContext()
+        if (request.id.startsWith("portrait/")) {
+            val cached = accounts.readProfileImage(context.accountId, request.id.removePrefix("portrait/"))
+            ensureCurrent(context)
+            return cached?.let { CachedValue(it.savedAtMillis, it.bytes as T) }
+        }
+        val key = request.cacheKey ?: return null
+        val serializer = request.serializer ?: return null
+        val value = try {
+            readEntry(context.accountId, context.profileScopedKey(key), serializer)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            null // Damaged or unavailable cache must not prevent a network refresh.
+        }
+        ensureCurrent(context)
+        return value
     }
 
     override suspend fun loadCareer(forceRefresh: Boolean): CareerData =
@@ -185,17 +180,22 @@ class SessionUniAppDataSource(
             client.loadStudentDetails()
         }
 
+    internal suspend fun sharePortrait(source: String, bytes: ByteArray): ByteArray {
+        val context = activeContext()
+        return sessions.avatars.publish(context.accountId, source, bytes) { ensureCurrent(context) }
+    }
+
     override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray =
         activeContext().let { context ->
             requestLock(context.accountId, "profile-image").withLock {
                 ensureCurrent(context)
                 val cached = accounts.readProfileImage(context.accountId, source)
                 ensureCurrent(context)
-                if (!forceRefresh && cached != null && nowMillis() - cached.savedAtMillis <= UniAppCachePolicies.ProfileImage.maxAgeMillis) {
+                if (!forceRefresh && cached != null && nowMillis() - cached.savedAtMillis in 0 until UniAppCachePolicies.ProfileImage.maxAgeMillis) {
                     return@withLock cached.bytes
                 }
                 try {
-                    context.client.loadProfileImage(source).also { bytes ->
+                    val downloaded = context.client.loadProfileImage(source).also { bytes ->
                         ensureCurrent(context)
                         try {
                             accounts.writeProfileImage(context.accountId, source, nowMillis(), bytes)
@@ -206,6 +206,7 @@ class SessionUniAppDataSource(
                         }
                         ensureCurrent(context)
                     }
+                    downloaded
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Throwable) {
@@ -339,9 +340,11 @@ class SessionUniAppDataSource(
         val scopedKey = context.profileScopedKey(key)
         return requestLock(accountId, scopedKey).withLock {
             ensureCurrent(context)
-            val cached = readEntry(accountId, scopedKey, serializer)
+            val cached = try { readEntry(accountId, scopedKey, serializer) }
+                catch (error: CancellationException) { throw error }
+                catch (_: Exception) { null }
             ensureCurrent(context)
-            if (cached != null && nowMillis() - cached.savedAtMillis in 0..policy.maxAgeMillis &&
+            if (cached != null && nowMillis() - cached.savedAtMillis in 0 until policy.maxAgeMillis &&
                 (!forceRefresh || cached.savedAtMillis > requestStartedAt)
             ) {
                 return@withLock cached.value
@@ -363,7 +366,7 @@ class SessionUniAppDataSource(
                 throw error
             } catch (error: Throwable) {
                 ensureCurrent(context)
-                cached?.value ?: throw error
+                if (fallbackToStaleCache) cached?.value ?: throw error else throw error
             }
         }
     }
@@ -417,7 +420,7 @@ class SessionUniAppDataSource(
 
     private fun cacheIdentity(accountId: String, key: String): String = "$accountId|$key"
 
-    private data class CachedValue<T>(val savedAtMillis: Long, val value: T)
+    internal data class CachedValue<T>(val savedAtMillis: Long, val value: T)
     private data class ActiveAccountContext(
         val accountId: String,
         val client: UniAccountClient,

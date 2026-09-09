@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.stableUiId
 import com.anto426.uniapp.model.didactics.PastExam
@@ -19,8 +20,6 @@ import com.anto426.unisdk.backend.model.isPastExamRound
 import com.anto426.unisdk.backend.model.parseExamRoundDateOrNull
 import com.anto426.unisdk.backend.model.parseExamRoundDateTimeOrNull
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,33 +42,34 @@ class ExamsHistoryViewModel(
     private val mutableUiState = MutableStateFlow(ExamsHistoryUiState())
     val uiState: StateFlow<ExamsHistoryUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Career, UniAppDataRequests.Exams)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val exams = buildExamHistory(
+                snapshot.require(UniAppDataRequests.Career).exams,
+                snapshot.value(UniAppDataRequests.Exams).orEmpty(),
+                today(),
+            )
+            mutableUiState.value = ExamsHistoryUiState(
+                exams = exams,
+                loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_lo_storico_esami)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val snapshot = coroutineScope {
-                    val career = async { dataSource.loadCareer(force) }
-                    val rounds = async {
-                        runCatching { dataSource.loadExamRounds(force) }.getOrDefault(emptyList())
-                    }
-                    career.await().exams to rounds.await()
-                }
-                val exams = buildExamHistory(snapshot.first, snapshot.second, today())
-                mutableUiState.value = ExamsHistoryUiState(
-                    exams = exams,
-                    loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_lo_storico_esami)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 }
 

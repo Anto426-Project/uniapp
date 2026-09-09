@@ -12,6 +12,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Url
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -29,35 +31,37 @@ internal class GitHubProjectRepository(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun load(previous: GitHubProjectSnapshot? = null): GitHubProjectSnapshot {
-        var incomplete = false
-        suspend fun <T> section(fallback: T, load: suspend () -> T): T = try {
-            load()
+    suspend fun load(previous: GitHubProjectSnapshot? = null): GitHubProjectSnapshot = coroutineScope {
+        suspend fun <T> section(fallback: T, load: suspend () -> T): Pair<T, Boolean> = try {
+            load() to false
         } catch (error: CancellationException) {
             throw error
         } catch (_: Exception) {
-            incomplete = true
-            fallback
+            fallback to true
         }
-        val author = section(previous?.author) {
+        val authorTask = async { section(previous?.author) {
             json.decodeFromString<GitHubAuthor>(request("$API/users/${ProjectInfo.authorLogin}").first)
-        }
-        val project = section(previous?.project) {
+        } }
+        val projectTask = async { section(previous?.project) {
             json.decodeFromString<GitHubRepositoryInfo>(request("$API/repos/${ProjectInfo.repository}").first)
-        }
-        val repositories = section(previous?.repositories.orEmpty()) {
+        } }
+        val repositoriesTask = async { section(previous?.repositories.orEmpty()) {
             pages("$API/users/${ProjectInfo.authorLogin}/repos?sort=updated&per_page=100")
                 .map { json.decodeFromJsonElement(GitHubRepositoryInfo.serializer(), it) }.distinctBy { it.id }
-        }
-        val contributors = section(previous?.contributors.orEmpty()) {
+        } }
+        val contributorsTask = async { section(previous?.contributors.orEmpty()) {
             pages("$API/repos/${ProjectInfo.repository}/contributors?anon=true&per_page=100")
-                .map { json.decodeFromJsonElement(GitHubContributor.serializer(), it) }
-                .sortedByDescending { it.contributions }
-        }
+                .map { json.decodeFromJsonElement(GitHubContributor.serializer(), it) }.sortedByDescending { it.contributions }
+        } }
+        val (author, authorFailed) = authorTask.await()
+        val (project, projectFailed) = projectTask.await()
+        val (repositories, repositoriesFailed) = repositoriesTask.await()
+        val (contributors, contributorsFailed) = contributorsTask.await()
         if (author == null && project == null && repositories.isEmpty() && contributors.isEmpty()) {
             error(getString(Res.string.msg_github_non_e_disponibile_riprova_piu_tardi))
         }
-        return GitHubProjectSnapshot(author, project, repositories, contributors,
+        val incomplete = authorFailed || projectFailed || repositoriesFailed || contributorsFailed
+        GitHubProjectSnapshot(author, project, repositories, contributors,
             if (incomplete) previous?.fetchedAt ?: 0 else now(), incomplete)
     }
 

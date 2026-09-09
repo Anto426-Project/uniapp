@@ -15,6 +15,11 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
     timeout-minutes: 60
+    env:
+      # GitHub Packages authentication — resolves pre-built SDK AARs without
+      # checking out the submodule source (faster builds, deterministic binaries).
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     defaults:
       run:
         shell: bash
@@ -22,7 +27,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.DEPLOY_TOKEN || github.token }}
-          submodules: recursive
+          # Submodules are NOT checked out in CI: SDK dependencies are resolved
+          # from the pre-built AARs published on GitHub Packages by each SDK's workflow.
           persist-credentials: false
       - uses: actions/setup-java@v4
         with:
@@ -30,6 +36,10 @@ jobs:
           java-version: "21"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          # Read-only: the shared-libs pre-build workflow populates the cache.
+          # This job only consumes it to skip recompiling SDK modules from source.
+          cache-read-only: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

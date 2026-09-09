@@ -13,6 +13,8 @@ jobs:
     timeout-minutes: 60
     env:
       UNIAPP_APP_STORE_URL: ${{ vars.UNIAPP_APP_STORE_URL }}
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -20,7 +22,6 @@ jobs:
         with:
           token: ${{ secrets.DEPLOY_TOKEN || github.token }}
           persist-credentials: false
-          submodules: recursive
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -30,6 +31,20 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          # Cache is keyed on source hashes so the compiled Kotlin/Native framework
+          # is reused across runs when nothing relevant changes.
+          cache-read-only: false
+
+      - name: Cache Kotlin/Native framework
+        uses: actions/cache@v4
+        with:
+          path: |
+            composeApp/build/bin/
+            ~/.konan/cache/
+          key: ios-kn-framework-${{ runner.os }}-${{ hashFiles('composeApp/**', 'libs/**', 'gradle/**', '*.gradle.kts', 'gradle.properties') }}
+          restore-keys: |
+            ios-kn-framework-${{ runner.os }}-
 
       - name: Build shared Kotlin framework
         run: ./gradlew :composeApp:linkReleaseFrameworkIosArm64

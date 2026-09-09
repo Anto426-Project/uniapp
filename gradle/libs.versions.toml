@@ -19,6 +19,12 @@ navigation3 = "1.1.1"
 annotation = "1.10.0"
 coil = "3.6.1"
 zscanner = "1.0.0"
+# SDK pre-built binaries from GitHub Packages. The `+` selector picks the latest
+# published patch automatically so every CI run always uses the freshest build.
+antosdk = "1.0.+"
+unisdk = "1.0.+"
+secure-storage-sdk = "1.0.+"
+firebase-connector-sdk = "1.0.+"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "androidx-core-ktx" }
@@ -32,8 +38,8 @@ androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-kt
 androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
-antosdk = { module = "com.anto426:antosdk" }
-firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk" }
+antosdk = { module = "com.anto426:antosdk", version.ref = "antosdk" }
+firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk", version.ref = "firebase-connector-sdk" }
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -50,8 +56,8 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
-secure-storage-sdk = { module = "com.anto426:secure-storage-sdk" }
-unisdk = { module = "com.anto426:unisdk" }
+secure-storage-sdk = { module = "com.anto426:secure-storage-sdk", version.ref = "secure-storage-sdk" }
+unisdk = { module = "com.anto426:unisdk", version.ref = "unisdk" }
 zscanner = { group = "io.github.namantonk", name = "zscanner", version.ref = "zscanner" }
 
 [plugins]

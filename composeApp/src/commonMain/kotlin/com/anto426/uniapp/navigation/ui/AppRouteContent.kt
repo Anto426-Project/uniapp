@@ -110,6 +110,7 @@ internal fun AppRouteContent(
     sessionController: AppSessionController,
     dataSource: UniAppDataSource,
     localDataStore: UniLocalDataStore,
+    projectData: com.anto426.uniapp.project.data.ProjectDataStore,
     accountId: String,
     searchQuery: String,
     isSearchActive: Boolean,
@@ -122,7 +123,6 @@ internal fun AppRouteContent(
     onRequestUnlock: () -> Unit,
     onPasswordUnlock: (String) -> Unit,
     onCancelUnlock: () -> Unit,
-    devicesRefreshRevision: Int,
     onRetryUpdate: () -> Unit,
     onOpenUpdate: () -> Unit,
     themeUiState: ThemeUiState,
@@ -137,7 +137,8 @@ internal fun AppRouteContent(
     onSignOut: () -> Unit,
 ) {
     val activeProfileId = (sessionState as? AppSessionState.Authenticated)?.account?.activeProfileId
-    val viewModelKey = "$accountId|${activeProfileId.orEmpty()}|$route"
+    val dataGeneration = (dataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.generation ?: 0
+    val viewModelKey = "$accountId|${activeProfileId.orEmpty()}|$dataGeneration|$route"
     val uriHandler = LocalUriHandler.current
     when (route) {
         AppRoute.Bootstrap ->
@@ -835,9 +836,6 @@ internal fun AppRouteContent(
             val devicesViewModel =
                 viewModel(key = viewModelKey) { ConnectedDevicesViewModel(dataSource, toastSink) }
             val devicesUiState by devicesViewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(devicesRefreshRevision) {
-                if (devicesRefreshRevision > 0) devicesViewModel.refresh(force = true)
-            }
             FeatureStateContent(
                 devicesUiState.loadState,
                 devicesUiState.errorMessage,
@@ -860,7 +858,7 @@ internal fun AppRouteContent(
         }
         AppRoute.Author -> {
             val projectViewModel = viewModel(key = "public-project-info") {
-                com.anto426.uniapp.project.presentation.ProjectInfoViewModel(localDataStore)
+                com.anto426.uniapp.project.presentation.ProjectInfoViewModel(projectData)
             }
             val projectState by projectViewModel.uiState.collectAsStateWithLifecycle()
             CreatorCreditsScreen(

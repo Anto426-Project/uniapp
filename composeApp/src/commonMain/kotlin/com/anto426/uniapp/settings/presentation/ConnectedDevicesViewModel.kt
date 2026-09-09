@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toDeviceInfo
 import com.anto426.uniapp.feedback.runtime.AppToastSink
@@ -12,6 +13,8 @@ import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.uniapp.model.settings.DeviceInfo
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
@@ -38,26 +41,30 @@ class ConnectedDevicesViewModel(
     private val mutableUiState = MutableStateFlow(ConnectedDevicesUiState())
     val uiState: StateFlow<ConnectedDevicesUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Devices)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val devices = snapshot.require(UniAppDataRequests.Devices).toDeviceInfo()
+            mutableUiState.value = mutableUiState.value.copy(
+                devices = devices,
+                loadState = if (devices.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
-            try {
-                val devices = dataSource.loadConnectedDevices(force).toDeviceInfo()
-                mutableUiState.value = ConnectedDevicesUiState(
-                    devices = devices,
-                    loadState = if (devices.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = FeatureLoadState.Error,
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun requestRevocation(device: DeviceInfo) {
@@ -81,13 +88,12 @@ class ConnectedDevicesViewModel(
         viewModelScope.launch {
             mutableUiState.value = mutableUiState.value.copy(isMutating = true, errorMessage = null)
             try {
-                val message = dataSource.disconnectDevice(token)
+                val message = sharedData.disconnectDevice(token)
                 mutableUiState.value = mutableUiState.value.copy(
                     devicePendingRevocation = null,
                     isMutating = false,
                 )
                 toastSink.success(message)
-                refresh(force = true)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {

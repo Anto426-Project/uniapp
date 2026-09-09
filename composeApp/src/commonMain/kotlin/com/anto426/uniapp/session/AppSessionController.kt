@@ -33,6 +33,7 @@ class AppSessionController internal constructor(
     private val accountStore: UniAccountStore,
     private val localDataStore: UniLocalDataStore,
 ) {
+    val avatars = com.anto426.uniapp.account.data.AccountAvatarStore(accountStore)
     private val lock = Mutex()
     private val mutableState = MutableStateFlow<AppSessionState>(AppSessionState.Initializing)
     private val mutableAccountsRevision = MutableStateFlow(0L)
@@ -238,14 +239,11 @@ class AppSessionController internal constructor(
                     if (previous.account.accountId == accountId) AppSessionState.SignedOut() else previous
                 else -> previous
             }
+            localDataStore.invalidateAccount(accountId)
+            avatars.remove(accountId)
             mutableAccountsRevision.value += 1
         }
     }
-
-    internal suspend fun cachedProfileImage(account: UniAccountSummary): ByteArray? =
-        account.photoUrl
-            ?.takeIf(String::isNotBlank)
-            ?.let { source -> accountStore.readProfileImage(account.accountId, source)?.bytes }
 
     private suspend fun requiresBiometricUnlock(accountId: String): Boolean =
         localDataStore.read(LocalDataScope.Account(accountId), UniAppDataKeys.BiometricUnlock)

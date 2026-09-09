@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import com.anto426.uniapp.account.platform.rememberPlatformUniAccountStore
 import com.anto426.uniapp.account.session.UniSessionCoordinator
 import com.anto426.uniapp.data.SessionUniAppDataSource
+import com.anto426.uniapp.data.runtime.UniAppDataCoordinator
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.local.EncryptedUniLocalDataStore
 import com.anto426.uniapp.data.local.UniLocalDataStore
@@ -38,22 +39,60 @@ class UniAppRuntime internal constructor(
     val appInfo: com.anto426.unisdk.platform.AppInfo get() = com.anto426.unisdk.platform.AppInfoProvider.current
 
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val accountDataSources = mutableMapOf<String, UniAppDataSource>()
+    private val dataScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    internal val applicationImages = com.anto426.uniapp.data.images.ApplicationImageStore(localDataStore, dataScope)
+    internal val projectData = com.anto426.uniapp.project.data.ProjectDataStore(dataScope, localDataStore)
+    private val lifecycleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val accountDataSources = mutableMapOf<Pair<String, String?>, UniAppDataCoordinator>()
+    private var generation = 0L
+    private var ownerState = sessionController.state.value
+
+    init {
+        lifecycleScope.launch {
+            sessionController.state.collect { state ->
+                updateOwner(state)
+            }
+        }
+    }
+
+    // Called only on Main, both by the state collector and before resolving a route.
+    private fun updateOwner(state: com.anto426.uniapp.session.model.AppSessionState) {
+        if (state === ownerState) return
+        val previous = accountDataSources.values.toList()
+        accountDataSources.clear()
+        ownerState = state
+        previous.forEach { old -> dataScope.launch { old.close() } }
+    }
 
     internal fun dataSourceFor(accountId: String, profileId: String?): UniAppDataSource {
         require(accountId.isNotBlank()) { "Account id cannot be blank" }
-        val ownerKey = "$accountId|${profileId.orEmpty()}"
+        updateOwner(sessionController.state.value)
+        val ownerKey = accountId to profileId
         return accountDataSources.getOrPut(ownerKey) {
-            SessionUniAppDataSource(
-                sessions = sessionController,
-                accounts = accountStore,
-                fixedAccountId = accountId,
-                fixedProfileId = profileId,
-            )
+            generation += 1
+            val account = (sessionController.state.value as? com.anto426.uniapp.session.model.AppSessionState.Authenticated)?.account
+            UniAppDataCoordinator(
+                source = SessionUniAppDataSource(
+                    sessions = sessionController,
+                    accounts = accountStore,
+                    fixedAccountId = accountId,
+                    fixedProfileId = profileId,
+                    fallbackToStaleCache = false,
+                ),
+                parentScope = dataScope,
+                generation = generation,
+            ).also {
+                it.startPortrait(account)
+                it.preload(account?.isProfessor == true)
+            }
         }
     }
 
     internal fun close() {
+        applicationImages.close()
+        projectData.close()
+        lifecycleScope.cancel()
+        dataScope.cancel()
         unregisterPushTokenProvider()
         notificationManager.close()
         cleanupScope.launch {

@@ -30,6 +30,7 @@ class UniAccountStore(
     private val generateIdentifier: () -> String = ::generateAccountStorageIdentifier,
 ) {
     private val lock = Mutex()
+    private val applicationLock = Mutex()
     private var cachedRegistry: StoredAccountRegistry? = null
 
     suspend fun snapshot(): UniAccountRegistrySnapshot =
@@ -151,22 +152,30 @@ class UniAccountStore(
         }
     }
 
-    /** Application-owned data that must exist independently from an authenticated account. */
-    internal suspend fun readApplicationData(key: String): ByteArray? =
-        lock.withLock {
-            storageManager.registry().getBytes(localDataKey(key))
-        }
-
-    internal suspend fun writeApplicationData(key: String, value: ByteArray) {
-        lock.withLock {
-            storageManager.registry().putBytes(localDataKey(key), value)
+    /** App-wide content has its own vault, independent of registry and account removal. */
+    internal suspend fun readApplicationData(key: String): ByteArray? = applicationLock.withLock {
+        val appStorage = storageManager.vault("application-data")
+        val storageKey = localDataKey(key)
+        appStorage.getBytes(storageKey)?.let { return@withLock it }
+        // Migrate existing preferences and project data. Delete the old value only after saving.
+        val legacy = storageManager.registry().getBytes(storageKey) ?: return@withLock null
+        try {
+            appStorage.putBytes(storageKey, legacy)
+            storageManager.registry().remove(storageKey)
+            legacy.copyOf()
+        } finally {
+            legacy.fill(0)
         }
     }
 
-    internal suspend fun removeApplicationData(key: String) {
-        lock.withLock {
-            storageManager.registry().remove(localDataKey(key))
-        }
+    internal suspend fun writeApplicationData(key: String, value: ByteArray) = applicationLock.withLock {
+        storageManager.vault("application-data").putBytes(localDataKey(key), value)
+        storageManager.registry().remove(localDataKey(key))
+    }
+
+    internal suspend fun removeApplicationData(key: String) = applicationLock.withLock {
+        storageManager.vault("application-data").remove(localDataKey(key))
+        storageManager.registry().remove(localDataKey(key))
     }
 
     /** Account-owned data kept separate from credentials, sessions and response caches. */
@@ -192,16 +201,16 @@ class UniAccountStore(
 
     internal suspend fun readProfileImage(
         accountId: String,
-        expectedSource: String,
+        expectedSource: String? = null,
     ): CachedProfileImage? =
         lock.withLock {
             requireKnownAccount(loadRegistry(), accountId)
             val vault = storageManager.vault(accountId)
             val storedSource = vault.getString(PROFILE_IMAGE_SOURCE_KEY) ?: return@withLock null
-            if (storedSource != expectedSource) return@withLock null
+            if (expectedSource != null && storedSource != expectedSource) return@withLock null
             val savedAt = vault.getString(PROFILE_IMAGE_SAVED_AT_KEY)?.toLongOrNull() ?: return@withLock null
             val bytes = vault.getBytes(PROFILE_IMAGE_BYTES_KEY) ?: return@withLock null
-            CachedProfileImage(savedAtMillis = savedAt, bytes = bytes)
+            CachedProfileImage(savedAtMillis = savedAt, bytes = bytes, source = storedSource)
         }
 
     internal suspend fun writeProfileImage(
@@ -264,7 +273,7 @@ class UniAccountStore(
     suspend fun destroyAll() {
         lock.withLock {
             val registry = loadRegistry()
-            storageManager.destroyAll(registry.accounts.map(StoredAccount::accountId))
+            storageManager.destroyAll(registry.accounts.map(StoredAccount::accountId) + "application-data")
             cachedRegistry = null
         }
     }
@@ -352,6 +361,7 @@ class UniAccountStore(
 }
 
 internal data class CachedProfileImage(
+    val source: String,
     val savedAtMillis: Long,
     val bytes: ByteArray,
 )

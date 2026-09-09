@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.model.didactics.QuestionnaireData
 import com.anto426.uniapp.model.didactics.QuestionnaireStatus
@@ -34,40 +35,44 @@ class QuestionnairesViewModel(private val dataSource: UniAppDataSource) : ViewMo
     private val mutableUiState = MutableStateFlow(QuestionnairesUiState())
     val uiState: StateFlow<QuestionnairesUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
-
-    fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val questionnaires = dataSource.loadSurveyCourses(force).map { course ->
-                    QuestionnaireData(
-                        course = course.title,
-                        prof = course.professor.orEmpty(),
-                        code = course.adCod.orEmpty(),
-                        status = when {
-                            course.completed -> QuestionnaireStatus.COMPLETED
-                            course.enabled -> QuestionnaireStatus.PENDING
-                            else -> QuestionnaireStatus.UNAVAILABLE
-                        },
-                        courseId = course.courseId,
-                        tagList = course.tagList,
-                    )
-                }
-                mutableUiState.value = QuestionnairesUiState(
-                    pending = questionnaires.filter { it.status == QuestionnaireStatus.PENDING },
-                    completed = questionnaires.filter { it.status == QuestionnaireStatus.COMPLETED },
-                    unavailable = questionnaires.filter { it.status == QuestionnaireStatus.UNAVAILABLE },
-                    loadState = if (questionnaires.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_questionari)),
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Surveys)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val questionnaires = snapshot.require(UniAppDataRequests.Surveys).map { course ->
+                QuestionnaireData(
+                    course = course.title,
+                    prof = course.professor.orEmpty(),
+                    code = course.adCod.orEmpty(),
+                    status = when {
+                        course.completed -> QuestionnaireStatus.COMPLETED
+                        course.enabled -> QuestionnaireStatus.PENDING
+                        else -> QuestionnaireStatus.UNAVAILABLE
+                    },
+                    courseId = course.courseId,
+                    tagList = course.tagList,
                 )
             }
+            mutableUiState.value = QuestionnairesUiState(
+                pending = questionnaires.filter { it.status == QuestionnaireStatus.PENDING },
+                completed = questionnaires.filter { it.status == QuestionnaireStatus.COMPLETED },
+                unavailable = questionnaires.filter { it.status == QuestionnaireStatus.UNAVAILABLE },
+                loadState = if (questionnaires.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_questionari)),
+            )
         }
+
+    }
+
+    fun refresh(force: Boolean = false) {
+        sharedData.refresh(dataRequests, force)
     }
 }

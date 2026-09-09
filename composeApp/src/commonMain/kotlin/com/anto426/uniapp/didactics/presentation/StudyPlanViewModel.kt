@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toStudyYears
 import com.anto426.uniapp.model.didactics.StudyYear
@@ -32,29 +33,33 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
     private val mutableUiState = MutableStateFlow(StudyPlanUiState())
     val uiState: StateFlow<StudyPlanUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.StudyPlan)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val years = snapshot.require(UniAppDataRequests.StudyPlan).toStudyYears()
+            val previous = mutableUiState.value
+            val selectedYear = previous.years.getOrNull(previous.selectedYearIndex)?.yearNumber
+            mutableUiState.value = mutableUiState.value.copy(
+                years = years,
+                selectedYearIndex = years.indexOfFirst { it.yearNumber == selectedYear }.coerceAtLeast(0),
+                loadState = if (years.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_piano_di_studi)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val years = dataSource.loadStudyPlan(force).toStudyYears()
-                val previous = mutableUiState.value
-                val selectedYear = previous.years.getOrNull(previous.selectedYearIndex)?.yearNumber
-                mutableUiState.value = mutableUiState.value.copy(
-                    years = years,
-                    selectedYearIndex = years.indexOfFirst { it.yearNumber == selectedYear }.coerceAtLeast(0),
-                    loadState = if (years.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_piano_di_studi)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun selectYear(index: Int) {

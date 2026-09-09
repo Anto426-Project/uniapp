@@ -21,6 +21,8 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.anto426.liquidmonet.components.display.LiquidAvatar
 
+internal val LocalAccountAvatars = androidx.compose.runtime.staticCompositionLocalOf<Map<String, com.anto426.uniapp.account.data.AccountAvatar>> { emptyMap() }
+
 /** Displays the account photo when available and preserves the SDK initials fallback. */
 @Composable
 fun UniAccountAvatar(
@@ -29,6 +31,7 @@ fun UniAccountAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 44.dp,
     contentDescription: String? = null,
+    imageCacheKey: String? = null,
 ) {
     if (imageData == null || imageData.isEmpty()) {
         LiquidAvatar(
@@ -39,11 +42,14 @@ fun UniAccountAvatar(
         return
     }
 
+    val cacheKey = imageCacheKey ?: LocalAccountAvatars.current.values.firstOrNull { it.bytes === imageData }?.cacheKey
     val platformContext = LocalPlatformContext.current
     val request =
-        androidx.compose.runtime.remember(imageData, platformContext) {
+        androidx.compose.runtime.remember(imageData, platformContext, cacheKey) {
             ImageRequest.Builder(platformContext)
                 .data(imageData)
+                .memoryCacheKey(cacheKey)
+                .size(256, 256)
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .networkCachePolicy(CachePolicy.DISABLED)
                 .build()

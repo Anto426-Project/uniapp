@@ -6,6 +6,7 @@ import uniapp.composeapp.generated.resources.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.data.toNewsItems
@@ -16,8 +17,6 @@ import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,113 +40,75 @@ class HomeDashboardViewModel(
         )
     val uiState: StateFlow<HomeDashboardUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = if (account?.isProfessor == true) {
+        listOf(UniAppDataRequests.Professor, UniAppDataRequests.News)
+    } else {
+        listOf(UniAppDataRequests.Student, UniAppDataRequests.Career, UniAppDataRequests.Taxes,
+            UniAppDataRequests.Exams, UniAppDataRequests.News)
+    }
 
-    fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
-            try {
-                if (account?.isProfessor == true) {
-                    loadProfessorHome(force)
-                    return@launch
-                }
-                val snapshot = coroutineScope {
-                    val student = async { dataSource.loadStudentDetails(force) }
-                    val career = async { dataSource.loadCareer(force) }
-                    val taxes = async { dataSource.loadTaxes(force) }
-                    val rounds = async { dataSource.loadExamRounds(force) }
-                    val news = async {
-                        runCatching { dataSource.loadUniversityNews(force) }.getOrDefault(emptyList())
-                    }
-                    HomeSnapshot(student.await(), career.await(), taxes.await(), rounds.await(), news.await())
-                }
-                val targetCfu = snapshot.career.cfuTarget ?: 0
-                val acquiredCfu = snapshot.career.cfu.firstAcademicIntegerOrNull() ?: 0
-                val nextRound = snapshot.rounds.firstOrNull { it.open && !it.booked }
-                val nextTax = snapshot.taxes.unpaidInstallments.firstOrNull()
-                val newsItems = snapshot.news.toNewsItems().ifEmpty { UniAppInitialData.fallbackNews }
-                mutableUiState.update { current ->
-                    current.copy(
-                        profileName = snapshot.student.fullName,
-                        matricola = snapshot.student.matricola.orEmpty(),
-                        departmentName = snapshot.student.departmentName.orEmpty(),
-                        profileInitials = snapshot.student.fullName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString(""),
-                        news = newsItems,
-                        degreeName = snapshot.student.degreeName ?: snapshot.career.status,
-                        academicYear = snapshot.career.year,
-                        acquiredCfu = acquiredCfu.toString(),
-                        targetCfu = targetCfu,
-                        degreeBase = snapshot.career.degreeBase ?: "—",
-                        average = snapshot.career.average,
-                        completedExams = snapshot.career.exams.size,
-                        progress = if (targetCfu > 0) (acquiredCfu.toFloat() / targetCfu).coerceIn(0f, 1f) else 0f,
-                        openExamRounds = snapshot.rounds.count { it.open && !it.booked },
-                        nextExamLabel = nextRound?.let { "${it.courseName} • ${it.dateTime}" } ?: getString(Res.string.msg_nessun_appello_disponibile),
-                        dueAmount = snapshot.taxes.dueAmount,
-                        nextTaxLabel = nextTax?.let { "${it.title} • ${it.deadline}" } ?: getString(Res.string.ui_home_no_due_taxes),
-                        loadState = FeatureLoadState.Content,
-                    )
-                }
-                snapshot.student.photoUrl?.takeIf(String::isNotBlank)?.let { source ->
-                    runCatching { dataSource.loadProfileImage(source, force) }
-                        .getOrNull()
-                        ?.let { image ->
-                            mutableUiState.update { it.copy(profilePhotoData = image) }
-                        }
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.update {
-                    it.copy(
-                        loadState = if (it.degreeName.isBlank()) FeatureLoadState.Error else FeatureLoadState.Content,
-                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_aggiornare_la_panoramica)),
-                    )
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, partial = true) { snapshot ->
+        val failure = snapshot.firstError?.userMessage(getString(Res.string.msg_impossibile_aggiornare_la_panoramica))
+        mutableUiState.update { current ->
+            var next = current.copy(errorMessage = failure)
+            snapshot.value(UniAppDataRequests.Student)?.let { student ->
+                next = next.copy(profileName = student.fullName, matricola = student.matricola.orEmpty(),
+                    profileInitials = student.fullName.initials(), departmentName = student.departmentName.orEmpty(),
+                    degreeName = student.degreeName.orEmpty(), loadState = FeatureLoadState.Content)
+            }
+            snapshot.value(UniAppDataRequests.Career)?.let { career ->
+                val target = career.cfuTarget ?: 0
+                val acquired = career.cfu.firstAcademicIntegerOrNull() ?: 0
+                next = next.copy(academicYear = career.year, acquiredCfu = acquired.toString(), targetCfu = target,
+                    degreeBase = career.degreeBase ?: "—", average = career.average, completedExams = career.exams.size,
+                    progress = if (target > 0) (acquired.toFloat() / target).coerceIn(0f, 1f) else 0f,
+                    loadState = FeatureLoadState.Content)
+            }
+            snapshot.value(UniAppDataRequests.Taxes)?.let { taxes ->
+                val tax = taxes.unpaidInstallments.firstOrNull()
+                next = next.copy(dueAmount = taxes.dueAmount,
+                    nextTaxLabel = tax?.let { "${it.title} • ${it.deadline}" }.orEmpty())
+            }
+            snapshot.value(UniAppDataRequests.Exams)?.let { rounds ->
+                val upcoming = rounds.firstOrNull { it.open && !it.booked }
+                next = next.copy(openExamRounds = rounds.count { it.open && !it.booked },
+                    nextExamLabel = upcoming?.let { "${it.courseName} • ${it.dateTime}" }.orEmpty())
+            }
+            snapshot.value(UniAppDataRequests.News)?.let { news ->
+                val items = news.toNewsItems()
+                next = next.copy(news = items, activeNewsIndex = next.activeNewsIndex.coerceIn(0, items.lastIndex.coerceAtLeast(0)))
+            }
+            if (account?.isProfessor == true) {
+                val profile = account.profiles.firstOrNull { it.profileId == account.activeProfileId }
+                    ?: account.profiles.firstOrNull { it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR }
+                next = next.copy(isProfessor = true, profileName = account.displayName,
+                    profileInitials = account.displayName.initials(), matricola = account.serverUserId,
+                    departmentName = profile?.departmentName.orEmpty(), degreeName = profile?.departmentName.orEmpty())
+                snapshot.value(UniAppDataRequests.Professor)?.let { dashboard ->
+                    val round = dashboard.examRounds.firstOrNull()
+                    next = next.copy(teachingCount = dashboard.teachings.size, thesisCount = dashboard.theses.size,
+                        openExamRounds = dashboard.examRounds.size, nextExamLabel = round?.subtitle ?: round?.title.orEmpty(),
+                        loadState = FeatureLoadState.Content)
                 }
             }
+            if (snapshot.resolved && next.loadState == FeatureLoadState.Loading && failure != null) {
+                next = next.copy(loadState = FeatureLoadState.Error)
+            }
+            next
         }
     }
 
-    private suspend fun loadProfessorHome(force: Boolean) {
-        val professor = checkNotNull(account)
-        val snapshot = coroutineScope {
-            val dashboard = async { dataSource.loadProfessorDashboard(force) }
-            val news = async {
-                runCatching { dataSource.loadUniversityNews(force) }.getOrDefault(emptyList())
-            }
-            dashboard.await() to news.await()
+    init {
+        sharedData.startPortrait(account)
+        viewModelScope.launch {
+            sharedData.portrait.collect { image -> mutableUiState.update { it.copy(profilePhotoData = image) } }
         }
-        val (dashboard, news) = snapshot
-        val activeProfile =
-            professor.profiles.firstOrNull { it.profileId == professor.activeProfileId }
-                ?: professor.profiles.firstOrNull { it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR }
-        val firstRound = dashboard.examRounds.firstOrNull()
-        val newsItems = news.toNewsItems().ifEmpty { UniAppInitialData.fallbackNews }
-        mutableUiState.update { current ->
-            current.copy(
-                isProfessor = true,
-                profileName = professor.displayName,
-                matricola = professor.serverUserId,
-                departmentName = activeProfile?.departmentName.orEmpty(),
-                profileInitials = professor.displayName.initials(),
-                news = newsItems,
-                degreeName = activeProfile?.departmentName.orEmpty(),
-                academicYear = "",
-                teachingCount = dashboard.teachings.size,
-                openExamRounds = dashboard.examRounds.size,
-                thesisCount = dashboard.theses.size,
-                nextExamLabel = firstRound?.subtitle ?: firstRound?.title ?: "",
-                loadState = FeatureLoadState.Content,
-                errorMessage =
-                    dashboard.unavailableSections.takeIf { it.isNotEmpty() }
-                        ?.let { getString(Res.string.msg_alcuni_dati_docente_non_sono_momentaneamente_disponibili) },
-            )
-        }
-        professor.photoUrl?.takeIf(String::isNotBlank)?.let { source ->
-            runCatching { dataSource.loadProfileImage(source, force) }
-                .getOrNull()
-                ?.let { image -> mutableUiState.update { it.copy(profilePhotoData = image) } }
-        }
+    }
+
+    fun refresh(force: Boolean = false) {
+        sharedData.refresh(dataRequests, force)
+        if (force) sharedData.refreshPortrait()
     }
 
     fun showNews(news: NewsItem) {
@@ -204,13 +165,7 @@ class HomeDashboardViewModel(
         const val MIN_ACTIONS = 2
     }
 
-    private data class HomeSnapshot(
-        val student: com.anto426.unisdk.backend.model.StudentDetailsData,
-        val career: com.anto426.unisdk.backend.model.CareerData,
-        val taxes: com.anto426.unisdk.backend.model.TaxesData,
-        val rounds: List<com.anto426.unisdk.backend.model.ExamRoundData>,
-        val news: List<com.anto426.unisdk.backend.model.UniversityNews>,
-    )
+
 }
 
 private fun String.initials(): String =

@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
@@ -55,37 +56,38 @@ class QuestionnaireDetailViewModel(
     private val mutableUiState = MutableStateFlow(QuestionnaireDetailUiState(title = title))
     val uiState: StateFlow<QuestionnaireDetailUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
-
-    fun refresh() {
-        viewModelScope.launch {
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.surveyPage(courseId, tagList))
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.update {
+            it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        }
+        try {
+            val survey = snapshot.require(UniAppDataRequests.surveyPage(courseId, tagList))
             mutableUiState.update {
-                it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null, submitted = false)
+                it.copy(
+                    survey = survey,
+                    loadState = if (survey.pages.any { page -> page.questions.isNotEmpty() }) {
+                        FeatureLoadState.Content
+                    } else {
+                        FeatureLoadState.Empty
+                    },
+                )
             }
-            try {
-                val survey = dataSource.loadSurveyFirstPage(courseId, tagList)
-                mutableUiState.update {
-                    it.copy(
-                        survey = survey,
-                        loadState = if (survey.pages.any { page -> page.questions.isNotEmpty() }) {
-                            FeatureLoadState.Content
-                        } else {
-                            FeatureLoadState.Empty
-                        },
-                    )
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.update {
-                    it.copy(
-                        loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_questionario)),
-                    )
-                }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.update {
+                it.copy(
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_questionario)),
+                )
             }
         }
+    
     }
+
+    fun refresh() { sharedData.refresh(dataRequests, force = true) }
 
     fun selectAnswer(questionId: String, answerId: String, multipleChoice: Boolean) {
         mutableUiState.update { state ->
@@ -126,7 +128,7 @@ class QuestionnaireDetailViewModel(
         viewModelScope.launch {
             mutableUiState.update { it.copy(isSubmitting = true) }
             try {
-                val details = dataSource.loadStudentDetails()
+                val details = sharedData.loadStudentDetails()
                 val studentId =
                     listOfNotNull(details.stuId, details.matId, details.matricola)
                         .firstOrNull { it.isNotBlank() }
@@ -161,7 +163,7 @@ class QuestionnaireDetailViewModel(
                             )
                         },
                     )
-                val message = dataSource.saveSurvey(courseId, request)
+                val message = sharedData.saveSurvey(courseId, request)
                 mutableUiState.update { it.copy(isSubmitting = false, submitted = true) }
                 toastSink.success(message)
             } catch (error: CancellationException) {

@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toExamRecords
 import com.anto426.uniapp.model.didactics.ExamRecord
@@ -37,42 +38,46 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
     private val mutableUiState = MutableStateFlow(TranscriptsUiState())
     val uiState: StateFlow<TranscriptsUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
-
-    fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val career = dataSource.loadCareer(force)
-                val plan = try {
-                    dataSource.loadStudyPlan(force)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (_: Exception) {
-                    null // The transcript remains available when its year metadata cannot be loaded.
-                }
-                val exams = career.toExamRecords(plan)
-                val examsByYear = exams.groupBy { it.year }
-                val planYears = plan?.courses.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct()
-                val availableYears = (planYears + examsByYear.keys).distinct()
-                    .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
-                val currentYear = mutableUiState.value.selectedYear
-                val selectedYear = currentYear.takeIf { it in availableYears } ?: availableYears.firstOrNull() ?: 0
-                mutableUiState.value = mutableUiState.value.copy(
-                    examsByYear = examsByYear,
-                    selectedYear = selectedYear,
-                    studyPlanYears = planYears,
-                    loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Career, UniAppDataRequests.StudyPlan)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val career = snapshot.require(UniAppDataRequests.Career)
+            val plan = try {
+                snapshot.require(UniAppDataRequests.StudyPlan)
             } catch (error: CancellationException) {
                 throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_libretto)),
-                )
+            } catch (_: Exception) {
+                null // The transcript remains available when its year metadata cannot be loaded.
             }
+            val exams = career.toExamRecords(plan)
+            val examsByYear = exams.groupBy { it.year }
+            val planYears = plan?.courses.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct()
+            val availableYears = (planYears + examsByYear.keys).distinct()
+                .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
+            val currentYear = mutableUiState.value.selectedYear
+            val selectedYear = currentYear.takeIf { it in availableYears } ?: availableYears.firstOrNull() ?: 0
+            mutableUiState.value = mutableUiState.value.copy(
+                examsByYear = examsByYear,
+                selectedYear = selectedYear,
+                studyPlanYears = planYears,
+                loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.state(UniAppDataRequests.Career).error?.let { throw it }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_libretto)),
+            )
         }
+
+    }
+
+    fun refresh(force: Boolean = false) {
+        sharedData.refresh(dataRequests, force)
     }
 
     fun selectYear(year: Int) {

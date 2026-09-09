@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toAttendanceData
 import com.anto426.uniapp.model.didactics.AttendanceData
@@ -38,30 +39,34 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
     private val mutableUiState = MutableStateFlow(AttendanceUiState())
     val uiState: StateFlow<AttendanceUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Attendance)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(
+            loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Loading else mutableUiState.value.loadState,
+            errorMessage = null
+        )
+        try {
+            val records = snapshot.require(UniAppDataRequests.Attendance).toAttendanceData()
+            mutableUiState.value = mutableUiState.value.copy(
+                records = records,
+                loadState = if (records.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                errorMessage = null,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Error else FeatureLoadState.Content,
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_presenze)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(
-                loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Loading else mutableUiState.value.loadState,
-                errorMessage = null
-            )
-            try {
-                val records = dataSource.loadAttendanceHistory(force).toAttendanceData()
-                mutableUiState.value = mutableUiState.value.copy(
-                    records = records,
-                    loadState = if (records.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                    errorMessage = null,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Error else FeatureLoadState.Content,
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_presenze)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun registerAttendance(
@@ -86,7 +91,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 registrationErrorMessage = null,
             )
             try {
-                val result = dataSource.registerAttendance(
+                val result = sharedData.registerAttendance(
                     qrCode = trimmedCode,
                     deviceLatitude = latitude,
                     deviceLongitude = longitude,
@@ -97,7 +102,6 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                     registrationSuccessMessage = result.ifBlank { getString(Res.string.msg_presenza_registrata_con_successo) },
                     registrationErrorMessage = null,
                 )
-                refresh(force = true)
                 onSuccess?.invoke()
             } catch (error: CancellationException) {
                 throw error

@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toReservations
 import com.anto426.uniapp.model.transport.TransportReservation
@@ -35,26 +36,30 @@ class TransportViewModel(private val dataSource: UniAppDataSource) : ViewModel()
     private val mutableUiState = MutableStateFlow(TransportUiState())
     val uiState: StateFlow<TransportUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Transport)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val reservations = snapshot.require(UniAppDataRequests.Transport).toReservations()
+            mutableUiState.value = TransportUiState(
+                days = reservations.toDayStates(),
+                loadState = if (reservations.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_prenotazioni_trasporto)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val reservations = dataSource.loadTransportData(force).toReservations()
-                mutableUiState.value = TransportUiState(
-                    days = reservations.toDayStates(),
-                    loadState = if (reservations.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_prenotazioni_trasporto)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 }
 

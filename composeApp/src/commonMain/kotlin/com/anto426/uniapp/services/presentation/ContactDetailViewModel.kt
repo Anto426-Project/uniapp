@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.model.services.ContactData
@@ -30,25 +31,29 @@ class ContactDetailViewModel(
     private val mutableUiState = MutableStateFlow(ContactDetailUiState())
     val uiState: StateFlow<ContactDetailUiState> = mutableUiState.asStateFlow()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Contacts)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        try {
+            val contact = snapshot.require(UniAppDataRequests.Contacts).toContacts()
+                .firstOrNull { it.email == contactId || it.name == contactId }
+            mutableUiState.value = mutableUiState.value.copy(
+                contact = contact,
+                loadState = if (contact == null) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_contatto)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            try {
-                val contact = dataSource.loadUniversityContacts(force).toContacts()
-                    .firstOrNull { it.email == contactId || it.name == contactId }
-                mutableUiState.value = ContactDetailUiState(
-                    contact = contact,
-                    loadState = if (contact == null) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = ContactDetailUiState(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_contatto)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 }

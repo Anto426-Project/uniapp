@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
@@ -42,28 +43,32 @@ class TransportBookingViewModel(
     val uiState: StateFlow<TransportBookingUiState> = mutableUiState.asStateFlow()
     private var routesByLabel: Map<String, TransportRouteData> = emptyMap()
 
-    init { refresh() }
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Transport)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val routes = snapshot.require(UniAppDataRequests.Transport).availableRoutes
+            routesByLabel = routes.associateBy(TransportRouteData::label)
+            mutableUiState.value = mutableUiState.value.copy(
+                routes = routes.map(TransportRouteData::label),
+                selectedRoute = routes.firstOrNull()?.label.orEmpty(),
+                loadState = if (routes.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+            )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value = mutableUiState.value.copy(
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_linee)),
+            )
+        }
+
+    }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val routes = dataSource.loadTransportData(force).availableRoutes
-                routesByLabel = routes.associateBy(TransportRouteData::label)
-                mutableUiState.value = mutableUiState.value.copy(
-                    routes = routes.map(TransportRouteData::label),
-                    selectedRoute = routes.firstOrNull()?.label.orEmpty(),
-                    loadState = if (routes.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value = mutableUiState.value.copy(
-                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_linee)),
-                )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun selectRoute(route: String) {
@@ -83,7 +88,7 @@ class TransportBookingViewModel(
             try {
                 var anySuccess = false
                 for (date in dates) {
-                    val result = dataSource.bookTransport(TransportBookingRequest(route.code, date, direction))
+                    val result = sharedData.bookTransport(TransportBookingRequest(route.code, date, direction))
                     if (result != TransportActionResult.AlreadyExists) {
                         anySuccess = true
                     }

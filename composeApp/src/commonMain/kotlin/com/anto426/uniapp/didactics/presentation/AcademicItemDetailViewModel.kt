@@ -5,6 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.model.didactics.ThesisData
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -35,44 +36,46 @@ class AcademicItemDetailViewModel(
     private val mutableUiState = MutableStateFlow(AcademicItemDetailUiState())
     val uiState: StateFlow<AcademicItemDetailUiState> = mutableUiState.asStateFlow()
 
-    init {
-        refresh()
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val dataRequests = listOf(UniAppDataRequests.Professor)
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+        mutableUiState.value =
+            mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
+        try {
+            val dashboard = snapshot.require(UniAppDataRequests.Professor)
+            val candidates =
+                when (section) {
+                    AcademicSection.Teachings -> dashboard.teachings
+                    AcademicSection.ExamRounds -> dashboard.examRounds
+                    AcademicSection.Theses -> dashboard.theses
+                    AcademicSection.Reports -> dashboard.reports
+                }
+            val item = candidates.firstOrNull { it.academicItemKey() == itemKey }
+            val thesisData = if (item != null && section == AcademicSection.Theses) extractThesisData(item) else null
+            val detailFields = item?.orderedAcademicDetailFields(section).orEmpty()
+            mutableUiState.value =
+                AcademicItemDetailUiState(
+                    item = item,
+                    thesisData = thesisData,
+                    detailFields = detailFields,
+                    selectedTab = mutableUiState.value.selectedTab,
+                    loadState = if (item == null) FeatureLoadState.Empty else FeatureLoadState.Content,
+                )
+            snapshot.throwIfFailed()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            mutableUiState.value =
+                AcademicItemDetailUiState(
+                    loadState = mutableUiState.value.loadState.onRefreshFailure(),
+                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_dettaglio)),
+                )
+        }
+
     }
 
     fun refresh(force: Boolean = false) {
-        viewModelScope.launch {
-            mutableUiState.value =
-                mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-            try {
-                val dashboard = dataSource.loadProfessorDashboard(force)
-                val candidates =
-                    when (section) {
-                        AcademicSection.Teachings -> dashboard.teachings
-                        AcademicSection.ExamRounds -> dashboard.examRounds
-                        AcademicSection.Theses -> dashboard.theses
-                        AcademicSection.Reports -> dashboard.reports
-                    }
-                val item = candidates.firstOrNull { it.academicItemKey() == itemKey }
-                val thesisData = if (item != null && section == AcademicSection.Theses) extractThesisData(item) else null
-                val detailFields = item?.orderedAcademicDetailFields(section).orEmpty()
-                mutableUiState.value =
-                    AcademicItemDetailUiState(
-                        item = item,
-                        thesisData = thesisData,
-                        detailFields = detailFields,
-                        selectedTab = mutableUiState.value.selectedTab,
-                        loadState = if (item == null) FeatureLoadState.Empty else FeatureLoadState.Content,
-                    )
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                mutableUiState.value =
-                    AcademicItemDetailUiState(
-                        loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                        errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_dettaglio)),
-                    )
-            }
-        }
+        sharedData.refresh(dataRequests, force)
     }
 
     fun selectTab(index: Int) {

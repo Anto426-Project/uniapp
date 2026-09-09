@@ -79,6 +79,34 @@ jobs:
           if context != expected:
               raise SystemExit('Artifact context does not match the selected build')
           PY
+      - name: Verify versionCode progression
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          from pathlib import Path
+          incoming_meta = json.loads(Path('incoming/release/output-metadata.json').read_text())
+          elements = incoming_meta.get('elements', [])
+          if not elements:
+              raise SystemExit('No APK elements in output-metadata.json')
+          incoming_code = elements[0].get('versionCode')
+          if not isinstance(incoming_code, int) or incoming_code <= 0:
+              raise SystemExit(f'Invalid incoming versionCode: {incoming_code!r}')
+          deployed_path = Path('deploy-repo/update.json')
+          if deployed_path.exists():
+              deployed = json.loads(deployed_path.read_text())
+              published_code = deployed.get('latestVersionCode', 0)
+              if not isinstance(published_code, int):
+                  published_code = 0
+              if incoming_code <= published_code:
+                  raise SystemExit(
+                      f'versionCode regression: incoming {incoming_code} '
+                      f'<= published {published_code}. '
+                      'Increment GITHUB_RUN_NUMBER by triggering a new build.'
+                  )
+              print(f'versionCode OK: {published_code} -> {incoming_code}')
+          else:
+              print(f'No existing update.json found; first publish with versionCode {incoming_code}')
+          PY
       - name: Checkout distribution repository
         uses: actions/checkout@v4
         with:

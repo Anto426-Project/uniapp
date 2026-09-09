@@ -11,7 +11,13 @@ android {
         applicationId = "com.anto426.uniapp"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 203
+        // versionCode is set automatically by the CI runner (GITHUB_RUN_NUMBER).
+        // This counter is strictly monotonically increasing per workflow, making it
+        // ideal as an Android versionCode. Use VERSION_CODE to override locally.
+        versionCode = (providers.environmentVariable("GITHUB_RUN_NUMBER")
+            .orElse(providers.environmentVariable("VERSION_CODE"))
+            .orElse("1")
+            .get().toInt())
         versionName = "2.0.3"
         ndk {
             abiFilters += "arm64-v8a"

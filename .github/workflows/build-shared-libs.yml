@@ -1,0 +1,95 @@
+name: Build Shared Libraries (SDK Pre-compile)
+
+# Triggered on every push to main that touches shared modules so that the
+# Gradle build cache is warm before the Android/iOS build workflows run.
+# The compiled AAR artifacts are also uploaded so the build-android workflow
+# can download them directly if the runner cache is cold (e.g. new runner).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'composeApp/**'
+      - 'libs/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shared-libs-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-shared:
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN || github.token }}
+          submodules: recursive
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      # cache-read-only: false → this job WRITES to the local Gradle cache so
+      # subsequent build-android / build-ios jobs can read without recompiling.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      # ── Compile composeApp Android release variant (R8 full mode is on via
+      #    gradle.properties: android.enableR8.fullMode=true)
+      #    This transitively builds all four includeBuild SDK modules:
+      #      liquid-monet · uni-sdk · secure-storage-sdk · firebase-connector-sdk
+      - name: Pre-compile composeApp (Android, R8 full mode)
+        env:
+          # Inject the run number so every SDK gets a unique Maven version.
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon --max-workers=2 \
+            :composeApp:bundleReleaseAndroidLibrary \
+            :composeApp:compileReleaseKotlinAndroid
+
+      # ── Collect the compiled AARs from all modules and upload them as a
+      #    reusable artifact so build-android can download them on a cold runner.
+      - name: Collect compiled AARs
+        run: |
+          set -euo pipefail
+          mkdir -p compiled-aars/composeApp
+          # composeApp AAR
+          find composeApp/build/outputs/aar -name "*.aar" 2>/dev/null \
+            | xargs -I{} cp {} compiled-aars/composeApp/ || true
+          # SDK AARs compiled via includeBuild
+          for sdk in liquid-monet uni-sdk secure-storage-sdk firebase-connector-sdk; do
+            sdk_dir="libs/$sdk"
+            out_dir="compiled-aars/$sdk"
+            mkdir -p "$out_dir"
+            find "$sdk_dir" -path "*/build/outputs/aar/*.aar" 2>/dev/null \
+              | xargs -I{} cp {} "$out_dir/" || true
+          done
+          echo "=== Compiled AARs ==="
+          find compiled-aars -name "*.aar" | sort
+
+      - name: Upload compiled AARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-libs-aars-${{ github.run_id }}
+          path: compiled-aars/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
