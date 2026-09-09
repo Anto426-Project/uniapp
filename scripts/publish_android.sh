@@ -13,15 +13,15 @@ else
   gh release create "$RELEASE_TAG_NAME" "${release_assets[@]}" --repo "$DEPLOY_REPO" \
     --target "$DEPLOY_BRANCH" --title "$RELEASE_TITLE" --notes-file incoming/release-notes.md --latest
 fi
-# APKs live in Releases; generated site and current metadata are the only deployment outputs.
-rm -rf deploy-repo/docs deploy-repo/src/release
-mkdir -p deploy-repo/docs deploy-repo/release
-cp -a website/out/. deploy-repo/docs/
+# Publish app metadata independently of the website build.
+mkdir -p deploy-repo/release
 cp incoming/update.json deploy-repo/update.json
 cp incoming/README.md deploy-repo/README.md
 cp incoming/release/output-metadata.json deploy-repo/release/output-metadata.json
 cp incoming/context.json deploy-repo/release/context.json
-touch deploy-repo/docs/.nojekyll deploy-repo/.nojekyll
+# The existing site reads this manifest immediately; its static build has a separate workflow.
+if [[ -d deploy-repo/docs ]]; then cp incoming/update.json deploy-repo/docs/update.json; fi
+touch deploy-repo/.nojekyll
 cd deploy-repo
 git add -A
 if ! git diff --cached --quiet; then

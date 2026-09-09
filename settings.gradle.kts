@@ -33,52 +33,12 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        maven("https://maven.pkg.jetbrains.space/kotlin/kotlin-dev")
 
-        // GitHub Packages — pre-built SDK AARs with R8 full-mode obfuscation,
-        // published automatically on every push to main by each SDK's CI workflow.
-        // GITHUB_TOKEN is injected automatically by GitHub Actions in CI.
-        // For local development add gpr.user and gpr.token to local.properties,
-        // or export GITHUB_ACTOR / GITHUB_TOKEN in your shell.
-        maven {
-            name = "GitHubPackages-LiquidMonet"
-            url = uri("https://maven.pkg.github.com/Anto426/Liquid-Monet")
-            credentials {
-                username = providers.environmentVariable("GITHUB_ACTOR")
-                    .orElse(providers.gradleProperty("gpr.user")).orNull
-                password = providers.environmentVariable("GITHUB_TOKEN")
-                    .orElse(providers.gradleProperty("gpr.token")).orNull
-            }
-        }
-        maven {
-            name = "GitHubPackages-UniSdk"
-            url = uri("https://maven.pkg.github.com/Anto426-Project/uni-sdk")
-            credentials {
-                username = providers.environmentVariable("GITHUB_ACTOR")
-                    .orElse(providers.gradleProperty("gpr.user")).orNull
-                password = providers.environmentVariable("GITHUB_TOKEN")
-                    .orElse(providers.gradleProperty("gpr.token")).orNull
-            }
-        }
-        maven {
-            name = "GitHubPackages-SecureStorage"
-            url = uri("https://maven.pkg.github.com/Anto426-Project/secure-storage-sdk")
-            credentials {
-                username = providers.environmentVariable("GITHUB_ACTOR")
-                    .orElse(providers.gradleProperty("gpr.user")).orNull
-                password = providers.environmentVariable("GITHUB_TOKEN")
-                    .orElse(providers.gradleProperty("gpr.token")).orNull
-            }
-        }
-        maven {
-            name = "GitHubPackages-Firebase"
-            url = uri("https://maven.pkg.github.com/Anto426-Project/firebase-connector-sdk")
-            credentials {
-                username = providers.environmentVariable("GITHUB_ACTOR")
-                    .orElse(providers.gradleProperty("gpr.user")).orNull
-                password = providers.environmentVariable("GITHUB_TOKEN")
-                    .orElse(providers.gradleProperty("gpr.token")).orNull
+        exclusiveContent {
+            forRepository { maven { name = "VerifiedSdkBinaries"; url = uri(".sdk-binaries/maven") } }
+            filter {
+                includeGroup("com.anto426")
+                includeGroup("com.anto426.liquidmonet")
             }
         }
     }
@@ -87,3 +47,12 @@ dependencyResolutionManagement {
 include(":composeApp")
 include(":androidApp")
 
+
+val sdkProperties = java.util.Properties()
+val sdkManifest = file(".sdk-binaries/resolved.properties")
+if (sdkManifest.isFile) sdkManifest.inputStream().use(sdkProperties::load)
+dependencyResolutionManagement.versionCatalogs.create("libs") {
+    mapOf("antosdk" to "liquid-monet", "unisdk" to "uni-sdk",
+        "secure-storage-sdk" to "secure-storage-sdk", "firebase-connector-sdk" to "firebase-connector-sdk")
+        .forEach { (alias, module) -> version(alias, sdkProperties.getProperty("$module.version", "1.0.0-local")) }
+}

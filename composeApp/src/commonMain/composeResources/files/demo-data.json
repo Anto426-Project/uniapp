@@ -1,0 +1,786 @@
+{
+  "student": {
+    "fullName": "Elena Bianchi",
+    "matricola": "DEMO-2026001",
+    "email": "elena.bianchi@example.invalid",
+    "degreeName": "Informatica",
+    "departmentName": "Dipartimento di Bioscienze e Territorio",
+    "stuId": "demo-student",
+    "matId": "demo-career",
+    "anaId": "demo-person",
+    "cdsId": "demo-course",
+    "dipId": "demo-department",
+    "badgeCode": "DEMO-2026001",
+    "badgeQrValue": "UNIAPP-DEMO-NOT-A-VALID-BADGE"
+  },
+  "career": {
+    "average": "28.75",
+    "degreeBase": "105.42",
+    "cfu": "108",
+    "cfuTarget": 180,
+    "year": "3",
+    "enrollmentDate": "01/10/2024",
+    "status": "Attiva",
+    "exams": [
+      {
+        "name": "Programmazione I",
+        "grade": "30",
+        "date": "@date:-360@",
+        "cfu": 9,
+        "adsceId": "demo-course-0"
+      },
+      {
+        "name": "Analisi matematica",
+        "grade": "28",
+        "date": "@date:-336@",
+        "cfu": 9,
+        "adsceId": "demo-course-1"
+      },
+      {
+        "name": "Architettura degli elaboratori",
+        "grade": "29",
+        "date": "@date:-312@",
+        "cfu": 9,
+        "adsceId": "demo-course-2"
+      },
+      {
+        "name": "Matematica discreta",
+        "grade": "27",
+        "date": "@date:-288@",
+        "cfu": 9,
+        "adsceId": "demo-course-3"
+      },
+      {
+        "name": "Lingua inglese",
+        "grade": "30",
+        "date": "@date:-264@",
+        "cfu": 9,
+        "adsceId": "demo-course-4"
+      },
+      {
+        "name": "Programmazione II",
+        "grade": "30",
+        "date": "@date:-240@",
+        "cfu": 9,
+        "adsceId": "demo-course-5"
+      },
+      {
+        "name": "Algoritmi e strutture dati",
+        "grade": "28",
+        "date": "@date:-216@",
+        "cfu": 9,
+        "adsceId": "demo-course-6"
+      },
+      {
+        "name": "Basi di dati",
+        "grade": "29",
+        "date": "@date:-192@",
+        "cfu": 9,
+        "adsceId": "demo-course-7"
+      },
+      {
+        "name": "Sistemi operativi",
+        "grade": "27",
+        "date": "@date:-168@",
+        "cfu": 9,
+        "adsceId": "demo-course-8"
+      },
+      {
+        "name": "Reti di calcolatori",
+        "grade": "30",
+        "date": "@date:-144@",
+        "cfu": 9,
+        "adsceId": "demo-course-9"
+      },
+      {
+        "name": "Ingegneria del software",
+        "grade": "28",
+        "date": "@date:-120@",
+        "cfu": 9,
+        "adsceId": "demo-course-10"
+      },
+      {
+        "name": "Probabilità e statistica",
+        "grade": "29",
+        "date": "@date:-96@",
+        "cfu": 9,
+        "adsceId": "demo-course-11"
+      }
+    ]
+  },
+  "plan": {
+    "courses": [
+      {
+        "title": "Programmazione I",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-0",
+        "category": "Attività formativa",
+        "completionDate": "@date:-360@"
+      },
+      {
+        "title": "Analisi matematica",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-1",
+        "category": "Attività formativa",
+        "completionDate": "@date:-336@"
+      },
+      {
+        "title": "Architettura degli elaboratori",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-2",
+        "category": "Attività formativa",
+        "completionDate": "@date:-312@"
+      },
+      {
+        "title": "Matematica discreta",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-3",
+        "category": "Attività formativa",
+        "completionDate": "@date:-288@"
+      },
+      {
+        "title": "Lingua inglese",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-4",
+        "category": "Attività formativa",
+        "completionDate": "@date:-264@"
+      },
+      {
+        "title": "Programmazione II",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-5",
+        "category": "Attività formativa",
+        "completionDate": "@date:-240@"
+      },
+      {
+        "title": "Algoritmi e strutture dati",
+        "cfu": 9,
+        "year": 1,
+        "completed": true,
+        "adsceId": "demo-course-6",
+        "category": "Attività formativa",
+        "completionDate": "@date:-216@"
+      },
+      {
+        "title": "Basi di dati",
+        "cfu": 9,
+        "year": 2,
+        "completed": true,
+        "adsceId": "demo-course-7",
+        "category": "Attività formativa",
+        "completionDate": "@date:-192@"
+      },
+      {
+        "title": "Sistemi operativi",
+        "cfu": 9,
+        "year": 2,
+        "completed": true,
+        "adsceId": "demo-course-8",
+        "category": "Attività formativa",
+        "completionDate": "@date:-168@"
+      },
+      {
+        "title": "Reti di calcolatori",
+        "cfu": 9,
+        "year": 2,
+        "completed": true,
+        "adsceId": "demo-course-9",
+        "category": "Attività formativa",
+        "completionDate": "@date:-144@"
+      },
+      {
+        "title": "Ingegneria del software",
+        "cfu": 9,
+        "year": 2,
+        "completed": true,
+        "adsceId": "demo-course-10",
+        "category": "Attività formativa",
+        "completionDate": "@date:-120@"
+      },
+      {
+        "title": "Probabilità e statistica",
+        "cfu": 9,
+        "year": 2,
+        "completed": true,
+        "adsceId": "demo-course-11",
+        "category": "Attività formativa",
+        "completionDate": "@date:-96@"
+      },
+      {
+        "title": "Intelligenza artificiale",
+        "cfu": 9,
+        "year": 2,
+        "completed": false,
+        "adsceId": "demo-course-12",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Sicurezza informatica",
+        "cfu": 9,
+        "year": 2,
+        "completed": false,
+        "adsceId": "demo-course-13",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Sistemi distribuiti",
+        "cfu": 9,
+        "year": 3,
+        "completed": false,
+        "adsceId": "demo-course-14",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Interazione uomo-macchina",
+        "cfu": 9,
+        "year": 3,
+        "completed": false,
+        "adsceId": "demo-course-15",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Programmazione mobile",
+        "cfu": 9,
+        "year": 3,
+        "completed": false,
+        "adsceId": "demo-course-16",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Laboratorio di progetto",
+        "cfu": 9,
+        "year": 3,
+        "completed": false,
+        "adsceId": "demo-course-17",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Tirocinio",
+        "cfu": 9,
+        "year": 3,
+        "completed": false,
+        "adsceId": "demo-course-18",
+        "category": "Attività formativa",
+        "completionDate": null
+      },
+      {
+        "title": "Prova finale",
+        "cfu": 9,
+        "year": 3,
+        "completed": false,
+        "adsceId": "demo-course-19",
+        "category": "Attività formativa",
+        "completionDate": null
+      }
+    ]
+  },
+  "exams": [
+    {
+      "courseName": "Intelligenza artificiale",
+      "dateTime": "@date:7@ 09:00",
+      "room": "Aula 1",
+      "availableSlots": 30,
+      "open": true,
+      "booked": false,
+      "appId": "demo-round-0",
+      "adId": "demo-course-12",
+      "adsceId": "demo-course-12",
+      "cdsId": "demo-course",
+      "presidentName": "Giulia",
+      "presidentSurname": "Verdi",
+      "registrationStartingDate": "@date:-7@",
+      "registrationEndingDate": "@date:5@",
+      "typeCode": "SO",
+      "notes": "Appello dimostrativo",
+      "totalRegistrations": 12
+    },
+    {
+      "courseName": "Sicurezza informatica",
+      "dateTime": "@date:11@ 09:00",
+      "room": "Aula 2",
+      "availableSlots": 27,
+      "open": true,
+      "booked": true,
+      "appId": "demo-round-1",
+      "adId": "demo-course-13",
+      "adsceId": "demo-course-13",
+      "cdsId": "demo-course",
+      "presidentName": "Giulia",
+      "presidentSurname": "Verdi",
+      "registrationStartingDate": "@date:-7@",
+      "registrationEndingDate": "@date:9@",
+      "typeCode": "SO",
+      "notes": "Appello dimostrativo",
+      "totalRegistrations": 13
+    },
+    {
+      "courseName": "Sistemi distribuiti",
+      "dateTime": "@date:15@ 09:00",
+      "room": "Aula 3",
+      "availableSlots": 24,
+      "open": true,
+      "booked": false,
+      "appId": "demo-round-2",
+      "adId": "demo-course-14",
+      "adsceId": "demo-course-14",
+      "cdsId": "demo-course",
+      "presidentName": "Giulia",
+      "presidentSurname": "Verdi",
+      "registrationStartingDate": "@date:-7@",
+      "registrationEndingDate": "@date:13@",
+      "typeCode": "SO",
+      "notes": "Appello dimostrativo",
+      "totalRegistrations": 14
+    }
+  ],
+  "taxes": {
+    "dueAmount": "240,00 €",
+    "installments": [
+      {
+        "title": "Seconda rata",
+        "amount": "240,00 €",
+        "deadline": "@date:30@",
+        "paid": false
+      },
+      {
+        "title": "Prima rata",
+        "amount": "156,00 €",
+        "deadline": "@date:-90@",
+        "paid": true
+      }
+    ]
+  },
+  "devices": [
+    {
+      "lastLogin": "@date:0@",
+      "model": "Dispositivo di presentazione",
+      "platform": "Android",
+      "token": "demo-device",
+      "isCurrentDevice": true
+    }
+  ],
+  "attendance": [
+    {
+      "id": "demo-attendance-0",
+      "teachingActivityId": "demo-course-12",
+      "courseName": "Intelligenza artificiale",
+      "status": "PRESENTE",
+      "occurredAt": "@date:0@",
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "teacherName": "Giulia Verdi",
+      "room": "Aula 1",
+      "note": "Presenza dimostrativa",
+      "durationHours": 2.0,
+      "courseTotalHours": 48.0,
+      "locationVerified": true,
+      "locationCode": null
+    },
+    {
+      "id": "demo-attendance-1",
+      "teachingActivityId": "demo-course-12",
+      "courseName": "Intelligenza artificiale",
+      "status": "PRESENTE",
+      "occurredAt": "@date:-2@",
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "teacherName": "Giulia Verdi",
+      "room": "Aula 1",
+      "note": "Presenza dimostrativa",
+      "durationHours": 2.0,
+      "courseTotalHours": 48.0,
+      "locationVerified": true,
+      "locationCode": null
+    },
+    {
+      "id": "demo-attendance-2",
+      "teachingActivityId": "demo-course-12",
+      "courseName": "Intelligenza artificiale",
+      "status": "PRESENTE",
+      "occurredAt": "@date:-4@",
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "teacherName": "Giulia Verdi",
+      "room": "Aula 1",
+      "note": "Presenza dimostrativa",
+      "durationHours": 2.0,
+      "courseTotalHours": 48.0,
+      "locationVerified": true,
+      "locationCode": null
+    },
+    {
+      "id": "demo-attendance-3",
+      "teachingActivityId": "demo-course-12",
+      "courseName": "Intelligenza artificiale",
+      "status": "PRESENTE",
+      "occurredAt": "@date:-6@",
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "teacherName": "Giulia Verdi",
+      "room": "Aula 1",
+      "note": "Presenza dimostrativa",
+      "durationHours": 2.0,
+      "courseTotalHours": 48.0,
+      "locationVerified": true,
+      "locationCode": null
+    },
+    {
+      "id": "demo-attendance-4",
+      "teachingActivityId": "demo-course-12",
+      "courseName": "Intelligenza artificiale",
+      "status": "PRESENTE",
+      "occurredAt": "@date:-8@",
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "teacherName": "Giulia Verdi",
+      "room": "Aula 1",
+      "note": "Presenza dimostrativa",
+      "durationHours": 2.0,
+      "courseTotalHours": 48.0,
+      "locationVerified": true,
+      "locationCode": null
+    }
+  ],
+  "news": [
+    {
+      "id": "demo-news-0",
+      "title": "Un nuovo anno da organizzare",
+      "summary": "Tutte le informazioni sulla tua carriera, in un unico posto.",
+      "content": "Tutte le informazioni sulla tua carriera, in un unico posto. Contenuto dimostrativo per la presentazione di UniApp.",
+      "publishedAt": "@date:0@",
+      "category": "Dipartimento",
+      "sourceUrl": null
+    },
+    {
+      "id": "demo-news-1",
+      "title": "Tecnologia e nuove idee",
+      "summary": "Incontri, progetti e opportunità per vivere il campus.",
+      "content": "Incontri, progetti e opportunità per vivere il campus. Contenuto dimostrativo per la presentazione di UniApp.",
+      "publishedAt": "@date:-1@",
+      "category": "Eventi",
+      "sourceUrl": null
+    },
+    {
+      "id": "demo-news-2",
+      "title": "La tua prossima esperienza",
+      "summary": "Scopri le attività e pianifica i prossimi obiettivi.",
+      "content": "Scopri le attività e pianifica i prossimi obiettivi. Contenuto dimostrativo per la presentazione di UniApp.",
+      "publishedAt": "@date:-2@",
+      "category": "Dipartimento",
+      "sourceUrl": null
+    }
+  ],
+  "contacts": [
+    {
+      "id": "demo-contact-0",
+      "firstName": "Giulia",
+      "lastName": "Verdi",
+      "displayName": "Giulia Verdi",
+      "email": "giulia.verdi@example.invalid",
+      "phones": [],
+      "organization": "Docente dimostrativo",
+      "address": null,
+      "building": "Edificio didattico",
+      "city": "Pesche"
+    },
+    {
+      "id": "demo-contact-1",
+      "firstName": "Luca",
+      "lastName": "Romano",
+      "displayName": "Luca Romano",
+      "email": "luca.romano@example.invalid",
+      "phones": [],
+      "organization": "Docente dimostrativo",
+      "address": null,
+      "building": "Edificio didattico",
+      "city": "Pesche"
+    },
+    {
+      "id": "demo-contact-2",
+      "firstName": "Sara",
+      "lastName": "Conti",
+      "displayName": "Sara Conti",
+      "email": "sara.conti@example.invalid",
+      "phones": [],
+      "organization": "Docente dimostrativo",
+      "address": null,
+      "building": "Edificio didattico",
+      "city": "Pesche"
+    }
+  ],
+  "transport": {
+    "routeLabel": "Campobasso – Pesche",
+    "routeCode": "demo-route",
+    "availableRoutes": [
+      {
+        "code": "demo-route",
+        "label": "Campobasso – Pesche"
+      }
+    ],
+    "bookings": [
+      {
+        "id": "demo-booking",
+        "number": "DEMO-001",
+        "routeCode": "demo-route",
+        "date": "@date:1@",
+        "direction": "Andata",
+        "isReturn": false,
+        "ticketUrl": "UNIAPP-DEMO-NOT-A-VALID-TICKET"
+      }
+    ],
+    "totalCount": 1
+  },
+  "syllabuses": [
+    {
+      "adsceId": "demo-course-0",
+      "adDes": "Programmazione I",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-1",
+      "adDes": "Analisi matematica",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-2",
+      "adDes": "Architettura degli elaboratori",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-3",
+      "adDes": "Matematica discreta",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-4",
+      "adDes": "Lingua inglese",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-5",
+      "adDes": "Programmazione II",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-6",
+      "adDes": "Algoritmi e strutture dati",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-7",
+      "adDes": "Basi di dati",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-8",
+      "adDes": "Sistemi operativi",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-9",
+      "adDes": "Reti di calcolatori",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-10",
+      "adDes": "Ingegneria del software",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-11",
+      "adDes": "Probabilità e statistica",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-12",
+      "adDes": "Intelligenza artificiale",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-13",
+      "adDes": "Sicurezza informatica",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-14",
+      "adDes": "Sistemi distribuiti",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-15",
+      "adDes": "Interazione uomo-macchina",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-16",
+      "adDes": "Programmazione mobile",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-17",
+      "adDes": "Laboratorio di progetto",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-18",
+      "adDes": "Tirocinio",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    },
+    {
+      "adsceId": "demo-course-19",
+      "adDes": "Prova finale",
+      "professors": [
+        "Giulia Verdi"
+      ],
+      "contenuti": "Concetti fondamentali, applicazioni pratiche e casi di studio.",
+      "obiettivi": "Sviluppare conoscenze teoriche e capacità di progettazione.",
+      "modalitaVerifica": "Prova scritta e colloquio orale."
+    }
+  ],
+  "surveys": [
+    {
+      "courseId": "demo-course-12",
+      "title": "Intelligenza artificiale",
+      "tagList": "demo",
+      "adCod": "demo-course-12",
+      "professor": "Giulia Verdi",
+      "completed": true
+    },
+    {
+      "courseId": "demo-course-13",
+      "title": "Sicurezza informatica",
+      "tagList": "demo",
+      "adCod": "demo-course-13",
+      "professor": "Giulia Verdi",
+      "completed": false
+    },
+    {
+      "courseId": "demo-course-14",
+      "title": "Sistemi distribuiti",
+      "tagList": "demo",
+      "adCod": "demo-course-14",
+      "professor": "Giulia Verdi",
+      "completed": false
+    }
+  ],
+  "surveyQuestion": "Il materiale didattico è stato utile per lo studio?",
+  "surveyAnswers": [
+    "Per nulla",
+    "Poco",
+    "Abbastanza",
+    "Molto"
+  ]
+}

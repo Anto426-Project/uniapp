@@ -60,7 +60,7 @@ class ExamsViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(if (account?.isProfessor == true) UniAppDataRequests.Professor else UniAppDataRequests.Exams)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
             if (account?.isProfessor == true) {

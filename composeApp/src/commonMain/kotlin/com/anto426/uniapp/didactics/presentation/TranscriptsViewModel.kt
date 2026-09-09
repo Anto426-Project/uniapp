@@ -40,7 +40,7 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Career, UniAppDataRequests.StudyPlan)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
             val career = snapshot.require(UniAppDataRequests.Career)

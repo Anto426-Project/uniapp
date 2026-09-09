@@ -35,3 +35,8 @@ raw
 website/.next/
 website/out/
 
+
+# Verified precompiled SDKs and temporary resolver output
+.sdk-binaries/
+.sdk-binaries-*/
+.sdk-downloads/

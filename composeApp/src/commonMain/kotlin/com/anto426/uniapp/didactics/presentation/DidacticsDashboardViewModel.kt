@@ -51,7 +51,7 @@ class DidacticsDashboardViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = if (account?.isProfessor == true) listOf(UniAppDataRequests.Professor) else listOf(UniAppDataRequests.Student, UniAppDataRequests.Career, UniAppDataRequests.StudyPlan, UniAppDataRequests.Exams, UniAppDataRequests.Surveys)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
         try {
             if (account?.isProfessor == true) {

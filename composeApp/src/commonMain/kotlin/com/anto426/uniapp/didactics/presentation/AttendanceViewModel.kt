@@ -41,7 +41,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Attendance)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(
             loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Loading else mutableUiState.value.loadState,
             errorMessage = null

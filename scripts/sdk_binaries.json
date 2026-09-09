@@ -1,0 +1,6 @@
+{
+  "liquid-monet": {"repository": "Anto426/Liquid-Monet", "coordinate": "com.anto426.liquidmonet:sdk"},
+  "uni-sdk": {"repository": "Anto426-Project/uni-sdk", "coordinate": "com.anto426:uni-sdk"},
+  "secure-storage-sdk": {"repository": "Anto426-Project/secure-storage-sdk", "coordinate": "com.anto426:secure-storage-sdk"},
+  "firebase-connector-sdk": {"repository": "Anto426-Project/firebase-connector-sdk", "coordinate": "com.anto426:firebase-connector-sdk"}
+}

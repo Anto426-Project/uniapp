@@ -33,7 +33,7 @@ class ContactDetailViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Contacts)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val contact = snapshot.require(UniAppDataRequests.Contacts).toContacts()
                 .firstOrNull { it.email == contactId || it.name == contactId }

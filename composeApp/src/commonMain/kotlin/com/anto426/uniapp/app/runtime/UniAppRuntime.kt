@@ -72,7 +72,7 @@ class UniAppRuntime internal constructor(
             generation += 1
             val account = (sessionController.state.value as? com.anto426.uniapp.session.model.AppSessionState.Authenticated)?.account
             UniAppDataCoordinator(
-                source = SessionUniAppDataSource(
+                source = if (com.anto426.uniapp.demo.DemoAccount.isDemo(account)) com.anto426.uniapp.demo.DemoAppDataSource() else SessionUniAppDataSource(
                     sessions = sessionController,
                     accounts = accountStore,
                     fixedAccountId = accountId,

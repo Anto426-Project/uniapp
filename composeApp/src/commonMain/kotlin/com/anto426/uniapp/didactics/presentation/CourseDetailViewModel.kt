@@ -33,7 +33,7 @@ class CourseDetailViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.syllabus(courseId))
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val course = snapshot.require(UniAppDataRequests.syllabus(courseId)).toStudyCourse()
             mutableUiState.value = CourseDetailUiState(course, FeatureLoadState.Content)

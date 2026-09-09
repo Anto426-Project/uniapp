@@ -48,7 +48,7 @@ class AcademicIdentityViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = if (account?.isProfessor == true) emptyList() else listOf(UniAppDataRequests.Student)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             if (account?.isProfessor == true) {
                 loadProfessorIdentity()

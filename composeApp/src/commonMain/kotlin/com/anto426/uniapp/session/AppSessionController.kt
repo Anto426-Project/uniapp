@@ -3,6 +3,7 @@ package com.anto426.uniapp.session
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
+import com.anto426.uniapp.demo.DemoAccount
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.session.ManagedAuthenticationResult
@@ -54,6 +55,7 @@ class AppSessionController internal constructor(
                         account == null -> AppSessionState.SignedOut()
                         requiresBiometricUnlock(account.accountId) ->
                             AppSessionState.UnlockRequired(account)
+                        DemoAccount.isDemo(account) -> AppSessionState.Authenticated(account)
                         else -> coordinator.resumeActiveAccount().toAppState()
                     }
                 } catch (error: CancellationException) {
@@ -70,7 +72,7 @@ class AppSessionController internal constructor(
             mutableState.value = AppSessionState.Initializing
             mutableState.value =
                 try {
-                    coordinator.activate(requirement.account.accountId).toAppState()
+                    activateStoredAccount(requirement.account.accountId)
                 } catch (error: CancellationException) {
                     mutableState.value = requirement
                     throw error
@@ -112,7 +114,7 @@ class AppSessionController internal constructor(
             if (!valid) return@withLock PasswordUnlockResult.Invalid
             localDataStore.remove(scope, UniAppDataKeys.PasswordRetryAfter)
             // Leave UnlockRequired in place until activation succeeds, allowing a safe retry.
-            mutableState.value = coordinator.activate(requirement.account.accountId).toAppState()
+            mutableState.value = activateStoredAccount(requirement.account.accountId)
             PasswordUnlockResult.Unlocked
         }
 
@@ -122,6 +124,17 @@ class AppSessionController internal constructor(
         preferredAccountId: String? = null,
     ) {
         lock.withLock {
+            if (DemoAccount.requested(credentials)) {
+                if (!DemoAccount.accepts(credentials)) {
+                    mutableState.value = AppSessionState.SignedOut(getString(Res.string.ui_demo_invalid_credentials))
+                    return@withLock
+                }
+                val account = accountStore.persistAuthenticatedAccount(credentials, DemoAccount.profile(),
+                    com.anto426.unisdk.session.UniSessionTicket.restore("local-demo-v1".encodeToByteArray()))
+                mutableState.value = AppSessionState.Authenticated(account)
+                mutableAccountsRevision.value += 1
+                return@withLock
+            }
             mutableState.value = AppSessionState.Authenticating
             mutableState.value =
                 try {
@@ -169,10 +182,18 @@ class AppSessionController internal constructor(
             }
             // Do not publish an intermediate state and do not hide resume failures: callers must
             // only report a successful switch after the selected account is actually active.
-            coordinator.activate(accountId).toAppState().also { nextState ->
+            activateStoredAccount(accountId).also { nextState ->
                 mutableState.value = nextState
             }
         }
+
+    private suspend fun activateStoredAccount(accountId: String): AppSessionState {
+        val account = accountStore.snapshot().accounts.first { it.accountId == accountId }
+        return if (DemoAccount.isDemo(account)) {
+            accountStore.setActiveAccount(accountId)
+            AppSessionState.Authenticated(account)
+        } else coordinator.activate(accountId).toAppState()
+    }
 
     suspend fun activateProfile(profileId: String): AppSessionState =
         lock.withLock {
@@ -198,12 +219,14 @@ class AppSessionController internal constructor(
     fun currentAccountClient(): UniAccountClient? =
         (mutableState.value as? AppSessionState.Authenticated)
             ?.account
+            ?.takeUnless(DemoAccount::isDemo)
             ?.accountId
             ?.let(coordinator::accountClient)
 
     internal fun accountClient(accountId: String): UniAccountClient? =
         (mutableState.value as? AppSessionState.Authenticated)
             ?.account
+            ?.takeUnless(DemoAccount::isDemo)
             ?.accountId
             ?.takeIf { it == accountId }
             ?.let(coordinator::accountClient)

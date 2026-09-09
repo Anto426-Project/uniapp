@@ -31,6 +31,7 @@ class UniAppDataCoordinator(
         val state = MutableStateFlow(UniAppDataValue<T>())
         var job: CompletableDeferred<T>? = null
         var leases = 0
+        var visibleConsumers = 0
         var savedAt: Long? = null
         var retryAt: Long? = null
         var invalidated = false
@@ -63,20 +64,43 @@ class UniAppDataCoordinator(
         }
     }
 
-    fun observe(requests: List<UniAppDataRequest<*>>): Flow<UniAppDataSnapshot> = flow {
+    fun observe(
+        requests: List<UniAppDataRequest<*>>,
+        visible: Flow<Boolean> = flowOf(true),
+    ): Flow<UniAppDataSnapshot> = flow {
         val acquired = mutableListOf<Entry<*>>()
+        var visibleNow = false
         try {
             for (request in requests.distinctBy { it.id }) {
                 val entry = acquire(request)
                 acquired += entry
                 start(entry, force = false)
             }
-            if (acquired.isEmpty()) emit(UniAppDataSnapshot(emptyMap()))
-            else emitAll(combine(acquired.map { it.state }) { values ->
-                UniAppDataSnapshot(acquired.mapIndexed { index, entry -> entry.request.id to values[index] }.toMap())
-            })
+            coroutineScope {
+                val visibility = launch {
+                    visible.distinctUntilChanged().collect { active ->
+                        guard.withLock {
+                            if (active != visibleNow) {
+                                acquired.forEach { it.visibleConsumers += if (active) 1 else -1 }
+                                visibleNow = active
+                                scheduleRevision.value += 1
+                            }
+                        }
+                        if (active) acquired.forEach { start(it, force = false) }
+                    }
+                }
+                try {
+                    if (acquired.isEmpty()) emit(UniAppDataSnapshot(emptyMap()))
+                    else emitAll(combine(acquired.map { it.state }) { values ->
+                        UniAppDataSnapshot(acquired.mapIndexed { index, entry -> entry.request.id to values[index] }.toMap())
+                    })
+                } finally { visibility.cancel() }
+            }
         } finally {
-            acquired.forEach { release(it) }
+            withContext(NonCancellable) {
+                guard.withLock { if (visibleNow) acquired.forEach { it.visibleConsumers -= 1 } }
+                acquired.forEach { release(it) }
+            }
         }
     }
 
@@ -153,7 +177,7 @@ class UniAppDataCoordinator(
     }
 
     fun refreshPortrait() {
-        portraitSource?.takeIf(String::isNotBlank)?.let { refresh(listOf(UniAppDataRequests.portrait(it))) }
+        portraitSource?.takeIf(String::isNotBlank)?.let { refresh(listOf(UniAppDataRequests.portrait(it)), force = true) }
     }
 
     private fun dueIn(entry: Entry<*>): Long {
@@ -171,12 +195,12 @@ class UniAppDataCoordinator(
     suspend fun maintainFreshData(): Nothing {
         scheduleRevision.collectLatest {
             val wait = guard.withLock {
-                entries.values.filter { it.leases > 0 && it.job == null && it.request.policy != null }
+                entries.values.filter { it.visibleConsumers > 0 && it.job == null && it.request.policy != null }
                     .minOfOrNull(::dueIn)
             } ?: return@collectLatest awaitCancellation()
             delay(wait.coerceAtLeast(1))
             val due = guard.withLock {
-                entries.values.filter { it.leases > 0 && it.job == null && dueIn(it) == 0L }.map { it.request }
+                entries.values.filter { it.visibleConsumers > 0 && it.job == null && dueIn(it) == 0L }.map { it.request }
             }
             refreshRequests(due, force = false, invalidated = false)
             awaitCancellation() // Completion/observation changes reschedule the next deadline.

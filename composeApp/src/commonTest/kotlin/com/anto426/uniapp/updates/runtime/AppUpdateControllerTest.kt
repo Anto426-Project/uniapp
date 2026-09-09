@@ -15,6 +15,27 @@ import kotlin.test.assertTrue
 
 class AppUpdateControllerTest {
     @Test
+    fun aHigherBuildCodeOffersAnUpdateEvenWhenTheVersionNameAndRemoteFlagAreUnchanged() = runTest {
+        val controller = AppUpdateController(
+            AppUpdateSource { _ -> updateInfo(false).copy(latestVersion = "2.0.3", latestVersionCode = 1146) },
+            InstalledAppBuild("2.0.3", 1145), successfulLauncher(),
+        )
+        controller.refresh()
+        assertEquals(AppUpdatePhase.Available, controller.state.value.phase)
+    }
+
+    @Test
+    fun equalBuildCodesNeverOfferAnUpdateBasedOnlyOnTheVersionName() = runTest {
+        val controller = AppUpdateController(
+            AppUpdateSource { _ -> updateInfo(true, true).copy(latestVersion = "9.0", latestVersionCode = 1145) },
+            InstalledAppBuild("2.0.3", 1145), successfulLauncher(),
+        )
+        controller.refresh()
+        assertEquals(AppUpdatePhase.UpToDate, controller.state.value.phase)
+        assertFalse(controller.state.value.isMandatory)
+    }
+
+    @Test
     fun availableUpdateIsPublishedAndCanOpenHttpsDownload() = runTest {
         var openedUrl: String? = null
         val controller =

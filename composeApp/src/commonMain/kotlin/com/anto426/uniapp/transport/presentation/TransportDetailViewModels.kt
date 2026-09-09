@@ -41,7 +41,7 @@ class ReservationDetailViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Transport)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val reservation = snapshot.require(UniAppDataRequests.Transport).toReservations().firstOrNull { it.id == reservationId }
             mutableUiState.value = mutableUiState.value.copy(
@@ -96,7 +96,7 @@ class TicketDetailViewModel(
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Transport)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val ticket = snapshot.require(UniAppDataRequests.Transport).toTickets().firstOrNull { it.id == ticketId }
             mutableUiState.value = mutableUiState.value.copy(

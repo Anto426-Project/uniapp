@@ -11,13 +11,12 @@ android {
         applicationId = "com.anto426.uniapp"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        // versionCode is set automatically by the CI runner (GITHUB_RUN_NUMBER).
-        // This counter is strictly monotonically increasing per workflow, making it
-        // ideal as an Android versionCode. Use VERSION_CODE to override locally.
-        versionCode = (providers.environmentVariable("GITHUB_RUN_NUMBER")
-            .orElse(providers.environmentVariable("VERSION_CODE"))
-            .orElse("1")
-            .get().toInt())
+        // Keep the existing workflow counter; the offset exceeds all previously published codes.
+        val base = providers.gradleProperty("uniapp.versionCodeBase").get().toLong()
+        val run = providers.environmentVariable("GITHUB_RUN_NUMBER").orElse("0").get().toLong()
+        val code = providers.environmentVariable("VERSION_CODE").orNull?.toLong() ?: (base + run)
+        require(run >= 0 && code in 1..2_100_000_000L) { "Invalid Android build versionCode" }
+        versionCode = code.toInt()
         versionName = "2.0.3"
         ndk {
             abiFilters += "arm64-v8a"
@@ -72,7 +71,7 @@ dependencies {
         exclude(group = "org.jetbrains.compose")
         exclude(group = "org.jetbrains.androidx")
     }
-    implementation("com.anto426:antosdk")
+    implementation(libs.antosdk)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

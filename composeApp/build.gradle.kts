@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -34,10 +35,10 @@ kotlin {
         }
 
         optimization {
-            minify = true
+            minify = false // The final application performs whole-program R8 optimization.
             keepRules.file("proguard-rules.pro")
             consumerKeepRules.publish = true
-            consumerKeepRules.file("proguard-rules.pro")
+            consumerKeepRules.file("consumer-rules.pro")
         }
     }
 
@@ -100,16 +101,13 @@ kotlin {
     }
 }
 
-// Capture the checked-out modules, including local changes, instead of dependency aliases.
+// Metadata describes the exact binary releases consumed by this build.
+val sdkManifest = rootProject.file(".sdk-binaries/resolved.properties")
+require(sdkManifest.isFile) { "SDK binaries are missing. Run: python3 scripts/fetch_sdk_binaries.py" }
+val sdkProperties = Properties().apply { sdkManifest.inputStream().use(::load) }
 val moduleNames = listOf("liquid-monet", "uni-sdk", "secure-storage-sdk", "firebase-connector-sdk")
 val moduleMetadata = moduleNames.map { name ->
-    val moduleDir = rootProject.file("libs/$name")
-    val declaredVersion = Regex("""version\s*=\s*"([^"]+)"""")
-        .find(providers.fileContents(rootProject.layout.projectDirectory.file("libs/$name/build.gradle.kts")).asText.get())
-        ?.groupValues?.get(1) ?: "unknown"
-    val revision = providers.exec { commandLine("git", "-C", moduleDir.absolutePath, "rev-parse", "HEAD") }.standardOutput.asText.get().trim()
-    val dirty = providers.exec { commandLine("git", "-C", moduleDir.absolutePath, "status", "--porcelain", "--untracked-files=normal") }.standardOutput.asText.get().isNotBlank()
-    listOf(name, declaredVersion, revision, dirty.toString())
+    listOf(name, sdkProperties.getProperty("$name.version"), sdkProperties.getProperty("$name.revision"), "false")
 }
 val sourceRevision = providers.exec {
     commandLine("git", "-C", rootProject.projectDir.absolutePath, "rev-parse", "HEAD")

@@ -1,0 +1,64 @@
+name: Build and publish website
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Publish Android Build]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uniapp-distribution
+  cancel-in-progress: false
+
+jobs:
+  website:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_REPO: Anto426-Project/uniapp-upstream
+      DEPLOY_BRANCH: main
+      NEXT_PUBLIC_BASE_PATH: /uniapp-upstream
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DEPLOY_REPO }}
+          ref: ${{ env.DEPLOY_BRANCH }}
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: deploy-repo
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Build static website against the published app manifest
+        run: |
+          set -euo pipefail
+          cp deploy-repo/update.json website/public/update.json
+          cd website
+          npm ci
+          npm run build
+          npm run check:export
+      - name: Verify desktop and mobile interactions
+        working-directory: website
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+      - name: Upload test failure reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-test-results-${{ github.run_id }}
+          path: website/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Publish only the website
+        run: bash scripts/publish_website.sh

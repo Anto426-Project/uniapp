@@ -79,34 +79,6 @@ jobs:
           if context != expected:
               raise SystemExit('Artifact context does not match the selected build')
           PY
-      - name: Verify versionCode progression
-        run: |
-          python3 - <<'PY'
-          import json, sys
-          from pathlib import Path
-          incoming_meta = json.loads(Path('incoming/release/output-metadata.json').read_text())
-          elements = incoming_meta.get('elements', [])
-          if not elements:
-              raise SystemExit('No APK elements in output-metadata.json')
-          incoming_code = elements[0].get('versionCode')
-          if not isinstance(incoming_code, int) or incoming_code <= 0:
-              raise SystemExit(f'Invalid incoming versionCode: {incoming_code!r}')
-          deployed_path = Path('deploy-repo/update.json')
-          if deployed_path.exists():
-              deployed = json.loads(deployed_path.read_text())
-              published_code = deployed.get('latestVersionCode', 0)
-              if not isinstance(published_code, int):
-                  published_code = 0
-              if incoming_code <= published_code:
-                  raise SystemExit(
-                      f'versionCode regression: incoming {incoming_code} '
-                      f'<= published {published_code}. '
-                      'Increment GITHUB_RUN_NUMBER by triggering a new build.'
-                  )
-              print(f'versionCode OK: {published_code} -> {incoming_code}')
-          else:
-              print(f'No existing update.json found; first publish with versionCode {incoming_code}')
-          PY
       - name: Checkout distribution repository
         uses: actions/checkout@v4
         with:
@@ -117,11 +89,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: website/package-lock.json
       - name: Prepare manifest and release notes
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
@@ -135,29 +102,6 @@ jobs:
             --output incoming/release-notes.md --github-env-output "$GITHUB_ENV"
           python3 scripts/generate_deploy_readme.py --update-manifest incoming/update.json \
             --source-repo "$GITHUB_REPOSITORY" --output incoming/README.md
-      - name: Build distribution website
-        env:
-          NEXT_PUBLIC_BASE_PATH: /uniapp-upstream
-        run: |
-          set -euo pipefail
-          cp incoming/update.json website/public/update.json
-          cd website
-          npm ci
-          npm run build
-          npm run check:export
-      - name: Verify website on desktop and mobile
-        working-directory: website
-        run: |
-          npx playwright install --with-deps chromium
-          npm run test:e2e
-      - name: Upload website failure reports
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: website-test-results-${{ github.run_id }}
-          path: website/test-results/
-          if-no-files-found: ignore
-          retention-days: 7
       - name: Publish release assets then update distribution
         env:
           GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}

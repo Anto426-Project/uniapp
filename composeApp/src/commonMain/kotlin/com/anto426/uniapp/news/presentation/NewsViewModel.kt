@@ -35,7 +35,7 @@ class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.News)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests) { snapshot ->
+    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val news = snapshot.require(UniAppDataRequests.News)
             val tabs = listOf(

@@ -1242,4 +1242,6 @@
     <string name="ui_language_italian_default">Italiano (predefinito)</string>
     <string name="ui_home_news_empty_title">Nessuna notizia disponibile</string>
     <string name="ui_home_news_empty_description">Le notizie verranno mostrate quando saranno disponibili dai servizi universitari.</string>
+    <string name="ui_demo_action">Operazione simulata. Nessun dato è stato inviato all’università.</string>
+    <string name="ui_demo_invalid_credentials">Credenziali dell’account dimostrativo non valide.</string>
 </resources>

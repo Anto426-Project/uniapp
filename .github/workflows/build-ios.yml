@@ -36,15 +36,11 @@ jobs:
           # is reused across runs when nothing relevant changes.
           cache-read-only: false
 
-      - name: Cache Kotlin/Native framework
-        uses: actions/cache@v4
+      - uses: actions/setup-python@v5
         with:
-          path: |
-            composeApp/build/bin/
-            ~/.konan/cache/
-          key: ios-kn-framework-${{ runner.os }}-${{ hashFiles('composeApp/**', 'libs/**', 'gradle/**', '*.gradle.kts', 'gradle.properties') }}
-          restore-keys: |
-            ios-kn-framework-${{ runner.os }}-
+          python-version: '3.12'
+      - name: Resolve verified SDK binaries
+        run: python3 scripts/fetch_sdk_binaries.py
 
       - name: Build shared Kotlin framework
         run: ./gradlew :composeApp:linkReleaseFrameworkIosArm64

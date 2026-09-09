@@ -15,11 +15,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
     timeout-minutes: 60
-    env:
-      # GitHub Packages authentication — resolves pre-built SDK AARs without
-      # checking out the submodule source (faster builds, deterministic binaries).
-      GITHUB_ACTOR: ${{ github.actor }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     defaults:
       run:
         shell: bash
@@ -27,8 +22,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.DEPLOY_TOKEN || github.token }}
-          # Submodules are NOT checked out in CI: SDK dependencies are resolved
-          # from the pre-built AARs published on GitHub Packages by each SDK's workflow.
           persist-credentials: false
       - uses: actions/setup-java@v4
         with:
@@ -36,13 +29,13 @@ jobs:
           java-version: "21"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          # Read-only: the shared-libs pre-build workflow populates the cache.
-          # This job only consumes it to skip recompiling SDK modules from source.
-          cache-read-only: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Resolve verified SDK binaries
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/fetch_sdk_binaries.py
       - name: Validate release tooling and app
         run: |
           set -euo pipefail
@@ -77,6 +70,7 @@ jobs:
           mkdir -p publish-input/release
           cp androidApp/build/outputs/apk/release/*.apk publish-input/release/
           cp androidApp/build/outputs/apk/release/output-metadata.json publish-input/release/
+          cp .sdk-binaries/resolved.properties publish-input/sdk-binaries.properties
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
           test -n "$APK_SIGNER"
           for apk in publish-input/release/*.apk; do
