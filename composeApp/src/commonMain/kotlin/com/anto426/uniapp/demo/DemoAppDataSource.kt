@@ -3,17 +3,16 @@ package com.anto426.uniapp.demo
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.unisdk.backend.model.*
 import com.anto426.unisdk.transport.*
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.request.get
-import io.ktor.client.statement.readBytes
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 /** Account-local simulation: no backend/client dependency and no real university operations. */
-internal class DemoAppDataSource : UniAppDataSource {
+internal class DemoAppDataSource(
+    private val identity: () -> Pair<String, String?> = { DemoAccount.developerName(null) to DemoAccount.avatarFallback },
+    private val imageLoader: suspend (String) -> ByteArray = { byteArrayOf() },
+) : UniAppDataSource {
     private val lock = Mutex()
     private var rounds: List<ExamRoundData>? = null
     private var transport: TransportData? = null
@@ -33,15 +32,11 @@ internal class DemoAppDataSource : UniAppDataSource {
         return feedback()
     }
     override suspend fun loadTaxes(forceRefresh: Boolean) = DemoCatalog.load().taxes
-    override suspend fun loadStudentDetails(forceRefresh: Boolean) = DemoCatalog.load().student
-    override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray {
-        if (source != DemoAccount.AVATAR_URL) return byteArrayOf()
-        if (!forceRefresh) avatarCache?.let { return it }
-        return try {
-            val bytes = HttpClient { install(HttpTimeout) { requestTimeoutMillis = 10_000 } }.use { it.get(source).readBytes() }
-            if (bytes.isNotEmpty()) bytes.also { avatarCache = it } else byteArrayOf()
-        } catch (_: Exception) { avatarCache ?: byteArrayOf() }
+    override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetailsData {
+        val (name, avatar) = identity()
+        return DemoCatalog.load().student.copy(fullName = name, photoUrl = avatar)
     }
+    override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray = imageLoader(source)
     override suspend fun loadConnectedDevices(forceRefresh: Boolean) = DemoCatalog.load().devices
     override suspend fun disconnectDevice(targetToken: String) = feedback()
     override suspend fun disconnectAllOtherDevices() = feedback()
@@ -78,7 +73,4 @@ internal class DemoAppDataSource : UniAppDataSource {
         TransportActionResult.Completed
     }
 
-    private companion object {
-        @Volatile var avatarCache: ByteArray? = null
-    }
 }

@@ -41,6 +41,44 @@ class DemoAccountTest : ResourceTest() {
     }
 
     @Test
+    fun demoUsesTheSharedDeveloperProfileAndPersistsUpdatesWithoutChangingUniversityData() = runTest {
+        val client = HttpClient(MockEngine { error("Unexpected university request") })
+        val backend = RemoteUniBackendService(client)
+        val accounts = UniAccountStore(SecureStorageManager(StorageTestFactory(), "demo-author"))
+        val local = FakeUniLocalDataStore()
+        val author = com.anto426.uniapp.project.model.GitHubAuthor(
+            login = com.anto426.unisdk.platform.ProjectInfo.authorLogin, name = "Nome dello sviluppatore",
+            avatarUrl = "https://avatars.githubusercontent.com/u/123", url = "https://github.com/fixture")
+        local.write(com.anto426.uniapp.data.local.LocalDataScope.Application,
+            com.anto426.uniapp.data.local.UniAppDataKeys.GitHubProject,
+            com.anto426.uniapp.project.model.GitHubProjectSnapshot(author = author))
+        try {
+            val controller = AppSessionController(UniSessionCoordinator(backend, accounts), accounts, local)
+            controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, DemoAccount.PASSWORD))
+            val original = assertIs<AppSessionState.Authenticated>(controller.state.value).account
+            assertEquals(author.name, original.displayName)
+            assertEquals(author.avatarUrl, original.photoUrl)
+            assertEquals(DemoCatalog.load().student.matricola, original.matricola)
+            assertEquals(DemoCatalog.load().student.email, original.email)
+            val identity = { assertIs<AppSessionState.Authenticated>(controller.state.value).account.let { it.displayName to it.photoUrl } }
+            val source = DemoAppDataSource(identity = identity, imageLoader = { byteArrayOf(1, 2, 3) })
+            val round = source.loadExamRounds().first { !it.booked }
+            source.bookExamRound(round)
+            controller.updateDemoAuthor(author.copy(name = "Nome aggiornato", avatarUrl = "https://avatars.githubusercontent.com/u/456"))
+            val updated = assertIs<AppSessionState.Authenticated>(controller.state.value).account
+            assertEquals(original.accountId, updated.accountId)
+            assertEquals("Nome aggiornato", updated.displayName)
+            assertEquals(updated, accounts.snapshot().accounts.single())
+            assertEquals(updated.displayName, source.loadStudentDetails().fullName)
+            assertEquals(updated.photoUrl, source.loadStudentDetails().photoUrl)
+            assertContentEquals(byteArrayOf(1, 2, 3), source.loadProfileImage(updated.photoUrl!!))
+            assertTrue(source.loadExamRounds().first { it.appId == round.appId }.booked)
+            controller.updateDemoAuthor(author.copy(login = "another-user", name = "Wrong"))
+            assertEquals(updated, assertIs<AppSessionState.Authenticated>(controller.state.value).account)
+        } finally { backend.close(); client.close() }
+    }
+
+    @Test
     fun incorrectDemoPasswordDoesNotFallThroughToRealAuthentication() = runTest {
         var requests = 0
         val client = HttpClient(MockEngine { requests++; error("Unexpected network") })

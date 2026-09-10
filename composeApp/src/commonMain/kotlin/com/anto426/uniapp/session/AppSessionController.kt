@@ -36,6 +36,7 @@ class AppSessionController internal constructor(
 ) {
     val avatars = com.anto426.uniapp.account.data.AccountAvatarStore(accountStore)
     private val lock = Mutex()
+    private var demoAuthor: com.anto426.uniapp.project.model.GitHubAuthor? = null
     private val mutableState = MutableStateFlow<AppSessionState>(AppSessionState.Initializing)
     private val mutableAccountsRevision = MutableStateFlow(0L)
     internal val accountsRevision: StateFlow<Long> = mutableAccountsRevision.asStateFlow()
@@ -55,7 +56,7 @@ class AppSessionController internal constructor(
                         account == null -> AppSessionState.SignedOut()
                         requiresBiometricUnlock(account.accountId) ->
                             AppSessionState.UnlockRequired(account)
-                        DemoAccount.isDemo(account) -> AppSessionState.Authenticated(account)
+                        DemoAccount.isDemo(account) -> AppSessionState.Authenticated(refreshDemoProfileLocked(account))
                         else -> coordinator.resumeActiveAccount().toAppState()
                     }
                 } catch (error: CancellationException) {
@@ -129,7 +130,7 @@ class AppSessionController internal constructor(
                     mutableState.value = AppSessionState.SignedOut(getString(Res.string.ui_demo_invalid_credentials))
                     return@withLock
                 }
-                val account = accountStore.persistAuthenticatedAccount(credentials, DemoAccount.profile(),
+                val account = accountStore.persistAuthenticatedAccount(credentials, demoProfileLocked(),
                     com.anto426.unisdk.session.UniSessionTicket.restore("local-demo-v1".encodeToByteArray()))
                 mutableState.value = AppSessionState.Authenticated(account)
                 mutableAccountsRevision.value += 1
@@ -191,7 +192,7 @@ class AppSessionController internal constructor(
         val account = accountStore.snapshot().accounts.first { it.accountId == accountId }
         return if (DemoAccount.isDemo(account)) {
             accountStore.setActiveAccount(accountId)
-            AppSessionState.Authenticated(account)
+            AppSessionState.Authenticated(refreshDemoProfileLocked(account))
         } else coordinator.activate(accountId).toAppState()
     }
 
@@ -232,6 +233,36 @@ class AppSessionController internal constructor(
             ?.let(coordinator::accountClient)
 
     suspend fun accounts(): List<UniAccountSummary> = accountStore.snapshot().accounts
+
+    /** Public author metadata never authenticates or changes a university account. */
+    internal suspend fun updateDemoAuthor(author: com.anto426.uniapp.project.model.GitHubAuthor) = lock.withLock {
+        if (!author.login.equals(com.anto426.unisdk.platform.ProjectInfo.authorLogin, ignoreCase = true)) return@withLock
+        demoAuthor = author
+        val current = (mutableState.value as? AppSessionState.Authenticated)?.account ?: return@withLock
+        if (!DemoAccount.isDemo(current)) return@withLock
+        val updated = refreshDemoProfileLocked(current)
+        if (updated != current) mutableState.value = AppSessionState.Authenticated(updated)
+    }
+
+    private suspend fun demoProfileLocked(): com.anto426.unisdk.session.UniUserProfile {
+        if (demoAuthor == null) {
+            demoAuthor = try { localDataStore.read(LocalDataScope.Application, UniAppDataKeys.GitHubProject).author }
+                catch (error: CancellationException) { throw error } catch (_: Exception) { null }
+        }
+        return DemoAccount.profile(demoAuthor)
+    }
+
+    private suspend fun refreshDemoProfileLocked(account: UniAccountSummary): UniAccountSummary {
+        val profile = demoProfileLocked()
+        // Keep an already resolved identity when offline and the public cache is unavailable.
+        if (demoAuthor == null || (account.displayName == profile.displayName && account.photoUrl == profile.photoUrl)) return account
+        return try {
+            accountStore.updateSession(account.accountId, profile,
+                com.anto426.unisdk.session.UniSessionTicket.restore("local-demo-v1".encodeToByteArray())).also {
+                mutableAccountsRevision.value += 1
+            }
+        } catch (error: CancellationException) { throw error } catch (_: Exception) { account }
+    }
 
     /** Local deletion only. Authorization applies to the target account, even if it is inactive. */
     internal suspend fun removeAccount(accountId: String, authenticator: BiometricAuthenticator): Boolean =

@@ -97,6 +97,7 @@ data class ExamSession(
     val canBook: Boolean = true,
     val isBooked: Boolean = false,
     val id: String = "",
+    val isBookingFuture: Boolean = false,
 )
 
 data class GradeExam(val name: String, val grade: Int, val cfu: Int)
@@ -125,4 +126,3 @@ data class ThesisData(
     val sessione: String? = null,
     val extraFields: List<Pair<String, String>> = emptyList(),
 )
-

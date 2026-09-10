@@ -653,6 +653,7 @@ internal fun AppRouteContent(
                     uiState = examsUiState,
                     onTabSelected = examsViewModel::selectTab,
                     onToggleBooking = examsViewModel::toggleBooking,
+                    onAddToCalendar = { examsViewModel.openCalendar(it, uriHandler::openUri) },
                     onProfessorExamClick = { exam ->
                         navigator.navigate(
                             AppRoute.ProfessorExamDetail(

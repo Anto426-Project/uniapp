@@ -36,6 +36,7 @@ fun ExamSessionItem(
     exam: ExamSession,
     isMutating: Boolean = false,
     onToggleBooking: () -> Unit = {},
+    onAddToCalendar: () -> Unit,
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     LiquidAccordionItem(
@@ -119,7 +120,7 @@ fun ExamSessionItem(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     LiquidButton(
                         text = stringResource(Res.string.ui_add_calendar),
-                        onClick = {},
+                        onClick = onAddToCalendar,
                         modifier = Modifier.fillMaxWidth(),
                         variant = LiquidButtonVariant.Tonal,
                         size = LiquidButtonSize.Small,
@@ -136,8 +137,11 @@ fun ExamSessionItem(
             } else {
                 LiquidButton(
                     text =
-                        if (exam.canBook) stringResource(Res.string.ui_book_exam)
-                        else stringResource(Res.string.ui_booking_closed),
+                        when {
+                            exam.canBook -> stringResource(Res.string.ui_book_exam)
+                            exam.isBookingFuture -> stringResource(Res.string.ui_exam_booking_not_open)
+                            else -> stringResource(Res.string.ui_booking_closed)
+                        },
                     onClick = onToggleBooking,
                     enabled = exam.canBook && !isMutating,
                     modifier = Modifier.fillMaxWidth(),

@@ -70,7 +70,6 @@ class ExamsViewModel(
                         isProfessor = true,
                         professorExamRounds = rounds,
                         loadState = if (rounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                        mutatingExamId = null,
                     )
                 return@observeIn
             }
@@ -82,7 +81,6 @@ class ExamsViewModel(
             mutableUiState.value = mutableUiState.value.copy(
                 exams = upcomingRounds.toExamSessions(),
                 loadState = if (upcomingRounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                mutatingExamId = null,
             )
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
@@ -91,7 +89,6 @@ class ExamsViewModel(
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
                 errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_gli_appelli)),
-                mutatingExamId = null,
             )
         }
 
@@ -107,20 +104,38 @@ class ExamsViewModel(
     }
 
     fun toggleBooking(examId: String) {
-        if (mutableUiState.value.isProfessor) return
+        if (mutableUiState.value.isProfessor || mutableUiState.value.mutatingExamId != null) return
         val round = roundsById[examId] ?: return
+        mutableUiState.value = mutableUiState.value.copy(mutatingExamId = examId, errorMessage = null)
         viewModelScope.launch {
-            mutableUiState.value = mutableUiState.value.copy(mutatingExamId = examId, errorMessage = null)
             try {
+                if (!round.booked && !round.isBookable) {
+                    toastSink.error(getString(Res.string.ui_exam_not_yet_bookable))
+                    return@launch
+                }
                 val message = if (round.booked) sharedData.cancelExamRound(round) else sharedData.bookExamRound(round)
                 toastSink.success(message)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 val message = error.userMessage(getString(Res.string.msg_operazione_sull_appello_non_riuscita))
-                mutableUiState.value = mutableUiState.value.copy(mutatingExamId = null)
                 toastSink.error(message)
+            } finally {
+                mutableUiState.value = mutableUiState.value.copy(mutatingExamId = null)
             }
+        }
+    }
+
+    fun openCalendar(examId: String, openUrl: (String) -> Unit) {
+        val url = roundsById[examId]?.calendarUrlOrNull()
+        viewModelScope.launch {
+            if (url == null) {
+                toastSink.error(getString(Res.string.ui_exam_calendar_date_missing))
+                return@launch
+            }
+            try { openUrl(url) }
+            catch (error: CancellationException) { throw error }
+            catch (_: Exception) { toastSink.error(getString(Res.string.ui_exam_calendar_open_failed)) }
         }
     }
 

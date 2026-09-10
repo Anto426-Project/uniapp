@@ -1,5 +1,6 @@
 package com.anto426.uniapp.data
 
+import kotlinx.datetime.number
 import com.anto426.liquidmonet.components.cards.LiquidStatusType
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.AttendanceData
@@ -81,8 +82,8 @@ internal fun List<ExamRoundData>.toExamSessions(): List<ExamSession> =
             date = date,
             time = time,
             room = round.room,
-            bookingOpenDate = round.registrationStartingDate.orEmpty(),
-            bookingCloseDate = round.registrationEndingDate.orEmpty(),
+            bookingOpenDate = round.registrationStartingDate.examBookingBoundaryLabel(),
+            bookingCloseDate = round.registrationEndingDate.examBookingBoundaryLabel(),
             type = round.registrationTypeDescription,
             professor = round.presidentFullName.orEmpty(),
             bookedUsersCount = round.totalRegistrations ?: 0,
@@ -91,6 +92,7 @@ internal fun List<ExamRoundData>.toExamSessions(): List<ExamSession> =
             canBook = round.isBookable,
             isBooked = round.booked,
             id = round.stableUiId(),
+            isBookingFuture = round.bookingState == com.anto426.unisdk.backend.model.ExamRoundBookingState.FUTURE,
         )
     }
 
@@ -246,7 +248,17 @@ internal fun TransportData.toTickets(): List<TransportTicket> =
     }
 
 internal fun ExamRoundData.stableUiId(): String =
-    listOfNotNull(appId, adId, adsceId).firstOrNull() ?: "$courseName|$dateTime"
+    listOf(cdsId, adId, adsceId, appId, courseName, dateTime)
+        .joinToString("|") { part -> part.orEmpty().trim().let { "${it.length}:$it" } }
+
+private fun String?.examBookingBoundaryLabel(): String {
+    val value = this?.trim().orEmpty()
+    val parsed = com.anto426.unisdk.backend.model.parseExamRoundDateTimeOrNull(value) ?: return value
+    val date = parsed.date
+    val label = "${date.day.toString().padStart(2, '0')}/${date.month.number.toString().padStart(2, '0')}/${date.year}"
+    return if (Regex("""(?:T|\s)\d{1,2}:\d{2}""").containsMatchIn(value))
+        "$label ${parsed.hour.toString().padStart(2, '0')}:${parsed.minute.toString().padStart(2, '0')}" else label
+}
 
 internal fun String.numericGradeOrNull(): Int? {
     val clean = substringBefore('/').trim()

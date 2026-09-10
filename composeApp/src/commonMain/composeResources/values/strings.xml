@@ -234,6 +234,10 @@
     <string name="ui_booking_window">Finestra prenotazioni</string>
     <string name="ui_booked_students">Studenti prenotati:</string>
     <string name="ui_add_calendar">Aggiungi a Google Calendar</string>
+    <string name="ui_exam_booking_not_open">Prenotazioni non ancora aperte</string>
+    <string name="ui_exam_not_yet_bookable">Le prenotazioni per questo appello non sono aperte. Controlla le date indicate.</string>
+    <string name="ui_exam_calendar_date_missing">La data dell’appello non è disponibile per il calendario.</string>
+    <string name="ui_exam_calendar_open_failed">Impossibile aprire il calendario. Verifica che sia disponibile un browser.</string>
     <string name="ui_cancel_booking">Annulla prenotazione</string>
     <string name="ui_book_exam">Prenota esame</string>
     <string name="ui_booking_closed">Prenotazioni chiuse</string>

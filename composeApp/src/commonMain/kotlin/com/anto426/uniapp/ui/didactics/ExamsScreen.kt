@@ -25,6 +25,7 @@ fun ExamsScreen(
     onTabSelected: (Int) -> Unit,
     onToggleBooking: (String) -> Unit,
     onProfessorExamClick: (ProfessorContentItem) -> Unit = {},
+    onAddToCalendar: (String) -> Unit,
 ) {
     val studentTabs = listOf(
         LiquidNavigationItem(
@@ -79,8 +80,9 @@ fun ExamsScreen(
             ) { _, exam ->
                 ExamSessionItem(
                     exam = exam,
-                    isMutating = uiState.mutatingExamId == exam.id,
+                    isMutating = uiState.mutatingExamId != null,
                     onToggleBooking = { onToggleBooking(exam.id) },
+                    onAddToCalendar = { onAddToCalendar(exam.id) },
                 )
             }
         }

@@ -48,7 +48,9 @@ internal class AppUpdateViewModel(
     val uiState: StateFlow<AppUpdateUiState> =
         combine(controller.state, dismissedUpdate) { state, dismissed ->
             val ui = state.toUiState()
-            ui.copy(showUpdateSheet = ui.availableUpdateKey != null && ui.availableUpdateKey != dismissed && !state.isBusy)
+            // Rechecking a known update must not remove and recreate the modal.
+            val canPresent = !state.isBusy || state.phase == AppUpdatePhase.Checking
+            ui.copy(showUpdateSheet = ui.availableUpdateKey != null && ui.availableUpdateKey != dismissed && canPresent)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -57,7 +59,6 @@ internal class AppUpdateViewModel(
 
     init {
         viewModelScope.launch { controller.observeInstallation() }
-        viewModelScope.launch { controller.refresh() }
     }
 
     fun dismissUpdateSheet() {

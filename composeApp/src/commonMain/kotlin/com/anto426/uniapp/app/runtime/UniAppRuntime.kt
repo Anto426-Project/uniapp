@@ -24,6 +24,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import com.anto426.uniapp.demo.DemoAccount
+import com.anto426.uniapp.demo.DemoAppDataSource
+import com.anto426.uniapp.session.model.AppSessionState
+import com.anto426.uniapp.data.runtime.UniAppDataRequests
 
 class UniAppRuntime internal constructor(
     val sessionController: AppSessionController,
@@ -53,11 +59,26 @@ class UniAppRuntime internal constructor(
                 updateOwner(state)
             }
         }
+        lifecycleScope.launch {
+            projectData.uiState.map { it.data?.author }.distinctUntilChanged().collect { author ->
+                if (author != null) sessionController.updateDemoAuthor(author)
+            }
+        }
     }
 
     // Called only on Main, both by the state collector and before resolving a route.
     private fun updateOwner(state: com.anto426.uniapp.session.model.AppSessionState) {
         if (state === ownerState) return
+        val before = (ownerState as? AppSessionState.Authenticated)?.account
+        val after = (state as? AppSessionState.Authenticated)?.account
+        if (DemoAccount.isDemo(before) && DemoAccount.isDemo(after) &&
+            before?.accountId == after?.accountId && before?.activeProfileId == after?.activeProfileId
+        ) {
+            ownerState = state
+            // Updating the public portrait must preserve simulated bookings and ongoing operations.
+            accountDataSources.values.forEach { it.refresh(listOf(UniAppDataRequests.Student), force = true) }
+            return
+        }
         val previous = accountDataSources.values.toList()
         accountDataSources.clear()
         ownerState = state
@@ -72,7 +93,14 @@ class UniAppRuntime internal constructor(
             generation += 1
             val account = (sessionController.state.value as? com.anto426.uniapp.session.model.AppSessionState.Authenticated)?.account
             UniAppDataCoordinator(
-                source = if (com.anto426.uniapp.demo.DemoAccount.isDemo(account)) com.anto426.uniapp.demo.DemoAppDataSource() else SessionUniAppDataSource(
+                source = if (DemoAccount.isDemo(account)) DemoAppDataSource(
+                    identity = {
+                        val current = (sessionController.state.value as? AppSessionState.Authenticated)?.account
+                            ?.takeIf { it.accountId == accountId } ?: account
+                        (current?.displayName ?: DemoAccount.developerName(null)) to current?.photoUrl
+                    },
+                    imageLoader = { applicationImages.load(it)?.bytes ?: byteArrayOf() },
+                ) else SessionUniAppDataSource(
                     sessions = sessionController,
                     accounts = accountStore,
                     fixedAccountId = accountId,
