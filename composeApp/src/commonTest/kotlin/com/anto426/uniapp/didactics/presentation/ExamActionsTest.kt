@@ -8,8 +8,13 @@ import com.anto426.uniapp.testing.ResourceTest
 import com.anto426.unisdk.backend.model.ExamRoundData
 import io.ktor.http.Url
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.Res
+import uniapp.composeapp.generated.resources.ui_exam_calendar_date_missing
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,7 +51,7 @@ class ExamActionsTest : ResourceTest() {
             val rounds = listOf(round(booked = false), round(booked = false).copy(adId = "43", courseName = "Fisica"))
             val finish = CompletableDeferred<Unit>()
             val booked = mutableListOf<ExamRoundData>()
-            val messages = mutableListOf<String>()
+            val messages = Channel<String>(Channel.UNLIMITED)
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadExamRounds(forceRefresh: Boolean) = rounds
                 override suspend fun bookExamRound(round: ExamRoundData): String {
@@ -55,9 +60,9 @@ class ExamActionsTest : ResourceTest() {
                     error("appello ancora non prenotabile")
                 }
             }
-            val vm = ExamsViewModel(source, AppToastSink { messages += it.text }, today = { LocalDate(2026, 9, 10) })
+            val vm = ExamsViewModel(source, AppToastSink { messages.trySend(it.text) }, today = { LocalDate(2026, 9, 10) })
             store.put("exams", vm)
-            runCurrent()
+            vm.uiState.first { it.exams.size == rounds.size }
             assertEquals(2, vm.uiState.value.exams.map { it.id }.distinct().size)
             val selected = rounds[1].stableUiId()
             vm.toggleBooking(selected)
@@ -71,9 +76,10 @@ class ExamActionsTest : ResourceTest() {
             runCurrent()
             assertEquals(1, booked.size)
             finish.complete(Unit)
-            runCurrent()
-            assertNull(vm.uiState.value.mutatingExamId)
-            assertEquals(listOf("appello ancora non prenotabile"), messages)
+            // Resource loading may resume on a real IO dispatcher, outside runCurrent's scheduler.
+            assertEquals("appello ancora non prenotabile", messages.receive())
+            vm.uiState.first { it.mutatingExamId == null }
+            assertTrue(messages.tryReceive().isFailure)
             assertFalse(vm.uiState.value.exams.any { it.isBooked })
         } finally { store.clear(); Dispatchers.resetMain() }
     }
@@ -85,19 +91,20 @@ class ExamActionsTest : ResourceTest() {
         try {
             val booked = round()
             val undated = round("data da definire").copy(adId = "43")
-            val errors = mutableListOf<String>()
+            val errors = Channel<String>(Channel.UNLIMITED)
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadExamRounds(forceRefresh: Boolean) = listOf(booked, undated)
             }
-            val vm = ExamsViewModel(source, AppToastSink { errors += it.text }, today = { LocalDate(2026, 9, 10) })
+            val vm = ExamsViewModel(source, AppToastSink { errors.trySend(it.text) }, today = { LocalDate(2026, 9, 10) })
             store.put("exams", vm)
-            runCurrent()
+            vm.uiState.first { it.exams.size == 2 }
             val opened = mutableListOf<String>()
             vm.openCalendar(booked.stableUiId()) { opened += it }
             vm.openCalendar(undated.stableUiId()) { opened += it }
-            runCurrent()
+            val missingDateMessage = errors.receive()
+            assertEquals(getString(Res.string.ui_exam_calendar_date_missing), missingDateMessage)
             assertEquals(listOf(booked.calendarUrlOrNull()), opened)
-            assertEquals(1, errors.size)
+            assertTrue(errors.tryReceive().isFailure)
         } finally { store.clear(); Dispatchers.resetMain() }
     }
 }
