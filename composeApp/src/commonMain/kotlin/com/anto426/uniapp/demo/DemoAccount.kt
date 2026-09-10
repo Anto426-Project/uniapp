@@ -9,6 +9,7 @@ import com.anto426.unisdk.session.UniUserProfile
 internal object DemoAccount {
     const val USERNAME = "demo@uniapp.local"
     const val PASSWORD = "UniAppDemo2026!"
+    const val AVATAR_URL = "https://avatars.githubusercontent.com/anto426"
     private const val SERVER_ID = "uniapp-presentation-demo"
     fun requested(credentials: UniAccountCredentials) = credentials.username.trim().equals(USERNAME, ignoreCase = true)
     fun accepts(credentials: UniAccountCredentials) = requested(credentials) && credentials.password == PASSWORD
@@ -16,7 +17,7 @@ internal object DemoAccount {
     suspend fun profile(): UniUserProfile {
         val student = DemoCatalog.load().student
         return UniUserProfile(id = SERVER_ID, displayName = student.fullName, degreeName = student.degreeName.orEmpty(),
-            matricola = student.matricola, email = student.email, photoUrl = null, isGuest = false,
+            matricola = student.matricola, email = student.email, photoUrl = AVATAR_URL, isGuest = false,
             activeProfileId = "demo-student", profiles = listOf(UniCareerProfile(
                 profileId = "demo-student", displayName = student.fullName, degreeName = student.degreeName.orEmpty(),
                 matricola = student.matricola, departmentName = student.departmentName,

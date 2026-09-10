@@ -3,6 +3,10 @@ package com.anto426.uniapp.demo
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.unisdk.backend.model.*
 import com.anto426.unisdk.transport.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.get
+import io.ktor.client.statement.readBytes
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.resources.getString
@@ -30,7 +34,14 @@ internal class DemoAppDataSource : UniAppDataSource {
     }
     override suspend fun loadTaxes(forceRefresh: Boolean) = DemoCatalog.load().taxes
     override suspend fun loadStudentDetails(forceRefresh: Boolean) = DemoCatalog.load().student
-    override suspend fun loadProfileImage(source: String, forceRefresh: Boolean) = byteArrayOf()
+    override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray {
+        if (source != DemoAccount.AVATAR_URL) return byteArrayOf()
+        if (!forceRefresh) avatarCache?.let { return it }
+        return try {
+            val bytes = HttpClient { install(HttpTimeout) { requestTimeoutMillis = 10_000 } }.use { it.get(source).readBytes() }
+            if (bytes.isNotEmpty()) bytes.also { avatarCache = it } else byteArrayOf()
+        } catch (_: Exception) { avatarCache ?: byteArrayOf() }
+    }
     override suspend fun loadConnectedDevices(forceRefresh: Boolean) = DemoCatalog.load().devices
     override suspend fun disconnectDevice(targetToken: String) = feedback()
     override suspend fun disconnectAllOtherDevices() = feedback()
@@ -65,5 +76,9 @@ internal class DemoAppDataSource : UniAppDataSource {
         val bookings = current.bookings.filterNot { it.id == bookingId }
         transport = current.copy(bookings = bookings, totalCount = bookings.size)
         TransportActionResult.Completed
+    }
+
+    private companion object {
+        @Volatile var avatarCache: ByteArray? = null
     }
 }
