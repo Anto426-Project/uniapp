@@ -54,10 +54,18 @@ jobs:
             }
             core.setOutput('run_id', id);
             core.setOutput('sha', run.head_sha);
-      - name: Checkout the exact built revision
+      - name: Checkout publishing tools from this workflow revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Checkout release policy from the exact built revision
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.source.outputs.sha }}
+          path: build-source
+          sparse-checkout: update-config.json
+          sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Download signed build
         uses: actions/download-artifact@v4
@@ -95,7 +103,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/generate_update_manifest.py --metadata incoming/release/output-metadata.json \
-            --manual-config update-config.json --existing deploy-repo/update.json \
+            --manual-config build-source/update-config.json --existing deploy-repo/update.json \
             --deploy-repo "$DEPLOY_REPO" --build-commit "$SOURCE_SHA" --output incoming/update.json
           python3 scripts/generate_github_release_metadata.py --metadata incoming/release/output-metadata.json \
             --update-manifest incoming/update.json --source-repo "$GITHUB_REPOSITORY" \

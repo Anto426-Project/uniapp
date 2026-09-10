@@ -7,6 +7,7 @@
 - Le classi offuscate di ogni SDK usano uno spazio di nomi distinto per evitare collisioni nell'APK; il resolver verifica anche l'assenza di classi duplicate prima di aggiornare la cache.
 - Eliminato il workflow ridondante `build-shared-libs.yml`; le build Android e iOS restano manuali e riusano i binari SDK già compilati.
 - Separati build e deploy del sito nel workflow `build-website.yml`.
+- La ripubblicazione di APK già compilati usa gli strumenti del workflow corrente e la configurazione della build originale, senza recuperare vecchi script che richiedono anche l'output del sito.
 - `publish-build.yml`: aggiunto controllo di progressione del `versionCode` — rifiuta la pubblicazione se il codice dell'APK in arrivo è ≤ all'ultimo pubblicato.
 - `bump_version.py`: non modifica più il `versionCode` nel gradle (ora gestito dal CI); aggiorna solo `versionName` e `update-config.json`.
 
