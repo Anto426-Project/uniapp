@@ -14,7 +14,6 @@ jobs:
     env:
       UNIAPP_APP_STORE_URL: ${{ vars.UNIAPP_APP_STORE_URL }}
       GITHUB_ACTOR: ${{ github.actor }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -40,6 +39,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Resolve verified SDK binaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.SDK_READ_TOKEN || secrets.DEPLOY_TOKEN || github.token }}
         run: python3 scripts/fetch_sdk_binaries.py
 
       - name: Build shared Kotlin framework

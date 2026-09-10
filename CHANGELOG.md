@@ -1,12 +1,12 @@
 ## [2.0.4] - 2026-09-09 (build set by CI)
 
 ### CI / Build infrastruttura
-- Il `versionCode` Android è ora impostato automaticamente dal numero di run del workflow CI (`GITHUB_RUN_NUMBER`), eliminando il bump manuale dell'intero dal gradle.
-- I 4 SDK (`liquid-monet`, `uni-sdk`, `secure-storage-sdk`, `firebase-connector-sdk`) pubblicano ora gli AAR pre-compilati con R8 full-mode su **GitHub Packages** ad ogni push su `main`, con versione Maven `1.0.<run_number>`.
-- `uniapp` risolve i SDK come dipendenze Maven pre-compilate in CI (versione `1.0.+`); in locale l'`includeBuild` continua a usare i sorgenti dei submodule per lo sviluppo iterativo.
-- Nuovo workflow **`build-shared-libs.yml`**: pre-compila `composeApp` e tutti i moduli SDK con R8 ad ogni push, riscaldando la Gradle cache del runner self-hosted per i build successivi.
-- `build-android.yml` e `build-ios.yml`: i submodule non vengono più clonati in CI (si usano i binari di GitHub Packages); Gradle cache impostata in read-only.
-- `build-ios.yml`: aggiunta cache `actions/cache` per il framework Kotlin/Native (chiave basata sull'hash dei sorgenti) per evitare ricompilazioni su runner macOS effimeri.
+- Il `versionCode` Android usa `uniapp.versionCodeBase + GITHUB_RUN_NUMBER` (base attuale: 1000), eliminando il bump manuale e mantenendo la progressione rispetto alle vecchie build.
+- I 4 SDK pubblicano AAR Android ottimizzati con R8, metadati KMP e KLIB iOS su **GitHub Packages** e come archivio Maven nelle **GitHub Releases**, ad ogni push sul rispettivo branch principale, con versione `1.0.<run_number>`.
+- UniApp scarica le Release SDK con autenticazione anche per gli allegati privati, verifica gli hash e risolve le versioni esatte da un repository Maven locale. Versioni e revisioni vengono conservate con l'artefatto della build. Rimossi i submodule e i composite build degli SDK.
+- Le classi offuscate di ogni SDK usano uno spazio di nomi distinto per evitare collisioni nell'APK; il resolver verifica anche l'assenza di classi duplicate prima di aggiornare la cache.
+- Eliminato il workflow ridondante `build-shared-libs.yml`; le build Android e iOS restano manuali e riusano i binari SDK già compilati.
+- Separati build e deploy del sito nel workflow `build-website.yml`.
 - `publish-build.yml`: aggiunto controllo di progressione del `versionCode` — rifiuta la pubblicazione se il codice dell'APK in arrivo è ≤ all'ultimo pubblicato.
 - `bump_version.py`: non modifica più il `versionCode` nel gradle (ora gestito dal CI); aggiorna solo `versionName` e `update-config.json`.
 

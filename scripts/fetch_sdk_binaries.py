@@ -3,24 +3,37 @@
 from __future__ import annotations
 import argparse
 import hashlib
+import io
 import json
 import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
 import tempfile
-from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class GitHubRedirectHandler(HTTPRedirectHandler):
+    """Keep credentials on GitHub's API, never on redirected asset storage."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is not None and urlsplit(newurl)[:2] != urlsplit(req.full_url)[:2]:
+            redirected.remove_header('Authorization')
+        return redirected
+
+
 def download(url: str, *, api: bool = False) -> bytes:
     headers = {'User-Agent': 'UniApp-SDK-resolver', 'Accept': 'application/vnd.github+json' if api else 'application/octet-stream'}
     token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
-    if api and token:
+    if urlsplit(url).scheme == 'https' and urlsplit(url).netloc == 'api.github.com' and token:
         headers['Authorization'] = 'Bearer ' + token
-    with urlopen(Request(url, headers=headers), timeout=120) as response:
+    with build_opener(GitHubRedirectHandler()).open(Request(url, headers=headers), timeout=120) as response:
         data = response.read(256 * 1024 * 1024 + 1)
     if len(data) > 256 * 1024 * 1024:
         raise ValueError('SDK archive exceeds the size limit')
@@ -59,8 +72,20 @@ def validate_archive(path: Path, expected: dict, target: Path) -> dict:
 
 
 def resolve_release(name: str, spec: dict) -> Path:
-    release = json.loads(download(f"https://api.github.com/repos/{spec['repository']}/releases/latest", api=True))
-    assets = {item['name']: item['browser_download_url'] for item in release['assets']}
+    api_root = f"https://api.github.com/repos/{spec['repository']}"
+    try:
+        release = json.loads(download(f"{api_root}/releases/latest", api=True))
+    except HTTPError as error:
+        if error.code in (401, 403, 404):
+            raise RuntimeError(
+                f"{name}: GitHub returned HTTP {error.code} for {spec['repository']}. "
+                "Check that a published SDK release exists and the SDK_READ_TOKEN or DEPLOY_TOKEN "
+                "used by this workflow has Contents: read access to every SDK repository. "
+                "UniApp's GITHUB_TOKEN alone cannot read other private repositories."
+            ) from None
+        raise
+    # Private releases require the asset API and authentication; their browser URLs return 404.
+    assets = {item['name']: f"{api_root}/releases/assets/{int(item['id'])}" for item in release['assets']}
     if not {'maven-repository.zip', 'maven-repository.zip.sha256'} <= assets.keys():
         raise ValueError(f"{name}: the latest SDK release has no complete Maven binaries; run its SDK workflow first")
     checksum = download(assets['maven-repository.zip.sha256']).decode().split()[0]
@@ -74,6 +99,25 @@ def resolve_release(name: str, spec: dict) -> Path:
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_bytes(data)
     return cache
+
+
+def validate_android_class_names(repository: Path) -> None:
+    """Independent R8 passes must produce class names unique across all SDKs."""
+    owners = {}
+    for path in sorted(repository.rglob('*.aar')):
+        with zipfile.ZipFile(path) as aar:
+            for jar_name in aar.namelist():
+                if jar_name != 'classes.jar' and not (jar_name.startswith('libs/') and jar_name.endswith('.jar')):
+                    continue
+                with zipfile.ZipFile(io.BytesIO(aar.read(jar_name))) as jar:
+                    for name in jar.namelist():
+                        if not name.endswith('.class') or name == 'module-info.class':
+                            continue
+                        owner = f'{path.name}!{jar_name}'
+                        if name in owners:
+                            raise ValueError(f'Duplicate Android class {name}: {owners[name]} and {owner}. '
+                                             'Rebuild the SDKs with distinct R8 repackaging namespaces.')
+                        owners[name] = owner
 
 
 def main() -> None:
@@ -95,6 +139,7 @@ def main() -> None:
             info = validate_archive(archive, spec, stage / 'maven')
             properties += [f'{name}.version={info["version"]}', f'{name}.revision={info["sourceSha"]}', f'{name}.coordinate={info["coordinate"]}']
             print(f'{name}: {info["version"]} ({info["sourceSha"][:12]})')
+        validate_android_class_names(stage / 'maven')
         (stage / 'resolved.properties').write_text('\n'.join(properties) + '\n')
         destination = ROOT / '.sdk-binaries'
         backup = ROOT / '.sdk-binaries-previous'

@@ -61,22 +61,27 @@ root@anto426: ~/UniApp (main⚡)$ stack --list
   - Xcode
 ```
 
-## <img src="./assets/icon1.gif" width="48px" alt="modules"> Moduli e submodule
+## <img src="./assets/icon1.gif" width="48px" alt="modules"> SDK precompilati
 
-I moduli di UniApp sono collegati come Git submodule e vengono inclusi nella build principale tramite Gradle composite build.
+Gli SDK vivono in repository separati. I loro workflow pubblicano le dipendenze Maven per Gradle su GitHub Packages e un archivio Maven nelle GitHub Releases, con AAR Android ottimizzati da R8, metadati Kotlin Multiplatform e KLIB iOS. Ogni push sul branch principale dello SDK produce una versione `1.0.<run_number>`.
 
 | Modulo                   | Funzione                                                             | Repository                                                      |
 | ------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `liquid-monet`           | Componenti Compose, tema Monet e superfici optical glass             | [Anto426/Liquid-Monet](https://github.com/Anto426/Liquid-Monet) |
+| `liquid-monet`           | Componenti Compose, tema Monet e superfici optical glass             | [Anto426-Project/Liquid-Monet](https://github.com/Anto426-Project/Liquid-Monet) |
 | `uni-sdk`                | Client KMP per API Cineca, backend UniApp, aggiornamenti e trasporti | Modulo interno                                                  |
 | `secure-storage-sdk`     | Persistenza sicura multipiattaforma per credenziali e token          | Modulo interno                                                  |
 | `firebase-connector-sdk` | Push notification e integrazione Firebase/FCM                        | Modulo interno                                                  |
 
-I riferimenti ai submodule sono definiti in [.gitmodules](./.gitmodules). Per inizializzarli dopo un clone:
+UniApp usa i binari delle Release come repository Maven locale verificato: il resolver scarica una volta le versioni correnti, verifica gli hash e salva versioni e revisioni in `.sdk-binaries/resolved.properties`. Gradle riusa questi artefatti senza ricompilare gli SDK. Per preparare un checkout, con un `GITHUB_TOKEN` o `GH_TOKEN` che possa leggere i repository privati degli SDK:
 
 ```sh
-git submodule update --init --recursive
+python3 scripts/fetch_sdk_binaries.py
+./gradlew :composeApp:testAndroidHostTest :androidApp:assembleDebug
 ```
+
+Nei runner Android e iOS il resolver usa il secret `SDK_READ_TOKEN`, oppure `DEPLOY_TOKEN` se il primo non è configurato. Il token deve avere accesso in lettura ai contenuti di tutti e quattro i repository; il `GITHUB_TOKEN` automatico di UniApp non basta per gli SDK privati. I checksum vengono verificati anche quando gli archivi sono già nella cache `.sdk-downloads/`.
+
+La build dell'app si avvia manualmente da GitHub Actions. Il sito ha un workflow separato. Per usare gli SDK direttamente da GitHub Packages in altri progetti, configurare il repository `https://maven.pkg.github.com/anto426-project/<repository-sdk>`, credenziali con `read:packages` e una versione Maven pubblicata esplicita.
 
 ## <img src="./assets/icon1.gif" width="48px" alt="structure"> Struttura
 
@@ -87,11 +92,7 @@ composeApp/                 Codice condiviso Compose Multiplatform
   src/androidMain/          Integrazioni Android
   src/iosMain/              Integrazioni iOS
 androidApp/src/main/        Entry point Android
-libs/
-  liquid-monet/              Submodule: tema e componenti UI
-  uni-sdk/                   Submodule: API e logica servizi
-  secure-storage-sdk/       Submodule: storage sicuro
-  firebase-connector-sdk/   Submodule: notifiche Firebase
+.sdk-binaries/              Repository Maven locale generato, escluso da Git
 assets/                     Asset grafici del README
 scripts/                    Utility di versioning e deploy
 iosApp/                     Host application iOS
