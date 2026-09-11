@@ -806,7 +806,7 @@ internal fun AppRouteContent(
                 newsUiState.loadState,
                 newsUiState.errorMessage,
                 onRetry = { newsViewModel.refresh(force = true) },
-                emptyMessage = stringResource(Res.string.ui_state_empty_news),
+                emptyMessage = stringResource(Res.string.ui_news_empty_desc),
             ) {
                 NewsScreen(
                     uiState = newsUiState,

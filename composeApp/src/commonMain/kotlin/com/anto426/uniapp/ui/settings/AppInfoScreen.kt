@@ -18,7 +18,7 @@ import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.components.banners.UniAppUpdateBanner
+import com.anto426.uniapp.ui.components.banners.UniAppInfoBanner
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import com.anto426.unisdk.platform.AppInfoProvider
@@ -28,7 +28,7 @@ import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun AppInfoScreen(
-    updateUiState: AppUpdateUiState,
+    updateUiState: AppUpdateUiState? = null,
     onOpenAboutUniApp: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenTerms: () -> Unit,
@@ -40,89 +40,94 @@ fun AppInfoScreen(
     onOpenSource: () -> Unit = {},
 ) {
     val appInfo by AppInfoProvider.info.collectAsState()
+    val isUpdateAvailable = updateUiState?.isUpdateAvailable == true
 
     UniScreenColumn {
-        UniAppUpdateBanner(
+        // 1. Hero Brand Card (360dp con flip 3D)
+        UniAppInfoBanner(
             modifier = Modifier.fillMaxWidth(),
             height = 360.dp,
-            state = updateUiState.bannerState,
-            version = updateUiState.displayedVersion.ifBlank { appInfo.versionName },
+            version = appInfo.versionName,
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
-            statusText = updateUiState.statusText?.let { stringResource(it) },
-            progress = updateUiState.progress,
-            downloadedMb = updateUiState.downloadedMb,
-            totalMb = updateUiState.totalMb,
-            onDownload = onOpenUpdates,
-            canDownload = updateUiState.canOpenUpdate,
+            buildInfo = stringResource(
+                Res.string.ui_info_installed_build,
+                appInfo.versionName,
+                appInfo.versionCode?.toString() ?: "—",
+            ),
             onClick = onOpenUpdates,
         )
 
-        // 2. Project Mission Card with link to detailed Info document
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = 20.dp,
-            onClick = onOpenAboutUniApp,
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_project_summary_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Icon(
-                        imageVector = LiquidIcons.ArrowForward,
-                        contentDescription = stringResource(Res.string.ui_info_about_project),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Text(
-                    text = stringResource(Res.string.ui_project_summary_text),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
-                )
-                Text(
-                    text = stringResource(Res.string.ui_info_about_project),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
+        // 2. Applicazione & Aggiornamenti
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_info_application)) {
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_updates),
+                subtitle = if (isUpdateAvailable) {
+                    stringResource(Res.string.msg_e_disponibile_un_nuovo_aggiornamento)
+                } else {
+                    stringResource(Res.string.msg_lapp_e_aggiornata)
+                },
+                icon = LiquidIcons.Refresh,
+                trailingContent = if (isUpdateAvailable) {
+                    {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
+                        ) {
+                            Text(
+                                text = "Nuovo",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                } else null,
+                onClick = onOpenUpdates,
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.nav_route_changelog_title),
+                subtitle = stringResource(Res.string.ui_changelog_subtitle),
+                icon = LiquidIcons.Star,
+                onClick = onOpenChangelog,
+            )
         }
 
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_software_version)) {
+        // 3. Progetto & Sviluppo
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_app_info_group)) {
             LiquidPreferenceItem(
-                title = "${stringResource(Res.string.ui_app_name)} ${appInfo.versionName}".trim(),
-                subtitle = stringResource(
-                    Res.string.ui_info_installed_build,
-                    appInfo.versionName,
-                    appInfo.versionCode?.toString() ?: "—",
-                ),
+                title = stringResource(Res.string.ui_info_about_project),
+                subtitle = stringResource(Res.string.ui_info_independent),
                 icon = LiquidIcons.Info,
-                trailingContent = {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = "v${appInfo.versionName}",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
+                onClick = onOpenAboutUniApp,
             )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_creator_credits),
+                subtitle = stringResource(Res.string.ui_creator_credits_subtitle),
+                icon = LiquidIcons.AccountCircle,
+                onClick = onOpenCreatorCredits,
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_source),
+                subtitle = stringResource(Res.string.ui_source_subtitle),
+                icon = LiquidIcons.Share,
+                onClick = onOpenSource,
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_report_bug_github),
+                subtitle = stringResource(Res.string.ui_info_public_issue),
+                icon = LiquidIcons.Warning,
+                onClick = onReportBug,
+            )
+        }
 
+        // 4. Architettura & Componenti
+        LiquidPreferenceGroup(title = stringResource(Res.string.ui_info_components)) {
             val defaultModules = listOf(
                 AppModuleInfo("liquid-monet", "2.0.0", "", false),
                 AppModuleInfo("uni-sdk", "2.0.0", "", false),
@@ -131,8 +136,10 @@ fun AppInfoScreen(
             )
             val modulesToDisplay = appInfo.modules.ifEmpty { defaultModules }
 
-            modulesToDisplay.forEach { module ->
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+            modulesToDisplay.forEachIndexed { index, module ->
+                if (index > 0) {
+                    LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+                }
                 LiquidPreferenceItem(
                     title = when (module.name) {
                         "liquid-monet" -> "Liquid Monet"
@@ -160,7 +167,7 @@ fun AppInfoScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
                         ) {
                             Text(
                                 text = "v${module.version}",
@@ -173,17 +180,7 @@ fun AppInfoScreen(
             }
         }
 
-        // 4. Developer & Credits Category (dedicated screen)
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_creator_credits)) {
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_creator_credits),
-                subtitle = stringResource(Res.string.ui_creator_credits_subtitle),
-                icon = LiquidIcons.AccountCircle,
-                onClick = onOpenCreatorCredits,
-            )
-        }
-
-        // 5. Legal Notes Category
+        // 5. Note Legali e Policy
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_legal_notes)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_privacy),

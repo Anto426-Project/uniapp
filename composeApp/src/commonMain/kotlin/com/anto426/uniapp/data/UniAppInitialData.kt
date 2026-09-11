@@ -55,7 +55,7 @@ object UniAppInitialData {
         QuickActionItem("trasporti", Res.string.quick_action_trasporti_title, Res.string.quick_action_trasporti_sub, LiquidIcons.Time),
         QuickActionItem("tasse", Res.string.quick_action_tasse_title, Res.string.quick_action_tasse_sub, LiquidIcons.CreditCard),
         QuickActionItem("rubrica", Res.string.quick_action_rubrica_title, Res.string.quick_action_rubrica_sub, LiquidIcons.AccountCircle),
-        QuickActionItem("notifiche", Res.string.quick_action_notifiche_title, Res.string.quick_action_notifiche_sub, LiquidIcons.Notifications),
+        QuickActionItem("notifiche", Res.string.nav_route_news_title, Res.string.nav_route_news_subtitle, LiquidIcons.Notifications),
         QuickActionItem("condivisione", Res.string.quick_action_condivisione_title, Res.string.quick_action_condivisione_sub, LiquidIcons.Share),
         QuickActionItem("sicurezza", Res.string.quick_action_sicurezza_title, Res.string.quick_action_sicurezza_sub, LiquidIcons.Lock),
         QuickActionItem("impostazioni", Res.string.quick_action_impostazioni_title, Res.string.quick_action_impostazioni_sub, LiquidIcons.Settings),
@@ -67,7 +67,7 @@ object UniAppInitialData {
         QuickActionItem("tesi", Res.string.quick_action_prof_tesi_title, Res.string.quick_action_prof_tesi_sub, LiquidIcons.Assignment),
         QuickActionItem("verbali", Res.string.quick_action_prof_verbali_title, Res.string.quick_action_prof_verbali_sub, LiquidIcons.Edit),
         QuickActionItem("rubrica", Res.string.quick_action_prof_rubrica_title, Res.string.quick_action_prof_rubrica_sub, LiquidIcons.AccountCircle),
-        QuickActionItem("notifiche", Res.string.quick_action_prof_notifiche_title, Res.string.quick_action_prof_notifiche_sub, LiquidIcons.Notifications),
+        QuickActionItem("notifiche", Res.string.nav_route_news_title, Res.string.nav_route_news_subtitle, LiquidIcons.Notifications),
     )
 
     val changelog = listOf(

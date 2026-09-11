@@ -39,7 +39,7 @@
     <string name="ui_state_empty_study_plan">Il piano di studi non contiene corsi.</string>
     <string name="ui_state_empty_questionnaires">Non risultano questionari associati ai corsi.</string>
     <string name="ui_state_empty_questionnaire_detail">Il questionario non contiene domande.</string>
-    <string name="ui_state_empty_news">Non ci sono nuove comunicazioni.</string>
+    <string name="ui_state_empty_news">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_state_empty_academic_section">Non sono disponibili contenuti in questa sezione.</string>
     <string name="ui_state_empty_academic_detail">Il dettaglio selezionato non è più disponibile.</string>
 
@@ -332,11 +332,11 @@
     <string name="ui_news_university">Ateneo</string>
     <string name="ui_news_department">Dipartimento</string>
     <string name="ui_news_events">Eventi</string>
-    <string name="ui_news_empty_title">Nessuna comunicazione</string>
-    <string name="ui_news_empty_desc">Non ci sono notizie in questa categoria.</string>
+    <string name="ui_news_empty_title">Nessuna notizia disponibile</string>
+    <string name="ui_news_empty_desc">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_news_official_notice">Comunicazione ufficiale</string>
-    <string name="ui_news_notice_body">Testo della notifica</string>
-    <string name="ui_home_news_page_notice">Avviso %1$d di %2$d • scorri per sfogliare</string>
+    <string name="ui_news_notice_body">Testo della notizia</string>
+    <string name="ui_home_news_page_notice">Notizia %1$d di %2$d • scorri per sfogliare</string>
 
 
     <string name="ui_home_career_eyebrow">Carriera accademica</string>
@@ -439,7 +439,7 @@
     <string name="ui_professor_teachings_subtitle">Corsi e attività assegnate</string>
     <string name="ui_professor_exam_rounds_subtitle">Prenotazioni, commissioni ed esiti</string>
     <string name="ui_professor_reports_subtitle">Ricerca e gestione delle verbalizzazioni</string>
-    <string name="ui_professor_news_subtitle">Comunicazioni di ateneo</string>
+    <string name="ui_professor_news_subtitle">Comunicazioni e avvisi</string>
     <string name="ui_professor_settings_subtitle">Preferenze e sicurezza dell’app</string>
     <string name="ui_academic_item_details">Informazioni disponibili</string>
     <string name="ui_professor_exam_details_tab">Dettagli</string>
@@ -998,8 +998,8 @@
     <string name="quick_action_tasse_sub">Bollettini</string>
     <string name="quick_action_rubrica_title">Rubrica</string>
     <string name="quick_action_rubrica_sub">Docenti</string>
-    <string name="quick_action_notifiche_title">Avvisi</string>
-    <string name="quick_action_notifiche_sub">Comunicazioni</string>
+    <string name="quick_action_notifiche_title">Notizie</string>
+    <string name="quick_action_notifiche_sub">Comunicazioni e avvisi</string>
     <string name="quick_action_condivisione_title">Orario</string>
     <string name="quick_action_condivisione_sub">Calendario lezioni</string>
     <string name="quick_action_sicurezza_title">Accessi</string>
@@ -1017,7 +1017,7 @@
     <string name="quick_action_prof_rubrica_title">Rubrica</string>
     <string name="quick_action_prof_rubrica_sub">Docenti e uffici</string>
     <string name="quick_action_prof_notifiche_title">Notizie</string>
-    <string name="quick_action_prof_notifiche_sub">Comunicazioni di ateneo</string>
+    <string name="quick_action_prof_notifiche_sub">Comunicazioni e avvisi</string>
     <string name="changelog_v1_0_0_date">26 Agosto 2026</string>
     <string name="changelog_v1_0_0_item_1_title">Nuova Esperienza UniApp</string>
     <string name="changelog_v1_0_0_item_1_desc">Design system Liquid Monet e navigazione accademica reattiva.</string>
@@ -1245,7 +1245,7 @@
     <string name="ui_home_no_due_taxes">Nessuna rata in scadenza</string>
     <string name="ui_language_italian_default">Italiano (predefinito)</string>
     <string name="ui_home_news_empty_title">Nessuna notizia disponibile</string>
-    <string name="ui_home_news_empty_description">Le notizie verranno mostrate quando saranno disponibili dai servizi universitari.</string>
+    <string name="ui_home_news_empty_description">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_demo_action">Operazione simulata. Nessun dato è stato inviato all’università.</string>
     <string name="ui_demo_invalid_credentials">Credenziali dell’account dimostrativo non valide.</string>
 </resources>

@@ -122,8 +122,8 @@ fun ProfessorDidacticsContent(
             DidacticRow(
                 item1 = {
                     DidacticItem(
-                        title = stringResource(Res.string.ui_news),
-                        subtitle = stringResource(Res.string.ui_professor_news_subtitle),
+                        title = stringResource(Res.string.nav_route_news_title),
+                        subtitle = stringResource(Res.string.nav_route_news_subtitle),
                         icon = LiquidIcons.Notifications,
                         onClick = onOpenNews,
                     )

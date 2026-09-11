@@ -175,7 +175,7 @@ private fun UpdateBannerFrontFace(
  * Retro della Card ruotata a 180° ("NEVER SETTLE") con profondità ottica cinematografica.
  */
 @Composable
-private fun UpdateBannerNeverSettleBackFace() {
+internal fun UpdateBannerNeverSettleBackFace() {
     val scheme = MaterialTheme.colorScheme
     val palette = rememberUniHeroCardPalette()
 
@@ -641,7 +641,7 @@ private fun ErrorContent(
 }
 
 @Composable
-private fun VersionText(
+internal fun VersionText(
     version: String,
     fontSize: Int = 88,
 ) {

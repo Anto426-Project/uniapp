@@ -274,8 +274,7 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
             icon = LiquidIcons.Notifications,
         )
         is AppRoute.NewsDetail -> AppRoutePresentation(
-            titleString = title.ifBlank { null },
-            titleRes = if (title.isBlank()) Res.string.nav_route_news_detail_default_title else null,
+            titleRes = Res.string.nav_route_news_detail_default_title,
             subtitleRes = Res.string.nav_route_news_detail_subtitle,
             icon = LiquidIcons.Notifications,
         )

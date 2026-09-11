@@ -31,7 +31,8 @@ data class AppUpdateState(
         get() = phase == AppUpdatePhase.Available && updateInfo?.isUpdateAvailable == true && downloadUrl != null
     val isMandatory: Boolean
         get() =
-            updateInfo?.isMandatory == true &&
+            !installedBuild.isDebuggable &&
+                updateInfo?.isMandatory == true &&
                 phase != AppUpdatePhase.UpToDate
 
     val downloadUrl: String?

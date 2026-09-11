@@ -422,11 +422,11 @@ fun HomeNewsSection(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         LiquidSectionHeader(
-            title = stringResource(Res.string.ui_home_news_eyebrow),
+            title = stringResource(Res.string.nav_route_news_title),
             subtitle = if (currentNews != null) {
                 stringResource(Res.string.ui_home_news_page_notice, safeActiveIndex + 1, homeNews.size)
             } else {
-                stringResource(Res.string.ui_home_news_empty_description)
+                stringResource(Res.string.nav_route_news_subtitle)
             },
             trailingContent = {
                 LiquidButton(
@@ -440,8 +440,8 @@ fun HomeNewsSection(
 
         if (currentNews == null) {
             com.anto426.liquidmonet.components.display.LiquidEmptyState(
-                title = stringResource(Res.string.ui_home_news_empty_title),
-                description = stringResource(Res.string.ui_home_news_empty_description),
+                title = stringResource(Res.string.ui_news_empty_title),
+                description = stringResource(Res.string.ui_news_empty_desc),
             )
         } else LiquidAnimatedSwitcher(
             targetState = safeActiveIndex,

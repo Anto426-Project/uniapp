@@ -37,7 +37,10 @@ data class AppUpdateUiState(
     val totalMb: Float = 0f,
     val availableUpdateKey: String? = null,
     val showUpdateSheet: Boolean = false,
-)
+) {
+    val isUpdateAvailable: Boolean
+        get() = bannerState == UpdateState.AVAILABLE || availableUpdateKey != null
+}
 
 internal class AppUpdateViewModel(
     private val controller: AppUpdateController,

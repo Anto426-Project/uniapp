@@ -55,7 +55,10 @@ internal class AppUpdateController(
             val available = newer
             mutableState.value = previous.copy(
                 phase = if (restoringInstall) mutableState.value.phase else if (available) AppUpdatePhase.Available else AppUpdatePhase.UpToDate,
-                updateInfo = info.copy(isUpdateAvailable = available, isMandatory = available && info.isMandatory),
+                updateInfo = info.copy(
+                    isUpdateAvailable = available,
+                    isMandatory = available && info.isMandatory && !previous.installedBuild.isDebuggable,
+                ),
                 message = null, downloadedBytes = 0, totalBytes = null,
             )
         } catch (error: CancellationException) {

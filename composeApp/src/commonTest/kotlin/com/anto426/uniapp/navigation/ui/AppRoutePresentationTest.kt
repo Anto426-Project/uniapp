@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 class AppRoutePresentationTest {
     @Test
-    fun newsDetailUsesTheSelectedNewsTitle() {
+    fun newsDetailUsesStandardTitleResource() {
         val route =
             AppRoute.NewsDetail(
                 title = "Bando borse di studio",
@@ -14,7 +14,8 @@ class AppRoutePresentationTest {
                 fullContent = "Contenuto",
             )
 
-        assertEquals("Bando borse di studio", route.presentation().titleString)
+        assertEquals(null, route.presentation().titleString)
+        assertEquals(uniapp.composeapp.generated.resources.Res.string.nav_route_news_detail_default_title, route.presentation().titleRes)
     }
 
     @Test

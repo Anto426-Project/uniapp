@@ -108,7 +108,7 @@ class AppUpdateControllerTest {
     }
 
     @Test
-    fun debugBuildAlsoEnforcesMandatoryGate() = runTest {
+    fun debugBuildDoesNotEnforceMandatoryGate() = runTest {
         val controller =
             AppUpdateController(
                 source = AppUpdateSource { _ -> updateInfo(isAvailable = true, isMandatory = true) },
@@ -119,7 +119,8 @@ class AppUpdateControllerTest {
         controller.refresh()
 
         assertEquals(AppUpdatePhase.Available, controller.state.value.phase)
-        assertTrue(controller.state.value.isMandatory)
+        assertFalse(controller.state.value.isMandatory)
+        assertFalse(controller.state.value.updateInfo?.isMandatory == true)
     }
 
     @Test

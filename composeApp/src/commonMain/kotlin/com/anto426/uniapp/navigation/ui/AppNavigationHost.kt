@@ -151,7 +151,7 @@ internal fun AppNavigationHost(
         runtime.notificationManager.messages.collect { runtime.updateController.refresh() }
     }
     val navigationRoute = navigator.currentRoute
-    val isMandatoryUpdate = updateUiState.isMandatory
+    val isMandatoryUpdate = updateUiState.isMandatory && !runtime.appInfo.isDebuggable
     val route = if (isMandatoryUpdate) AppRoute.Updates else navigationRoute
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val isAuthenticated = sessionState is AppSessionState.Authenticated

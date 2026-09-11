@@ -46,6 +46,7 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.auth.presentation.LoginUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
+import com.anto426.uniapp.ui.components.account.UniAccountCard
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.backend.model.LoginCareerOption
 import org.jetbrains.compose.resources.stringResource
@@ -326,72 +327,25 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 accountUiState.accounts.forEach { account ->
-                    val isActivating = account.accountId == accountUiState.activatingAccountId
-                    val initials =
-                        account.displayName
-                            .split(' ')
-                            .filter(String::isNotBlank)
-                            .take(2)
-                            .map { it.first() }
-                            .joinToString("")
-
-                    LiquidCard(
-                        onClick = {
+                    UniAccountCard(
+                        account = account,
+                        isActive = false,
+                        isActivating = account.accountId == accountUiState.activatingAccountId,
+                        isSwitching = accountUiState.activatingAccountId != null,
+                        profileImage = accountUiState.profileImages[account.accountId],
+                        onSelect = {
                             isAccountSheetVisible = false
                             onSelectAccount(account.accountId)
                         },
-                        contentPadding = 14.dp,
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            UniAccountAvatar(
-                                imageData = accountUiState.profileImages[account.accountId],
-                                initials = if (initials.isNotBlank()) initials else stringResource(Res.string.msg_un),
-                                size = 44.dp,
-                                contentDescription = stringResource(Res.string.ui_profile_picture),
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = account.displayName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = account.degreeName,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                account.matricola?.takeIf { it.isNotBlank() }?.let { matricola ->
-                                    Text(
-                                        text = stringResource(Res.string.ui_matricola_prefix, matricola),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                            if (isActivating) {
-                                LiquidBadge(
-                                    text = stringResource(Res.string.ui_account_activating),
-                                )
-                            }
-                            LiquidButton(
-                                text = stringResource(Res.string.ui_account_remove),
-                                onClick = {
-                                    isAccountSheetVisible = false
-                                    onRemoveAccount(account.accountId)
-                                },
-                                enabled = accountUiState.activatingAccountId == null && !accountUiState.isRemovingAccount,
-                                variant = LiquidButtonVariant.Text,
-                                size = LiquidButtonSize.Small,
-                            )
-                        }
-                    }
+                        onRemove = {
+                            isAccountSheetVisible = false
+                            onRemoveAccount(account.accountId)
+                        },
+                        canRemove = accountUiState.activatingAccountId == null && !accountUiState.isRemovingAccount,
+                    )
                 }
             }
         }

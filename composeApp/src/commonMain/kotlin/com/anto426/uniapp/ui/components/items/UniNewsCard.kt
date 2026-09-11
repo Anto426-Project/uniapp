@@ -46,7 +46,7 @@ fun UniNewsCard(
     news: NewsItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    fixedHeight: Dp = 140.dp,
+    fixedHeight: Dp = 100.dp,
     categoryLabel: String? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -85,19 +85,19 @@ fun UniNewsCard(
         )
     }
 
-    val isShortTitle = news.title.length < 32
+    val hasDescription = news.description.isNotBlank()
 
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
             .height(fixedHeight),
-        shape = RoundedRectangle(22.dp),
-        contentPadding = 14.dp,
+        shape = RoundedRectangle(20.dp),
+        contentPadding = 12.dp,
         onClick = onClick,
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             // Header: Optical icon pod + Category info + Trailing CTA pill
             Row(
@@ -108,12 +108,12 @@ fun UniNewsCard(
                 Row(
                     modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedRectangle(11.dp))
+                            .size(30.dp)
+                            .clip(RoundedRectangle(9.dp))
                             .background(categoryConfig.color.copy(alpha = 0.14f)),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -121,7 +121,7 @@ fun UniNewsCard(
                             imageVector = categoryConfig.icon,
                             contentDescription = null,
                             tint = categoryConfig.color,
-                            modifier = Modifier.size(19.dp),
+                            modifier = Modifier.size(16.dp),
                         )
                     }
 
@@ -131,7 +131,7 @@ fun UniNewsCard(
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = categoryConfig.color,
-                            fontSize = 12.5.sp,
+                            fontSize = 12.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -139,7 +139,7 @@ fun UniNewsCard(
                             text = categoryConfig.subtitle,
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-                            fontSize = 11.sp,
+                            fontSize = 10.5.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -150,51 +150,51 @@ fun UniNewsCard(
                     modifier = Modifier
                         .clip(Capsule())
                         .background(colorScheme.primary.copy(alpha = 0.12f))
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
                     Text(
                         text = stringResource(Res.string.ui_details),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.primary,
-                        fontSize = 11.5.sp,
+                        fontSize = 11.sp,
                     )
                     Icon(
                         imageVector = LiquidIcons.ArrowForward,
                         contentDescription = null,
                         tint = colorScheme.primary,
-                        modifier = Modifier.size(12.dp),
+                        modifier = Modifier.size(11.dp),
                     )
                 }
             }
 
-            // Headline & Description with larger, clear typography
+            // Headline & Description with clear, compact typography
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
                     text = news.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
-                    fontSize = 15.5.sp,
-                    maxLines = 2,
+                    fontSize = 14.sp,
+                    maxLines = if (hasDescription) 1 else 2,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp,
+                    lineHeight = 18.sp,
                 )
 
-                if (news.description.isNotBlank()) {
+                if (hasDescription) {
                     Text(
                         text = news.description,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.88f),
-                        fontSize = 13.sp,
-                        maxLines = if (isShortTitle) 2 else 1,
+                        fontSize = 12.sp,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 17.sp,
+                        lineHeight = 15.sp,
                     )
                 }
             }
