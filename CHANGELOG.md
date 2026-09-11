@@ -6,7 +6,6 @@
 - Introdotto il nuovo selettore rapido degli account con card profilo dedicata e gestione avatar.
 - Riprogettati i banner di aggiornamento con hero header coerente e feedback di avanzamento.
 - Armonizzato lo stile grafico delle card notizie nella schermata principale con il design Liquid.
-- Ottimizzata la gestione dei dati e il caching di sessione tramite il nuovo coordinator reattivo.
 
 ### CI / Build infrastruttura
 - Il `versionCode` Android usa `uniapp.versionCodeBase + GITHUB_RUN_NUMBER` (base attuale: 1000), eliminando il bump manuale e mantenendo la progressione rispetto alle vecchie build.
@@ -14,8 +13,6 @@
 - UniApp scarica le Release SDK con autenticazione anche per gli allegati privati, verifica gli hash e risolve le versioni esatte da un repository Maven locale. Versioni e revisioni vengono conservate con l'artefatto della build. Rimossi i submodule e i composite build degli SDK.
 - Le classi offuscate di ogni SDK usano uno spazio di nomi distinto per evitare collisioni nell'APK; il resolver verifica anche l'assenza di classi duplicate prima di aggiornare la cache.
 - Eliminato il workflow ridondante `build-shared-libs.yml`; le build Android e iOS restano manuali e riusano i binari SDK già compilati.
-- Separati build e deploy del sito nel workflow `build-website.yml`.
-- La ripubblicazione di APK già compilati usa gli strumenti del workflow corrente e la configurazione della build originale, senza recuperare vecchi script che richiedono anche l'output del sito.
 - `publish-build.yml`: aggiunto controllo di progressione del `versionCode` — rifiuta la pubblicazione se il codice dell'APK in arrivo è ≤ all'ultimo pubblicato.
 - `bump_version.py`: non modifica più il `versionCode` nel gradle (ora gestito dal CI); aggiorna solo `versionName` e `update-config.json`.
 
@@ -33,5 +30,4 @@
 ## [2.0.2] - 2026-09-08 (build 202)
 
 - Corretto il crash della home quando non sono disponibili notizie.
-- Ripristinati i test Android e i controlli sul sito prima della pubblicazione.
-- Carosello mobile ottimizzato, anteprime più leggere e un solo download ARM64.
+- Ripristinati i test Android prima della pubblicazione.

@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Semplificata la conferma password nelle impostazioni dell'app con il pulsante \"Conferma\".\n- Riorganizzato il banner informativo dell'app con versione, build e accesso rapido alle note di rilascio.\n- Introdotto il nuovo selettore rapido degli account con card profilo dedicata e gestione avatar.\n- Riprogettati i banner di aggiornamento con hero header coerente e feedback di avanzamento.\n- Armonizzato lo stile grafico delle card notizie nella schermata principale con il design Liquid.\n- Ottimizzata la gestione dei dati e il caching di sessione tramite il nuovo coordinator reattivo."
+  "notes": "- Semplificata la conferma password nelle impostazioni con il pulsante \"Conferma\".\n- Riorganizzato il banner informativo dell'app con versione, build e note di rilascio.\n- Nuovo selettore rapido degli account con card profilo dedicata e gestione avatar.\n- Riprogettati i banner di aggiornamento con hero header coerente e feedback di avanzamento.\n- Armonizzato lo stile grafico delle card notizie nella schermata principale con il design Liquid."
 }
