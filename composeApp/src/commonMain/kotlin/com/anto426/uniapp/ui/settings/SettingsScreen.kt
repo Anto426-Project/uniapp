@@ -307,6 +307,7 @@ fun SettingsScreen(
                     text = stringResource(Res.string.ui_app_password_enable),
                     onClick = { onSubmitBiometricPassword(password, confirmation) },
                     enabled = !uiState.isBiometricAuthenticating,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             dismissButton = {
@@ -315,6 +316,7 @@ fun SettingsScreen(
                     onClick = onDismissBiometricPassword,
                     enabled = !uiState.isBiometricAuthenticating,
                     variant = LiquidButtonVariant.Text,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
         )

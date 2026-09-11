@@ -414,7 +414,7 @@
     <string name="ui_app_password_too_short">Inserisci almeno 8 caratteri.</string>
     <string name="ui_app_password_too_long">La password può contenere al massimo 128 caratteri.</string>
     <string name="ui_app_password_mismatch">Le password non coincidono.</string>
-    <string name="ui_app_password_enable">Conferma e attiva</string>
+    <string name="ui_app_password_enable">Conferma</string>
     <string name="ui_app_password_unlock">Sblocca con password</string>
     <string name="ui_app_password_invalid">Password non corretta o non configurata.</string>
     <string name="ui_app_password_retry_later">Troppi tentativi. Attendi prima di riprovare.</string>
