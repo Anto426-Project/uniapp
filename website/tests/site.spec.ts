@@ -24,7 +24,7 @@ test('Pages assets load and only the ARM64 download is shown', async ({ page }) 
 test('navigation opens the selected screenshot and preserves it in the lightbox', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Schermata successiva', exact: true }).click();
-  await expect(page.locator('.screenshot-carousel__position')).toHaveText('2 / 8');
+  await expect(page.locator('.screenshot-carousel__position')).toHaveText('2 / 6');
   const selected = page.locator('[data-selected="true"] button');
   const source = (await selected.locator('img').getAttribute('src'))!.replace('/previews/', '/').replace(/\.webp$/, '.jpg');
   await selected.click();
@@ -64,6 +64,6 @@ test('touch swipe selects a slide without opening the lightbox', async ({ page, 
     await page.waitForTimeout(20);
   }
   await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await expect(page.locator('.screenshot-carousel__position')).not.toHaveText('1 / 8');
+  await expect(page.locator('.screenshot-carousel__position')).not.toHaveText('1 / 6');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
