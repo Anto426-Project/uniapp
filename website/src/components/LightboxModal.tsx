@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface LightboxModalProps {
   isOpen: boolean;
@@ -10,6 +10,10 @@ interface LightboxModalProps {
   title: string;
   description: string;
   onClose: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  currentIndex?: number;
+  totalItems?: number;
 }
 
 export const LightboxModal: React.FC<LightboxModalProps> = ({
@@ -18,41 +22,88 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
   title,
   description,
   onClose,
+  onPrev,
+  onNext,
+  currentIndex,
+  totalItems,
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && onPrev) onPrev();
+      else if (e.key === 'ArrowRight' && onNext) onNext();
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onPrev, onNext, onClose]);
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 transition-opacity motion-safe:animate-in fade-in duration-200" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-4xl max-h-[90dvh] flex flex-col items-center justify-center p-2 sm:p-4 outline-none focus:outline-none motion-safe:animate-in zoom-in-95 duration-200">
-          <div className="relative w-full max-h-[85dvh] flex flex-col items-center justify-center bg-slate-950/85 border border-white/15 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-2xl overflow-hidden">
-            <Dialog.Close
-              asChild
-              className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+        <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md transition-opacity motion-safe:animate-in fade-in duration-200" />
+        <Dialog.Content
+          onClick={onClose}
+          className="fixed inset-0 z-[1000] flex flex-col items-center justify-center p-4 sm:p-8 outline-none focus:outline-none select-none motion-safe:animate-in zoom-in-95 duration-200"
+        >
+          <Dialog.Title className="sr-only">{title}</Dialog.Title>
+          {description && <Dialog.Description className="sr-only">{description}</Dialog.Description>}
+
+          {/* Pulsante chiusura in alto a destra */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            aria-label="Chiudi anteprima"
+            className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[1010] p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white backdrop-blur-md border border-white/15 transition-all cursor-pointer shadow-xl"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+
+          {/* Frecce di navigazione desktop */}
+          {onPrev && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              aria-label="Schermata precedente"
+              className="fixed left-4 sm:left-8 top-1/2 -translate-y-1/2 z-[1010] p-3 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white backdrop-blur-md border border-white/15 transition-all cursor-pointer shadow-xl hidden sm:flex items-center justify-center"
             >
-              <button type="button" aria-label="Chiudi anteprima">
-                <X className="w-5 h-5" />
-              </button>
-            </Dialog.Close>
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
 
-            {imageUrl && (
-              <div className="relative max-h-[65dvh] sm:max-h-[72dvh] w-auto flex items-center justify-center overflow-hidden rounded-xl">
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  className="max-h-[65dvh] sm:max-h-[72dvh] w-auto object-contain rounded-xl shadow-lg"
-                />
-              </div>
-            )}
+          {onNext && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              aria-label="Schermata successiva"
+              className="fixed right-4 sm:right-8 top-1/2 -translate-y-1/2 z-[1010] p-3 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white backdrop-blur-md border border-white/15 transition-all cursor-pointer shadow-xl hidden sm:flex items-center justify-center"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
 
-            <div className="mt-3 sm:mt-4 text-center px-2">
-              <Dialog.Title className="text-base sm:text-lg font-bold text-white tracking-wide">
-                {title}
-              </Dialog.Title>
-              <Dialog.Description className="text-xs sm:text-sm text-slate-300 mt-1">
-                {description}
-              </Dialog.Description>
+          {/* Screenshot puro perfettamente incorniciato */}
+          {imageUrl && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative flex items-center justify-center rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_30px_70px_-15px_rgba(0,0,0,0.9)] border border-white/15 bg-black/60"
+            >
+              <img
+                src={imageUrl}
+                alt={title}
+                className="max-h-[80dvh] sm:max-h-[84dvh] w-auto object-contain rounded-[22px] sm:rounded-[34px]"
+              />
             </div>
-          </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -8,6 +8,10 @@ import { withBasePath } from '@/utils/basePath';
 
 const ReleaseContext = createContext<UpdateManifest>({});
 export const useRelease = () => useContext(ReleaseContext);
+
+const ThemeContext = createContext<string>('violet');
+export const useCurrentTheme = () => useContext(ThemeContext);
+
 const themes = ['violet', 'sapphire', 'emerald', 'amber'];
 
 export function SiteShell({ children, initialManifest }: { children: ReactNode; initialManifest: UpdateManifest }) {
@@ -41,14 +45,16 @@ export function SiteShell({ children, initialManifest }: { children: ReactNode; 
   }, []);
 
   return (
-    <ReleaseContext.Provider value={manifest}>
-      <Background theme={theme} />
-      <Navbar currentTheme={theme} onThemeChange={(value) => {
-        if (!themes.includes(value)) return;
-        setTheme(value);
-        try { localStorage.setItem('uniapp-theme', value); } catch { /* Optional persistence. */ }
-      }} />
-      {children}
-    </ReleaseContext.Provider>
+    <ThemeContext.Provider value={theme}>
+      <ReleaseContext.Provider value={manifest}>
+        <Background theme={theme} />
+        <Navbar currentTheme={theme} onThemeChange={(value) => {
+          if (!themes.includes(value)) return;
+          setTheme(value);
+          try { localStorage.setItem('uniapp-theme', value); } catch { /* Optional persistence. */ }
+        }} />
+        {children}
+      </ReleaseContext.Provider>
+    </ThemeContext.Provider>
   );
 }
