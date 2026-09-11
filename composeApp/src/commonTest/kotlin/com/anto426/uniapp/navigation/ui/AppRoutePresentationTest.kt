@@ -3,6 +3,7 @@ package com.anto426.uniapp.navigation.ui
 import com.anto426.uniapp.navigation.model.AppRoute
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import uniapp.composeapp.generated.resources.*
 
 class AppRoutePresentationTest {
     @Test
@@ -15,7 +16,7 @@ class AppRoutePresentationTest {
             )
 
         assertEquals(null, route.presentation().titleString)
-        assertEquals(uniapp.composeapp.generated.resources.Res.string.nav_route_news_detail_default_title, route.presentation().titleRes)
+        assertEquals(Res.string.nav_route_news_detail_default_title, route.presentation().titleRes)
     }
 
     @Test
