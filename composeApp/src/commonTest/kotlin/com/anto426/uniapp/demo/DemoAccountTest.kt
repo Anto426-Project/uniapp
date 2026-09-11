@@ -12,6 +12,7 @@ import com.anto426.uniapp.testing.StorageTestFactory
 import com.anto426.unisdk.backend.RemoteUniBackendService
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
@@ -107,5 +108,30 @@ class DemoAccountTest : ResourceTest() {
         assertTrue(source.loadExamRounds().first { it.appId == round.appId }.booked)
         assertFalse(DemoAppDataSource().loadExamRounds().first { it.appId == round.appId }.booked)
         assertTrue(source.loadStudentDetails().badgeQrValue!!.contains("NOT-A-VALID"))
+    }
+
+    @Test
+    fun demoSharesPortraitWithAccountAvatarStoreAndCommonComponents() = runTest {
+        val client = HttpClient(MockEngine { error("Unexpected network") })
+        val backend = RemoteUniBackendService(client)
+        val accounts = UniAccountStore(SecureStorageManager(StorageTestFactory(), "demo-avatars"))
+        try {
+            val controller = AppSessionController(UniSessionCoordinator(backend, accounts), accounts, FakeUniLocalDataStore())
+            controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, DemoAccount.PASSWORD))
+            val account = assertIs<AppSessionState.Authenticated>(controller.state.value).account
+            val testBytes = byteArrayOf(9, 8, 7)
+            val source = DemoAppDataSource(
+                identity = { account.displayName to account.photoUrl },
+                imageLoader = { testBytes },
+                portraitSharer = { src, bytes -> controller.avatars.publish(account.accountId, src, bytes) },
+            )
+            val coordinator = com.anto426.uniapp.data.runtime.UniAppDataCoordinator(source, backgroundScope)
+            coordinator.startPortrait(account)
+            controller.avatars.images.first { it.containsKey(account.accountId) }
+            val published = controller.avatars.images.value[account.accountId]
+            assertNotNull(published)
+            assertContentEquals(testBytes, published.bytes)
+            assertEquals(account.photoUrl, published.source)
+        } finally { backend.close(); client.close() }
     }
 }

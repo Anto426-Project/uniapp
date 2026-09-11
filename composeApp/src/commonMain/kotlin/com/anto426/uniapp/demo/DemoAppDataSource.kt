@@ -1,6 +1,7 @@
 package com.anto426.uniapp.demo
 
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniAppPortraitSharer
 import com.anto426.unisdk.backend.model.*
 import com.anto426.unisdk.transport.*
 import kotlinx.coroutines.sync.Mutex
@@ -12,7 +13,8 @@ import uniapp.composeapp.generated.resources.*
 internal class DemoAppDataSource(
     private val identity: () -> Pair<String, String?> = { DemoAccount.developerName(null) to DemoAccount.avatarFallback },
     private val imageLoader: suspend (String) -> ByteArray = { byteArrayOf() },
-) : UniAppDataSource {
+    private val portraitSharer: (suspend (String, ByteArray) -> ByteArray)? = null,
+) : UniAppDataSource, UniAppPortraitSharer {
     private val lock = Mutex()
     private var rounds: List<ExamRoundData>? = null
     private var transport: TransportData? = null
@@ -37,6 +39,7 @@ internal class DemoAppDataSource(
         return DemoCatalog.load().student.copy(fullName = name, photoUrl = avatar)
     }
     override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray = imageLoader(source)
+    override suspend fun sharePortrait(source: String, bytes: ByteArray): ByteArray = portraitSharer?.invoke(source, bytes) ?: bytes
     override suspend fun loadConnectedDevices(forceRefresh: Boolean) = DemoCatalog.load().devices
     override suspend fun disconnectDevice(targetToken: String) = feedback()
     override suspend fun disconnectAllOtherDevices() = feedback()

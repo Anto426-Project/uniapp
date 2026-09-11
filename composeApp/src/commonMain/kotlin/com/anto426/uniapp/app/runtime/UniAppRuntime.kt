@@ -19,6 +19,7 @@ import com.anto426.uniapp.updates.runtime.AppUpdateController
 import com.anto426.unisdk.backend.RemoteUniBackendService
 import com.anto426.unisdk.platform.registerPushNotificationsTokenProvider
 import com.anto426.firebase.createPushNotificationConnector
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -100,6 +101,20 @@ class UniAppRuntime internal constructor(
                         (current?.displayName ?: DemoAccount.developerName(null)) to current?.photoUrl
                     },
                     imageLoader = { applicationImages.load(it)?.bytes ?: byteArrayOf() },
+                    portraitSharer = { source, bytes ->
+                        try {
+                            accountStore.writeProfileImage(
+                                accountId,
+                                source,
+                                com.anto426.unisdk.platform.currentEpochMillis(),
+                                bytes,
+                            )
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (_: Exception) {
+                        }
+                        sessionController.avatars.publish(accountId, source, bytes)
+                    },
                 ) else SessionUniAppDataSource(
                     sessions = sessionController,
                     accounts = accountStore,

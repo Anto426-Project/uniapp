@@ -2,6 +2,7 @@ package com.anto426.uniapp.data.runtime
 
 import com.anto426.uniapp.data.SessionUniAppDataSource
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniAppPortraitSharer
 import com.anto426.unisdk.backend.model.ExamRoundData
 import com.anto426.unisdk.backend.model.SurveySaveRequest
 import com.anto426.unisdk.transport.TransportBookingRequest
@@ -163,8 +164,8 @@ class UniAppDataCoordinator(
                 } else {
                     observe(listOf(UniAppDataRequests.portrait(source))).collect { snapshot ->
                         snapshot.value(UniAppDataRequests.portrait(source))?.let { bytes ->
-                            val shared = if (this@UniAppDataCoordinator.source is SessionUniAppDataSource)
-                                this@UniAppDataCoordinator.source.sharePortrait(source, bytes) else bytes
+                            val shared = (this@UniAppDataCoordinator.source as? UniAppPortraitSharer)
+                                ?.sharePortrait(source, bytes) ?: bytes
                             guard.withLock {
                                 currentCoroutineContext().ensureActive()
                                 if (!closed) mutablePortrait.value = shared

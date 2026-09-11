@@ -61,11 +61,11 @@ kotlin {
         }
 
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.lifecycle.viewmodel.navigation3)
@@ -90,7 +90,7 @@ kotlin {
         }
 
         getByName("androidHostTest").dependencies {
-            implementation("org.robolectric:robolectric:4.16")
+            implementation(libs.robolectric)
         }
 
         commonTest.dependencies {
@@ -121,6 +121,7 @@ val generateAppBuildMetadata = tasks.register("generateAppBuildMetadata") {
     outputs.dir(output)
     doLast {
         fun literal(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$").replace("\n", "\\n").replace("\r", "\\r") + "\""
+        @Suppress("UNCHECKED_CAST")
         val modules = (inputs.properties["modules"] as List<List<String>>).joinToString(",\n") { values ->
             "AppModuleInfo(${literal(values[0])}, ${literal(values[1])}, ${literal(values[2])}, ${values[3]})"
         }

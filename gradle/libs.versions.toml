@@ -1,63 +1,97 @@
 [versions]
+# Build & Tooling
 agp = "9.3.2"
+kotlin = "2.4.20"
+composeMultiplatform = "1.12.0"
+composeMultiplatform-material3 = "1.9.0"
+
+# Android SDK
 android-compileSdk = "37"
 android-minSdk = "29"
 android-targetSdk = "37"
-androidx-appcompat = "1.8.0"
-composeMultiplatform = "1.12.0"
-kotlin = "2.4.10"
-ktor = "3.5.2"
-kotlinx-serialization = "1.11.0"
-kotlinx-datetime = "0.8.0"
-kotlinx-coroutines = "1.11.0"
-androidx-core-ktx = "1.19.0"
+
+# AndroidX & Jetpack
 activity-compose = "1.13.0"
-compose = "1.12.0"
-material3 = "1.5.0-alpha27"
+annotation = "1.10.0"
+androidx-appcompat = "1.8.0"
+androidx-core-ktx = "1.19.0"
 lifecycle = "2.11.0"
 navigation3 = "1.1.1"
-annotation = "1.10.0"
-coil = "3.6.1"
+
+# Compose & Material (AndroidX)
+compose = "1.12.1"
+material3 = "1.5.0-alpha28"
+
+# KotlinX
+kotlinx-coroutines = "1.11.0"
+kotlinx-datetime = "0.8.0"
+kotlinx-serialization = "1.11.0"
+
+# Networking, Images & Utilities
+ktor = "3.5.2"
+coil = "3.6.2"
 zscanner = "1.0.0"
-# SDK versions are resolved once by scripts/fetch_sdk_binaries.py.
-antosdk = "1.0.0-local"
-unisdk = "1.0.0-local"
-secure-storage-sdk = "1.0.0-local"
-firebase-connector-sdk = "1.0.0-local"
+
+# Testing
+robolectric = "4.16.1"
+
+# SDK versions (resolved once by scripts/fetch_sdk_binaries.py)
+antosdk = "1.0.4"
+unisdk = "1.0.5"
+secure-storage-sdk = "1.0.4"
+firebase-connector-sdk = "1.0.4"
 
 [libraries]
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
+# Kotlin & KotlinX
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+# Compose Multiplatform (JetBrains)
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMultiplatform-material3" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+
+# AndroidX & Jetpack
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
-androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-androidx-compose-graphics = { module = "androidx.compose.ui:ui-graphics", version.ref = "compose" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-androidx-compose-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+androidx-compose-graphics = { module = "androidx.compose.ui:ui-graphics", version.ref = "compose" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+androidx-compose-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
-antosdk = { module = "com.anto426.liquidmonet:sdk", version.ref = "antosdk" }
-firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk", version.ref = "firebase-connector-sdk" }
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
+# Ktor
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+
+# Coil & Scanning
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+zscanner = { group = "io.github.namantonk", name = "zscanner", version.ref = "zscanner" }
+
+# Testing
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
+# App SDKs
+antosdk = { module = "com.anto426.liquidmonet:sdk", version.ref = "antosdk" }
+firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk", version.ref = "firebase-connector-sdk" }
 secure-storage-sdk = { module = "com.anto426:secure-storage-sdk", version.ref = "secure-storage-sdk" }
 unisdk = { module = "com.anto426:uni-sdk", version.ref = "unisdk" }
-zscanner = { group = "io.github.namantonk", name = "zscanner", version.ref = "zscanner" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

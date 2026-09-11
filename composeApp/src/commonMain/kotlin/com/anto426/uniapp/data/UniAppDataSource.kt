@@ -67,6 +67,10 @@ interface UniAppDataSource {
     suspend fun deleteTransportBooking(bookingId: String): TransportActionResult
 }
 
+internal interface UniAppPortraitSharer {
+    suspend fun sharePortrait(source: String, bytes: ByteArray): ByteArray
+}
+
 /**
  * Cache entries live inside the active account's encrypted vault. Fresh entries avoid network
  * access; stale entries are used only as an offline fallback after a failed refresh.
@@ -78,7 +82,7 @@ class SessionUniAppDataSource(
     private val fixedProfileId: String? = null,
     private val nowMillis: () -> Long = ::currentEpochMillis,
     private val fallbackToStaleCache: Boolean = true,
-) : UniAppDataSource {
+) : UniAppDataSource, UniAppPortraitSharer {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val requestLocksGuard = Mutex()
     private val requestLocks = mutableMapOf<String, Mutex>()
@@ -180,7 +184,7 @@ class SessionUniAppDataSource(
             client.loadStudentDetails()
         }
 
-    internal suspend fun sharePortrait(source: String, bytes: ByteArray): ByteArray {
+    override suspend fun sharePortrait(source: String, bytes: ByteArray): ByteArray {
         val context = activeContext()
         return sessions.avatars.publish(context.accountId, source, bytes) { ensureCurrent(context) }
     }
