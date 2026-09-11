@@ -1,4 +1,12 @@
-## [2.0.4] - 2026-09-09 (build set by CI)
+## [2.0.4] - 2026-09-11 (build set by CI)
+
+### UI e funzionalità App
+- Semplificata la conferma password nelle impostazioni dell'app con il pulsante "Conferma".
+- Riorganizzato il banner informativo dell'app con versione, build e accesso rapido alle note di rilascio.
+- Introdotto il nuovo selettore rapido degli account con card profilo dedicata e gestione avatar.
+- Riprogettati i banner di aggiornamento con hero header coerente e feedback di avanzamento.
+- Armonizzato lo stile grafico delle card notizie nella schermata principale con il design Liquid.
+- Ottimizzata la gestione dei dati e il caching di sessione tramite il nuovo coordinator reattivo.
 
 ### CI / Build infrastruttura
 - Il `versionCode` Android usa `uniapp.versionCodeBase + GITHUB_RUN_NUMBER` (base attuale: 1000), eliminando il bump manuale e mantenendo la progressione rispetto alle vecchie build.

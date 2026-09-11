@@ -17,7 +17,7 @@ android {
         val code = providers.environmentVariable("VERSION_CODE").orNull?.toLong() ?: (base + run)
         require(run >= 0 && code in 1..2_100_000_000L) { "Invalid Android build versionCode" }
         versionCode = code.toInt()
-        versionName = "2.0.3"
+        versionName = "2.0.4"
         ndk {
             abiFilters += "arm64-v8a"
         }
