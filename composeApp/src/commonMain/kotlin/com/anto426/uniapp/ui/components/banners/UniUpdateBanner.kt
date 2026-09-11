@@ -1,11 +1,8 @@
 package com.anto426.uniapp.ui.components.banners
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -14,12 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +53,8 @@ fun UniAppUpdateBanner(
     subtitle: String,
     statusText: String? = null,
 ) {
+    val heroFontSize = if (height < 400.dp) 88 else 104
+
     UniHeroGlassCard(
         modifier = modifier,
         height = height,
@@ -78,6 +74,7 @@ fun UniAppUpdateBanner(
                 canDownload = canDownload,
                 onRestart = onRestart,
                 onRetry = onRetry,
+                fontSize = heroFontSize,
             )
         },
         backContent = {
@@ -100,6 +97,7 @@ private fun UpdateBannerFrontFace(
     canDownload: Boolean,
     onRestart: () -> Unit,
     onRetry: () -> Unit,
+    fontSize: Int,
 ) {
     LiquidAnimatedSwitcher(
         targetState = state,
@@ -111,35 +109,63 @@ private fun UpdateBannerFrontFace(
         label = "UpdateBannerContent",
     ) { currentState ->
         when (currentState) {
-            UpdateState.CHECKING -> CheckingContent()
+            UpdateState.CHECKING -> CheckingContent(
+                version = version,
+                title = title,
+                subtitle = subtitle,
+                fontSize = fontSize,
+            )
             UpdateState.UP_TO_DATE -> UpToDateContent(
                 version = version,
                 title = title,
                 subtitle = subtitle,
                 statusText = statusText ?: stringResource(Res.string.ui_updated_version),
+                fontSize = fontSize,
             )
             UpdateState.AVAILABLE -> AvailableContent(
                 version = version,
                 title = title,
-                subtitle = statusText ?: stringResource(Res.string.ui_update_new_available),
+                subtitle = subtitle,
+                statusText = statusText ?: stringResource(Res.string.ui_update_new_available),
                 onDownload = onDownload,
                 canDownload = canDownload,
+                fontSize = fontSize,
             )
             UpdateState.DOWNLOADING -> DownloadingContent(
                 version = version,
+                title = title,
+                subtitle = subtitle,
                 progress = progress,
                 downloadedMb = downloadedMb,
                 totalMb = totalMb,
+                fontSize = fontSize,
             )
-            UpdateState.VERIFYING -> VerifyingContent()
+            UpdateState.VERIFYING -> VerifyingContent(
+                version = version,
+                title = title,
+                subtitle = subtitle,
+                fontSize = fontSize,
+            )
             UpdateState.INSTALLING -> InstallingContent(
+                version = version,
+                title = title,
+                subtitle = subtitle,
                 progress = progress,
+                fontSize = fontSize,
             )
             UpdateState.RESTART_REQUIRED -> RestartContent(
+                version = version,
+                title = title,
+                subtitle = subtitle,
                 onRestart = onRestart,
+                fontSize = fontSize,
             )
             UpdateState.ERROR -> ErrorContent(
+                version = version,
+                title = title,
+                subtitle = subtitle,
                 onRetry = onRetry,
+                fontSize = fontSize,
             )
         }
     }
@@ -197,38 +223,55 @@ private fun UpdateBannerNeverSettleBackFace() {
 }
 
 @Composable
+private fun BoxScope.UpdateBannerHeader(
+    version: String,
+    title: String,
+    subtitle: String,
+    fontSize: Int,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier.align(Alignment.TopCenter),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        VersionText(version = version, fontSize = fontSize)
+        Text(
+            text = title,
+            color = scheme.onSurface,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.5).sp,
+        )
+        Text(
+            text = subtitle,
+            color = scheme.onSurface.copy(alpha = 0.72f),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+@Composable
 private fun UpToDateContent(
     version: String,
     title: String,
     subtitle: String,
     statusText: String,
+    fontSize: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 40.dp),
+            .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.TopCenter),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            VersionText(version = version, fontSize = 104)
-            Text(
-                text = title,
-                color = scheme.onSurface,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = (-0.5).sp,
-            )
-            Text(
-                text = subtitle,
-                color = scheme.onSurface.copy(alpha = 0.72f),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-            )
-        }
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
 
         Text(
             text = statusText,
@@ -245,355 +288,355 @@ private fun AvailableContent(
     version: String,
     title: String,
     subtitle: String,
+    statusText: String,
     onDownload: () -> Unit,
     canDownload: Boolean,
+    fontSize: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 36.dp),
+    ) {
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
+
+        Column(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = statusText,
+                color = scheme.primary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            LiquidButton(
+                text = stringResource(Res.string.ui_update_download),
+                onClick = onDownload,
+                enabled = canDownload,
+                variant = LiquidButtonVariant.Glass,
+                modifier = Modifier.width(200.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CheckingContent(
+    version: String,
+    title: String,
+    subtitle: String,
+    fontSize: Int,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val transition = rememberInfiniteTransition(label = "updateCheckingTransition")
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 1400, easing = LinearEasing)),
+        label = "updateCheckingRotation",
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.TopCenter),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            VersionText(version = version, fontSize = 92)
-            Text(
-                text = title,
-                color = scheme.onSurface,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = subtitle,
-                color = scheme.onSurface.copy(alpha = 0.72f),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-            )
-        }
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
 
-        LiquidButton(
-            text = stringResource(Res.string.ui_update_download),
-            onClick = onDownload,
-            enabled = canDownload,
-            variant = LiquidButtonVariant.Glass,
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .width(200.dp),
-        )
+                .clip(CircleShape)
+                .background(scheme.surfaceContainerHigh.copy(alpha = 0.5f))
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Canvas(modifier = Modifier.size(16.dp)) {
+                drawArc(
+                    brush = Brush.sweepGradient(
+                        listOf(Color.Transparent, scheme.primary.copy(alpha = 0.25f), scheme.primary),
+                    ),
+                    startAngle = rotation,
+                    sweepAngle = 280f,
+                    useCenter = false,
+                    style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round),
+                )
+            }
+            Text(
+                text = stringResource(Res.string.ui_update_checking),
+                color = scheme.onSurface.copy(alpha = 0.85f),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 
 @Composable
 private fun DownloadingContent(
     version: String,
+    title: String,
+    subtitle: String,
     progress: Float?,
     downloadedMb: Float,
     totalMb: Float,
+    fontSize: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
     val percent = progress?.let { (it.coerceIn(0f, 1f) * 100).roundToInt() }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        // Top Download Status Title
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Refresh,
-                contentDescription = null,
-                tint = scheme.primary,
-                modifier = Modifier.size(16.dp),
-            )
-            Text(
-                text = stringResource(Res.string.ui_update_downloading),
-                color = scheme.onSurface,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
 
-        // Center Percentage and Version
         Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .widthIn(max = 300.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = percent?.let { "$it%" } ?: "…",
-                color = scheme.onSurface,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Light,
-                letterSpacing = (-1.5).sp,
-            )
-            VersionText(version = version, fontSize = 24)
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = percent?.let { "$it%" } ?: "…",
+                    color = scheme.primary,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (totalMb > 0f) {
+                    val downloadedStr = ((downloadedMb * 10).roundToInt() / 10f).toString()
+                    val totalStr = ((totalMb * 10).roundToInt() / 10f).toString()
+                    Text(
+                        text = "$downloadedStr MB / $totalStr MB",
+                        color = scheme.onSurface.copy(alpha = 0.65f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
 
-        // Bottom Progress Bar & MB Details
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
             LiquidLinearProgressIndicator(
                 progress = progress,
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (totalMb > 0f) {
-                Text(
-                    text = "${downloadedMb} MB / ${totalMb} MB",
-                    color = scheme.onSurface.copy(alpha = 0.65f),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-        }
-    }
-}
 
-@Composable
-private fun CheckingContent() {
-    val scheme = MaterialTheme.colorScheme
-    val transition = rememberInfiniteTransition(label = "updateCheckingTransition")
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 1600, easing = LinearEasing)),
-        label = "updateCheckingRotation",
-    )
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Canvas(modifier = Modifier.size(68.dp)) {
-            drawArc(
-                brush = Brush.sweepGradient(
-                    listOf(Color.Transparent, scheme.primary.copy(alpha = 0.25f), scheme.primary),
-                ),
-                startAngle = rotation,
-                sweepAngle = 280f,
-                useCenter = false,
-                style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round),
+            Text(
+                text = stringResource(Res.string.ui_update_status_downloading),
+                color = scheme.onSurface.copy(alpha = 0.55f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
             )
         }
-        Spacer(modifier = Modifier.height(18.dp))
-        Text(
-            text = stringResource(Res.string.ui_update_search),
-            color = scheme.onSurface,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = stringResource(Res.string.ui_update_checking),
-            color = scheme.onSurface.copy(alpha = 0.65f),
-            fontSize = 13.sp,
-        )
     }
 }
 
 @Composable
-private fun VerifyingContent() {
+private fun VerifyingContent(
+    version: String,
+    title: String,
+    subtitle: String,
+    fontSize: Int,
+) {
     val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        Box(
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
+
+        Row(
             modifier = Modifier
-                .size(60.dp)
-                .background(scheme.primary.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center,
+                .align(Alignment.BottomCenter)
+                .clip(CircleShape)
+                .background(scheme.surfaceContainerHigh.copy(alpha = 0.5f))
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
                 imageVector = LiquidIcons.Lock,
                 contentDescription = null,
                 tint = scheme.primary,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = stringResource(Res.string.ui_update_integrity),
+                color = scheme.onSurface.copy(alpha = 0.85f),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(Res.string.ui_update_verifying),
-            color = scheme.onSurface,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = stringResource(Res.string.ui_update_integrity),
-            color = scheme.onSurface.copy(alpha = 0.65f),
-            fontSize = 13.sp,
-        )
     }
 }
 
 @Composable
 private fun InstallingContent(
+    version: String,
+    title: String,
+    subtitle: String,
     progress: Float?,
+    fontSize: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        // Top Info
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
+
         Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .widthIn(max = 300.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = stringResource(Res.string.ui_update_installing),
-                color = scheme.onSurface,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+            LiquidLinearProgressIndicator(
+                progress = progress,
+                modifier = Modifier.fillMaxWidth(),
             )
             Text(
                 text = stringResource(Res.string.ui_update_do_not_close),
-                color = scheme.onSurface.copy(alpha = 0.65f),
-                fontSize = 13.sp,
+                color = scheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
             )
         }
-
-        // Center Pulsing Settings Icon
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .background(scheme.primary.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Settings,
-                contentDescription = null,
-                tint = scheme.primary,
-                modifier = Modifier.size(28.dp),
-            )
-        }
-
-        // Bottom Progress Indicator
-        LiquidLinearProgressIndicator(
-            progress = progress,
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }
 
 @Composable
 private fun RestartContent(
+    version: String,
+    title: String,
+    subtitle: String,
     onRestart: () -> Unit,
+    fontSize: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .background(scheme.primary.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Check,
-                contentDescription = null,
-                tint = scheme.primary,
-                modifier = Modifier.size(30.dp),
-            )
-        }
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
 
         Column(
+            modifier = Modifier.align(Alignment.BottomCenter),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                text = stringResource(Res.string.ui_update_ready),
-                color = scheme.onSurface,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
                 text = stringResource(Res.string.ui_update_restart_info),
-                color = scheme.onSurface.copy(alpha = 0.65f),
+                color = scheme.onSurface.copy(alpha = 0.7f),
                 fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            LiquidButton(
+                text = stringResource(Res.string.ui_update_restart),
+                onClick = onRestart,
+                variant = LiquidButtonVariant.Glass,
+                modifier = Modifier.width(200.dp),
             )
         }
-
-        LiquidButton(
-            text = stringResource(Res.string.ui_update_restart),
-            onClick = onRestart,
-            variant = LiquidButtonVariant.Glass,
-            modifier = Modifier.width(200.dp),
-        )
     }
 }
 
 @Composable
 private fun ErrorContent(
+    version: String,
+    title: String,
+    subtitle: String,
     onRetry: () -> Unit,
+    fontSize: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 24.dp, vertical = 36.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .background(scheme.error.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Warning,
-                contentDescription = null,
-                tint = scheme.error,
-                modifier = Modifier.size(28.dp),
-            )
-        }
+        UpdateBannerHeader(
+            version = version,
+            title = title,
+            subtitle = subtitle,
+            fontSize = fontSize,
+        )
 
         Column(
+            modifier = Modifier.align(Alignment.BottomCenter),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
-                text = stringResource(Res.string.ui_update_error_title),
-                color = scheme.onSurface,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(Res.string.ui_update_error_desc),
-                color = scheme.onSurface.copy(alpha = 0.65f),
-                fontSize = 13.sp,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    imageVector = LiquidIcons.Warning,
+                    contentDescription = null,
+                    tint = scheme.error,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = stringResource(Res.string.ui_update_error_desc),
+                    color = scheme.error,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+            LiquidButton(
+                text = stringResource(Res.string.ui_retry),
+                onClick = onRetry,
+                variant = LiquidButtonVariant.Glass,
+                modifier = Modifier.width(200.dp),
             )
         }
-
-        LiquidButton(
-            text = stringResource(Res.string.ui_retry),
-            onClick = onRetry,
-            variant = LiquidButtonVariant.Glass,
-            modifier = Modifier.width(200.dp),
-        )
     }
 }
 
