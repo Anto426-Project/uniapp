@@ -33,6 +33,7 @@ def plan_version(current_name: str, bump: str,
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--file', type=Path, default=Path('androidApp/build.gradle.kts'))
+    parser.add_argument('--ios-config', type=Path, default=Path('iosApp/Configuration/Config.xcconfig'))
     parser.add_argument('--update-config', type=Path, default=Path('update-config.json'))
     parser.add_argument('--changelog', type=Path, default=Path('CHANGELOG.md'))
     parser.add_argument('--version-name')
@@ -81,6 +82,10 @@ def main() -> None:
     old_changelog = args.changelog.read_text(encoding='utf-8') if args.changelog.exists() else ''
     entry = f'## [{name}] - {date.today().isoformat()} (build set by CI)\n\n' + '\n'.join('- ' + line for line in notes) + '\n\n'
     args.file.write_text(updated, encoding='utf-8')
+    if args.ios_config.exists():
+        ios_source = args.ios_config.read_text(encoding='utf-8')
+        ios_updated = re.sub(r'(\bMARKETING_VERSION\s*=\s*)[^\r\n]+', lambda m: m[1] + f'{name}', ios_source)
+        args.ios_config.write_text(ios_updated, encoding='utf-8')
     write_json(args.update_config, policy)
     if notes:
         args.changelog.write_text(entry + old_changelog, encoding='utf-8')
