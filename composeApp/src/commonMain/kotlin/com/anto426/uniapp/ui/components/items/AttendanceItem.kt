@@ -5,7 +5,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,7 +58,7 @@ fun AttendanceItem(data: AttendanceData) {
     val progress = (rawPercentage ?: 0) / 100f
 
     val (badgeBg, badgeFg) = when {
-        rawPercentage == null -> Pair(colorScheme.surfaceVariant.copy(alpha = 0.5f), colorScheme.onSurfaceVariant)
+        rawPercentage == null -> Pair(colorScheme.onSurface.copy(alpha = 0.08f), colorScheme.onSurfaceVariant)
         rawPercentage >= 75 -> Pair(colorScheme.primaryContainer, colorScheme.primary)
         rawPercentage >= 50 -> Pair(colorScheme.secondaryContainer, colorScheme.secondary)
         else -> Pair(colorScheme.errorContainer.copy(alpha = 0.5f), colorScheme.error)
@@ -183,7 +185,8 @@ private fun SingleAttendanceRow(record: SingleAttendanceEntry) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedRectangle(12.dp))
-            .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
+            .background(colorScheme.onSurface.copy(alpha = 0.04f))
+            .border(BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.2f)), RoundedRectangle(12.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         Row(

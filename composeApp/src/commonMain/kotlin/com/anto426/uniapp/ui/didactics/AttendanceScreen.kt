@@ -1,16 +1,6 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,8 +46,7 @@ import com.anto426.uniapp.didactics.presentation.AttendanceUiState
 import com.anto426.uniapp.ui.components.items.AttendanceItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.AttendanceKpiCard
-import com.anto426.uniapp.ui.didactics.components.AttendanceQrScannerDialog
-import com.kyant.shapes.Capsule
+import com.anto426.uniapp.ui.scanner.UniQrScannerDialog
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -69,7 +57,15 @@ fun AttendanceScreen(
     onClearRegistrationStatus: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    var showScannerDialog by remember { mutableStateOf(false) }
+    var showCodeDialog by remember { mutableStateOf(false) }
+    var showCameraScanner by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.registrationSuccessMessage) {
+        if (uiState.registrationSuccessMessage != null) {
+            showCodeDialog = false
+            showCameraScanner = false
+        }
+    }
 
     UniScreenColumn {
         // ==========================================
@@ -82,50 +78,38 @@ fun AttendanceScreen(
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(
-                            imageVector = LiquidIcons.QrCode,
-                            contentDescription = null,
-                            tint = colorScheme.primary,
-                            modifier = Modifier.liquidIconContainer(
-                                containerSize = 48.dp,
-                                iconSize = 26.dp,
-                                containerColor = colorScheme.primary.copy(alpha = 0.16f),
-                                shape = RoundedRectangle(16.dp),
-                            ),
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = stringResource(Res.string.ui_attendance_scanner_eyebrow),
-                                color = colorScheme.primary,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.8.sp,
-                                fontSize = 10.sp,
-                            )
-                            Text(
-                                text = stringResource(Res.string.ui_attendance_scanner_scan_qr),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                                color = colorScheme.onSurface,
-                            )
-                        }
-                    }
-
-                    LiquidBadge(
-                        text = stringResource(Res.string.ui_attendance_scanner_live_badge),
-                        containerColor = colorScheme.primaryContainer,
-                        contentColor = colorScheme.primary,
+                    Icon(
+                        imageVector = LiquidIcons.QrCode,
+                        contentDescription = null,
+                        tint = colorScheme.primary,
+                        modifier = Modifier.liquidIconContainer(
+                            containerSize = 48.dp,
+                            iconSize = 26.dp,
+                            containerColor = colorScheme.primary.copy(alpha = 0.16f),
+                            shape = RoundedRectangle(16.dp),
+                        ),
                     )
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = stringResource(Res.string.ui_attendance_scanner_eyebrow),
+                            color = colorScheme.primary,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.8.sp,
+                            fontSize = 10.sp,
+                        )
+                        Text(
+                            text = stringResource(Res.string.ui_attendance_scanner_scan_qr),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = colorScheme.onSurface,
+                        )
+                    }
                 }
 
                 Text(
@@ -194,16 +178,15 @@ fun AttendanceScreen(
 
                 LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
-                // Action Buttons Row
-                Row(
+                // Action Buttons (full width so text is never truncated)
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     LiquidButton(
                         onClick = {
                             onClearRegistrationStatus()
-                            showScannerDialog = true
+                            showCameraScanner = true
                         },
                         variant = LiquidButtonVariant.Primary,
                         modifier = Modifier.fillMaxWidth(),
@@ -217,6 +200,28 @@ fun AttendanceScreen(
                         Text(
                             text = stringResource(Res.string.ui_attendance_action_scan),
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                    }
+
+                    LiquidButton(
+                        onClick = {
+                            onClearRegistrationStatus()
+                            showCodeDialog = true
+                        },
+                        variant = LiquidButtonVariant.Glass,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            imageVector = LiquidIcons.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(Res.string.ui_attendance_scanner_manual_entry),
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
                         )
                     }
                 }
@@ -279,20 +284,113 @@ fun AttendanceScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(110.dp))
     }
 
     // ==========================================
-    // 4. SCANNER & CODE REGISTRATION DIALOG
+    // 4. SCANNER & CODE REGISTRATION DIALOGS
     // ==========================================
-    if (showScannerDialog) {
-        AttendanceQrScannerDialog(
-            isRegistering = uiState.isRegistering,
-            errorMessage = uiState.registrationErrorMessage,
-            onDismiss = { showScannerDialog = false },
-            onConfirmCode = { code ->
-                onRegisterAttendance(code)
+    // 4a. Official LiquidDialog from SDK for manual code registration
+    if (showCodeDialog) {
+        var qrInput by remember { mutableStateOf("") }
+
+        LiquidDialog(
+            onDismissRequest = { showCodeDialog = false },
+            title = stringResource(Res.string.ui_attendance_dialog_title),
+            confirmButton = {
+                LiquidButton(
+                    text = stringResource(Res.string.ui_attendance_dialog_confirm),
+                    onClick = {
+                        val trimmed = qrInput.trim()
+                        if (trimmed.isNotBlank()) {
+                            onRegisterAttendance(trimmed)
+                        }
+                    },
+                    variant = LiquidButtonVariant.Primary,
+                    isLoading = uiState.isRegistering,
+                    enabled = qrInput.isNotBlank() && !uiState.isRegistering,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             },
-        )
+            dismissButton = {
+                LiquidButton(
+                    text = stringResource(Res.string.ui_attendance_dialog_close),
+                    onClick = { showCodeDialog = false },
+                    variant = LiquidButtonVariant.Glass,
+                    enabled = !uiState.isRegistering,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(Res.string.ui_attendance_dialog_input_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp,
+                )
+
+                LiquidTextField(
+                    value = qrInput,
+                    onValueChange = { qrInput = it },
+                    label = stringResource(Res.string.ui_attendance_dialog_input_label),
+                    placeholder = stringResource(Res.string.ui_attendance_dialog_input_placeholder),
+                    enabled = !uiState.isRegistering,
+                )
+
+                LiquidButton(
+                    onClick = {
+                        showCodeDialog = false
+                        showCameraScanner = true
+                    },
+                    variant = LiquidButtonVariant.Secondary,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = LiquidIcons.QrCode,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.ui_attendance_scanner_open_camera),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                if (uiState.registrationErrorMessage != null) {
+                    Text(
+                        text = uiState.registrationErrorMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
     }
+
+    // 4b. Full-Screen Camera QR Scanner
+    UniQrScannerDialog(
+        visible = showCameraScanner,
+        title = stringResource(Res.string.ui_attendance_scanner_scan_qr),
+        subtitle = stringResource(Res.string.ui_attendance_scanner_explainer),
+        onScanned = { code ->
+            showCameraScanner = false
+            onRegisterAttendance(code)
+        },
+        onDismiss = { showCameraScanner = false },
+        onManualInput = {
+            showCameraScanner = false
+            showCodeDialog = true
+        },
+    )
 }
 

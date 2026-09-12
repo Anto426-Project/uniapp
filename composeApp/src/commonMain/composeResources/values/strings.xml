@@ -288,6 +288,7 @@
     <string name="ui_phone">Telefono</string>
     <string name="ui_office">Ufficio</string>
     <string name="ui_office_hours">Orario ricevimento</string>
+    <string name="ui_contact_location">Sede</string>
     <string name="ui_contacts_empty_title">Nessun contatto disponibile</string>
     <string name="ui_contacts_empty_desc">Prova a cambiare categoria o ricerca.</string>
     <string name="ui_teachers_title">Docenti e ricercatori</string>
@@ -646,8 +647,8 @@
     <string name="ui_attendance_kpi_lectures_sub">registrate</string>
     <string name="ui_attendance_empty_title">Nessuna presenza registrata finora.</string>
     <string name="ui_attendance_empty_desc">Tocca "Scansiona QR Code" in alto quando sei in aula per registrare la tua prima presenza.</string>
-    <string name="ui_attendance_dialog_title">Scansione presenza QR</string>
-    <string name="ui_attendance_dialog_confirm">Convalida presenza</string>
+    <string name="ui_attendance_dialog_title">Registra presenza</string>
+    <string name="ui_attendance_dialog_confirm">Convalida</string>
     <string name="ui_attendance_dialog_close">Chiudi</string>
     <string name="ui_attendance_dialog_frame_hint">INQUADRA QR</string>
     <string name="ui_attendance_dialog_input_label">Codice / stringa QR</string>
@@ -689,6 +690,10 @@
     <string name="ui_stats_evolution_title">Evoluzione voti e medie</string>
     <string name="ui_stats_evolution_subtitle">Confronto cronologico tra voti singoli, media ponderata e aritmetica</string>
     <string name="ui_stats_series_grade">Voto</string>
+    <string name="ui_stats_series_weighted">Media Ponderata</string>
+    <string name="ui_stats_series_arithmetic">Media Aritmetica</string>
+    <string name="ui_stats_exam_singular">esame</string>
+    <string name="ui_stats_exams_plural">esami</string>
     <string name="ui_stats_study_plan_progress">Avanzamento piano di studi</string>
     <string name="ui_stats_weighted_average_header">MEDIA PONDERATA</string>
     <string name="ui_stats_degree_projection_header">PROIEZIONE LAUREA</string>
@@ -698,8 +703,8 @@
     <string name="ui_stats_trend_points_positive">+%1$s punti</string>
     <string name="ui_stats_trend_points_negative">%1$s punti</string>
     <string name="ui_stats_cfu_distribution_title">Distribuzione crediti per esame</string>
-    <string name="ui_stats_cfu_distribution_sub">Peso formativo e CFU verbalizzati per ogni materia</string>
-    <string name="ui_stats_cfu_bar_detail">Crediti verbalizzati per questo esame</string>
+    <string name="ui_stats_cfu_distribution_sub">Numero di esami superati per ciascun valore di CFU</string>
+    <string name="ui_stats_cfu_bar_detail">Esami sostenuti per questa fascia di crediti</string>
     <string name="ui_stats_cfu_summary_title">Riepilogo crediti formativi</string>
     <string name="ui_stats_cfu_summary_sub">%1$d CFU totali acquisiti su 180 previsti</string>
     <string name="ui_stats_grade_tiers_title">Ripartizione per fasce di voto</string>
