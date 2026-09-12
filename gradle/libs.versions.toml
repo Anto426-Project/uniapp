@@ -36,8 +36,8 @@ zscanner = "1.0.0"
 robolectric = "4.16.1"
 
 # SDK versions (resolved once by scripts/fetch_sdk_binaries.py)
-antosdk = "1.0.4"
-unisdk = "1.0.5"
+antosdk = "1.0.5"
+unisdk = "1.0.6"
 secure-storage-sdk = "1.0.5"
 firebase-connector-sdk = "1.0.4"
 
