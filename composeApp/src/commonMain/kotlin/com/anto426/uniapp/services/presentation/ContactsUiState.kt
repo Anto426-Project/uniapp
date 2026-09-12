@@ -6,11 +6,9 @@ import com.anto426.uniapp.presentation.FeatureLoadState
 
 @Immutable
 data class ContactsUiState(
+    val categories: List<String> = emptyList(),
     val selectedCategoryIndex: Int = 0,
     val visibleContacts: List<ContactData> = emptyList(),
-    val teachers: List<ContactData> = emptyList(),
-    val secretariat: List<ContactData> = emptyList(),
-    val services: List<ContactData> = emptyList(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
 )

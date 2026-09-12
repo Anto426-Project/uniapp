@@ -3,6 +3,8 @@ package com.anto426.uniapp.ui.services
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -20,13 +22,8 @@ fun ServicesScreen(
     onNavigateToService: (String) -> Unit = {}
 ) {
     UniScreenColumn {
-        // 1. Student / Professor Core Services
+        // 1. Student / Professor Core Services (displayed at top without redundant header)
         if (uiState.studentServices.isNotEmpty()) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_services_student_title),
-                subtitle = stringResource(Res.string.ui_services_student_sub),
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -51,10 +48,11 @@ fun ServicesScreen(
                 .graphicsLayer(clip = false),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
             uiState.universityPortals
                 .chunked(2)
                 .forEach { ServiceRow(it, onNavigateToService) }
         }
+
+        Spacer(modifier = Modifier.height(110.dp))
     }
 }

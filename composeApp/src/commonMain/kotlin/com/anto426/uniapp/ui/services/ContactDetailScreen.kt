@@ -95,13 +95,25 @@ fun ContactDetailScreen(contact: ContactData) {
                 )
                 LiquidHorizontalDivider()
             }
+            if (contact.city.isNotBlank()) {
+                LiquidPreferenceItem(
+                    title = stringResource(Res.string.ui_contact_location),
+                    subtitle = contact.city,
+                    icon = LiquidIcons.Home,
+                )
+                if (contact.office.isNotBlank() || contact.officeHours.isNotBlank()) {
+                    LiquidHorizontalDivider()
+                }
+            }
             if (contact.office.isNotBlank()) {
                 LiquidPreferenceItem(
                     title = stringResource(Res.string.ui_office),
                     subtitle = contact.office,
                     icon = LiquidIcons.Home,
                 )
-                LiquidHorizontalDivider()
+                if (contact.officeHours.isNotBlank()) {
+                    LiquidHorizontalDivider()
+                }
             }
             if (contact.officeHours.isNotBlank()) {
                 LiquidPreferenceItem(

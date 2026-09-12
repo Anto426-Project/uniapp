@@ -24,14 +24,16 @@ object UniAppInitialData {
         ServiceData(titleRes = Res.string.service_student_transport_title, subtitleRes = Res.string.service_student_transport_sub, icon = LiquidIcons.Time, id = "transport"),
         ServiceData(titleRes = Res.string.service_student_taxes_title, subtitleRes = Res.string.service_student_taxes_sub, icon = LiquidIcons.CreditCard, id = "taxes"),
         ServiceData(titleRes = Res.string.service_student_contacts_title, subtitleRes = Res.string.service_student_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
-        ServiceData(titleRes = Res.string.service_student_office_title, subtitleRes = Res.string.service_student_office_sub, icon = LiquidIcons.Phone, badgeCount = 1, id = "student-office"),
+        ServiceData(titleRes = Res.string.nav_route_news_title, subtitleRes = Res.string.nav_route_news_subtitle, icon = LiquidIcons.Notifications, id = "news"),
     )
 
     val universityPortals = listOf(
         ServiceData(titleRes = Res.string.portal_student_esse3_title, subtitleRes = Res.string.portal_student_esse3_sub, icon = LiquidIcons.Badge, id = "esse3"),
         ServiceData(titleRes = Res.string.portal_student_moodle_title, subtitleRes = Res.string.portal_student_moodle_sub, icon = LiquidIcons.MenuBook, id = "moodle"),
         ServiceData(titleRes = Res.string.portal_student_web_title, subtitleRes = Res.string.portal_student_web_sub, icon = LiquidIcons.Home, id = "university-web"),
-        ServiceData(titleRes = Res.string.portal_student_email_title, subtitleRes = Res.string.portal_student_email_sub, icon = LiquidIcons.Notifications, badgeCount = 3, id = "email"),
+        ServiceData(titleRes = Res.string.service_student_office_title, subtitleRes = Res.string.service_student_office_sub, icon = LiquidIcons.Assignment, id = "student-office"),
+        ServiceData(titleRes = Res.string.portal_prof_library_title, subtitleRes = Res.string.portal_prof_library_sub, icon = LiquidIcons.MenuBook, id = "library"),
+        ServiceData(titleRes = Res.string.portal_student_email_title, subtitleRes = Res.string.portal_student_email_sub, icon = LiquidIcons.Notifications, id = "email"),
     )
 
     val professorServices = listOf(

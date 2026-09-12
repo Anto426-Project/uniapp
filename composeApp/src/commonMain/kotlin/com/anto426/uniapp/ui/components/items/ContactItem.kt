@@ -77,6 +77,12 @@ fun ContactItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            val actionIcon = when {
+                contact.phone.isNotBlank() -> LiquidIcons.Phone
+                contact.email.isNotBlank() -> LiquidIcons.Share
+                else -> LiquidIcons.ChevronRight
+            }
+
             Box(
                 modifier = Modifier
                     .size(38.dp)
@@ -84,7 +90,7 @@ fun ContactItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = LiquidIcons.Phone,
+                    imageVector = actionIcon,
                     contentDescription = null,
                     tint = colorScheme.primary,
                     modifier = Modifier.size(18.dp)

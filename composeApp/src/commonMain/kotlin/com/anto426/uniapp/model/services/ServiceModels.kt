@@ -21,6 +21,7 @@ data class ContactData(
     val department: String = "",
     val office: String = "",
     val officeHours: String = "",
+    val city: String = "",
 )
 
 data class TaxPaymentData(

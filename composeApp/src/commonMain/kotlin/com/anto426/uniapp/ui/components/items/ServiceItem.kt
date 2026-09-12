@@ -3,6 +3,8 @@ package com.anto426.uniapp.ui.components.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
@@ -26,12 +28,17 @@ import com.anto426.uniapp.model.services.ServiceData
 fun ServiceItem(data: ServiceData, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     val colorScheme = MaterialTheme.colorScheme
     LiquidCard(
-        modifier = modifier.graphicsLayer(clip = false),
+        modifier = modifier
+            .graphicsLayer(clip = false)
+            .heightIn(min = 108.dp),
         shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             LiquidBadgedBox(
                 badge = { data.badgeCount?.let { LiquidBadge(count = it) } }
             ) {
@@ -47,7 +54,7 @@ fun ServiceItem(data: ServiceData, modifier: Modifier = Modifier, onClick: () ->
                     ),
                 )
             }
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = data.title,
                     style = MaterialTheme.typography.titleSmall,
