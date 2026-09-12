@@ -23,6 +23,8 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
     return activeScreenshots.map((item) => ({
       image: withBasePath(`/assets/screenshots/previews/${item.file.replace(/\.[^.]+$/, '.webp')}`),
       alt: item.title || '',
+      title: item.title,
+      description: item.description,
     }));
   }, [activeScreenshots]);
 

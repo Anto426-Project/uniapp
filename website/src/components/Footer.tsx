@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
               </div>
             </a>
             <p className="footer-brand-desc">
-              Un progetto indipendente per gli utenti dei servizi universitari dell’Università degli Studi del Molise.
+              Un’applicazione libera, 100% open source e indipendente creata per gli studenti dell’Università degli Studi del Molise.
             </p>
 
             {/* Account GitHub Ufficiali */}
@@ -67,8 +67,8 @@ export const Footer: React.FC = () => {
               <span className="footer-group-title">Navigazione</span>
               <ul className="footer-links-list">
                 <li><a href="#screenshots">Schermate</a></li>
-                <li><a href="#features">Caratteristiche</a></li>
-                <li><a href="#architecture">Architettura</a></li>
+                <li><a href="#features">Funzionalità</a></li>
+                <li><a href="#architecture">Il Progetto</a></li>
                 <li><a href="#download">Download APK</a></li>
                 <li><a href="#changelog">Note di Rilascio</a></li>
               </ul>

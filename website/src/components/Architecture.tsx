@@ -1,58 +1,67 @@
 import React from 'react';
+import { Sparkles, ShieldCheck, Code2 } from 'lucide-react';
 
 export const Architecture: React.FC = () => {
   return (
     <section id="architecture">
       <div className="container">
         <div className="section-header">
-          <span className="section-tag">Architettura Nativa</span>
-          <h2 className="section-title">Design Moderno &amp; Sicurezza</h2>
+          <span className="section-tag">I Valori di UniApp</span>
+          <h2 className="section-title">Design Moderno, Privacy &amp; 100% Open Source</h2>
           <p className="section-description">
-            Kotlin Multiplatform e Compose condividono la logica e l’interfaccia. I moduli dedicati gestiscono grafica, servizi universitari e archiviazione.
+            Nata dall’esigenza reale di migliorare l’esperienza universitaria: interfaccia fluida, massima protezione dei dati personali e codice completamente trasparente.
           </p>
         </div>
 
         <div className="arch-cards-grid">
-          {/* 1. Liquid-Monet SDK */}
+          {/* 1. Design Liquid Monet */}
           <div className="glass-card">
             <div className="card-icon-bubble">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
-                <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
-                <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
-                <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
-                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
-              </svg>
+              <Sparkles className="w-6 h-6 text-[var(--theme-primary)]" />
             </div>
-            <h3 className="card-title">Liquid-Monet SDK</h3>
+            <h3 className="card-title">Design Moderno &amp; Fluido</h3>
             <p className="card-text">
-              Il design system nativo sviluppato con Jetpack Compose e Compose Multiplatform. Gestisce i componenti grafici in vetro ottico (Optical Glass), le animazioni fluide e la palette dinamica Monet che si sincronizza con i pigmenti selezionati (Violet, Sapphire, Emerald, Amber).
+              Un’interfaccia elegante con componenti in vetro ottico e 4 temi cromatici dinamici (Violet, Sapphire, Emerald, Amber) abbinati al tuo avatar. Creata da zero per essere reattiva, immediata e comoda da consultare in ogni momento della giornata.
             </p>
             <div className="card-tags">
-              <span className="arch-tag highlight">Liquid-Monet</span>
-              <span className="arch-tag">Optical Glass</span>
-              <span className="arch-tag">Palette Dinamiche</span>
-              <span className="arch-tag">Compose Multiplatform</span>
+              <span className="arch-tag highlight">Liquid Monet</span>
+              <span className="arch-tag">Temi Dinamici</span>
+              <span className="arch-tag">Animazioni Fluide</span>
+              <span className="arch-tag">Vetro Ottico</span>
             </div>
           </div>
 
-          {/* 2. Sicurezza Zero-Trust e Keystore Hardware */}
+          {/* 2. Privacy & Sicurezza */}
           <div className="glass-card">
             <div className="card-icon-bubble">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+              <ShieldCheck className="w-6 h-6 text-[var(--theme-primary)]" />
             </div>
-            <h3 className="card-title">Archiviazione e accesso</h3>
+            <h3 className="card-title">Privacy &amp; Protezione sul Dispositivo</h3>
             <p className="card-text">
-              Android Keystore e iOS Keychain proteggono l’archiviazione locale. L’accesso biometrico viene verificato dal sistema: UniApp non legge impronte digitali o modelli del volto. Le richieste di rete comunicano con i servizi necessari alla funzione selezionata.
+              Le tue credenziali e i dati di sessione sono archiviati in modo cifrato e sicuro direttamente sul tuo smartphone tramite l’hardware di protezione e la biometria (impronta digitale o volto). Nessun dato ceduto a terzi e zero tracciamento.
             </p>
             <div className="card-tags">
-              <span className="arch-tag highlight">Android Keystore</span>
-              <span className="arch-tag">Autenticazione Biometrica</span>
-              <span className="arch-tag">Sessioni separate</span>
-              <span className="arch-tag">Archiviazione cifrata</span>
+              <span className="arch-tag highlight">Protezione Hardware</span>
+              <span className="arch-tag">Accesso Biometrico</span>
+              <span className="arch-tag">Dati sul Dispositivo</span>
+              <span className="arch-tag">Zero Tracciamento</span>
+            </div>
+          </div>
+
+          {/* 3. 100% Open Source */}
+          <div className="glass-card">
+            <div className="card-icon-bubble">
+              <Code2 className="w-6 h-6 text-[var(--theme-primary)]" />
+            </div>
+            <h3 className="card-title">100% Libero &amp; Open Source</h3>
+            <p className="card-text">
+              UniApp è un progetto indipendente e completamente open source. Il codice è pubblico e verificabile da chiunque su GitHub: niente costi, nessuna pubblicità e totale trasparenza, sviluppato con passione per l’intera comunità universitaria.
+            </p>
+            <div className="card-tags">
+              <span className="arch-tag highlight">100% Open Source</span>
+              <span className="arch-tag">GitHub Pubblico</span>
+              <span className="arch-tag">Nessuna Pubblicità</span>
+              <span className="arch-tag">Per gli Studenti</span>
             </div>
           </div>
         </div>

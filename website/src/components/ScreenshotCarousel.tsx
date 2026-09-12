@@ -9,6 +9,8 @@ import './ScreenshotCarousel.css';
 export interface CarouselScreenshot {
   image: string;
   alt: string;
+  title?: string;
+  description?: string;
 }
 
 interface ScreenshotCarouselProps {
@@ -87,6 +89,18 @@ export function ScreenshotCarousel({ items, paused, onOpen }: ScreenshotCarousel
     else api?.scrollNext(reducedMotion);
   };
 
+  const getSlidePosition = (index: number) => {
+    const count = items.length;
+    if (count <= 1) return { offset: 0, position: 'center', distance: 0 };
+    let diff = index - selected;
+    if (diff > count / 2) diff -= count;
+    else if (diff <= -count / 2) diff += count;
+    const position = diff === 0 ? 'center' : diff < 0 ? 'left' : 'right';
+    return { offset: diff, position, distance: Math.abs(diff) };
+  };
+
+  const activeItem = items[selected] || items[0];
+
   return (
     <div
       ref={rootRef}
@@ -102,39 +116,52 @@ export function ScreenshotCarousel({ items, paused, onOpen }: ScreenshotCarousel
     >
       <div className="screenshot-carousel__viewport" ref={viewportRef}>
         <div className="screenshot-carousel__track">
-          {items.map((item, index) => (
-            <div
-              key={item.image}
-              className="screenshot-carousel__slide"
-              role="group"
-              aria-roledescription="schermata"
-              aria-label={`${index + 1} di ${items.length}`}
-              data-selected={selected === index}
-            >
-              <button
-                type="button"
-                className="screenshot-carousel__card"
-                tabIndex={selected === index ? 0 : -1}
-                aria-label={`Ingrandisci: ${item.alt}`}
-                onClick={() => {
-                  setPlaying(false);
-                  onOpen(index);
-                }}
+          {items.map((item, index) => {
+            const isSelected = selected === index;
+            const { offset, position, distance } = getSlidePosition(index);
+
+            return (
+              <div
+                key={item.image}
+                className="screenshot-carousel__slide"
+                role="group"
+                aria-roledescription="schermata"
+                aria-label={`${index + 1} di ${items.length}`}
+                data-selected={isSelected}
+                data-position={position}
+                data-offset={offset}
+                data-distance={distance}
               >
-                <img
-                  src={item.image}
-                  alt={item.alt}
-                  loading={index < 2 ? 'eager' : 'lazy'}
-                  width={480}
-                  height={1056}
-                  decoding="async"
-                  draggable={false}
-                />
-              </button>
-            </div>
-          ))}
+                <button
+                  type="button"
+                  className="screenshot-carousel__card"
+                  tabIndex={isSelected ? 0 : -1}
+                  aria-label={isSelected ? `Ingrandisci: ${item.alt}` : `Mostra: ${item.alt}`}
+                  onClick={() => {
+                    setPlaying(false);
+                    if (isSelected) {
+                      onOpen(index);
+                    } else {
+                      api?.scrollTo(index, reducedMotion);
+                    }
+                  }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    loading={index < 2 ? 'eager' : 'lazy'}
+                    width={480}
+                    height={1056}
+                    decoding="async"
+                    draggable={false}
+                  />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
+
       {items.length > 1 && (
         <div className="screenshot-carousel__controls">
           <button type="button" aria-label="Schermata precedente" onClick={() => navigate(-1)}>
@@ -148,9 +175,9 @@ export function ScreenshotCarousel({ items, paused, onOpen }: ScreenshotCarousel
           </button>
           {!reducedMotion && (
             <button
-                type="button"
-                aria-label={playing ? 'Pausa scorrimento automatico' : 'Avvia scorrimento automatico'}
-                onClick={() => setPlaying(!playing)}
+              type="button"
+              aria-label={playing ? 'Pausa scorrimento automatico' : 'Avvia scorrimento automatico'}
+              onClick={() => setPlaying(!playing)}
             >
               {playing ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
             </button>

@@ -7,7 +7,7 @@ export const Hero = () => {
   const release = useRelease();
   const description =
     release?.description ||
-    'UniApp è un progetto indipendente per consultare la carriera e utilizzare i servizi universitari dell’Università degli Studi del Molise.';
+    'UniApp è l’applicazione libera, open source e indipendente creata per gli studenti dell’Università degli Studi del Molise: carriera, libretto, appelli, tasse e navette in un’esperienza moderna, veloce e senza pubblicità.';
 
   return (
     <section className="hero-section">

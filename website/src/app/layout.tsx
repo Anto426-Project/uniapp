@@ -18,7 +18,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: 'UniApp Upstream | Download Android ARM64',
-  description: "Sito del progetto indipendente UniApp: scarica l'APK nativo per Android per sistemi a 64 bit, consulta i changelog e le specifiche dell'applicazione.",
+  description: "Sito ufficiale del progetto open source e indipendente UniApp: scarica l'APK per Android, consulta le funzionalità e i rilasci per gli studenti dell'Università degli Studi del Molise.",
   authors: [{ name: 'Anto426' }],
   icons: {
     icon: [
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     title: 'UniApp Upstream | Download Android ARM64',
-    description: "Scarica l'APK di UniApp per Android con design Liquid Monet e Kotlin nativo per gli studenti UniMol.",
+    description: "L'app 100% open source e indipendente per gli studenti UniMol: libretto, esami, tasse, navette e badge universitario.",
     url: 'https://anto426-project.github.io/uniapp-upstream/',
     siteName: 'UniApp Upstream',
   },

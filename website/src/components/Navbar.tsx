@@ -53,10 +53,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTheme, onThemeChange }) =
 
   const navLinks = [
     { href: '#screenshots', label: 'Schermate' },
-    { href: '#features', label: 'Caratteristiche' },
-    { href: '#architecture', label: 'Architettura' },
+    { href: '#features', label: 'Funzionalità' },
+    { href: '#architecture', label: 'Il Progetto' },
     { href: '#download', label: 'Download' },
-    { href: '#changelog', label: 'Changelog' },
+    { href: '#changelog', label: 'Note di Rilascio' },
   ];
 
   const handleLinkClick = () => {

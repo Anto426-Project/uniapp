@@ -138,10 +138,10 @@ export const DownloadHub = () => {
       <div className="container">
         {/* Intestazione Sezione */}
         <div className="section-header text-center mb-12">
-          <span className="section-tag">Download UniApp</span>
-          <h2 className="section-title">APK Android e note di rilascio</h2>
+          <span className="section-tag">Download Libero &amp; Gratuito</span>
+          <h2 className="section-title">Ottieni UniApp per il tuo smartphone</h2>
           <p className="section-description max-w-2xl mx-auto">
-            Le nuove versioni richiedono Android 10 o successivo e un sistema a 64 bit. Sono supportati solo dispositivi ARM64; ARMv7, x86 e x86_64 sono esclusi.
+            UniApp è un progetto 100% open source, gratuito e indipendente. Scarica direttamente l’APK ufficiale per dispositivi Android (ARM64, Android 10+) ed esplora le note di rilascio.
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export const DownloadHub = () => {
           <div className="release-console-card">
             {/* Console Header / Switcher */}
             <div className="console-header-bar">
-              <span>Ultima versione pubblicata</span>
+              <span>Ultima versione pubblicata • 100% Open Source</span>
             </div>
 
             {/* Version & Highlights */}
@@ -263,7 +263,7 @@ export const DownloadHub = () => {
             <div className="changelog-deck-footer">
               <div className="verified-build-pill">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Rilasci pubblicati su GitHub</span>
+                <span>Rilasci verificati su GitHub</span>
               </div>
               <a
                 href="https://github.com/Anto426-Project/Uniapp"
@@ -271,7 +271,7 @@ export const DownloadHub = () => {
                 rel="noopener noreferrer"
                 className="console-link"
               >
-                <span>Vedi sorgente</span>
+                <span>Codice Open Source</span>
                 <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
               </a>
             </div>

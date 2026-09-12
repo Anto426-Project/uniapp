@@ -91,16 +91,16 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
             </button>
           )}
 
-          {/* Screenshot puro perfettamente incorniciato */}
+          {/* Screenshot puro senza contorni */}
           {imageUrl && (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative flex items-center justify-center rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_30px_70px_-15px_rgba(0,0,0,0.9)] border border-white/15 bg-black/60"
+              className="relative flex items-center justify-center rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_30px_70px_-15px_rgba(0,0,0,0.9)]"
             >
               <img
                 src={imageUrl}
                 alt={title}
-                className="max-h-[80dvh] sm:max-h-[84dvh] w-auto object-contain rounded-[22px] sm:rounded-[34px]"
+                className="max-h-[80dvh] sm:max-h-[84dvh] w-auto object-contain rounded-[24px] sm:rounded-[36px]"
               />
             </div>
           )}
