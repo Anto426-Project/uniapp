@@ -41,6 +41,18 @@ data class StudyCourse(
     val professor: String = "",
     val description: String = "",
     val semester: String = "",
+    val grade: String? = null,
+    val examDate: String? = null,
+    val year: Int = 0,
+    val ssd: String = "",
+    val taf: String = "",
+    val lingua: String = "",
+    val obiettivi: String = "",
+    val contenuti: String = "",
+    val testiRiferimento: String = "",
+    val metodiDidattici: String = "",
+    val modalitaVerifica: String = "",
+    val prerequisiti: String = "",
 )
 
 data class StudyYear(

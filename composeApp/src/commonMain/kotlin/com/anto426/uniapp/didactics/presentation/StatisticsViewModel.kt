@@ -38,19 +38,22 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
             val weightedEntries = mutableListOf<StatisticsChartPoint>()
             val arithmeticEntries = mutableListOf<StatisticsChartPoint>()
             val gradeEntries = mutableListOf<StatisticsChartPoint>()
-            val cfuEntries = mutableListOf<StatisticsChartPoint>()
             graded.forEachIndexed { index, (name, grade, cfu) ->
                 weightedSum += grade * cfu
                 cfuSum += cfu
                 arithmeticSum += grade
                 val weighted = if (cfuSum == 0) 0f else weightedSum.toFloat() / cfuSum
                 val arithmetic = arithmeticSum.toFloat() / (index + 1)
-                val label = name.take(16)
+                val label = name
                 gradeEntries += StatisticsChartPoint(label, grade.toFloat(), weighted)
                 weightedEntries += StatisticsChartPoint(label, weighted)
                 arithmeticEntries += StatisticsChartPoint(label, arithmetic)
-                cfuEntries += StatisticsChartPoint(label, cfu.toFloat())
             }
+            val cfuGroups = graded.groupBy { it.third }.filterKeys { it > 0 }.toSortedMap()
+            val cfuEntries = cfuGroups.map { (cfu, exams) ->
+                StatisticsChartPoint(label = "$cfu CFU", value = exams.size.toFloat())
+            }
+            val maxExamsInCfuTier = cfuGroups.values.maxOfOrNull { it.size } ?: 0
             val grades = graded.map { it.second }
             val highestGrade = grades.maxOrNull()
             val highestCourses =
@@ -66,7 +69,6 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 }
             val gradeFloor = grades.minOrNull()?.minus(1)?.coerceAtLeast(17)?.toFloat() ?: 18f
             val gradeCeiling = grades.maxOrNull()?.plus(1)?.coerceAtMost(31)?.toFloat() ?: 31f
-            val highestCfu = graded.maxOfOrNull { it.third } ?: 0
             val computedWeightedAvg = if (cfuSum > 0) (weightedSum.toFloat() / cfuSum).rounded(2) else 0f
             val computedArithmeticAvg = if (grades.isNotEmpty()) (arithmeticSum.toFloat() / graded.size).rounded(2) else 0f
             val rawAverage = career.average.decimalFloatOrZero()
@@ -91,7 +93,7 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 ),
                 gradeMin = gradeFloor,
                 gradeMax = gradeCeiling.coerceAtLeast(gradeFloor + 1f),
-                cfuMax = (highestCfu * 1.2f).coerceAtLeast(1f),
+                cfuMax = (maxExamsInCfuTier * 1.25f).coerceAtLeast(1f),
                 highestGradeLabel = highestGrade?.let { if (it == 30) "30" else it.toString() } ?: "—",
                 highestGradeCourses = highestCourses.ifBlank { getString(Res.string.msg_nessun_esame) },
                 recentTrend = recentTrend,

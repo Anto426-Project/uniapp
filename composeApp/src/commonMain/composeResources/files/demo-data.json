@@ -495,9 +495,11 @@
       "lastName": "Verdi",
       "displayName": "Giulia Verdi",
       "email": "giulia.verdi@example.invalid",
-      "phones": [],
-      "organization": "Docente dimostrativo",
-      "address": null,
+      "phones": [
+        "+39 0874 404111"
+      ],
+      "organization": "Dipartimento di Bioscienze e Territorio",
+      "address": "Contrada Fonte Lappone",
       "building": "Edificio didattico",
       "city": "Pesche"
     },
@@ -507,11 +509,13 @@
       "lastName": "Romano",
       "displayName": "Luca Romano",
       "email": "luca.romano@example.invalid",
-      "phones": [],
-      "organization": "Docente dimostrativo",
-      "address": null,
-      "building": "Edificio didattico",
-      "city": "Pesche"
+      "phones": [
+        "+39 0874 404222"
+      ],
+      "organization": "Dipartimento Giuridico",
+      "address": "Via F. De Sanctis",
+      "building": "III Edificio Polifunzionale",
+      "city": "Campobasso"
     },
     {
       "id": "demo-contact-2",
@@ -519,11 +523,13 @@
       "lastName": "Conti",
       "displayName": "Sara Conti",
       "email": "sara.conti@example.invalid",
-      "phones": [],
-      "organization": "Docente dimostrativo",
-      "address": null,
-      "building": "Edificio didattico",
-      "city": "Pesche"
+      "phones": [
+        "+39 0874 404333"
+      ],
+      "organization": "Dipartimento di Economia",
+      "address": "Via Duca degli Abruzzi",
+      "building": "Polo Universitario",
+      "city": "Termoli"
     }
   ],
   "transport": {

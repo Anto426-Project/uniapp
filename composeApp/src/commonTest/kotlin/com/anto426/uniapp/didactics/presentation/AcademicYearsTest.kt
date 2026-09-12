@@ -165,6 +165,54 @@ class AcademicYearsTest {
         assertEquals(2, viewModel.uiState.value.selectedYear)
     }
 
+    @Test
+    fun transcriptIncludesIdoneitaExamsAndNormalizesDisplayBadge() {
+        val plan = StudyPlanData(
+            listOf(
+                StudyPlanCourseData("Inglese", year = 1, adsceId = "ENG"),
+                StudyPlanCourseData("Tirocinio", year = 3, adsceId = "TIR"),
+                StudyPlanCourseData("Informatica", year = 1, adsceId = "INF"),
+                StudyPlanCourseData("Laboratorio", year = 2, adsceId = "LAB"),
+            ),
+        )
+        val records = career(
+            listOf(
+                CareerExamData("Inglese", "ID", "15/02/2024", 3, "ENG"),
+                CareerExamData("Tirocinio", "Idoneo", "10/05/2025", 6, "TIR"),
+                CareerExamData("Informatica", "Superato", "20/06/2024", 3, "INF"),
+                CareerExamData("Laboratorio", "-", "12/09/2024", 2, "LAB"),
+            ),
+        ).toExamRecords(plan)
+
+        assertEquals(4, records.size)
+        assertEquals(listOf("Idoneo", "Idoneo", "Superato", "Idoneo"), records.map { it.grade })
+        assertEquals(listOf(1, 3, 1, 2), records.map { it.year })
+    }
+
+    @Test
+    fun studyPlanMarksIdoneitaExamsAsCompleted() {
+        val plan = StudyPlanData(
+            listOf(
+                StudyPlanCourseData("Inglese", year = 1, adsceId = "ENG"),
+                StudyPlanCourseData("Fisica", year = 1, adsceId = "FIS"),
+            ),
+        )
+        val careerData = career(
+            listOf(
+                CareerExamData("Inglese", "ID", "15/02/2024", 3, "ENG"),
+            ),
+        )
+        val studyYears = plan.toStudyYears(careerData)
+        val courses = studyYears.flatMap { it.courses }
+        val inglese = courses.first { it.id == "ENG" }
+        val fisica = courses.first { it.id == "FIS" }
+
+        assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED, inglese.status)
+        assertEquals("Idoneo", inglese.grade)
+        assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.PLANNED, fisica.status)
+        assertNull(fisica.grade)
+    }
+
     private class AcademicSource(years: List<Int>) : FakeUniAppDataSource() {
         var plan = plan(years)
         var career = career()

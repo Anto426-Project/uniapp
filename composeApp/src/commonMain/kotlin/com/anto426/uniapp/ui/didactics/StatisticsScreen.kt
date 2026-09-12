@@ -119,6 +119,8 @@ fun StatisticsScreen(
                                     maxValue = uiState.gradeMax,
                                     showLegend = true,
                                     primarySeriesLabel = stringResource(Res.string.ui_stats_series_grade),
+                                    secondarySeriesLabel = stringResource(Res.string.ui_stats_series_weighted),
+                                    tertiarySeriesLabel = stringResource(Res.string.ui_stats_series_arithmetic),
                                 )
                             }
                         }
@@ -371,11 +373,17 @@ fun StatisticsScreen(
                             contentPadding = 20.dp,
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                val examSingular = stringResource(Res.string.ui_stats_exam_singular)
+                                val examsPlural = stringResource(Res.string.ui_stats_exams_plural)
                                 LiquidBarChart(
                                     entries = cfuEntries,
                                     height = 195.dp,
                                     maxValue = uiState.cfuMax,
-                                    valueSuffix = "CFU",
+                                    valueFormatter = { value ->
+                                        val count = value.toInt()
+                                        "$count ${if (count == 1) examSingular else examsPlural}"
+                                    },
+                                    valueSuffix = "",
                                     detailDescription = stringResource(Res.string.ui_stats_cfu_bar_detail),
                                 )
                             }
@@ -505,5 +513,7 @@ fun StatisticsScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }

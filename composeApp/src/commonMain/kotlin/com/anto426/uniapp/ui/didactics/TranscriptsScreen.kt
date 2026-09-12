@@ -12,6 +12,7 @@ import com.anto426.liquidmonet.components.display.LiquidSectionHeader
 import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.uniapp.didactics.presentation.TranscriptsUiState
+import com.anto426.uniapp.model.didactics.ExamRecord
 import com.anto426.uniapp.ui.components.items.ExamRecordItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 
@@ -22,6 +23,7 @@ import uniapp.composeapp.generated.resources.*
 fun TranscriptsScreen(
     uiState: TranscriptsUiState,
     onYearSelected: (Int) -> Unit,
+    onExamClick: (ExamRecord) -> Unit = {},
 ) {
     val years = uiState.availableYears
     val tabs = years.map { year ->
@@ -68,7 +70,10 @@ fun TranscriptsScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     examsForYear.forEach { exam ->
-                        ExamRecordItem(exam = exam)
+                        ExamRecordItem(
+                            exam = exam,
+                            onClick = { if (exam.code.isNotBlank()) onExamClick(exam) },
+                        )
                     }
                 }
             } else {

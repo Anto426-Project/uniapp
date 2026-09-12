@@ -878,6 +878,8 @@ fun SimulationChartTab(
                         maxValue = uiState.gradeMax,
                         showLegend = true,
                         primarySeriesLabel = stringResource(Res.string.ui_stats_series_grade),
+                        secondarySeriesLabel = stringResource(Res.string.ui_stats_series_weighted),
+                        tertiarySeriesLabel = stringResource(Res.string.ui_stats_series_arithmetic),
                     )
                 } else {
                     Text(
@@ -971,10 +973,10 @@ fun SimulationChartTab(
             }
         }
 
-        // Section 3: Distribuzione Crediti per Materia
+        // Section 3: Distribuzione Crediti
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_stats_cfu_distribution_title),
-            subtitle = stringResource(Res.string.ui_grades_cfu_chart_subtitle),
+            subtitle = stringResource(Res.string.ui_stats_cfu_distribution_sub),
         )
 
         LiquidCard(
@@ -983,12 +985,18 @@ fun SimulationChartTab(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (uiState.cfuEntries.isNotEmpty()) {
+                    val examSingular = stringResource(Res.string.ui_stats_exam_singular)
+                    val examsPlural = stringResource(Res.string.ui_stats_exams_plural)
                     LiquidBarChart(
                         entries = uiState.cfuEntries,
                         height = 195.dp,
                         maxValue = uiState.cfuMax,
-                        valueSuffix = "CFU",
-                        detailDescription = stringResource(Res.string.ui_grades_cfu_chart_detail),
+                        valueFormatter = { value ->
+                            val count = value.toInt()
+                            "$count ${if (count == 1) examSingular else examsPlural}"
+                        },
+                        valueSuffix = "",
+                        detailDescription = stringResource(Res.string.ui_stats_cfu_bar_detail),
                     )
                 } else {
                     Text(
@@ -999,6 +1007,38 @@ fun SimulationChartTab(
                         modifier = Modifier.fillMaxWidth().padding(32.dp),
                     )
                 }
+            }
+        }
+
+        // Summary Info Card
+        LiquidCard(
+            shape = RoundedRectangle(20.dp),
+            contentPadding = 16.dp,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(
+                        text = stringResource(Res.string.ui_stats_cfu_summary_title),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(Res.string.ui_stats_cfu_summary_sub, uiState.totalCurrentCfu),
+                        fontSize = 12.sp,
+                        color = colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                LiquidBadge(
+                    text = if (uiState.totalCurrentCfu >= 60) stringResource(Res.string.ui_status_in_order) else stringResource(Res.string.ui_status_in_progress),
+                    containerColor = colorScheme.primaryContainer,
+                    contentColor = colorScheme.primary,
+                )
             }
         }
 

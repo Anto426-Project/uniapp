@@ -27,12 +27,16 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ExamRecord
 
 @Composable
-fun ExamRecordItem(exam: ExamRecord) {
+fun ExamRecordItem(
+    exam: ExamRecord,
+    onClick: () -> Unit = {},
+) {
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidCard(
         shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

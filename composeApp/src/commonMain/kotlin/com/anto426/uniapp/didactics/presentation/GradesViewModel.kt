@@ -123,8 +123,9 @@ data class GradesUiState(
 
     val cfuMax: Float
         get() {
-            val all = currentExams.map { it.cfu } + simulationItems.map { it.cfu }
-            return ((all.maxOrNull() ?: 6) * 1.25f).coerceAtLeast(1f)
+            val allCfu = (currentExams.map { it.cfu } + activeSimulatedItems.map { it.cfu }).filter { it > 0 }
+            val cfuGroups = allCfu.groupBy { it }
+            return (cfuGroups.values.maxOfOrNull { it.size } ?: 0).toFloat()
         }
 
     val singleGradeEntries: List<LiquidChartEntry>
@@ -197,14 +198,11 @@ data class GradesUiState(
 
     val cfuEntries: List<LiquidChartEntry>
         get() {
-            val list = mutableListOf<LiquidChartEntry>()
-            currentExams.forEach { exam ->
-                list += LiquidChartEntry(label = exam.name, value = exam.cfu.toFloat())
+            val allCfu = (currentExams.map { it.cfu } + activeSimulatedItems.map { it.cfu }).filter { it > 0 }
+            val cfuGroups = allCfu.groupBy { it }.toSortedMap()
+            return cfuGroups.map { (cfu, list) ->
+                LiquidChartEntry(label = "$cfu CFU", value = list.size.toFloat())
             }
-            activeSimulatedItems.forEach { item ->
-                list += LiquidChartEntry(label = "(Sim.) " + item.name, value = item.cfu.toFloat())
-            }
-            return list
         }
 
     val gradeTiers: List<GradeTierInfo>

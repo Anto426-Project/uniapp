@@ -39,13 +39,13 @@ fun QuestionnaireItem(
     val (iconVector, iconTint, iconBg) = when {
         isCompleted -> Triple(LiquidIcons.Check, colorScheme.primary, colorScheme.primary.copy(alpha = 0.12f))
         isPending -> Triple(LiquidIcons.Feedback, colorScheme.primary, colorScheme.primary.copy(alpha = 0.16f))
-        else -> Triple(LiquidIcons.Lock, colorScheme.onSurfaceVariant.copy(alpha = 0.6f), colorScheme.surfaceVariant.copy(alpha = 0.35f))
+        else -> Triple(LiquidIcons.Lock, colorScheme.onSurfaceVariant.copy(alpha = 0.6f), colorScheme.onSurface.copy(alpha = 0.05f))
     }
 
     val (badgeText, badgeBg, badgeFg) = when {
         isCompleted -> Triple(stringResource(Res.string.ui_questionnaire_status_completed), colorScheme.primaryContainer, colorScheme.primary)
         isPending -> Triple(stringResource(Res.string.ui_questionnaire_status_pending), colorScheme.primary.copy(alpha = 0.16f), colorScheme.primary)
-        else -> Triple(stringResource(Res.string.ui_questionnaire_status_inactive), colorScheme.surfaceVariant.copy(alpha = 0.4f), colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+        else -> Triple(stringResource(Res.string.ui_questionnaire_status_inactive), colorScheme.onSurface.copy(alpha = 0.05f), colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
     }
 
     LiquidCard(

@@ -238,7 +238,8 @@ internal fun AppRouteContent(
                     "transport" -> navigator.navigate(AppRoute.Transport)
                     "taxes" -> navigator.navigate(AppRoute.Taxes)
                     "statistics" -> navigator.navigate(AppRoute.Statistics)
-                    "contacts", "student-office", "professors" -> navigator.navigate(AppRoute.Contacts)
+                    "contacts", "professors" -> navigator.navigate(AppRoute.Contacts)
+                    "student-office" -> uriHandler.openUri("https://www3.unimol.it/servizi/segreteria_studenti")
                     "esse3" -> if (isProfessor) {
                         uriHandler.openUri("https://unimol.esse3.cineca.it")
                     } else {
@@ -404,6 +405,9 @@ internal fun AppRouteContent(
                 TranscriptsScreen(
                     uiState = transcriptsUiState,
                     onYearSelected = transcriptsViewModel::selectYear,
+                    onExamClick = { exam ->
+                        if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
+                    },
                 )
             }
         }
@@ -698,7 +702,17 @@ internal fun AppRouteContent(
                 detailUiState.loadState,
                 detailUiState.errorMessage,
                 onRetry = { detailViewModel.refresh(force = true) },
-            ) { detailUiState.course?.let { course -> CourseDetailScreen(course) } }
+            ) {
+                detailUiState.course?.let { course ->
+                    CourseDetailScreen(
+                        course = course,
+                        professorContact = detailUiState.professorContact,
+                        onContactClick = { contact ->
+                            navigator.navigate(AppRoute.ContactDetail(contact.email.ifBlank { contact.name }))
+                        },
+                    )
+                }
+            }
         }
 
         AppRoute.Questionnaires -> {

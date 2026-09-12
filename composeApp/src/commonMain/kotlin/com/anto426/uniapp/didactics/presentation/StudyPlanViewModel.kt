@@ -34,11 +34,13 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
     val uiState: StateFlow<StudyPlanUiState> = mutableUiState.asStateFlow()
 
     private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.StudyPlan)
+    private val dataRequests = listOf(UniAppDataRequests.StudyPlan, UniAppDataRequests.Career)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val years = snapshot.require(UniAppDataRequests.StudyPlan).toStudyYears()
+            val plan = snapshot.require(UniAppDataRequests.StudyPlan)
+            val career = runCatching { snapshot.require(UniAppDataRequests.Career) }.getOrNull()
+            val years = plan.toStudyYears(career)
             val previous = mutableUiState.value
             val selectedYear = previous.years.getOrNull(previous.selectedYearIndex)?.yearNumber
             mutableUiState.value = mutableUiState.value.copy(

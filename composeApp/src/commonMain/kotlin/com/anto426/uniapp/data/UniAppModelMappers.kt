@@ -33,7 +33,7 @@ import com.anto426.unisdk.backend.model.UniversityNews
 import com.anto426.unisdk.transport.TransportData
 
 internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<ExamRecord> {
-    val validExams = exams.filter { it.grade.isValidExamGrade() }
+    val validExams = exams.filter { it.grade.isValidExamGrade() || (it.date.isNotBlank() && it.date != "-") }
     val courses = studyPlan?.courses.orEmpty()
     val yearsById = courses.mapNotNull { course ->
         val id = course.adsceId?.trim()
@@ -44,9 +44,10 @@ internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<Ex
         candidates.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct().singleOrNull()
     return validExams.map { exam ->
         val examAdsceId = exam.adsceId?.trim()
+        val displayGrade = exam.grade.toDisplayExamGrade()
         ExamRecord(
             name = exam.name,
-            grade = exam.grade.trim(),
+            grade = displayGrade,
             cfu = exam.cfu?.let { "$it CFU" }.orEmpty(),
             date = exam.date,
             // Exam dates do not identify the course year: a first-year exam can be passed later.
@@ -57,7 +58,7 @@ internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<Ex
                 uniqueYear(yearsByName[exam.name.trim().lowercase()]) ?: 0
             },
             code = exam.adsceId.orEmpty(),
-            lode = exam.grade.contains("L", ignoreCase = true) || exam.grade.contains("lode", ignoreCase = true),
+            lode = displayGrade.contains("L", ignoreCase = true) || displayGrade.contains("lode", ignoreCase = true),
         )
     }
 }
@@ -101,16 +102,31 @@ internal fun List<ExamRoundData>.toSimulationPresets(): List<GradeSimulationPres
         .distinctBy(ExamRoundData::courseName)
         .map { GradeSimulationPreset(it.courseName, cfu = 6, initialGrade = 24) }
 
-internal fun StudyPlanData.toStudyYears(): List<StudyYear> =
-    courses
+internal fun StudyPlanData.toStudyYears(career: CareerData? = null): List<StudyYear> {
+    val examsByAdsceId = career?.exams.orEmpty()
+        .filter { !it.adsceId.isNullOrBlank() }
+        .associateBy { it.adsceId!!.trim() }
+    val examsByName = career?.exams.orEmpty()
+        .associateBy { it.name.trim().lowercase() }
+
+    return courses
         .map { course ->
+            val exam = (course.adsceId?.trim()?.let { examsByAdsceId[it] })
+                ?: examsByName[course.title.trim().lowercase()]
+            val grade = exam?.grade?.trim()?.takeIf { it.isNotBlank() && it != "-" }?.toDisplayExamGrade()
+            val isCompleted = course.completed || (exam != null && (exam.grade.isValidExamGrade() || (exam.date.isNotBlank() && exam.date != "-")))
+
             StudyCourse(
                 id = course.adsceId.orEmpty(),
                 name = course.title,
                 cfu = course.cfu?.let { "$it CFU" }.orEmpty(),
-                status = if (course.completed) CourseStatus.COMPLETED else CourseStatus.PLANNED,
+                status = if (isCompleted) CourseStatus.COMPLETED else CourseStatus.PLANNED,
                 description = course.category.orEmpty(),
                 semester = course.completionDate.orEmpty(),
+                grade = grade,
+                examDate = exam?.date?.takeIf { it.isNotBlank() && it != "-" },
+                year = course.year?.takeIf { it > 0 } ?: 0,
+                taf = course.category.orEmpty(),
             ) to (course.year?.takeIf { it > 0 } ?: 0)
         }
         .groupBy(Pair<StudyCourse, Int>::second)
@@ -120,17 +136,42 @@ internal fun StudyPlanData.toStudyYears(): List<StudyYear> =
             StudyYear(yearNumber, if (yearNumber > 0) "${yearNumber}° Anno" else "Anno non specificato",
                 courses.map(Pair<StudyCourse, Int>::first))
         }
+}
 
-internal fun CourseSyllabusData.toStudyCourse(): StudyCourse =
-    StudyCourse(
+internal fun CourseSyllabusData.toStudyCourse(
+    studyPlanCourse: com.anto426.unisdk.backend.model.StudyPlanCourseData? = null,
+    careerExam: com.anto426.unisdk.backend.model.CareerExamData? = null,
+): StudyCourse {
+    val effectiveCfu = studyPlanCourse?.cfu?.let { "$it CFU" }
+        ?: cfu?.let { "$it CFU" }
+        ?: careerExam?.cfu?.let { "$it CFU" }
+        ?: ""
+    val isCompleted = studyPlanCourse?.completed == true ||
+            (careerExam != null && (careerExam.grade.isValidExamGrade() || (careerExam.date.isNotBlank() && careerExam.date != "-")))
+    val effectiveGrade = careerExam?.grade?.takeIf { it.isValidExamGrade() }?.toDisplayExamGrade()
+
+    return StudyCourse(
         id = adsceId,
         name = adDes,
-        cfu = "",
-        status = CourseStatus.ACTIVE,
-        professor = professorsLabel ?: professors.joinToString(),
-        description = listOfNotNull(obiettivi, contenuti).joinToString("\n\n"),
+        cfu = effectiveCfu,
+        status = if (isCompleted) CourseStatus.COMPLETED else CourseStatus.ACTIVE,
+        professor = professorsLabel ?: professors.joinToString(", "),
+        description = listOfNotNull(obiettivi, contenuti).filter { it.isNotBlank() }.joinToString("\n\n"),
         semester = aaOffId.orEmpty(),
+        grade = effectiveGrade,
+        examDate = careerExam?.date?.takeIf { it != "-" },
+        year = studyPlanCourse?.year ?: 0,
+        ssd = settore.orEmpty(),
+        taf = studyPlanCourse?.category?.takeIf { it.isNotBlank() } ?: tipoAttivita.orEmpty(),
+        lingua = lingua.orEmpty(),
+        obiettivi = obiettivi.orEmpty(),
+        contenuti = contenuti.orEmpty(),
+        testiRiferimento = testiRiferimento.orEmpty(),
+        metodiDidattici = metodiDidattici.orEmpty(),
+        modalitaVerifica = modalitaVerifica.orEmpty(),
+        prerequisiti = prerequisiti.orEmpty(),
     )
+}
 
 internal fun TaxesData.toTaxPayments(): List<TaxPaymentData> =
     installments.map { installment ->
@@ -145,19 +186,22 @@ internal fun TaxesData.toTaxPayments(): List<TaxPaymentData> =
 
 internal fun List<UniversityContact>.toContacts(): List<ContactData> =
     map { contact ->
-        val organization = contact.organization.orEmpty()
+        val organization = contact.organization?.trim().orEmpty()
+        val rawCity = contact.city?.trim().orEmpty()
+        val city = rawCity.ifBlank { "Campobasso" }
         ContactData(
-            name = contact.displayName,
+            name = contact.displayName.trim(),
             role = organization.ifBlank { "Contatto di Ateneo" },
             initials = contact.displayName.initials(),
-            email = contact.email.orEmpty(),
-            phone = contact.phones.firstOrNull().orEmpty(),
+            email = contact.email?.trim().orEmpty(),
+            phone = contact.phones.firstOrNull()?.trim().orEmpty(),
+            city = city,
             category = organization.toContactCategory(),
             department = organization,
-            office = listOfNotNull(contact.building, contact.address).joinToString(" • "),
-            officeHours = contact.city.orEmpty(),
+            office = listOfNotNull(contact.building?.trim()?.takeIf(String::isNotBlank), contact.address?.trim()?.takeIf(String::isNotBlank)).joinToString(" • "),
+            officeHours = "",
         )
-    }
+    }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
 
 internal fun List<AttendanceRecord>.toAttendanceData(): List<AttendanceData> =
     groupBy(AttendanceRecord::courseName).map { (course, records) ->
@@ -277,10 +321,45 @@ internal fun String.isValidExamGrade(): Boolean {
     if (upper.contains("LODE") || upper.contains("30L")) {
         return true
     }
-    if (upper.contains("IDONE") || upper.contains("APPROVAT") || upper.contains("SUPERAT") || upper.contains("POSITIV")) {
+    if (upper in setOf("ID", "IDO", "IDON", "SUP", "S", "I", "APP", "G", "PASS")) {
+        return true
+    }
+    if (
+        listOf(
+            "non super",
+            "non idone",
+            "non approv",
+            "insuff",
+            "respint",
+            "bocci",
+            "ritirat",
+            "assent",
+            "negat",
+            "fail",
+        ).any { marker -> upper.contains(marker, ignoreCase = true) }
+    ) {
+        return false
+    }
+    if (upper.contains("IDON") || upper.contains("APPROV") || upper.contains("SUPER") ||
+        upper.contains("POSIT") || upper.contains("PASS") || upper.contains("ABILIT") ||
+        upper.contains("GIUD")) {
         return true
     }
     return false
+}
+
+internal fun String.toDisplayExamGrade(): String {
+    val trimmed = trim()
+    val upper = trimmed.uppercase()
+    return when {
+        upper in setOf("ID", "IDO", "IDON", "I") || upper.contains("IDON") -> "Idoneo"
+        upper in setOf("SUP", "S") || upper.contains("SUPER") -> "Superato"
+        upper in setOf("APP") || upper.contains("APPROV") -> "Approvato"
+        upper.contains("30L") || upper.contains("LODE") -> "30L"
+        numericGradeOrNull() != null -> trimmed.substringBefore('/')
+        trimmed.isNotBlank() && trimmed != "-" -> trimmed
+        else -> "Idoneo"
+    }
 }
 
 private fun String.calendarYearOrNull(): Int? =

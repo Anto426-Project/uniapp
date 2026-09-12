@@ -46,7 +46,7 @@ fun StudyCourseItem(
     val iconContainerColor = when (course.status) {
         CourseStatus.COMPLETED -> colorScheme.primary.copy(alpha = 0.12f)
         CourseStatus.ACTIVE -> colorScheme.secondary.copy(alpha = 0.12f)
-        CourseStatus.PLANNED -> colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        CourseStatus.PLANNED -> colorScheme.primary.copy(alpha = 0.08f)
     }
 
     val iconTint = when (course.status) {
@@ -107,12 +107,14 @@ fun StudyCourseItem(
             Spacer(modifier = Modifier.width(12.dp))
 
             Box(contentAlignment = Alignment.Center) {
+                val badgeText = when (course.status) {
+                    CourseStatus.COMPLETED -> course.grade?.takeIf { it.isNotBlank() }
+                        ?: stringResource(Res.string.ui_status_completed)
+                    CourseStatus.ACTIVE -> stringResource(Res.string.ui_status_active)
+                    CourseStatus.PLANNED -> stringResource(Res.string.ui_status_planned)
+                }
                 LiquidBadge(
-                    text = when (course.status) {
-                        CourseStatus.COMPLETED -> stringResource(Res.string.ui_status_completed)
-                        CourseStatus.ACTIVE -> stringResource(Res.string.ui_status_active)
-                        CourseStatus.PLANNED -> stringResource(Res.string.ui_status_planned)
-                    },
+                    text = badgeText,
                     containerColor = when (course.status) {
                         CourseStatus.COMPLETED -> colorScheme.primaryContainer
                         CourseStatus.ACTIVE -> colorScheme.secondaryContainer

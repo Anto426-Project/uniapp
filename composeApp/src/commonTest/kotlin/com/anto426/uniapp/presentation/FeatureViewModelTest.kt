@@ -317,8 +317,9 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
 
         assertEquals(2, viewModel.uiState.value.selectedTabIndex)
         assertEquals(initial, viewModel.uiState.value.gradeEntries)
-        assertEquals(listOf(9f, 9f), viewModel.uiState.value.cfuEntries.map { it.value })
-        assertTrue(viewModel.uiState.value.cfuMax > 9f)
+        assertEquals(listOf(2f), viewModel.uiState.value.cfuEntries.map { it.value })
+        assertEquals(listOf("9 CFU"), viewModel.uiState.value.cfuEntries.map { it.label })
+        assertTrue(viewModel.uiState.value.cfuMax >= 2f)
         assertTrue(initial.isNotEmpty())
     }
 
