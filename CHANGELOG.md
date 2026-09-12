@@ -1,3 +1,28 @@
+## [2.0.5] - 2026-09-13 (build set by CI)
+
+### UI e Didattica
+- Riprogettata la schermata di dettaglio del corso con collegamento ai dati accademici reali: Settore Scientifico Disciplinare (SSD), tipologia attività, lingua, crediti CFU, prerequisiti, obiettivi formativi e programma esteso.
+- Aggiunta la scheda docente con contatti ufficiali, recapiti, orari di ricevimento, sede di dipartimento e navigazione rapida al profilo del professore.
+- Visualizzazione completa degli esami nel libretto universitario, compresi tirocini, idoneità linguistiche e giudizi (con indicatori dedicati "Idoneo", "Superato", "Approvato").
+- Allineato il grafico di simulazione e distribuzione dei crediti CFU nella schermata Voti con lo stile e l'istogramma delle statistiche di carriera.
+
+### Servizi e Presenze
+- Riorganizzata la schermata Servizi con griglie bilanciate e speculari (4 servizi principali in griglia 2x2 e 6 portali universitari in griglia 3x2).
+- Rimosso il titolo ridondante "Servizi principali" e aggiunti distanziatori ottici per evitare sovrapposizioni con la barra di navigazione fluttuante.
+- Rinnovata l'esperienza di registrazione delle presenze: sostituito il dialog con il componente standard `LiquidDialog` dell'SDK e integrato lo scanner QR a schermo intero.
+- Riorganizzati i pulsanti di convalida e chiusura in orientamento verticale per evitare troncamenti di testo.
+- Rimosso il badge "Live aula" superfluo dalle attività.
+
+### Design e Temi Liquid Monet
+- Eliminati i colori scuri e le sfumature cupe dal Color Lab e dalla personalizzazione dei temi in favore di tonalità luminose ed espressive Monet.
+- Aggiunto il supporto per l'inserimento manuale e l'incolla da appunti di codici colore esadecimali (HEX).
+- Rimosso l'elenco delle note di rilascio (changelog) dal foglio di notifica aggiornamenti dell'app per una schermata di avviso più pulita e diretta.
+
+### Infrastruttura e Compilazione
+- Aggiornato Android Gradle Plugin ad AGP 9.4.0 e allineato Gradle Wrapper a 9.7.1 su tutti i moduli dell'ecosistema.
+- Introdotto il supporto automatico alle build composite (`includeBuild`) per la risoluzione e il debug immediato degli SDK locali.
+
+
 ## [2.0.4] - 2026-09-11 (build set by CI)
 
 ### UI e funzionalità App

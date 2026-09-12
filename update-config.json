@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Semplificata la conferma password nelle impostazioni con il pulsante \"Conferma\".\n- Riorganizzato il banner informativo dell'app con versione, build e note di rilascio.\n- Nuovo selettore rapido degli account con card profilo dedicata e gestione avatar.\n- Riprogettati i banner di aggiornamento con hero header coerente e feedback di avanzamento.\n- Armonizzato lo stile grafico delle card notizie nella schermata principale con il design Liquid."
+  "notes": "- Riprogettata la schermata dettaglio corso con collegamento ai dati accademici reali (SSD, CFU, programma, testi) e scheda docente dedicata.\n- Riorganizzata la sezione servizi e portali universitari in griglie bilanciate 2x2 e 3x2 con altezza uniforme.\n- Incluso il supporto completo a idoneità e giudizi nel libretto e allineato il grafico crediti CFU con le statistiche.\n- Rinnovata la registrazione presenze con LiquidDialog dell'SDK e scanner QR a schermo intero.\n- Aggiornato il Color Lab e la selezione temi eliminando i preset scuri a favore di palette vivaci e input esadecimale.\n- Rimosso il changelog dal foglio di aggiornamento dell'applicazione.\n- Aggiornato l'ambiente di compilazione ad Android Gradle Plugin 9.4.0 e Gradle Wrapper 9.7.1."
 }
