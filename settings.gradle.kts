@@ -47,6 +47,60 @@ dependencyResolutionManagement {
 include(":composeApp")
 include(":androidApp")
 
+val useLocalSdks = providers.gradleProperty("useLocalSdks")
+    .map { it.toBoolean() }
+    .orElse(true)
+    .get()
+
+if (useLocalSdks) {
+    val rootLocalProperties = file("local.properties")
+    fun syncLocalProperties(targetDir: File) {
+        if (rootLocalProperties.isFile && targetDir.isDirectory) {
+            val targetLocalProps = File(targetDir, "local.properties")
+            if (!targetLocalProps.isFile) {
+                rootLocalProperties.copyTo(targetLocalProps, overwrite = false)
+            }
+        }
+    }
+
+    val localLiquidMonet = file("../liquid-monet")
+    if (localLiquidMonet.isDirectory) {
+        syncLocalProperties(localLiquidMonet)
+        includeBuild(localLiquidMonet) {
+            dependencySubstitution {
+                substitute(module("com.anto426.liquidmonet:sdk")).using(project(":sdk"))
+            }
+        }
+    }
+    val localUniSdk = file("../uni-sdk")
+    if (localUniSdk.isDirectory) {
+        syncLocalProperties(localUniSdk)
+        includeBuild(localUniSdk) {
+            dependencySubstitution {
+                substitute(module("com.anto426:uni-sdk")).using(project(":"))
+            }
+        }
+    }
+    val localSecureStorage = file("../secure-storage-sdk")
+    if (localSecureStorage.isDirectory) {
+        syncLocalProperties(localSecureStorage)
+        includeBuild(localSecureStorage) {
+            dependencySubstitution {
+                substitute(module("com.anto426:secure-storage-sdk")).using(project(":"))
+            }
+        }
+    }
+    val localFirebase = file("../firebase-connector-sdk")
+    if (localFirebase.isDirectory) {
+        syncLocalProperties(localFirebase)
+        includeBuild(localFirebase) {
+            dependencySubstitution {
+                substitute(module("com.anto426:firebase-connector-sdk")).using(project(":"))
+            }
+        }
+    }
+}
+
 
 val sdkProperties = java.util.Properties()
 val sdkManifest = file(".sdk-binaries/resolved.properties")
