@@ -105,6 +105,10 @@ fun SettingsScreen(
         activeAccount?.let { account ->
             val initials = account.displayName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
 
+            val identity = com.anto426.uniapp.ui.components.account.accountDisplayIdentity(
+                account.displayName, initials, accountUiState.profileImages[account.accountId], account,
+            )
+
             LiquidCard(
                 shape = RoundedRectangle(26.dp),
                 contentPadding = 18.dp,
@@ -116,8 +120,8 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     UniAccountAvatar(
-                        imageData = accountUiState.profileImages[account.accountId],
-                        initials = if (initials.isNotBlank()) initials else stringResource(Res.string.msg_un),
+                        imageData = identity.photo,
+                        initials = if (identity.initials.isNotBlank()) identity.initials else stringResource(Res.string.msg_un),
                         size = 50.dp,
                         contentDescription = stringResource(Res.string.ui_profile_picture),
                     )
@@ -127,7 +131,7 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(
-                            text = account.displayName.ifBlank { stringResource(Res.string.ui_student_name_fallback) },
+                            text = identity.name.ifBlank { stringResource(Res.string.ui_student_name_fallback) },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,

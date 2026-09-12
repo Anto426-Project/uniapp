@@ -68,6 +68,9 @@ fun HomeAcademicProfileHeroCard(
     onOpenBadge: () -> Unit,
     onOpenStatistics: () -> Unit,
 ) {
+    val identity = com.anto426.uniapp.ui.components.account.accountDisplayIdentity(
+        uiState.profileName, uiState.profileInitials, uiState.profilePhotoData,
+    )
     val colorScheme = MaterialTheme.colorScheme
 
     LiquidCard(
@@ -87,8 +90,8 @@ fun HomeAcademicProfileHeroCard(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 UniAccountAvatar(
-                    imageData = uiState.profilePhotoData,
-                    initials = uiState.profileInitials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
+                    imageData = identity.photo,
+                    initials = identity.initials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
                     size = 46.dp,
                     contentDescription = stringResource(Res.string.ui_profile_picture),
                 )
@@ -98,7 +101,7 @@ fun HomeAcademicProfileHeroCard(
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     Text(
-                        text = uiState.profileName.ifBlank {
+                        text = identity.name.ifBlank {
                             stringResource(
                                 if (uiState.isProfessor) Res.string.ui_professor_role
                                 else Res.string.ui_student_name_fallback,

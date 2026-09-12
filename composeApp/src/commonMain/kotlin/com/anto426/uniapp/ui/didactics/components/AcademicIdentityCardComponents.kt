@@ -86,18 +86,22 @@ fun AcademicIdentityBannerCard(
     rawCode: String,
     modifier: Modifier = Modifier,
 ) {
+    val identity = com.anto426.uniapp.ui.components.account.accountDisplayIdentity(
+        uiState.fullName, uiState.initials, uiState.photoData,
+    )
+    val displayState = uiState.copy(fullName = identity.name, photoData = identity.photo)
     UniHeroGlassCard(
         modifier = modifier,
         height = 370.dp,
         flipTrigger = UniHeroFlipTrigger.CLICK,
         frontContent = {
             AcademicIdentityFrontFace(
-                uiState = uiState,
+                uiState = displayState,
             )
         },
         backContent = {
             AcademicIdentityBackFace(
-                uiState = uiState,
+                uiState = displayState,
                 rawCode = rawCode,
             )
         },

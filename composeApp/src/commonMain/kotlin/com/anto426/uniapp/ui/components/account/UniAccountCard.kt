@@ -46,6 +46,8 @@ fun UniAccountCard(
         .map { it.first() }
         .joinToString("")
 
+    val identity = accountDisplayIdentity(account.displayName, initials, profileImage, account)
+
     val colorScheme = MaterialTheme.colorScheme
 
     val cardModifier = if (isActive) {
@@ -83,8 +85,8 @@ fun UniAccountCard(
                 // Avatar con checkmark se attivo
                 Box(contentAlignment = Alignment.BottomEnd) {
                     UniAccountAvatar(
-                        imageData = profileImage,
-                        initials = if (initials.isNotBlank()) initials else stringResource(Res.string.msg_un),
+                        imageData = identity.photo,
+                        initials = if (identity.initials.isNotBlank()) identity.initials else stringResource(Res.string.msg_un),
                         size = 46.dp,
                         contentDescription = stringResource(Res.string.ui_profile_picture),
                     )
@@ -116,7 +118,7 @@ fun UniAccountCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            text = account.displayName,
+                            text = identity.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,

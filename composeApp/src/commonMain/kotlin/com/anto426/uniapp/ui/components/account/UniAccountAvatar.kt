@@ -42,7 +42,8 @@ fun UniAccountAvatar(
         return
     }
 
-    val cacheKey = imageCacheKey ?: LocalAccountAvatars.current.values.firstOrNull { it.bytes === imageData }?.cacheKey
+    val creatorImage = LocalAccountPresentation.current.image
+    val cacheKey = imageCacheKey ?: creatorImage?.takeIf { it.bytes === imageData }?.cacheKey ?: LocalAccountAvatars.current.values.firstOrNull { it.bytes === imageData }?.cacheKey
     val platformContext = LocalPlatformContext.current
     val request =
         androidx.compose.runtime.remember(imageData, platformContext, cacheKey) {

@@ -105,6 +105,20 @@ internal fun AppNavigationHost(
     val shellUiState by shellViewModel.uiState.collectAsStateWithLifecycle()
     val accountAvatars by runtime.sessionController.avatars.images.collectAsStateWithLifecycle()
     val authenticatedAccount = (sessionState as? AppSessionState.Authenticated)?.account
+    val projectState by runtime.projectData.uiState.collectAsStateWithLifecycle()
+    val accountSwitcherState by topBarAccountSwitcherViewModel.uiState.collectAsStateWithLifecycle()
+    val creator = projectState.data?.author
+    val needsCreatorAvatar = com.anto426.uniapp.ui.components.account.isCreatorDisplayAccount(authenticatedAccount) ||
+        accountSwitcherState.accounts.any { com.anto426.uniapp.ui.components.account.isCreatorDisplayAccount(it) }
+    val creatorAvatarUrl = creator?.takeIf {
+        needsCreatorAvatar && it.login.equals(com.anto426.unisdk.platform.ProjectInfo.authorLogin, ignoreCase = true)
+    }?.avatarUrl
+    val creatorImage by androidx.compose.runtime.produceState<com.anto426.uniapp.data.images.ApplicationImage?>(
+        null, runtime.applicationImages, creatorAvatarUrl,
+    ) {
+        value = null
+        value = creatorAvatarUrl?.let { runtime.applicationImages.load(it) }
+    }
     val accountId = authenticatedAccount?.accountId.orEmpty()
     val profileId = authenticatedAccount?.activeProfileId
     val accountDataSource = accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
@@ -191,6 +205,13 @@ internal fun AppNavigationHost(
             }
         }
 
+    // Shared above the scene so modal sheets see the same identity and image cache as screens.
+    CompositionLocalProvider(
+        com.anto426.uniapp.ui.components.account.LocalAccountAvatars provides accountAvatars,
+        com.anto426.uniapp.ui.components.account.LocalAccountPresentation provides
+            com.anto426.uniapp.ui.components.account.AccountPresentation(authenticatedAccount, creator, creatorImage),
+        com.anto426.uniapp.ui.components.display.LocalApplicationImages provides runtime.applicationImages,
+    ) {
     UniTheme(state = themeUiState) {
     LiquidGlassScene(
         modifier = Modifier.fillMaxSize(),
@@ -308,8 +329,6 @@ internal fun AppNavigationHost(
                     bottom = if (showBottomBar) 110.dp else 24.dp,
                 )
             CompositionLocalProvider(
-        com.anto426.uniapp.ui.components.account.LocalAccountAvatars provides accountAvatars,
-                com.anto426.uniapp.ui.components.display.LocalApplicationImages provides runtime.applicationImages,
                 LocalAppToastSink provides toastManager,
                 LocalUniScreenPadding provides screenPadding,
                 LocalNavigationBarVisible provides shellUiState.isNavigationBarVisible,
@@ -407,6 +426,7 @@ internal fun AppNavigationHost(
                 onConfirm = deviceSessionsViewModel::confirmDisconnectAll,
             )
         }
+    }
     }
     }
 }
