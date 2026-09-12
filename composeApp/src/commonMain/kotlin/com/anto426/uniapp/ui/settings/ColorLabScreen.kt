@@ -1,5 +1,6 @@
 package com.anto426.uniapp.ui.settings
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,5 +38,9 @@ fun ColorLabScreen(
                 lineHeight = 20.sp,
             )
         }
+
+        // Spaziatura per non coprire il contenuto con la floating dock bar
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(110.dp))
     }
 }
+
