@@ -79,14 +79,3 @@ python3 scripts/validate_release.py
 
 La compilazione Kotlin per iOS su Linux verifica i sorgenti e le KLIB. Il link
 Apple, l'archivio Xcode e l'esecuzione nel simulatore richiedono macOS.
-
-## Errori dei runner del 12 settembre
-
-- Android: il test del libretto si aspettava ancora di escludere un'idoneità senza
-  voto numerico, comportamento cambiato nel mapper. Le asserzioni verificano ora
-  anche l'idoneità e il gruppo con anno sconosciuto.
-- iOS: due ViewModel in `commonMain` usavano `toSortedMap`, API JVM. Ordinano ora
-  le entry con `sortedBy`, disponibile anche su Kotlin/Native.
-- Configurazione: i sorgenti SDK venivano inclusi automaticamente in locale e le
-  versioni del catalogo sostituite con quelle dell'ultimo download. Entrambi i
-  meccanismi sono stati rimossi.
