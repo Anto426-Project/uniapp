@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve SDK releases once, verify them, and install their Maven binaries atomically."""
+"""Download the exact SDK versions declared in Gradle and verify their Maven binaries."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -10,12 +10,30 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import tempfile
+import tomllib
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_specs() -> dict:
+    specs = json.loads((ROOT / 'scripts/sdk_binaries.json').read_text())
+    catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
+    for name, spec in specs.items():
+        declarations = [lib for lib in catalog['libraries'].values()
+                        if lib.get('module') == spec['coordinate']]
+        if len(declarations) != 1:
+            raise ValueError(f'{name}: declare exactly one dependency for {spec["coordinate"]} in gradle/libs.versions.toml')
+        version = declarations[0]['version']
+        if isinstance(version, dict):
+            version = catalog['versions'][version['ref']]
+        if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?', version):
+            raise ValueError(f'{name}: an explicit published SDK version is required, got {version!r}')
+        spec['version'] = version
+    return specs
 
 
 class GitHubRedirectHandler(HTTPRedirectHandler):
@@ -53,6 +71,8 @@ def validate_archive(path: Path, expected: dict, target: Path) -> dict:
             raise ValueError('SDK identity does not match the requested module')
         if not re.fullmatch(r'[a-f0-9]{40}', info['sourceSha']) or not re.fullmatch(r'[0-9A-Za-z.-]+', info['version']):
             raise ValueError('Invalid SDK version or source revision')
+        if info['version'] != expected['version']:
+            raise ValueError(f'SDK version mismatch: requested {expected["version"]}, archive contains {info["version"]}')
         files = info['files']
         if set(names) != {'sdk-info.json', *('maven/' + name for name in files)}:
             raise ValueError('SDK archive contents do not match its manifest')
@@ -74,20 +94,22 @@ def validate_archive(path: Path, expected: dict, target: Path) -> dict:
 def resolve_release(name: str, spec: dict) -> Path:
     api_root = f"https://api.github.com/repos/{spec['repository']}"
     try:
-        release = json.loads(download(f"{api_root}/releases/latest", api=True))
+        release = json.loads(download(f"{api_root}/releases/tags/v{spec['version']}", api=True))
     except HTTPError as error:
         if error.code in (401, 403, 404):
             raise RuntimeError(
                 f"{name}: GitHub returned HTTP {error.code} for {spec['repository']}. "
-                "Check that a published SDK release exists and the SDK_READ_TOKEN or DEPLOY_TOKEN "
+                f"Check that release v{spec['version']} exists and the SDK_READ_TOKEN or DEPLOY_TOKEN "
                 "used by this workflow has Contents: read access to every SDK repository. "
                 "UniApp's GITHUB_TOKEN alone cannot read other private repositories."
             ) from None
         raise
+    if release['tag_name'] != f"v{spec['version']}" or release.get('draft'):
+        raise ValueError(f'{name}: GitHub returned a different or unpublished release')
     # Private releases require the asset API and authentication; their browser URLs return 404.
     assets = {item['name']: f"{api_root}/releases/assets/{int(item['id'])}" for item in release['assets']}
     if not {'maven-repository.zip', 'maven-repository.zip.sha256'} <= assets.keys():
-        raise ValueError(f"{name}: the latest SDK release has no complete Maven binaries; run its SDK workflow first")
+        raise ValueError(f"{name}: release v{spec['version']} has no complete Maven binaries; publish that SDK version first")
     checksum = download(assets['maven-repository.zip.sha256']).decode().split()[0]
     if not re.fullmatch(r'[a-f0-9]{64}', checksum):
         raise ValueError('Invalid SDK archive checksum')
@@ -124,7 +146,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--local', type=Path, action='append', default=[], help='Use locally validated SDK archives instead of GitHub releases')
     args = parser.parse_args()
-    specs = json.loads((ROOT / 'scripts/sdk_binaries.json').read_text())
+    specs = load_specs()
     local = {}
     for path in args.local:
         with zipfile.ZipFile(path) as archive:

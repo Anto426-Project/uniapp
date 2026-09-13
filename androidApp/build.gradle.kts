@@ -57,8 +57,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {
@@ -67,11 +67,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":composeApp")) {
-        exclude(group = "org.jetbrains.compose")
-        exclude(group = "org.jetbrains.androidx")
-    }
-    implementation(libs.antosdk)
+    implementation(project(":composeApp"))
+    implementation(libs.liquid.monet.sdk)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

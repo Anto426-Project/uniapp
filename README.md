@@ -45,7 +45,7 @@ UniApp e sviluppata e mantenuta in modo indipendente e non e affiliata ufficialm
 root@anto426: ~/UniApp (main⚡)$ stack --list
 
 > language:
-  - Kotlin 2.4.10
+  - Kotlin 2.4.20
 
 > ui:
   - Compose Multiplatform 1.12.0
@@ -72,12 +72,18 @@ Gli SDK vivono in repository separati. I loro workflow pubblicano le dipendenze 
 | `secure-storage-sdk`     | Persistenza sicura multipiattaforma per credenziali e token          | Modulo interno                                                  |
 | `firebase-connector-sdk` | Push notification e integrazione Firebase/FCM                        | Modulo interno                                                  |
 
-UniApp usa i binari delle Release come repository Maven locale verificato: il resolver scarica una volta le versioni correnti, verifica gli hash e salva versioni e revisioni in `.sdk-binaries/resolved.properties`. Gradle riusa questi artefatti senza ricompilare gli SDK. Per preparare un checkout, con un `GITHUB_TOKEN` o `GH_TOKEN` che possa leggere i repository privati degli SDK:
+UniApp usa esclusivamente SDK precompilati, come normali dipendenze Maven con versione esplicita in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). Ogni SDK ha un repository, una build e una versione indipendenti. Il resolver scarica la Release `v<versione>` dichiarata nel catalogo, verifica gli hash e prepara `.sdk-binaries/maven`; non seleziona mai `latest` e non include i sorgenti dei repository vicini. `.sdk-binaries/resolved.properties` registra le versioni e revisioni effettivamente installate, senza sovrascrivere il catalogo.
+
+Per preparare un checkout, con Python 3.11 o successivo, JDK 21 e un `GITHUB_TOKEN` o `GH_TOKEN` che possa leggere i repository privati degli SDK:
 
 ```sh
 python3 scripts/fetch_sdk_binaries.py
 ./gradlew :composeApp:testAndroidHostTest :androidApp:assembleDebug
 ```
+
+Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versions]` del catalogo e rieseguire `python3 scripts/fetch_sdk_binaries.py`. Per Liquid Monet l'alias è `liquid-monet-sdk` (`libs.liquid.monet.sdk` in Gradle). Il download fallisce se quella Release non esiste o contiene una versione diversa. Dopo un cambio di versione, Gradle segnala eventuali binari locali obsoleti e richiede di ripetere il download.
+
+La [guida alle build](docs/build-dependencies.md) descrive toolchain, runner, integrazione Xcode e verifiche degli SDK indipendenti.
 
 Nei runner Android e iOS il resolver usa il secret `SDK_READ_TOKEN`, oppure `DEPLOY_TOKEN` se il primo non è configurato. Il token deve avere accesso in lettura ai contenuti di tutti e quattro i repository; il `GITHUB_TOKEN` automatico di UniApp non basta per gli SDK privati. I checksum vengono verificati anche quando gli archivi sono già nella cache `.sdk-downloads/`.
 

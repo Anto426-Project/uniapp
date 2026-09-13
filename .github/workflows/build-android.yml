@@ -13,23 +13,23 @@ concurrency:
 jobs:
   build:
     if: github.ref == 'refs/heads/main'
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 60
     defaults:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           token: ${{ secrets.DEPLOY_TOKEN || github.token }}
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
-      - uses: gradle/actions/setup-gradle@v4
-      - uses: actions/setup-python@v5
+      - uses: android-actions/setup-android@v4.0.1
+      - uses: gradle/actions/setup-gradle@v6.3.0
+      - uses: actions/setup-python@v7.0.0
         with:
           python-version: "3.12"
       - name: Resolve verified SDK binaries
@@ -43,7 +43,7 @@ jobs:
           ./gradlew --no-daemon --max-workers=2 :composeApp:testAndroidHostTest
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: android-test-results-${{ github.run_id }}
           path: |
@@ -89,7 +89,7 @@ jobs:
           })
           PY
       - name: Upload signed build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: android-signed-${{ github.run_id }}
           path: publish-input/

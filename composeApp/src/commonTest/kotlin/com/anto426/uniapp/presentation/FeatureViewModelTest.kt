@@ -215,9 +215,11 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         advanceUntilIdle()
 
         val allExams = viewModel.uiState.value.examsByYear.values.flatten()
-        assertEquals(listOf("Analisi", "Tirocinio", "Programmazione", "Fisica"), allExams.map { it.name })
+        assertEquals(listOf("Analisi", "Tirocinio", "Programmazione", "Seminario", "Fisica"), allExams.map { it.name })
         assertEquals(true, allExams.first { it.name == "Programmazione" }.lode)
-        assertEquals("IDONEO", allExams.first { it.name == "Tirocinio" }.grade)
+        assertEquals("Idoneo", allExams.first { it.name == "Tirocinio" }.grade)
+        assertEquals("Idoneo", allExams.first { it.name == "Seminario" }.grade)
+        assertEquals(listOf(1, 2, 0), viewModel.uiState.value.availableYears)
         assertEquals(1, viewModel.uiState.value.selectedYear)
         assertEquals(listOf(1), viewModel.uiState.value.displayedYears)
         viewModel.selectYear(2)

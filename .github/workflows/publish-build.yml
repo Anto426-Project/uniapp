@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Resolve and validate source build
         id: source
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9.0.0
         env:
           REQUESTED_RUN_ID: ${{ inputs.source_run_id || github.event.workflow_run.id }}
         with:
@@ -55,12 +55,12 @@ jobs:
             core.setOutput('run_id', id);
             core.setOutput('sha', run.head_sha);
       - name: Checkout publishing tools from this workflow revision
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
       - name: Checkout release policy from the exact built revision
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ steps.source.outputs.sha }}
           path: build-source
@@ -68,7 +68,7 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Download signed build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: android-signed-${{ steps.source.outputs.run_id }}
           run-id: ${{ steps.source.outputs.run_id }}
@@ -88,13 +88,13 @@ jobs:
               raise SystemExit('Artifact context does not match the selected build')
           PY
       - name: Checkout distribution repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           repository: ${{ env.DEPLOY_REPO }}
           ref: ${{ env.DEPLOY_BRANCH }}
           token: ${{ secrets.DEPLOY_TOKEN }}
           path: deploy-repo
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.12'
       - name: Prepare manifest and release notes

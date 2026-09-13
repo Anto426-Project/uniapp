@@ -31,7 +31,7 @@ class SdkBinariesTest(unittest.TestCase):
                     aar.writestr('classes.jar', classes.getvalue())
                 payload = aar_data.getvalue()
                 filename = f'com/example/{module}/1.0.1/{module}.aar'
-                specs[module] = {'repository': f'owner/{module}', 'coordinate': f'com.example:{module}'}
+                specs[module] = {'repository': f'owner/{module}', 'coordinate': f'com.example:{module}', 'version': '1.0.1'}
                 info = {'sourceRepository': specs[module]['repository'], 'coordinate': specs[module]['coordinate'],
                         'version': '1.0.1', 'sourceSha': 'a' * 40, 'files': {filename: hashlib.sha256(payload).hexdigest()}}
                 archives[module] = root / f'{module}.zip'
@@ -40,7 +40,7 @@ class SdkBinariesTest(unittest.TestCase):
                     archive.writestr('maven/' + filename, payload)
             (root / 'scripts').mkdir()
             (root / 'scripts/sdk_binaries.json').write_text(json.dumps(specs))
-            with patch.object(sys, 'argv', ['resolver']), patch.object(sdk, 'resolve_release', side_effect=lambda name, _: archives[name]), \
+            with patch.object(sys, 'argv', ['resolver']), patch.object(sdk, 'load_specs', return_value=specs), patch.object(sdk, 'resolve_release', side_effect=lambda name, _: archives[name]), \
                     patch('builtins.print'):
                 with self.assertRaisesRegex(ValueError, 'Duplicate Android class'):
                     sdk.main()
@@ -66,18 +66,18 @@ class SdkBinariesTest(unittest.TestCase):
         payload = b'verified archive'
         checksum = hashlib.sha256(payload).hexdigest()
         api_root = 'https://api.github.com/repos/owner/private-sdk'
-        release = {'assets': [
+        release = {'tag_name': 'v1.0.1', 'assets': [
             {'name': 'maven-repository.zip', 'id': 42},
             {'name': 'maven-repository.zip.sha256', 'id': 43},
         ]}
         responses = {
-            api_root + '/releases/latest': json.dumps(release).encode(),
+            api_root + '/releases/tags/v1.0.1': json.dumps(release).encode(),
             api_root + '/releases/assets/43': checksum.encode() + b'  maven-repository.zip',
             api_root + '/releases/assets/42': payload,
         }
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)), \
                 patch.object(sdk, 'download', side_effect=lambda url, **_: responses[url]) as download:
-            spec = {'repository': 'owner/private-sdk'}
+            spec = {'repository': 'owner/private-sdk', 'version': '1.0.1'}
             path = sdk.resolve_release('private-sdk', spec)
             self.assertEqual(payload, path.read_bytes())
             download.reset_mock()
@@ -117,17 +117,17 @@ class SdkBinariesTest(unittest.TestCase):
         error = HTTPError('https://api.github.com/repos/owner/private/releases/latest', 404, 'Not Found', {}, io.BytesIO())
         with patch.object(sdk, 'download', side_effect=error):
             with self.assertRaisesRegex(RuntimeError, 'owner/private.*SDK_READ_TOKEN or DEPLOY_TOKEN'):
-                sdk.resolve_release('private-sdk', {'repository': 'owner/private'})
+                sdk.resolve_release('private-sdk', {'repository': 'owner/private', 'version': '1.0.1'})
 
     def test_archive_identity_paths_and_checksums_are_verified(self):
-        spec = {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk'}
-        for case in ('valid', 'wrong-repository', 'unsafe-path', 'bad-checksum'):
+        spec = {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk', 'version': '1.0.1'}
+        for case in ('valid', 'wrong-repository', 'wrong-version', 'unsafe-path', 'bad-checksum'):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 filename = '../outside' if case == 'unsafe-path' else 'com/example/sdk/1.0.1/sdk-1.0.1.pom'
                 data = b'<project/>'
                 info = {'sourceRepository': 'other/sdk' if case == 'wrong-repository' else spec['repository'],
-                        'coordinate': spec['coordinate'], 'version': '1.0.1', 'sourceSha': 'a' * 40,
+                        'coordinate': spec['coordinate'], 'version': '1.0.2' if case == 'wrong-version' else '1.0.1', 'sourceSha': 'a' * 40,
                         'files': {filename: '0' * 64 if case == 'bad-checksum' else hashlib.sha256(data).hexdigest()}}
                 path = root / 'sdk.zip'
                 with zipfile.ZipFile(path, 'w') as archive:
@@ -140,3 +140,23 @@ class SdkBinariesTest(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         sdk.validate_archive(path, spec, root / 'maven')
                     self.assertFalse((root / 'outside').exists())
+
+    def test_catalog_controls_versions_and_rejects_dynamic_selectors(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
+            root = Path(directory)
+            (root / 'scripts').mkdir()
+            (root / 'gradle').mkdir()
+            (root / 'scripts/sdk_binaries.json').write_text(json.dumps({
+                'sdk': {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk'},
+            }))
+            for version in ('1.0.7', '2.3.4', 'latest.release', '1.+', '[1,2)'):
+                (root / 'gradle/libs.versions.toml').write_text(
+                    '[versions]\nsdk = "' + version + '"\n[libraries]\n'
+                    'sdk = {module = "com.example:sdk", version.ref = "sdk"}\n'
+                )
+                with self.subTest(version=version):
+                    if version in ('1.0.7', '2.3.4'):
+                        self.assertEqual(version, sdk.load_specs()['sdk']['version'])
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'explicit published SDK version'):
+                            sdk.load_specs()

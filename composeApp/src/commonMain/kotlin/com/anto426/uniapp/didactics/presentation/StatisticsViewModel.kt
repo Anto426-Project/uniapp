@@ -49,11 +49,11 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 weightedEntries += StatisticsChartPoint(label, weighted)
                 arithmeticEntries += StatisticsChartPoint(label, arithmetic)
             }
-            val cfuGroups = graded.groupBy { it.third }.filterKeys { it > 0 }.toSortedMap()
+            val cfuGroups = graded.groupBy { it.third }.filterKeys { it > 0 }.entries.sortedBy { it.key }
             val cfuEntries = cfuGroups.map { (cfu, exams) ->
                 StatisticsChartPoint(label = "$cfu CFU", value = exams.size.toFloat())
             }
-            val maxExamsInCfuTier = cfuGroups.values.maxOfOrNull { it.size } ?: 0
+            val maxExamsInCfuTier = cfuGroups.maxOfOrNull { it.value.size } ?: 0
             val grades = graded.map { it.second }
             val highestGrade = grades.maxOrNull()
             val highestCourses =

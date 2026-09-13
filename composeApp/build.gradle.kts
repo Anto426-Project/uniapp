@@ -71,7 +71,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.navigation3)
             implementation(libs.jetbrains.navigation3.ui)
 
-            implementation(libs.antosdk)
+            implementation(libs.liquid.monet.sdk)
             implementation(libs.unisdk)
             implementation(libs.secure.storage.sdk)
             implementation(libs.firebase.connector.sdk)
@@ -105,9 +105,21 @@ kotlin {
 val sdkManifest = rootProject.file(".sdk-binaries/resolved.properties")
 require(sdkManifest.isFile) { "SDK binaries are missing. Run: python3 scripts/fetch_sdk_binaries.py" }
 val sdkProperties = Properties().apply { sdkManifest.inputStream().use(::load) }
-val moduleNames = listOf("liquid-monet", "uni-sdk", "secure-storage-sdk", "firebase-connector-sdk")
-val moduleMetadata = moduleNames.map { name ->
-    listOf(name, sdkProperties.getProperty("$name.version"), sdkProperties.getProperty("$name.revision"), "false")
+val sdkDependencies = mapOf(
+    "liquid-monet" to libs.liquid.monet.sdk.get(),
+    "uni-sdk" to libs.unisdk.get(),
+    "secure-storage-sdk" to libs.secure.storage.sdk.get(),
+    "firebase-connector-sdk" to libs.firebase.connector.sdk.get(),
+)
+val moduleMetadata = sdkDependencies.map { (name, dependency) ->
+    val version = dependency.versionConstraint.requiredVersion
+    require(sdkProperties.getProperty("$name.version") == version &&
+        sdkProperties.getProperty("$name.coordinate") == "${dependency.module.group}:${dependency.module.name}") {
+        "$name binaries do not match the declared dependency ($version). Run: python3 scripts/fetch_sdk_binaries.py"
+    }
+    val revision = sdkProperties.getProperty("$name.revision").orEmpty()
+    require(revision.matches(Regex("[a-f0-9]{40}"))) { "Missing source revision for $name. Fetch SDK binaries again." }
+    listOf(name, version, revision, "false")
 }
 val sourceRevision = providers.exec {
     commandLine("git", "-C", rootProject.projectDir.absolutePath, "rev-parse", "HEAD")

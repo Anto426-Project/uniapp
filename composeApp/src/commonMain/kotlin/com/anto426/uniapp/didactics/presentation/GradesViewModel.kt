@@ -199,7 +199,7 @@ data class GradesUiState(
     val cfuEntries: List<LiquidChartEntry>
         get() {
             val allCfu = (currentExams.map { it.cfu } + activeSimulatedItems.map { it.cfu }).filter { it > 0 }
-            val cfuGroups = allCfu.groupBy { it }.toSortedMap()
+            val cfuGroups = allCfu.groupBy { it }.entries.sortedBy { it.key }
             return cfuGroups.map { (cfu, list) ->
                 LiquidChartEntry(label = "$cfu CFU", value = list.size.toFloat())
             }
