@@ -43,7 +43,6 @@ fun TicketDetailScreen(
     ticket: TransportTicket,
     onBook: () -> Unit,
 ) {
-    val rawCode = "TKT-${ticket.id.uppercase()}"
 
     UniScreenColumn {
         // 1. Hero Ticket Card (Student Banner Structure with 3D Flip)
@@ -58,7 +57,6 @@ fun TicketDetailScreen(
             backContent = {
                 TicketHeroBackFace(
                     ticket = ticket,
-                    rawCode = rawCode,
                 )
             },
         )

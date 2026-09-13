@@ -2,6 +2,7 @@ package com.anto426.uniapp.ui.transport.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +29,8 @@ import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TripDirection
-import com.anto426.uniapp.ui.didactics.components.QrCodeMatrixCanvas
+import com.anto426.uniapp.codes.DecodedCode
+import com.anto426.uniapp.codes.CodeFormat
 import com.anto426.uniapp.ui.didactics.components.UniAppBrandLogo
 import com.kyant.shapes.Capsule
 import org.jetbrains.compose.resources.stringResource
@@ -196,7 +198,7 @@ fun ReservationHeroFrontFace(
 @Composable
 fun ReservationHeroBackFace(
     reservation: TransportReservation,
-    rawCode: String,
+    code: DecodedCode?,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -294,10 +296,9 @@ fun ReservationHeroBackFace(
                     .padding(14.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                QrCodeMatrixCanvas(
-                    codeValue = rawCode,
-                    color = colorScheme.onSurface,
-                    modifier = Modifier.size(136.dp),
+                TicketCodeImage(
+                    code = code,
+                    modifier = if (code?.format == CodeFormat.Qr) Modifier.size(156.dp) else Modifier.fillMaxWidth().height(120.dp),
                 )
             }
 
@@ -306,7 +307,7 @@ fun ReservationHeroBackFace(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text = rawCode,
+                    text = reservation.id,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace,

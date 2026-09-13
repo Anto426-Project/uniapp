@@ -17,11 +17,24 @@ import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
+import com.anto426.uniapp.codes.CodeReader
+import com.anto426.uniapp.codes.DecodedCode
+import com.anto426.uniapp.codes.createCodeReader
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+data class TicketImageUiState(
+    val original: ByteArray? = null,
+    val codes: List<DecodedCode> = emptyList(),
+    val isLoading: Boolean = false,
+    val isReading: Boolean = false,
+    val errorMessage: String? = null,
+)
 
 data class ReservationDetailUiState(
     val reservation: TransportReservation? = null,
@@ -29,13 +42,17 @@ data class ReservationDetailUiState(
     val errorMessage: String? = null,
     val isDeleting: Boolean = false,
     val deleted: Boolean = false,
+    val image: TicketImageUiState = TicketImageUiState(),
 )
 
 class ReservationDetailViewModel(
     private val reservationId: String,
     private val dataSource: UniAppDataSource,
     private val toastSink: AppToastSink = AppToastSink.None,
+    private val codeReader: CodeReader = createCodeReader(),
 ) : ViewModel() {
+    private var imageJob: Job? = null
+    private var imageSource: String? = null
     private val mutableUiState = MutableStateFlow(ReservationDetailUiState())
     val uiState: StateFlow<ReservationDetailUiState> = mutableUiState.asStateFlow()
 
@@ -48,6 +65,16 @@ class ReservationDetailViewModel(
                 reservation = reservation,
                 loadState = if (reservation == null) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
+            if (reservation == null) {
+                imageJob?.cancel()
+                imageSource = null
+                mutableUiState.value = mutableUiState.value.copy(image = TicketImageUiState())
+            } else if (imageSource != reservation.ticketUrl) {
+                val changed = imageSource != null
+                imageSource = reservation.ticketUrl
+                mutableUiState.value = mutableUiState.value.copy(image = TicketImageUiState())
+                loadTicketImage(forceRefresh = changed)
+            }
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
             throw error
@@ -62,13 +89,38 @@ class ReservationDetailViewModel(
 
     fun refresh(force: Boolean = false) { sharedData.refresh(dataRequests, force) }
 
+    fun loadTicketImage(forceRefresh: Boolean = false) {
+        val reservation = mutableUiState.value.reservation ?: return
+        imageJob?.cancel()
+        imageJob = viewModelScope.launch {
+            val previous = mutableUiState.value.image
+            mutableUiState.value = mutableUiState.value.copy(image = previous.copy(isLoading = true, errorMessage = null))
+            try {
+                val original = sharedData.loadTransportTicketImage(reservation.id, reservation.ticketUrl, forceRefresh)
+                ensureActive()
+                // Publish the saved original before decoding: reading failure cannot hide it.
+                mutableUiState.value = mutableUiState.value.copy(image = TicketImageUiState(original = original, isReading = true))
+                val codes = codeReader.read(original)
+                ensureActive()
+                mutableUiState.value = mutableUiState.value.copy(image = TicketImageUiState(original = original, codes = codes))
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                val current = mutableUiState.value.image
+                val message = getString(if (current.original == null) Res.string.ui_ticket_download_failed else Res.string.ui_ticket_use_original)
+                mutableUiState.value = mutableUiState.value.copy(image = current.copy(isLoading = false, isReading = false, errorMessage = message))
+            }
+        }
+    }
+
     fun delete() {
         if (mutableUiState.value.reservation == null) return
         viewModelScope.launch {
             mutableUiState.value = mutableUiState.value.copy(isDeleting = true, errorMessage = null)
             try {
+                imageJob?.cancel()
                 sharedData.deleteTransportBooking(reservationId)
-                mutableUiState.value = mutableUiState.value.copy(isDeleting = false, deleted = true)
+                mutableUiState.value = mutableUiState.value.copy(isDeleting = false, deleted = true, image = TicketImageUiState())
                 toastSink.success("Prenotazione annullata.")
             } catch (error: CancellationException) {
                 throw error

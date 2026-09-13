@@ -43,6 +43,8 @@ import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.glass.LiquidGlassRole
 import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.transport.presentation.TicketImageUiState
+import com.anto426.uniapp.ui.transport.components.TransportTicketActions
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TripDirection
 import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
@@ -59,15 +61,12 @@ import uniapp.composeapp.generated.resources.*
 fun ReservationDetailScreen(
     reservation: TransportReservation,
     isDeleting: Boolean,
+    imageState: TicketImageUiState,
+    onReloadImage: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
-    val officialUrl = reservation.ticketUrl.ifBlank { "https://unimol.esse3.cineca.it" }
-    val rawCode = if (reservation.qrCodeData.startsWith("http")) {
-        "TKT-${reservation.id.uppercase()}"
-    } else {
-        reservation.qrCodeData.ifBlank { "TKT-${reservation.id.uppercase()}" }
-    }
+    val officialUrl = reservation.ticketUrl.ifBlank { "https://trasporti.unimol.it" }
     var menuExpanded by remember { mutableStateOf(false) }
     val isFabVisible = LocalNavigationBarVisible.current
     val anchorState = rememberLiquidGlassOverlayAnchorState()
@@ -90,10 +89,12 @@ fun ReservationDetailScreen(
                 backContent = {
                     ReservationHeroBackFace(
                         reservation = reservation,
-                        rawCode = rawCode,
+                        code = imageState.codes.singleOrNull(),
                     )
                 },
             )
+
+            TransportTicketActions(imageState, onReloadImage)
 
             // 2. Info Group (Dettagli Biglietto)
             LiquidPreferenceGroup(

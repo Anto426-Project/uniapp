@@ -637,6 +637,8 @@ internal fun AppRouteContent(
                     ReservationDetailScreen(
                         reservation = reservation,
                         isDeleting = detailUiState.isDeleting,
+                        imageState = detailUiState.image,
+                        onReloadImage = { detailViewModel.loadTicketImage(forceRefresh = true) },
                         onDelete = detailViewModel::delete,
                     )
                 }

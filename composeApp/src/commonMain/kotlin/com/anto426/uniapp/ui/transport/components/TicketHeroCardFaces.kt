@@ -27,7 +27,6 @@ import com.anto426.liquidmonet.glass.LiquidGlassRole
 import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportTicket
-import com.anto426.uniapp.ui.didactics.components.QrCodeMatrixCanvas
 import com.anto426.uniapp.ui.didactics.components.UniAppBrandLogo
 import com.kyant.shapes.Capsule
 import org.jetbrains.compose.resources.stringResource
@@ -184,7 +183,6 @@ fun TicketHeroFrontFace(
 @Composable
 fun TicketHeroBackFace(
     ticket: TransportTicket,
-    rawCode: String,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -221,14 +219,14 @@ fun TicketHeroBackFace(
                             letterSpacing = (-0.3).sp,
                         )
                         Text(
-                            text = stringResource(Res.string.ui_transport_validation_badge),
+                            text = stringResource(Res.string.ui_info),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary,
                         )
                     }
                     Text(
-                        text = stringResource(Res.string.ui_transport_scan_turnstile_hint),
+                        text = stringResource(Res.string.ui_transport_book_ride),
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
                         fontWeight = FontWeight.Medium,
@@ -282,10 +280,11 @@ fun TicketHeroBackFace(
                     .padding(14.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                QrCodeMatrixCanvas(
-                    codeValue = rawCode,
+                Text(
+                    text = stringResource(Res.string.ui_ticket_catalog_no_code),
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = colorScheme.onSurface,
-                    modifier = Modifier.size(136.dp),
                 )
             }
 
@@ -294,7 +293,7 @@ fun TicketHeroBackFace(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text = rawCode,
+                    text = ticket.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace,
