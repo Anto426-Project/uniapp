@@ -55,6 +55,7 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.zxing.core)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
             implementation(libs.ktor.client.okhttp)
@@ -83,6 +84,8 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
             implementation(libs.zscanner)
+            implementation(libs.qrose)
+            implementation(libs.qrose.oned)
         }
 
         iosMain.dependencies {
@@ -91,6 +94,7 @@ kotlin {
 
         getByName("androidHostTest").dependencies {
             implementation(libs.robolectric)
+            implementation(libs.zxing.core)
         }
 
         commonTest.dependencies {
@@ -151,3 +155,8 @@ val generateAppBuildMetadata = tasks.register("generateAppBuildMetadata") {
     }
 }
 kotlin.sourceSets.commonMain { kotlin.srcDir(generateAppBuildMetadata) }
+
+// Robolectric API 36 native graphics uses Android's shared file descriptor bridge on JDK 21.
+tasks.withType<Test>().configureEach {
+    jvmArgs("--add-opens=java.base/java.io=ALL-UNNAMED", "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+}

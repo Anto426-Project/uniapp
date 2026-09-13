@@ -9,6 +9,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -39,13 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
@@ -58,6 +57,7 @@ import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.codes.CodeGenerator
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.banners.logUniAppShaderError
@@ -65,7 +65,6 @@ import com.anto426.uniapp.ui.components.banners.supportsUniAppRuntimeShader
 import com.kyant.backdrop.Backdrop
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-import kotlin.math.abs
 
 import com.anto426.uniapp.ui.components.cards.UniHeroCardPalette
 import com.anto426.uniapp.ui.components.cards.UniHeroCardShader
@@ -381,7 +380,7 @@ private fun AcademicIdentityBackFace(
                 contentAlignment = Alignment.Center,
             ) {
                 QrCodeMatrixCanvas(
-                    codeValue = rawCode.ifBlank { uiState.matricola.ifBlank { "UNIAPP-ID" } },
+                    codeValue = uiState.badgeQrValue,
                     color = colorScheme.onSurface,
                     modifier = Modifier.size(136.dp),
                 )
@@ -501,69 +500,25 @@ fun UniAppBrandLogo(modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * Procedural Vector QR Code Matrix drawing canvas (Transparent background, vector color).
- */
+/** Renders the exact payload using the shared, standards-compliant code generator. */
 @Composable
 fun QrCodeMatrixCanvas(
     codeValue: String,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface,
+    @Suppress("UNUSED_PARAMETER") color: Color = Color.Black,
 ) {
-    val hash = codeValue.hashCode()
-
-    Canvas(modifier = modifier) {
-        val matrixSize = 25
-        val cellSize = size.width / matrixSize
-
-        // 1. Draw 3 Finder Patterns (Top-Left, Top-Right, Bottom-Left)
-        drawFinderPattern(0f, 0f, cellSize, color)
-        drawFinderPattern((matrixSize - 7) * cellSize, 0f, cellSize, color)
-        drawFinderPattern(0f, (matrixSize - 7) * cellSize, cellSize, color)
-
-        // 2. Draw Data Modules deterministically
-        for (row in 0 until matrixSize) {
-            for (col in 0 until matrixSize) {
-                val isFinderArea = (row < 8 && col < 8) ||
-                    (row < 8 && col >= matrixSize - 8) ||
-                    (row >= matrixSize - 8 && col < 8)
-
-                if (!isFinderArea) {
-                    val pseudoRandom = abs((hash xor (row * 31 + col * 17) xor (row * col)).hashCode()) % 3
-                    if (pseudoRandom != 0 || (row % 2 == 0 && col % 3 == 0)) {
-                        drawRoundRect(
-                            color = color,
-                            topLeft = Offset(col * cellSize + cellSize * 0.05f, row * cellSize + cellSize * 0.05f),
-                            size = Size(cellSize * 0.90f, cellSize * 0.90f),
-                            cornerRadius = CornerRadius(cellSize * 0.25f),
-                        )
-                    }
-                }
-            }
+    val painter = remember(codeValue) {
+        if (codeValue.isBlank()) null else runCatching { CodeGenerator().qrCode(codeValue) }.getOrNull()
+    }
+    if (painter != null) {
+        Image(painter = painter, contentDescription = null, modifier = modifier)
+    } else {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(Res.string.ui_code_unavailable),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+            )
         }
     }
-}
-
-private fun DrawScope.drawFinderPattern(
-    x: Float,
-    y: Float,
-    cellSize: Float,
-    color: Color,
-) {
-    val strokeWidth = cellSize * 0.95f
-    // Outer 7x7 rounded ring (Stroke width = 1 cell)
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(x + strokeWidth / 2f, y + strokeWidth / 2f),
-        size = Size(7 * cellSize - strokeWidth, 7 * cellSize - strokeWidth),
-        cornerRadius = CornerRadius(cellSize * 1.5f),
-        style = Stroke(width = strokeWidth),
-    )
-    // Center 3x3 solid square
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(x + 2 * cellSize, y + 2 * cellSize),
-        size = Size(3 * cellSize, 3 * cellSize),
-        cornerRadius = CornerRadius(cellSize * 0.8f),
-    )
 }
