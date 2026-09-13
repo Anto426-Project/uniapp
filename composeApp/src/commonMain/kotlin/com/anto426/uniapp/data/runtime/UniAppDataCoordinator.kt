@@ -330,6 +330,9 @@ class UniAppDataCoordinator(
     override suspend fun loadUniversityNews(forceRefresh: Boolean) = get(UniAppDataRequests.News, forceRefresh)
     override suspend fun loadUniversityContacts(forceRefresh: Boolean) = get(UniAppDataRequests.Contacts, forceRefresh)
     override suspend fun loadSurveyCourses(forceRefresh: Boolean) = get(UniAppDataRequests.Surveys, forceRefresh)
+    override suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean) =
+        this.source.loadTransportTicketImage(bookingId, source, forceRefresh)
+
     override suspend fun loadTransportData(forceRefresh: Boolean) = get(UniAppDataRequests.Transport, forceRefresh)
     override suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean) = get(UniAppDataRequests.syllabus(adsceId), forceRefresh)
     override suspend fun loadProfileImage(source: String, forceRefresh: Boolean) = get(UniAppDataRequests.portrait(source), forceRefresh)

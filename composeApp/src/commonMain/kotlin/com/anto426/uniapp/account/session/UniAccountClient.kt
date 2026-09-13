@@ -167,6 +167,9 @@ class UniAccountClient internal constructor(
         ) -> T,
     ): T = coordinator.withTransportSession(accountId, block)
 
+    suspend fun loadTransportTicketImage(source: String): ByteArray =
+        withTransportSession { session -> loadTransportTicketImage(session, source) }
+
     suspend fun loadTransportData(): com.anto426.unisdk.transport.TransportData =
         withTransportSession { session -> loadTransportData(session) }
 

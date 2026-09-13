@@ -63,6 +63,9 @@ interface UniAppDataSource {
     suspend fun saveSurvey(courseId: String, request: SurveySaveRequest): String
     suspend fun loadSurveyCompilationStatus(adCod: String, forceRefresh: Boolean = false): Boolean
     suspend fun loadTransportData(forceRefresh: Boolean = false): TransportData
+    suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean = false): ByteArray {
+        throw UnsupportedOperationException("Ticket image download is unavailable")
+    }
     suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult
     suspend fun deleteTransportBooking(bookingId: String): TransportActionResult
 }
@@ -317,6 +320,27 @@ class SessionUniAppDataSource(
             forceRefresh,
         ) { client -> client.loadTransportData() }
 
+    override suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean): ByteArray {
+        val context = activeContext()
+        val key = context.profileScopedKey(ticketImageCacheKey(bookingId))
+        return requestLock(context.accountId, key).withLock {
+            ensureCurrent(context)
+            val original = accounts.readCachedData(context.accountId, key)
+            ensureCurrent(context)
+            if (!forceRefresh && original != null) return@withLock original
+            val downloaded = context.client.loadTransportTicketImage(source)
+            ensureCurrent(context)
+            accounts.writeCachedData(context.accountId, key, downloaded)
+            ensureCurrent(context)
+            downloaded
+        }
+    }
+
+    private fun ticketImageCacheKey(bookingId: String): String {
+        require(bookingId.isNotEmpty() && bookingId.length <= 256)
+        return "ticket-image-v1-" + bookingId.encodeToByteArray().joinToString("") { it.toUByte().toString(16).padStart(2, '0') }
+    }
+
     override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
         val context = activeContext()
         return context.client.bookTransport(request).also {
@@ -327,6 +351,8 @@ class SessionUniAppDataSource(
     override suspend fun deleteTransportBooking(bookingId: String): TransportActionResult {
         val context = activeContext()
         return context.client.deleteTransportBooking(bookingId).also {
+            val imageKey = context.profileScopedKey(ticketImageCacheKey(bookingId))
+            requestLock(context.accountId, imageKey).withLock { accounts.removeCachedData(context.accountId, imageKey) }
             invalidate(context.accountId, context.profileScopedKey("transport-data"))
         }
     }

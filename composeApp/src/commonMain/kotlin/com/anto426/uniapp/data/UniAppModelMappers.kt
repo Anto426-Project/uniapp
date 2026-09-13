@@ -259,8 +259,7 @@ internal fun TransportData.toReservations(): List<TransportReservation> =
         val timePart = if (booking.date.contains(" ")) booking.date.substringAfter(" ") else ""
         val stops = booking.direction.split(" -> ", " - ")
         val departure = stops.firstOrNull()?.trim().orEmpty().ifBlank { booking.direction }
-        val arrival = stops.getOrNull(1)?.trim().orEmpty().ifBlank { if (booking.isReturn) "Polo Centro" else "Campus Universitario" }
-        val cleanTicketCode = if (booking.ticketUrl.startsWith("http")) "TKT-${booking.id.uppercase()}" else booking.ticketUrl.ifBlank { "TKT-${booking.id.uppercase()}" }
+        val arrival = stops.getOrNull(1)?.trim().orEmpty()
 
         TransportReservation(
             id = booking.id,
@@ -268,10 +267,10 @@ internal fun TransportData.toReservations(): List<TransportReservation> =
             date = datePart,
             time = timePart,
             direction = if (booking.isReturn) TripDirection.RITORNO else TripDirection.ANDATA,
-            qrCodeData = cleanTicketCode,
+            qrCodeData = "", // Filled only by reading the original ticket image.
             departureStop = departure,
             arrivalStop = arrival,
-            busNumber = booking.number.ifBlank { "14" },
+            busNumber = "", // The API booking number is not a bus number.
             ticketUrl = booking.ticketUrl,
         )
     }
