@@ -2,7 +2,10 @@
 # The checked-out distribution repository already has scoped checkout credentials.
 set -euo pipefail
 : "${DEPLOY_REPO:?}" "${DEPLOY_BRANCH:?}" "${RELEASE_TAG_NAME:?}" "${RELEASE_TITLE:?}" "${SOURCE_SHA:?}"
-mapfile -t release_assets < <(find incoming/release -maxdepth 1 -type f -name '*.apk' | sort)
+release_assets=()
+for apk in incoming/release/*.apk; do
+  if [[ -f "$apk" ]]; then release_assets+=("$apk"); fi
+done
 ((${#release_assets[@]} > 0))
 # Publish files before advertising their URLs. A failed upload leaves the current manifest intact.
 if gh release view "$RELEASE_TAG_NAME" --repo "$DEPLOY_REPO" >/dev/null 2>&1; then
