@@ -31,15 +31,17 @@ kotlinx-serialization = "1.11.0"
 ktor = "3.5.2"
 coil = "3.6.2"
 zscanner = "1.0.0"
+qrose = "1.2.1"
+zxing = "3.5.4"
 
 # Testing
 robolectric = "4.17"
 
 # Published SDK versions. The binary downloader reads these exact versions.
-liquid-monet-sdk = "1.0.10"
-unisdk = "1.0.8"
-secure-storage-sdk = "1.0.7"
-firebase-connector-sdk = "1.0.6"
+liquid-monet-sdk = "1.0.11"
+unisdk = "1.0.9"
+secure-storage-sdk = "1.0.12"
+firebase-connector-sdk = "1.0.7"
 
 [libraries]
 # Kotlin & KotlinX
@@ -83,9 +85,12 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 zscanner = { group = "io.github.namantonk", name = "zscanner", version.ref = "zscanner" }
+qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
+qrose-oned = { module = "io.github.alexzhirkevich:qrose-oned", version.ref = "qrose" }
 
 # Testing
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 # App SDKs
 liquid-monet-sdk = { module = "com.anto426.liquidmonet:sdk", version.ref = "liquid-monet-sdk" }
