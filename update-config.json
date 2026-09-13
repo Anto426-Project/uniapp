@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Aggiornato SDK Liquid Monet alla versione 1.0.13 e SDK UniSDK alla 1.0.10.\n- Introdotto motore cross-platform per generazione e decodifica codici QR e a barre (Code 128, QR) conforme agli standard.\n- Integrata generazione dinamica e fedele del QR code per il badge accademico dello studente.\n- Aggiunto salvataggio offline, caching e ispezione ad alta definizione per i biglietti del trasporto universitario.\n- Supporto alla decodifica automatica dei codici a barre dai biglietti originali con switch tra vista digitale e immagine originale."
+  "notes": "- Badge accademico rinnovato con trama grafica, cornice colorata e QR artistico arrotondato.\n- Rimosso il contenuto testuale del QR dalla card del badge.\n- Recupero del QR accademico anche per le sessioni già salvate, con UniSDK 1.0.11."
 }

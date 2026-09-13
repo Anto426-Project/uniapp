@@ -1,3 +1,9 @@
+## [2.0.7] - 2026-09-13 (build set by CI)
+
+- Badge accademico rinnovato con trama grafica, cornice colorata e QR artistico arrotondato.
+- Rimosso il contenuto testuale del QR dalla card del badge.
+- Recupero del QR accademico anche per le sessioni già salvate, con UniSDK 1.0.11.
+
 ## [2.0.6] - 2026-09-13 (build set by CI)
 
 ### Trasporti e Biglietti
