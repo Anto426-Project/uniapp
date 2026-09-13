@@ -58,6 +58,7 @@ import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.codes.CodeGenerator
+import com.anto426.uniapp.codes.QrCodeStyle
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.banners.logUniAppShaderError
@@ -77,12 +78,11 @@ import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
 /**
  * Shared academic identity card with interactive 180-degree 3D flip animation on tap.
  * Front: Student / Professor photo, full name, course/department, and matricola badge.
- * Back: Scannable vector QR code, digital identity code, and authenticity mark.
+ * Back: Artistic, scannable QR code without displaying the encoded payload.
  */
 @Composable
 fun AcademicIdentityBannerCard(
     uiState: AcademicIdentityUiState,
-    rawCode: String,
     modifier: Modifier = Modifier,
 ) {
     val identity = com.anto426.uniapp.ui.components.account.accountDisplayIdentity(
@@ -94,14 +94,15 @@ fun AcademicIdentityBannerCard(
         height = 370.dp,
         flipTrigger = UniHeroFlipTrigger.CLICK,
         frontContent = {
+            AcademicBadgeArtwork(Modifier.fillMaxSize())
             AcademicIdentityFrontFace(
                 uiState = displayState,
             )
         },
         backContent = {
+            AcademicBadgeArtwork(Modifier.fillMaxSize())
             AcademicIdentityBackFace(
                 uiState = displayState,
-                rawCode = rawCode,
             )
         },
     )
@@ -281,7 +282,6 @@ private fun AcademicIdentityFrontFace(
 @Composable
 private fun AcademicIdentityBackFace(
     uiState: AcademicIdentityUiState,
-    rawCode: String,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -365,51 +365,7 @@ private fun AcademicIdentityBackFace(
             }
         }
 
-        // Center: Scannable QR Code Canvas in rounded container + Monospace Code
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = colorScheme.surface.copy(alpha = 0.35f),
-                        shape = RoundedRectangle(20.dp),
-                    )
-                    .padding(14.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                QrCodeMatrixCanvas(
-                    codeValue = uiState.badgeQrValue,
-                    color = colorScheme.onSurface,
-                    modifier = Modifier.size(136.dp),
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = rawCode,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Monospace,
-                    color = colorScheme.onSurface,
-                    letterSpacing = 1.8.sp,
-                )
-
-                if (uiState.fullName.isNotBlank()) {
-                    Text(
-                        text = uiState.fullName.uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
+        AcademicBadgeQr(uiState.badgeQrValue)
 
         // Bottom: Validity verified note
         Row(
@@ -506,9 +462,10 @@ fun QrCodeMatrixCanvas(
     codeValue: String,
     modifier: Modifier = Modifier,
     @Suppress("UNUSED_PARAMETER") color: Color = Color.Black,
+    style: QrCodeStyle = QrCodeStyle.Classic,
 ) {
-    val painter = remember(codeValue) {
-        if (codeValue.isBlank()) null else runCatching { CodeGenerator().qrCode(codeValue) }.getOrNull()
+    val painter = remember(codeValue, style) {
+        if (codeValue.isBlank()) null else runCatching { CodeGenerator().qrCode(codeValue, style) }.getOrNull()
     }
     if (painter != null) {
         Image(painter = painter, contentDescription = null, modifier = modifier)

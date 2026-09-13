@@ -14,6 +14,13 @@ import io.github.alexzhirkevich.qrose.options.QrCodeShape
 import io.github.alexzhirkevich.qrose.options.QrErrorCorrectionLevel
 import io.github.alexzhirkevich.qrose.options.QrOptions
 import io.github.alexzhirkevich.qrose.options.QrShapes
+import io.github.alexzhirkevich.qrose.options.QrPixelShape
+import io.github.alexzhirkevich.qrose.options.QrBallShape
+import io.github.alexzhirkevich.qrose.options.QrFrameShape
+import io.github.alexzhirkevich.qrose.options.QrBrush
+import io.github.alexzhirkevich.qrose.options.QrColors
+import io.github.alexzhirkevich.qrose.options.roundCorners
+import io.github.alexzhirkevich.qrose.options.solid
 
 /**
  * Generates scannable vector codes on Android and iOS, with a white quiet zone.
@@ -30,12 +37,28 @@ class CodeGenerator {
         }
     }
 
-    fun qrCode(value: String): Painter {
+    fun qrCode(value: String, style: QrCodeStyle = QrCodeStyle.Classic): Painter {
         require(value.isNotEmpty()) { "QR code data cannot be empty" }
         return QrCodePainter(
             data = value,
             options = QrOptions(
-                shapes = QrShapes(code = QrQuietZone()),
+                shapes = when (style) {
+                    QrCodeStyle.Classic -> QrShapes(code = QrQuietZone())
+                    QrCodeStyle.Artistic -> QrShapes(
+                        code = QrQuietZone(),
+                        darkPixel = QrPixelShape.roundCorners(.42f),
+                        frame = QrFrameShape.roundCorners(.24f, bottomRight = false),
+                        ball = QrBallShape.roundCorners(.28f, bottomRight = false),
+                    )
+                },
+                colors = when (style) {
+                    QrCodeStyle.Classic -> QrColors()
+                    QrCodeStyle.Artistic -> QrColors(
+                        dark = QrBrush.solid(Color(0xFF142B3A)),
+                        frame = QrBrush.solid(Color(0xFF164C50)),
+                        ball = QrBrush.solid(Color(0xFF142B3A)),
+                    )
+                },
                 background = QrBackground(fill = SolidColor(Color.White)),
                 errorCorrectionLevel = QrErrorCorrectionLevel.Medium,
             ),
@@ -75,6 +98,7 @@ class CodeGenerator {
 }
 
 enum class BarcodeFormat { Code128, Code39, Code93, Ean13, Ean8, UpcA, UpcE, Itf, Codabar }
+enum class QrCodeStyle { Classic, Artistic }
 
 private class QrQuietZone : QrCodeShape {
     override var shapeSizeIncrease: Float = 1f

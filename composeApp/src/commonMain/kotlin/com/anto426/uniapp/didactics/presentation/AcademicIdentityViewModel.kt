@@ -36,7 +36,7 @@ data class AcademicIdentityUiState(
         get() = fullName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
 
     val badgeDisplayValue: String
-        get() = badgeQrValue.ifBlank { badgeCode.ifBlank { matricola } }
+        get() = badgeCode.ifBlank { matricola }
 }
 
 class AcademicIdentityViewModel(

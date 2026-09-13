@@ -18,17 +18,12 @@ import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun AcademicIdentityScreen(uiState: AcademicIdentityUiState) {
-    val rawCode = uiState.badgeDisplayValue.ifBlank {
-        uiState.matricola.ifBlank { "—" }
-    }
-
     UniScreenColumn {
         // ==========================================
         // 1. HERO TESSERA STUDENTE (BANNER STYLE - NESSUN DOPPIO TITOLO)
         // ==========================================
         AcademicIdentityBannerCard(
             uiState = uiState,
-            rawCode = rawCode,
         )
 
         Spacer(modifier = Modifier.height(12.dp))

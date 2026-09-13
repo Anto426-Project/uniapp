@@ -183,7 +183,7 @@ class SessionUniAppDataSource(
         }
 
     override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetailsData =
-        cached("student-details", UniAppCachePolicies.StudentDetails, StudentDetailsData.serializer(), forceRefresh) { client ->
+        cached("student-details-v2", UniAppCachePolicies.StudentDetails, StudentDetailsData.serializer(), forceRefresh) { client ->
             client.loadStudentDetails()
         }
 

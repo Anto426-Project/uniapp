@@ -38,6 +38,16 @@ class CodeGeneratorTest {
     }
 
     @Test
+    fun artisticQrPreservesPayloadAndScannabilityAtCardSizes() {
+        for (payload in listOf("001234|DE ROSSI|Anna Maria|Scienze e Tecnologie", "Università 🔐 日本語", "https://example.org/" + "x".repeat(160))) {
+            for (pixels in listOf(240, 480, 720)) {
+                val result = decode(generator.qrCode(payload, QrCodeStyle.Artistic), pixels, pixels)
+                assertEquals(payload, result.text)
+            }
+        }
+    }
+
+    @Test
     fun code128PreservesLeadingZeroesAndCase() {
         val payload = "00123-Abc-xyz"
         val result = decode(generator.barcode(payload), 1200, 240)

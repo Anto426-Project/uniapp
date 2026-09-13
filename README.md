@@ -84,6 +84,7 @@ python3 scripts/fetch_sdk_binaries.py
 Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versions]` del catalogo e rieseguire `python3 scripts/fetch_sdk_binaries.py`. Per Liquid Monet l'alias è `liquid-monet-sdk` (`libs.liquid.monet.sdk` in Gradle). Il download fallisce se quella Release non esiste o contiene una versione diversa. Dopo un cambio di versione, Gradle segnala eventuali binari locali obsoleti e richiede di ripetere il download.
 
 La [guida alle build](docs/build-dependencies.md) descrive toolchain, runner, integrazione Xcode e verifiche degli SDK indipendenti.
+La [guida a badge e biglietti](docs/codes-and-tickets.md) descrive generazione artistica, lettura dei codici e conservazione degli originali.
 
 Nei runner Android e iOS il resolver usa il secret `SDK_READ_TOKEN`, oppure `DEPLOY_TOKEN` se il primo non è configurato. Il token deve avere accesso in lettura ai contenuti di tutti e quattro i repository; il `GITHUB_TOKEN` automatico di UniApp non basta per gli SDK privati. I checksum vengono verificati anche quando gli archivi sono già nella cache `.sdk-downloads/`.
 

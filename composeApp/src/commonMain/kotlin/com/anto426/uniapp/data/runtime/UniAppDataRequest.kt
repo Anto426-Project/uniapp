@@ -24,7 +24,7 @@ object UniAppDataRequests {
     val StudyPlan = UniAppDataRequest("study-plan", "study-plan", StudyPlanData.serializer(), UniAppCachePolicies.StudyPlan, UniAppDataSource::loadStudyPlan)
     val Exams = UniAppDataRequest("exam-rounds", "exam-rounds", ListSerializer(ExamRoundData.serializer()), UniAppCachePolicies.ExamRounds, UniAppDataSource::loadExamRounds)
     val Taxes = UniAppDataRequest("taxes", "taxes", TaxesData.serializer(), UniAppCachePolicies.Taxes, UniAppDataSource::loadTaxes)
-    val Student = UniAppDataRequest("student", "student-details", StudentDetailsData.serializer(), UniAppCachePolicies.StudentDetails, UniAppDataSource::loadStudentDetails)
+    val Student = UniAppDataRequest("student", "student-details-v2", StudentDetailsData.serializer(), UniAppCachePolicies.StudentDetails, UniAppDataSource::loadStudentDetails)
     val Devices = UniAppDataRequest("devices", "connected-devices", ListSerializer(ConnectedDeviceData.serializer()), UniAppCachePolicies.ConnectedDevices, UniAppDataSource::loadConnectedDevices)
     val Attendance = UniAppDataRequest("attendance", "attendance", ListSerializer(AttendanceRecord.serializer()), UniAppCachePolicies.Attendance, UniAppDataSource::loadAttendanceHistory)
     val News = UniAppDataRequest("news", "university-news", ListSerializer(UniversityNews.serializer()), UniAppCachePolicies.News, UniAppDataSource::loadUniversityNews)

@@ -67,15 +67,20 @@ class CodeReaderTest {
         assertTrue(codes.isNotEmpty(), "No code found in reference image")
         for (code in codes) {
             assertTrue(code.canRegenerate, "Reference format cannot be recreated")
-            val painter = CodeGenerator().generate(code)
-            val width = 1000
-            val height = if (code.format == CodeFormat.Qr) 1000 else 240
-            val bitmap = ImageBitmap(width, height)
-            CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, ComposeCanvas(bitmap), Size(width.toFloat(), height.toFloat())) {
-                with(painter) { draw(size) }
+            val painters = if (code.format == CodeFormat.Qr) QrCodeStyle.entries.map { CodeGenerator().qrCode(code.value, it) }
+                else listOf(CodeGenerator().generate(code))
+            for (painter in painters) {
+                val width = 1000
+                val height = if (code.format == CodeFormat.Qr) 1000 else 240
+                val bitmap = ImageBitmap(width, height)
+                CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, ComposeCanvas(bitmap), Size(width.toFloat(), height.toFloat())) {
+                    with(painter) { draw(size) }
+                }
+                val encoded = png(bitmap.asAndroidBitmap())
+                System.getenv("UNIAPP_CODE_REFERENCE_PREVIEW")?.let { File(it).writeBytes(encoded) }
+                val reread = createCodeReader().read(encoded)
+                assertTrue(reread.singleOrNull() == code, "Recreated code differs from reference")
             }
-            val reread = createCodeReader().read(png(bitmap.asAndroidBitmap()))
-            assertTrue(reread.singleOrNull() == code, "Recreated code differs from reference")
         }
     }
 
