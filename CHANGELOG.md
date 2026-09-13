@@ -1,3 +1,16 @@
+## [2.0.6] - 2026-09-13 (build set by CI)
+
+### Trasporti e Biglietti
+- Aggiunto il salvataggio offline, il caching e l'ispezione ad alta definizione per i biglietti del trasporto universitario.
+- Supporto alla decodifica automatica dei codici a barre dai biglietti originali con passaggio fluido tra vista digitale e immagine originale.
+
+### Badge e Codici
+- Introdotto motore cross-platform per la generazione e decodifica di codici QR e a barre (Code 128, QR) conforme agli standard.
+- Integrata la generazione dinamica e fedele del QR code per il badge accademico dello studente.
+
+### SDK ed Ecosistema
+- Aggiornato SDK Liquid Monet alla versione 1.0.13 e SDK UniSDK alla 1.0.10.
+
 ## [2.0.5] - 2026-09-13 (build set by CI)
 
 ### UI e Didattica
