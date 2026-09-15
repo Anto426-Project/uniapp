@@ -39,7 +39,7 @@ robolectric = "4.17"
 
 # Published SDK versions. The binary downloader reads these exact versions.
 liquid-monet-sdk = "1.0.13"
-unisdk = "1.0.11"
+unisdk = "1.0.13"
 secure-storage-sdk = "1.0.12"
 firebase-connector-sdk = "1.0.7"
 
