@@ -1,3 +1,9 @@
+## [2.0.8] - 2026-09-15 (build set by CI)
+
+- Corretti gli angoli della cornice del QR del badge, mantenendo dimensioni e leggibilità del codice.
+- Rubrica completa con tutti i numeri di telefono, indirizzo ed edificio separati e azioni email e chiamata.
+- Corretti ricerca, selezione degli omonimi e contatti senza sede; aggiornato UniSDK per preservare tutti i dati della rubrica.
+
 ## [2.0.7] - 2026-09-13 (build set by CI)
 
 - Badge accademico rinnovato con trama grafica, cornice colorata e QR artistico arrotondato.

@@ -22,7 +22,22 @@ data class ContactData(
     val office: String = "",
     val officeHours: String = "",
     val city: String = "",
-)
+    val id: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val phones: List<String> = emptyList(),
+    val address: String = "",
+    val building: String = "",
+) {
+    /** Keep the singular phone available to existing consumers while exposing every number. */
+    val phoneNumbers: List<String>
+        get() = (phones + phone).map(String::trim).filter(String::isNotBlank).distinct()
+
+    val detailKey: String
+        // A person can have multiple directory entries with the same API ID.
+        get() = listOf(id, name, email, department, address, building, city, office, *phoneNumbers.toTypedArray())
+            .joinToString(separator = "|", prefix = "contact:") { "${it.length}:$it" }
+}
 
 data class TaxPaymentData(
     val title: String,

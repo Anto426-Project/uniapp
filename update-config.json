@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Badge accademico rinnovato con trama grafica, cornice colorata e QR artistico arrotondato.\n- Rimosso il contenuto testuale del QR dalla card del badge.\n- Recupero del QR accademico anche per le sessioni già salvate, con UniSDK 1.0.11."
+  "notes": "- Corretti gli angoli della cornice del QR del badge, mantenendo dimensioni e leggibilità del codice.\n- Rubrica completa con tutti i numeri di telefono, indirizzo ed edificio separati e azioni email e chiamata.\n- Corretti ricerca, selezione degli omonimi e contatti senza sede; aggiornato UniSDK per preservare tutti i dati della rubrica."
 }

@@ -35,8 +35,10 @@ class ContactDetailViewModel(
     private val dataRequests = listOf(UniAppDataRequests.Contacts)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
-            val contact = snapshot.require(UniAppDataRequests.Contacts).toContacts()
-                .firstOrNull { it.email == contactId || it.name == contactId }
+            val contacts = snapshot.require(UniAppDataRequests.Contacts).toContacts()
+            val contact = contacts.firstOrNull { it.detailKey == contactId }
+                // Retain routes saved by versions that used email or display name.
+                ?: contacts.firstOrNull { it.email == contactId || it.name == contactId }
             mutableUiState.value = mutableUiState.value.copy(
                 contact = contact,
                 loadState = if (contact == null) FeatureLoadState.Empty else FeatureLoadState.Content,

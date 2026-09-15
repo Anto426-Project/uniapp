@@ -280,7 +280,7 @@ class SessionUniAppDataSource(
 
     override suspend fun loadUniversityContacts(forceRefresh: Boolean): List<UniversityContact> =
         cached(
-            "university-contacts",
+            "university-contacts-v2",
             UniAppCachePolicies.Contacts,
             ListSerializer(UniversityContact.serializer()),
             forceRefresh,

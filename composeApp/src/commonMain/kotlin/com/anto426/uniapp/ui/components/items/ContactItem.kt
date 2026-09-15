@@ -64,7 +64,7 @@ fun ContactItem(
                         color = colorScheme.onSurface,
                         letterSpacing = (-0.2).sp
                     )
-                    Text(
+                    if (contact.role.isNotBlank()) Text(
                         text = contact.role,
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant,
@@ -78,7 +78,7 @@ fun ContactItem(
             Spacer(modifier = Modifier.width(12.dp))
 
             val actionIcon = when {
-                contact.phone.isNotBlank() -> LiquidIcons.Phone
+                contact.phoneNumbers.isNotEmpty() -> LiquidIcons.Phone
                 contact.email.isNotBlank() -> LiquidIcons.Share
                 else -> LiquidIcons.ChevronRight
             }

@@ -10,9 +10,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.StringResource
+import io.ktor.http.encodeURLParameter
 import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
@@ -22,11 +26,40 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
+import com.anto426.uniapp.feedback.runtime.error
 
 @Composable
 fun ContactDetailScreen(contact: ContactData) {
+    val uriHandler = LocalUriHandler.current
+    val toastSink = LocalAppToastSink.current
+    val openFailed = stringResource(Res.string.ui_contact_open_failed)
+    val contactFields = buildList {
+        if (contact.email.isNotBlank()) add(ContactDetailField(
+            Res.string.ui_email, contact.email, LiquidIcons.Share,
+            "mailto:${contact.email.encodeURLParameter(spaceToPlus = false)}",
+        ))
+        contact.phoneNumbers.forEach { phone ->
+            add(ContactDetailField(
+                Res.string.ui_phone, phone, LiquidIcons.Phone,
+                "tel:${phone.encodeURLParameter(spaceToPlus = false)}",
+            ))
+        }
+    }
+    val locationFields = listOf(
+        ContactDetailField(Res.string.ui_contact_organization, contact.department, LiquidIcons.Info),
+        ContactDetailField(Res.string.ui_contact_location, contact.city, LiquidIcons.Home),
+        ContactDetailField(Res.string.ui_contact_address, contact.address, LiquidIcons.Home),
+        ContactDetailField(Res.string.ui_contact_building, contact.building, LiquidIcons.Home),
+        ContactDetailField(
+            Res.string.ui_office,
+            contact.office.takeIf { contact.address.isBlank() && contact.building.isBlank() }.orEmpty(),
+            LiquidIcons.Home,
+        ),
+        ContactDetailField(Res.string.ui_office_hours, contact.officeHours, LiquidIcons.Time),
+    ).filter { it.value.isNotBlank() }
+
     UniScreenColumn {
-        // 1. Contact Header Card
         LiquidCard(
             shape = RoundedRectangle(24.dp),
             contentPadding = 18.dp,
@@ -51,77 +84,54 @@ fun ContactDetailScreen(contact: ContactData) {
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = contact.role,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (contact.role.isNotBlank()) {
+                        Text(
+                            text = contact.role,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
 
-        // 2. Contact Actions
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_contact_info_group)) {
-            if (contact.email.isNotBlank()) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_email),
-                    subtitle = contact.email,
-                    icon = LiquidIcons.Share,
-                    onClick = { /* Intent to email */ }
-                )
-            }
-
-            if (contact.email.isNotBlank() && contact.phone.isNotBlank()) {
-                LiquidHorizontalDivider()
-            }
-
-            if (contact.phone.isNotBlank()) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_phone),
-                    subtitle = contact.phone,
-                    icon = LiquidIcons.Phone,
-                    onClick = { /* Intent to call */ }
-                )
+        if (contactFields.isNotEmpty()) {
+            ContactDetailGroup(Res.string.ui_contact_info_group, contactFields) { uri ->
+                try {
+                    uriHandler.openUri(uri)
+                } catch (_: Exception) {
+                    toastSink.error(openFailed)
+                }
             }
         }
+        if (locationFields.isNotEmpty()) {
+            ContactDetailGroup(Res.string.ui_contact_location_group, locationFields)
+        }
+    }
+}
 
-        // 3. Additional Info
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_department_label)) {
-            if (contact.department.isNotBlank()) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_department_label),
-                    subtitle = contact.department,
-                    icon = LiquidIcons.Info,
-                )
-                LiquidHorizontalDivider()
-            }
-            if (contact.city.isNotBlank()) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_contact_location),
-                    subtitle = contact.city,
-                    icon = LiquidIcons.Home,
-                )
-                if (contact.office.isNotBlank() || contact.officeHours.isNotBlank()) {
-                    LiquidHorizontalDivider()
-                }
-            }
-            if (contact.office.isNotBlank()) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_office),
-                    subtitle = contact.office,
-                    icon = LiquidIcons.Home,
-                )
-                if (contact.officeHours.isNotBlank()) {
-                    LiquidHorizontalDivider()
-                }
-            }
-            if (contact.officeHours.isNotBlank()) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_office_hours),
-                    subtitle = contact.officeHours,
-                    icon = LiquidIcons.Time,
-                )
-            }
+private data class ContactDetailField(
+    val label: StringResource,
+    val value: String,
+    val icon: ImageVector,
+    val uri: String? = null,
+)
+
+@Composable
+private fun ContactDetailGroup(
+    title: StringResource,
+    fields: List<ContactDetailField>,
+    onOpenUri: (String) -> Unit = {},
+) {
+    LiquidPreferenceGroup(title = stringResource(title)) {
+        fields.forEachIndexed { index, field ->
+            if (index > 0) LiquidHorizontalDivider()
+            LiquidPreferenceItem(
+                title = stringResource(field.label),
+                subtitle = field.value,
+                icon = field.icon,
+                onClick = field.uri?.let { uri -> { onOpenUri(uri) } },
+            )
         }
     }
 }

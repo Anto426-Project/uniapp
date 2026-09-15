@@ -24,6 +24,8 @@ class ContactsViewModel(
     private var categories: List<String> = emptyList()
     private var selectedCategoryIndex = 0
     private var selectedCategoryName: String? = null
+    private var groupByCity = false
+    private var unspecifiedCategory = ""
     private var query = ""
     private val mutableUiState = MutableStateFlow(buildUiState())
     val uiState: StateFlow<ContactsUiState> = mutableUiState.asStateFlow()
@@ -68,8 +70,17 @@ class ContactsViewModel(
         publishState()
     }
 
-    private fun updateCategories() {
-        categories = deriveCategories(contacts)
+    private suspend fun updateCategories() {
+        groupByCity = contacts.any { it.city.isNotBlank() }
+        val values = contacts.map { categoryValue(it) }
+        val knownCategories = values.filter(String::isNotBlank).distinct().sorted()
+        unspecifiedCategory = getString(
+            if (groupByCity) Res.string.ui_contact_location_unspecified
+            else Res.string.ui_contact_department_unspecified,
+        )
+        categories = if (knownCategories.isEmpty()) emptyList() else {
+            knownCategories + if (values.any(String::isBlank)) listOf(unspecifiedCategory) else emptyList()
+        }
         val currentName = selectedCategoryName
         if (currentName != null && categories.contains(currentName)) {
             selectedCategoryIndex = categories.indexOf(currentName)
@@ -79,17 +90,8 @@ class ContactsViewModel(
         }
     }
 
-    private fun deriveCategories(items: List<ContactData>): List<String> {
-        val distinctCities = items.mapNotNull { it.city.trim().takeIf(String::isNotBlank) }.distinct().sorted()
-        if (distinctCities.isNotEmpty()) {
-            return distinctCities
-        }
-        val distinctDepts = items.mapNotNull { it.department.trim().takeIf(String::isNotBlank) }.distinct().sorted()
-        if (distinctDepts.isNotEmpty()) {
-            return distinctDepts
-        }
-        return emptyList()
-    }
+    private fun categoryValue(contact: ContactData): String =
+        (if (groupByCity) contact.city else contact.department).trim()
 
     private fun publishState() {
         mutableUiState.value = buildUiState()
@@ -99,8 +101,7 @@ class ContactsViewModel(
         val currentCategory = categories.getOrNull(selectedCategoryIndex).orEmpty()
         val byCategory = if (currentCategory.isNotEmpty()) {
             contacts.filter {
-                it.city.equals(currentCategory, ignoreCase = true) ||
-                    it.department.equals(currentCategory, ignoreCase = true)
+                categoryValue(it).ifBlank { unspecifiedCategory }.equals(currentCategory, ignoreCase = true)
             }
         } else {
             contacts
@@ -115,8 +116,13 @@ class ContactsViewModel(
                         contact.role.contains(normalizedQuery, ignoreCase = true) ||
                         contact.department.contains(normalizedQuery, ignoreCase = true) ||
                         contact.email.contains(normalizedQuery, ignoreCase = true) ||
-                        contact.phone.contains(normalizedQuery, ignoreCase = true) ||
-                        contact.office.contains(normalizedQuery, ignoreCase = true)
+                        contact.phoneNumbers.any { it.contains(normalizedQuery, ignoreCase = true) } ||
+                        contact.office.contains(normalizedQuery, ignoreCase = true) ||
+                        contact.address.contains(normalizedQuery, ignoreCase = true) ||
+                        contact.building.contains(normalizedQuery, ignoreCase = true) ||
+                        contact.city.contains(normalizedQuery, ignoreCase = true) ||
+                        contact.firstName.contains(normalizedQuery, ignoreCase = true) ||
+                        contact.lastName.contains(normalizedQuery, ignoreCase = true)
                 }
             }
         return ContactsUiState(

@@ -520,7 +520,7 @@ internal fun AppRouteContent(
                     uiState = contactsUiState,
                     onCategorySelected = contactsViewModel::selectCategory,
                     onContactClick = { contact ->
-                        navigator.navigate(AppRoute.ContactDetail(contact.email.ifBlank { contact.name }))
+                        navigator.navigate(AppRoute.ContactDetail(contact.detailKey))
                     },
                 )
             }
@@ -710,7 +710,7 @@ internal fun AppRouteContent(
                         course = course,
                         professorContact = detailUiState.professorContact,
                         onContactClick = { contact ->
-                            navigator.navigate(AppRoute.ContactDetail(contact.email.ifBlank { contact.name }))
+                            navigator.navigate(AppRoute.ContactDetail(contact.detailKey))
                         },
                     )
                 }

@@ -48,7 +48,7 @@ internal fun AcademicBadgeArtwork(modifier: Modifier = Modifier) {
     })
 }
 
-/** Pearl inset with a colored rim; decorative strokes remain outside the four-module margin. */
+/** Pearl inset with a colored rim; the square QR fits entirely inside the rounded white surface. */
 @Composable
 internal fun AcademicBadgeQr(value: String, modifier: Modifier = Modifier) {
     val palette = MaterialTheme.colorScheme
@@ -58,11 +58,12 @@ internal fun AcademicBadgeQr(value: String, modifier: Modifier = Modifier) {
             Color.White.copy(alpha = .9f),
             palette.tertiary.copy(alpha = .55f),
         )), RoundedRectangle(32.dp))
-        .padding(6.dp)
-        .background(Color.White.copy(alpha = .34f), RoundedRectangle(28.dp))
-        .padding(6.dp)
-        .background(Color.White, RoundedRectangle(22.dp))
         .padding(4.dp)
+        .background(Color.White.copy(alpha = .34f), RoundedRectangle(28.dp))
+        .padding(4.dp)
+        .background(Color.White, RoundedRectangle(24.dp))
+        // Keep the full 176.dp painter and its quiet zone, clear of the rounded corners.
+        .padding(8.dp)
     ) {
         QrCodeMatrixCanvas(value, Modifier.fillMaxSize(), style = QrCodeStyle.Artistic)
     }

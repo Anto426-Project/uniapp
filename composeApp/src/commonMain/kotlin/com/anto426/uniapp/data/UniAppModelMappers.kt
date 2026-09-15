@@ -187,19 +187,28 @@ internal fun TaxesData.toTaxPayments(): List<TaxPaymentData> =
 internal fun List<UniversityContact>.toContacts(): List<ContactData> =
     map { contact ->
         val organization = contact.organization?.trim().orEmpty()
-        val rawCity = contact.city?.trim().orEmpty()
-        val city = rawCity.ifBlank { "Campobasso" }
+        val phones = contact.phones.map(String::trim).filter(String::isNotBlank).distinct()
+        val name = contact.displayName.trim().ifBlank {
+            listOfNotNull(contact.firstName, contact.lastName)
+                .map(String::trim).filter(String::isNotBlank).joinToString(" ")
+        }
         ContactData(
-            name = contact.displayName.trim(),
-            role = organization.ifBlank { "Contatto di Ateneo" },
-            initials = contact.displayName.initials(),
+            name = name,
+            role = organization,
+            initials = name.initials(),
             email = contact.email?.trim().orEmpty(),
-            phone = contact.phones.firstOrNull()?.trim().orEmpty(),
-            city = city,
+            phone = phones.firstOrNull().orEmpty(),
+            city = contact.city?.trim().orEmpty(),
             category = organization.toContactCategory(),
             department = organization,
             office = listOfNotNull(contact.building?.trim()?.takeIf(String::isNotBlank), contact.address?.trim()?.takeIf(String::isNotBlank)).joinToString(" • "),
             officeHours = "",
+            id = contact.id?.trim().orEmpty(),
+            firstName = contact.firstName?.trim().orEmpty(),
+            lastName = contact.lastName?.trim().orEmpty(),
+            phones = phones,
+            address = contact.address?.trim().orEmpty(),
+            building = contact.building?.trim().orEmpty(),
         )
     }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
 

@@ -289,6 +289,13 @@
     <string name="ui_office">Ufficio</string>
     <string name="ui_office_hours">Orario ricevimento</string>
     <string name="ui_contact_location">Sede</string>
+    <string name="ui_contact_location_group">Struttura e sede</string>
+    <string name="ui_contact_organization">Struttura</string>
+    <string name="ui_contact_address">Indirizzo</string>
+    <string name="ui_contact_building">Edificio</string>
+    <string name="ui_contact_location_unspecified">Sede non indicata</string>
+    <string name="ui_contact_department_unspecified">Struttura non indicata</string>
+    <string name="ui_contact_open_failed">Impossibile aprire il contatto. Verifica che sia disponibile un’app per email o telefonate.</string>
     <string name="ui_contacts_empty_title">Nessun contatto disponibile</string>
     <string name="ui_contacts_empty_desc">Prova a cambiare categoria o ricerca.</string>
     <string name="ui_teachers_title">Docenti e ricercatori</string>
