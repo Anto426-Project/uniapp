@@ -1,8 +1,8 @@
 [versions]
 # Build & Tooling
-agp = "9.4.0"
+agp = "9.4.1"
 kotlin = "2.4.20"
-composeMultiplatform = "1.12.0"
+composeMultiplatform = "1.12.1"
 composeMultiplatform-material3 = "1.12.0-alpha03"
 
 # Android SDK
@@ -12,15 +12,15 @@ android-targetSdk = "37"
 
 # AndroidX & Jetpack
 activity-compose = "1.13.0"
-annotation = "1.10.0"
+annotation = "1.11.0"
 androidx-appcompat = "1.8.0"
-androidx-core-ktx = "1.19.0"
+androidx-core-ktx = "1.19.1"
 lifecycle = "2.11.0"
-navigation3 = "1.1.1"
+navigation3 = "1.1.2"
 
 # Compose & Material (AndroidX)
 compose = "1.12.1"
-material3 = "1.5.0-alpha28"
+material3 = "1.5.0-alpha29"
 
 # KotlinX
 kotlinx-coroutines = "1.11.0"
@@ -28,10 +28,10 @@ kotlinx-datetime = "0.8.0"
 kotlinx-serialization = "1.11.0"
 
 # Networking, Images & Utilities
-ktor = "3.5.2"
-coil = "3.6.2"
+ktor = "3.6.0"
+coil = "3.6.3"
 zscanner = "1.0.0"
-qrose = "1.2.1"
+qrose = "1.3.0"
 zxing = "3.5.4"
 
 # Testing

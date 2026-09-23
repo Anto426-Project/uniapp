@@ -220,6 +220,14 @@ fun CourseProfessorTab(
                             color = colorScheme.primary,
                             fontWeight = FontWeight.Medium,
                         )
+                        if (onContactClick != null) {
+                            Text(
+                                text = "Tocca per la scheda rubrica completa",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
                     }
                 }
 

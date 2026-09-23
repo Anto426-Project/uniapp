@@ -2,6 +2,7 @@ package com.anto426.uniapp.ui.transport
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,7 +50,6 @@ import com.anto426.liquidmonet.components.cards.LiquidCard
 import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.LiquidSectionHeader
-import com.anto426.liquidmonet.components.selection.LiquidChip
 import com.anto426.liquidmonet.components.selection.LiquidSelect
 import com.anto426.liquidmonet.glass.LiquidGlassRole
 import com.anto426.liquidmonet.glass.liquidGlass
@@ -61,12 +59,11 @@ import com.anto426.uniapp.transport.presentation.TransportBookingUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.transport.TransportDirection
 import com.kyant.shapes.Capsule
+import com.kyant.shapes.RoundedRectangle
 import kotlin.time.Clock
-import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
-import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -88,11 +85,11 @@ fun TransportBookingScreen(
 
     val monthNames = listOf(
         "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre",
     )
     val monthNamesShort = listOf(
         "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
-        "Lug", "Ago", "Set", "Ott", "Nov", "Dic"
+        "Lug", "Ago", "Set", "Ott", "Nov", "Dic",
     )
 
     val currentMonthTitle = "${monthNames[displayedMonth - 1]} $displayedYear"
@@ -111,7 +108,6 @@ fun TransportBookingScreen(
         // 1. Header & Selezione Tratta
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_trip_route),
-            subtitle = stringResource(Res.string.ui_transport_route_subtitle),
         )
 
         LiquidSelect(
@@ -122,67 +118,88 @@ fun TransportBookingScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        // 2. Selezione Direzione (Andata, Ritorno o Entrambi)
+        // 2. Selezione Direzione (Andata, Ritorno, Andata e Ritorno) - Stile Card come Schermata Temi
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_transport_direction_title),
-            subtitle = stringResource(Res.string.ui_transport_direction_subtitle),
         )
 
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            LiquidChip(
-                label = stringResource(Res.string.ui_trip_outbound),
-                selected = selectedDirection == TransportDirection.OUTBOUND,
-                onClick = { selectedDirection = TransportDirection.OUTBOUND },
-                leadingIcon = LiquidIcons.ArrowForward,
-            )
-            LiquidChip(
-                label = stringResource(Res.string.ui_trip_return),
-                selected = selectedDirection == TransportDirection.RETURN,
-                onClick = { selectedDirection = TransportDirection.RETURN },
-                leadingIcon = LiquidIcons.ArrowBack,
-            )
-            LiquidChip(
-                label = stringResource(Res.string.ui_transport_round_trip),
-                selected = selectedDirection == TransportDirection.ROUND_TRIP,
-                onClick = { selectedDirection = TransportDirection.ROUND_TRIP },
-                leadingIcon = LiquidIcons.Refresh,
-            )
-        }
+                val directions = listOf(
+                    Triple(
+                        TransportDirection.OUTBOUND,
+                        stringResource(Res.string.ui_trip_outbound),
+                        LiquidIcons.ArrowForward,
+                    ),
+                    Triple(
+                        TransportDirection.RETURN,
+                        stringResource(Res.string.ui_trip_return),
+                        LiquidIcons.ArrowBack,
+                    ),
+                    Triple(
+                        TransportDirection.ROUND_TRIP,
+                        stringResource(Res.string.ui_transport_round_trip),
+                        LiquidIcons.Refresh,
+                    ),
+                )
 
-        // 3. Selezione Date Multi-Giorno
+                directions.forEach { (direction, label, icon) ->
+                    val isSelected = selectedDirection == direction
+                    val animatedBg by animateColorAsState(
+                        if (isSelected) colorScheme.primary.copy(alpha = 0.15f)
+                        else Color.Transparent,
+                        label = "dirBg",
+                    )
+                    val animatedBorder by animateColorAsState(
+                        if (isSelected) colorScheme.primary
+                        else colorScheme.outlineVariant.copy(alpha = 0.25f),
+                        label = "dirBorder",
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedRectangle(16.dp))
+                            .background(animatedBg)
+                            .border(
+                                width = if (isSelected) 1.5.dp else 1.dp,
+                                color = animatedBorder,
+                                shape = RoundedRectangle(16.dp),
+                            )
+                            .clickable { selectedDirection = direction }
+                            .padding(vertical = 16.dp, horizontal = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 12.sp,
+                            ),
+                            color = if (isSelected) colorScheme.primary else colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+
+        // 3. Selezione Date Multi-Giorno (Calendario)
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_transport_dates_title),
-            subtitle = stringResource(Res.string.ui_transport_dates_subtitle),
         )
-
-        // Tasti di selezione rapida (Preset)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            LiquidChip(
-                label = stringResource(Res.string.ui_transport_preset_today),
-                selected = selectedDates == setOf(today),
-                onClick = { selectedDates = setOf(today) },
-                modifier = Modifier.weight(1f),
-            )
-            LiquidChip(
-                label = stringResource(Res.string.ui_transport_preset_today_tomorrow),
-                selected = selectedDates == setOf(today, today.plus(DatePeriod(days = 1))),
-                onClick = { selectedDates = setOf(today, today.plus(DatePeriod(days = 1))) },
-                modifier = Modifier.weight(1.3f),
-            )
-            LiquidChip(
-                label = stringResource(Res.string.ui_transport_preset_week),
-                selected = selectedDates.size == 5 && (0..4).all { today.plus(DatePeriod(days = it)) in selectedDates },
-                onClick = { selectedDates = (0..4).map { today.plus(DatePeriod(days = it)) }.toSet() },
-                modifier = Modifier.weight(1.2f),
-            )
-        }
 
         // Calendario Multi-Selezione in Vetro Liquido
         LiquidCard(
@@ -316,9 +333,9 @@ fun TransportBookingScreen(
                                         Text(
                                             text = dayNumber.toString(),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = if (isSelected) FontWeight.Bold else if (isToday) FontWeight.SemiBold else FontWeight.Normal,
+                                            fontWeight = if (isSelected) FontWeight.ExtraBold else if (isToday) FontWeight.Bold else FontWeight.Normal,
                                             color = when {
-                                                isSelected -> colorScheme.onSurface
+                                                isSelected -> colorScheme.primary
                                                 isToday -> colorScheme.primary
                                                 else -> colorScheme.onSurface
                                             },
@@ -328,29 +345,6 @@ fun TransportBookingScreen(
                                     Spacer(modifier = Modifier.size(38.dp))
                                 }
                             }
-                        }
-                    }
-                }
-
-                // Riepilogo giorni selezionati con possibilità di rimuoverli
-                if (selectedDates.isNotEmpty()) {
-                    LiquidHorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        selectedDates.sorted().forEach { d ->
-                            LiquidChip(
-                                label = "${d.day} ${monthNamesShort[d.month.number - 1]}",
-                                trailingIcon = if (selectedDates.size > 1) LiquidIcons.Close else null,
-                                onClick = {
-                                    if (selectedDates.size > 1) {
-                                        selectedDates = selectedDates - d
-                                    }
-                                },
-                                selected = true,
-                            )
                         }
                     }
                 }
@@ -433,11 +427,6 @@ fun TransportBookingScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (selectedDirection == TransportDirection.ROUND_TRIP) stringResource(Res.string.ui_transport_terminus_a) else stringResource(Res.string.ui_transport_departure),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colorScheme.onSurfaceVariant,
-                                )
-                                Text(
                                     text = origin,
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
@@ -451,7 +440,7 @@ fun TransportBookingScreen(
                                     .padding(horizontal = 12.dp)
                                     .size(32.dp)
                                     .clip(CircleShape)
-                                    .background(colorScheme.primary.copy(alpha = 0.1f)),
+                                    .background(colorScheme.primary.copy(alpha = 0.12f)),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
@@ -466,11 +455,6 @@ fun TransportBookingScreen(
                                 modifier = Modifier.weight(1f),
                                 horizontalAlignment = Alignment.End,
                             ) {
-                                Text(
-                                    text = if (selectedDirection == TransportDirection.ROUND_TRIP) stringResource(Res.string.ui_transport_terminus_b) else stringResource(Res.string.ui_transport_arrival),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colorScheme.onSurfaceVariant,
-                                )
                                 Text(
                                     text = destination,
                                     style = MaterialTheme.typography.titleSmall,
@@ -491,10 +475,49 @@ fun TransportBookingScreen(
 
                     LiquidHorizontalDivider()
 
+                    // Indicatore posto prenotato a bordo
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.primary.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = LiquidIcons.Check,
+                                contentDescription = null,
+                                tint = colorScheme.primary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "Posto a sedere prenotato",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onSurface,
+                            )
+                            Text(
+                                text = "Posto garantito e riservato a bordo per le date selezionate",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    LiquidHorizontalDivider()
+
                     // Details Grid: Date Selezionate, Totale Corse
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         // Date Corsa
                         Row(
@@ -508,28 +531,21 @@ fun TransportBookingScreen(
                                 tint = colorScheme.primary,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Column {
-                                Text(
-                                    text = if (selectedDates.size > 1) stringResource(Res.string.ui_transport_dates_count, selectedDates.size) else stringResource(Res.string.ui_transport_ride_date),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colorScheme.onSurfaceVariant,
-                                )
-                                val formattedDateSummary = remember(selectedDates) {
-                                    if (selectedDates.size == 1) {
-                                        val single = selectedDates.first()
-                                        "${single.day} ${monthNamesShort[single.month.number - 1]} ${single.year}"
-                                    } else {
-                                        selectedDates.sorted().joinToString(", ") { "${it.day} ${monthNamesShort[it.month.number - 1]}" }
-                                    }
+                            val formattedDateSummary = remember(selectedDates) {
+                                if (selectedDates.size == 1) {
+                                    val single = selectedDates.first()
+                                    "${single.day} ${monthNamesShort[single.month.number - 1]} ${single.year}"
+                                } else {
+                                    selectedDates.sorted().joinToString(", ") { "${it.day} ${monthNamesShort[it.month.number - 1]}" }
                                 }
-                                Text(
-                                    text = formattedDateSummary,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorScheme.onSurface,
-                                    maxLines = 2,
-                                )
                             }
+                            Text(
+                                text = formattedDateSummary,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onSurface,
+                                maxLines = 2,
+                            )
                         }
 
                         Spacer(Modifier.width(12.dp))
@@ -545,19 +561,12 @@ fun TransportBookingScreen(
                                 tint = colorScheme.primary,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = stringResource(Res.string.ui_transport_total_rides),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    text = stringResource(Res.string.ui_transport_rides_guaranteed_format, totalRides, if (totalRides > 1) stringResource(Res.string.ui_transport_rides_plural) else stringResource(Res.string.ui_transport_ride_singular)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorScheme.primary,
-                                )
-                            }
+                            Text(
+                                text = stringResource(Res.string.ui_transport_rides_guaranteed_format, totalRides, if (totalRides > 1) stringResource(Res.string.ui_transport_rides_plural) else stringResource(Res.string.ui_transport_ride_singular)),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                            )
                         }
                     }
                 }

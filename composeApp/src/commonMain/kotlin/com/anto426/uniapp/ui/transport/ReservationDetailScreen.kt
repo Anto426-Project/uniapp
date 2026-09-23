@@ -1,59 +1,30 @@
 package com.anto426.uniapp.ui.transport
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.ui.unit.DpOffset
-import com.anto426.liquidmonet.components.menu.LiquidDropdownMenu
-import com.anto426.liquidmonet.components.menu.LiquidMenuItem
-import com.anto426.liquidmonet.glass.overlay.LiquidGlassDropdownPlacement
-import com.anto426.liquidmonet.glass.overlay.liquidGlassOverlayAnchor
-import com.anto426.liquidmonet.glass.overlay.rememberLiquidGlassOverlayAnchorState
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.LiquidFloatingActionButton
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.LiquidBadge
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
-import com.anto426.liquidmonet.glass.LiquidGlassRole
-import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.transport.presentation.TicketImageUiState
-import com.anto426.uniapp.ui.transport.components.TransportTicketActions
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TripDirection
+import com.anto426.uniapp.transport.presentation.TicketImageUiState
 import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.transport.components.ReservationHeroBackFace
 import com.anto426.uniapp.ui.transport.components.ReservationHeroFrontFace
-import com.kyant.shapes.Capsule
+import com.anto426.uniapp.ui.transport.components.TransportTicketActions
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -67,13 +38,7 @@ fun ReservationDetailScreen(
 ) {
     val uriHandler = LocalUriHandler.current
     val officialUrl = reservation.ticketUrl.ifBlank { "https://trasporti.unimol.it" }
-    var menuExpanded by remember { mutableStateOf(false) }
     val isFabVisible = LocalNavigationBarVisible.current
-    val anchorState = rememberLiquidGlassOverlayAnchorState()
-
-    LaunchedEffect(isFabVisible) {
-        if (!isFabVisible) menuExpanded = false
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         UniScreenColumn {
@@ -83,7 +48,7 @@ fun ReservationDetailScreen(
                 flipTrigger = UniHeroFlipTrigger.CLICK,
                 frontContent = {
                     ReservationHeroFrontFace(
-                        reservation = reservation
+                        reservation = reservation,
                     )
                 },
                 backContent = {
@@ -96,7 +61,7 @@ fun ReservationDetailScreen(
 
             TransportTicketActions(imageState, onReloadImage)
 
-            // 2. Info Group (Dettagli Biglietto)
+            // 2. Info Group (Dettagli Biglietto e Viaggio)
             LiquidPreferenceGroup(
                 title = stringResource(Res.string.ui_trip_details),
             ) {
@@ -137,53 +102,40 @@ fun ReservationDetailScreen(
                         icon = LiquidIcons.Info,
                     )
                 }
+                if (reservation.id.isNotBlank()) {
+                    LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+                    LiquidPreferenceItem(
+                        title = stringResource(Res.string.ui_transport_ticket_title_badge),
+                        subtitle = reservation.id,
+                        icon = LiquidIcons.QrCode,
+                    )
+                }
+                if (officialUrl.isNotBlank()) {
+                    LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+                    LiquidPreferenceItem(
+                        title = stringResource(Res.string.ui_transport_show_official_ticket),
+                        subtitle = officialUrl,
+                        icon = LiquidIcons.Info,
+                        onClick = { uriHandler.openUri(officialUrl) },
+                    )
+                }
             }
         }
 
-        // 2. Floating Action Button with Liquid Glass Dropdown Menu
-        Box(
+        // 2. Floating Action Button diretto "Elimina / Annulla Prenotazione" (stessa altezza del FAB trasporti: end = 20.dp, bottom = 112.dp)
+        LiquidFloatingActionButton(
+            onClick = onDelete,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 112.dp)
-                .liquidGlassOverlayAnchor(anchorState),
+                .padding(end = 20.dp, bottom = 112.dp),
+            enabled = !isDeleting,
+            visible = isFabVisible,
         ) {
-            LiquidFloatingActionButton(
-                onClick = { menuExpanded = !menuExpanded },
-                visible = isFabVisible,
-            ) {
-                Icon(
-                    imageVector = if (menuExpanded) LiquidIcons.Close else LiquidIcons.Settings,
-                    contentDescription = stringResource(Res.string.ui_transport_ticket_options),
-                    tint = Color.White,
-                )
-            }
-
-            LiquidDropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-                anchorState = anchorState,
-                placement = LiquidGlassDropdownPlacement.AboveEnd,
-                offset = DpOffset(0.dp, (-8).dp),
-            ) {
-                LiquidMenuItem(
-                    text = stringResource(Res.string.ui_transport_show_official_ticket),
-                    icon = LiquidIcons.Info,
-                    onClick = {
-                        menuExpanded = false
-                        uriHandler.openUri(officialUrl)
-                    },
-                )
-                LiquidMenuItem(
-                    text = if (isDeleting) stringResource(Res.string.ui_transport_canceling) else stringResource(Res.string.ui_cancel_booking),
-                    icon = LiquidIcons.Close,
-                    destructive = true,
-                    enabled = !isDeleting,
-                    onClick = {
-                        menuExpanded = false
-                        onDelete()
-                    },
-                )
-            }
+            Icon(
+                imageVector = LiquidIcons.Delete,
+                contentDescription = stringResource(Res.string.ui_cancel_booking),
+                tint = Color.White,
+            )
         }
     }
 }

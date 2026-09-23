@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -46,7 +45,7 @@ fun UniNewsCard(
     news: NewsItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    fixedHeight: Dp = 100.dp,
+    fixedHeight: Dp? = null,
     categoryLabel: String? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -90,14 +89,14 @@ fun UniNewsCard(
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
-            .height(fixedHeight),
+            .then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier),
         shape = RoundedRectangle(20.dp),
-        contentPadding = 12.dp,
+        contentPadding = 16.dp,
         onClick = onClick,
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Header: Optical icon pod + Category info + Trailing CTA pill
             Row(
@@ -108,12 +107,12 @@ fun UniNewsCard(
                 Row(
                     modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
-                            .clip(RoundedRectangle(9.dp))
+                            .size(32.dp)
+                            .clip(RoundedRectangle(10.dp))
                             .background(categoryConfig.color.copy(alpha = 0.14f)),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -150,9 +149,9 @@ fun UniNewsCard(
                     modifier = Modifier
                         .clip(Capsule())
                         .background(colorScheme.primary.copy(alpha = 0.12f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
                         text = stringResource(Res.string.ui_details),
@@ -173,7 +172,7 @@ fun UniNewsCard(
             // Headline & Description with clear, compact typography
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
                     text = news.title,
@@ -181,7 +180,7 @@ fun UniNewsCard(
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
                     fontSize = 14.sp,
-                    maxLines = if (hasDescription) 1 else 2,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp,
                 )
@@ -192,9 +191,9 @@ fun UniNewsCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.88f),
                         fontSize = 12.sp,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 15.sp,
+                        lineHeight = 16.sp,
                     )
                 }
             }

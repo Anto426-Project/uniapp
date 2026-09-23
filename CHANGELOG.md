@@ -1,3 +1,10 @@
+## [2.0.9] - 2026-09-23 (build set by CI)
+
+- Riprogettata la schermata di prenotazione corse con selezione direzione in card tematiche e pass di riepilogo con posto garantito.
+- Rinnovata la vista del biglietto originale e dei codici QR con contenitori LiquidSheet compatti ad altezza ridotta.
+- Aggiunte azioni rapide (email e chiamata) nella scheda contatto e migliorata la navigazione alla rubrica dalla schermata corso.
+- Armonizzata la spaziatura delle card notizie con il design system Liquid Monet.
+
 ## [2.0.8] - 2026-09-15 (build set by CI)
 
 - Corretti gli angoli della cornice del QR del badge, mantenendo dimensioni e leggibilità del codice.
