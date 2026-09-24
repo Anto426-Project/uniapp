@@ -41,6 +41,14 @@ jobs:
       - name: Validate release tooling and app
         run: |
           set -euo pipefail
+          test_temp_dir="$RUNNER_TEMP/uniapp-tests-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p -- "$test_temp_dir"
+          export TMPDIR="$test_temp_dir"
+          export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:+$JAVA_TOOL_OPTIONS }-Djava.io.tmpdir=$test_temp_dir"
+          df -h "$test_temp_dir"
+          df -i "$test_temp_dir"
+          dd if=/dev/zero of="$test_temp_dir/.write-check" bs=1M count=64 status=none
+          rm -- "$test_temp_dir/.write-check"
           python3 scripts/validate_release.py
           ./gradlew --no-daemon --max-workers=2 :composeApp:testAndroidHostTest
       - name: Upload test results
