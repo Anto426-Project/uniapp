@@ -38,7 +38,7 @@ fun TransportScreen(
         } else {
             uiState.days.forEach { day ->
                 LiquidSectionHeader(
-                    title = day.date,
+                    title = day.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) },
                     subtitle = day.directionSummary,
                 )
 

@@ -26,6 +26,8 @@ import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportDirection
 import com.anto426.unisdk.transport.TransportRouteData
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
@@ -318,6 +320,20 @@ class SessionUniAppDataSource(
             UniAppCachePolicies.Transport,
             TransportData.serializer(),
             forceRefresh,
+            requirePersistence = true,
+            onSaved = { context, previous, current ->
+                val activeIds = current.bookings.mapTo(mutableSetOf()) { it.id }
+                previous?.bookings.orEmpty().asSequence()
+                    .map { it.id }
+                    .filterNot(activeIds::contains)
+                    .forEach { removedId ->
+                        val key = context.profileScopedKey(ticketImageCacheKey(removedId))
+                        requestLock(context.accountId, key).withLock {
+                            ensureCurrent(context)
+                            accounts.removeCachedData(context.accountId, key)
+                        }
+                    }
+            },
         ) { client -> client.loadTransportData() }
 
     override suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean): ByteArray {
@@ -328,11 +344,17 @@ class SessionUniAppDataSource(
             val original = accounts.readCachedData(context.accountId, key)
             ensureCurrent(context)
             if (!forceRefresh && original != null) return@withLock original
-            val downloaded = context.client.loadTransportTicketImage(source)
-            ensureCurrent(context)
-            accounts.writeCachedData(context.accountId, key, downloaded)
-            ensureCurrent(context)
-            downloaded
+            try {
+                val downloaded = context.client.loadTransportTicketImage(source)
+                ensureCurrent(context)
+                accounts.writeCachedData(context.accountId, key, downloaded)
+                ensureCurrent(context)
+                downloaded
+            } catch (error: CancellationException) { throw error }
+            catch (error: Exception) {
+                ensureCurrent(context)
+                original ?: throw error
+            }
         }
     }
 
@@ -344,7 +366,7 @@ class SessionUniAppDataSource(
     override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
         val context = activeContext()
         return context.client.bookTransport(request).also {
-            invalidate(context.accountId, context.profileScopedKey("transport-data"))
+            safelyMarkTransportSnapshotStale(context)
         }
     }
 
@@ -352,8 +374,35 @@ class SessionUniAppDataSource(
         val context = activeContext()
         return context.client.deleteTransportBooking(bookingId).also {
             val imageKey = context.profileScopedKey(ticketImageCacheKey(bookingId))
-            requestLock(context.accountId, imageKey).withLock { accounts.removeCachedData(context.accountId, imageKey) }
-            invalidate(context.accountId, context.profileScopedKey("transport-data"))
+            val imageRemoved = try {
+                requestLock(context.accountId, imageKey).withLock { accounts.removeCachedData(context.accountId, imageKey) }
+                true
+            } catch (error: CancellationException) { throw error }
+            catch (_: Exception) { false }
+            safelyMarkTransportSnapshotStale(context, removedBookingId = bookingId.takeIf { imageRemoved })
+        }
+    }
+
+    private suspend fun safelyMarkTransportSnapshotStale(context: ActiveAccountContext, removedBookingId: String? = null) {
+        try { markTransportSnapshotStale(context, removedBookingId) }
+        catch (error: CancellationException) { throw error }
+        catch (_: Exception) { /* The server mutation succeeded; the next refresh will retry. */ }
+    }
+
+    private suspend fun markTransportSnapshotStale(context: ActiveAccountContext, removedBookingId: String? = null) {
+        val key = context.profileScopedKey("transport-data")
+        requestLock(context.accountId, key).withLock {
+            ensureCurrent(context)
+            val cached = readEntry(context.accountId, key, TransportData.serializer()) ?: return@withLock
+            val value = if (removedBookingId == null) cached.value else cached.value.copy(
+                bookings = cached.value.bookings.filterNot { it.id == removedBookingId },
+                totalCount = (cached.value.totalCount - cached.value.bookings.count { it.id == removedBookingId }).coerceAtLeast(0),
+            )
+            // Expire the list without erasing the last known good encrypted snapshot.
+            writeEntry(
+                context.accountId, key, TransportData.serializer(), value,
+                savedAtMillis = nowMillis() - UniAppCachePolicies.Transport.maxAgeMillis - 1L,
+            )
         }
     }
 
@@ -362,6 +411,8 @@ class SessionUniAppDataSource(
         policy: UniAppCachePolicy,
         serializer: KSerializer<T>,
         forceRefresh: Boolean,
+        requirePersistence: Boolean = false,
+        onSaved: suspend (ActiveAccountContext, T?, T) -> Unit = { _, _, _ -> },
         fetch: suspend (UniAccountClient) -> T,
     ): T {
         val requestStartedAt = nowMillis()
@@ -383,12 +434,20 @@ class SessionUniAppDataSource(
                 val value = fetch(context.client)
                 ensureCurrent(context)
                 // A disk write failure must not replace a successful response with stale data.
+                var saved = false
                 try {
                     writeEntry(accountId, scopedKey, serializer, value)
+                    saved = true
                 } catch (error: CancellationException) {
                     throw error
-                } catch (_: Exception) {
-                    // The response is still available in the process cache.
+                } catch (error: Exception) {
+                    if (requirePersistence) throw error
+                    // The coordinator can still use the response for this session.
+                }
+                if (saved) {
+                    try { onSaved(context, cached?.value, value) }
+                    catch (error: CancellationException) { throw error }
+                    catch (_: Exception) { /* A cleanup failure must not hide the saved list. */ }
                 }
                 ensureCurrent(context)
                 value
@@ -429,17 +488,18 @@ class SessionUniAppDataSource(
         }
     }
 
-    private suspend fun <T> writeEntry(accountId: String, key: String, serializer: KSerializer<T>, value: T) {
-        val savedAtMillis = nowMillis()
-        memoryCacheGuard.withLock {
-            memoryCache[cacheIdentity(accountId, key)] = CachedValue(savedAtMillis, value)
-        }
+    private suspend fun <T> writeEntry(accountId: String, key: String, serializer: KSerializer<T>, value: T, savedAtMillis: Long = nowMillis()) {
         val envelope = CacheEnvelope(CACHE_SCHEMA_VERSION, savedAtMillis, json.encodeToString(serializer, value))
         val bytes = json.encodeToString(CacheEnvelope.serializer(), envelope).encodeToByteArray()
         try {
             accounts.writeCachedData(accountId, key, bytes)
         } finally {
             bytes.fill(0)
+        }
+        withContext(NonCancellable) {
+            memoryCacheGuard.withLock {
+                memoryCache[cacheIdentity(accountId, key)] = CachedValue(savedAtMillis, value)
+            }
         }
     }
 

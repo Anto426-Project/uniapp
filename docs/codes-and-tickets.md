@@ -31,7 +31,16 @@ Screenshot e contenuti personali di riferimento rimangono in `.tmp`, esclusa da 
 autenticata dei trasporti. UniApp salva i byte originali nello storage cifrato
 dell'account, con una chiave distinta per carriera e prenotazione. L'immagine
 salvata viene riaperta anche senza rete; «Scarica di nuovo» richiede una nuova copia.
-L'annullamento della prenotazione elimina la copia locale.
+Gli originali vengono archiviati quando la prenotazione appare nell'elenco, senza
+attendere l'apertura del dettaglio. Un errore di download non elimina una copia già
+salvata; il download viene riprovato al prossimo aggiornamento.
+
+L'elenco delle prenotazioni è conservato nello stesso vault cifrato. Errori HTTP,
+risposte incomplete e paginazione interrotta non sostituiscono l'ultima copia
+valida. Una prenotazione e la sua immagine vengono rimosse dopo una cancellazione
+confermata, oppure quando un elenco completo e valido del portale non la include
+più. La sola età del biglietto non lo elimina; un vecchio biglietto ancora presente
+nel portale resta disponibile.
 
 `createCodeReader().read(imageBytes)` legge i codici sul dispositivo: ZXing su
 Android e Vision su iOS. Conserva contenuto e simbologia. QR, Code 128/39/93,
@@ -46,7 +55,11 @@ numero di prenotazione. Le schede del catalogo delle linee non generano bigliett
 
 Il download supporta PNG/JPEG/GIF/WebP diretti e HTML con una sola immagine;
 pagine ambigue, autenticazione scaduta o formati diversi producono un errore e
-resta disponibile l'accesso al portale ufficiale. Limite: 3 MiB per originale.
+la copia locale rimane disponibile. Limite: 3 MiB per originale.
+
+Il dettaglio usa la data, l'ora, il numero e la tratta della prenotazione restituita
+dal portale. Un'etichetta come `lun 28/09/2026` viene mostrata come `28/09/2026`;
+`lun` da solo non è una data. La lista è ordinata per data e ora crescenti.
 
 ## Verifica
 

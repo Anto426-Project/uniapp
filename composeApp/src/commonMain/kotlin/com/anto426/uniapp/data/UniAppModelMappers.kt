@@ -31,6 +31,8 @@ import com.anto426.unisdk.backend.model.TaxesData
 import com.anto426.unisdk.backend.model.UniversityContact
 import com.anto426.unisdk.backend.model.UniversityNews
 import com.anto426.unisdk.transport.TransportData
+import com.anto426.unisdk.transport.TransportBooking
+import com.anto426.unisdk.transport.parseTransportTravelDate
 
 internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<ExamRecord> {
     val validExams = exams.filter { it.grade.isValidExamGrade() || (it.date.isNotBlank() && it.date != "-") }
@@ -263,26 +265,40 @@ internal fun List<ConnectedDeviceData>.toDeviceInfo(): List<DeviceInfo> =
     }
 
 internal fun TransportData.toReservations(): List<TransportReservation> =
-    bookings.map { booking ->
-        val datePart = if (booking.date.contains(" ")) booking.date.substringBefore(" ") else booking.date
-        val timePart = if (booking.date.contains(" ")) booking.date.substringAfter(" ") else ""
-        val stops = booking.direction.split(" -> ", " - ")
-        val departure = stops.firstOrNull()?.trim().orEmpty().ifBlank { booking.direction }
-        val arrival = stops.getOrNull(1)?.trim().orEmpty()
+    bookings.sortedWith(compareBy<TransportBooking> { parseTransportTravelDate(it.date)?.sortKey ?: Long.MAX_VALUE }
+        .thenBy { it.id }).map { booking ->
+        val travel = parseTransportTravelDate(booking.date)
+        val route = availableRoutes.firstOrNull { it.code == booking.routeCode }?.label
+            ?: booking.routeCode.ifBlank { routeLabel }
+        val stops = route.transportRouteStops()
+        val departure = if (booking.isReturn) stops?.second.orEmpty() else stops?.first.orEmpty()
+        val arrival = if (booking.isReturn) stops?.first.orEmpty() else stops?.second.orEmpty()
 
         TransportReservation(
             id = booking.id,
-            route = availableRoutes.firstOrNull { it.code == booking.routeCode }?.label ?: routeLabel,
-            date = datePart,
-            time = timePart,
+            route = route,
+            date = travel?.displayDate.orEmpty(),
+            time = travel?.time.orEmpty(),
             direction = if (booking.isReturn) TripDirection.RITORNO else TripDirection.ANDATA,
             qrCodeData = "", // Filled only by reading the original ticket image.
             departureStop = departure,
             arrivalStop = arrival,
             busNumber = "", // The API booking number is not a bus number.
             ticketUrl = booking.ticketUrl,
+            ticketNumber = booking.number,
         )
     }
+
+private fun String.transportRouteStops(): Pair<String, String>? {
+    val separator = when {
+        " -> " in this -> " -> "
+        " - " in this -> " - "
+        "/" in this -> "/"
+        else -> return null
+    }
+    val stops = split(separator).map(String::trim)
+    return if (stops.size >= 2 && stops[0].isNotBlank() && stops[1].isNotBlank()) stops[0] to stops[1] else null
+}
 
 internal fun TransportData.toRoutes(): List<TransportRoute> =
     availableRoutes.map { route -> TransportRoute(route.label, "Ogni 15 min", "In arrivo") }

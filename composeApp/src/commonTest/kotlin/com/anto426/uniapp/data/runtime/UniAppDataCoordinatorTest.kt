@@ -9,6 +9,7 @@ import com.anto426.unisdk.backend.model.StudentDetailsData
 import com.anto426.unisdk.backend.model.TaxesData
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportData
+import com.anto426.unisdk.transport.TransportBooking
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
@@ -16,6 +17,28 @@ import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UniAppDataCoordinatorTest {
+    @Test
+    fun newlyListedTicketOriginalsAreArchivedWithoutOpeningTheDetailScreen() = runTest {
+        val archived = mutableListOf<String>()
+        val bookings = listOf("first", "second").map { id ->
+            TransportBooking(id, id, "A01", "28/09/2026", "Andata", false, "/vis_prenot.php?id=$id")
+        }
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadTransportData(forceRefresh: Boolean) =
+                TransportData("Route", bookings = bookings, totalCount = bookings.size)
+
+            override suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean): ByteArray {
+                archived += bookingId
+                return byteArrayOf(1, 2, 3)
+            }
+        }
+        val data = UniAppDataCoordinator(source, backgroundScope)
+        data.loadTransportData()
+        runCurrent()
+        assertEquals(listOf("first", "second"), archived)
+        data.close()
+    }
+
     @Test
     fun freshDataSurvivesNavigationAndAutomaticRefreshUntilItsPolicyExpires() = runTest {
         var now = 1_000L

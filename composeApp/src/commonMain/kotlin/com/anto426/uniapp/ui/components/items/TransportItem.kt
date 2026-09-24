@@ -75,7 +75,8 @@ fun TransportReservationItem(
                         letterSpacing = (-0.2).sp
                     )
                     Text(
-                        text = if (reservation.departureStop.isNotBlank()) reservation.departureStop else reservation.date,
+                        text = reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) } +
+                            reservation.time.takeIf(String::isNotBlank)?.let { " • $it" }.orEmpty(),
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant,
                         fontSize = 12.sp

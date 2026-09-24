@@ -328,6 +328,7 @@
     <string name="ui_trip_route">Tratta</string>
     <string name="ui_trip_datetime">Data e ora</string>
     <string name="ui_trip_departure_stop">Fermata di salita</string>
+    <string name="ui_trip_arrival_stop">Fermata di arrivo</string>
     <string name="ui_trip_bus_assigned">Veicolo assegnato</string>
     <string name="ui_transport_empty_reservations">Non hai viaggi prenotati per i prossimi giorni.</string>
     <string name="ui_transport_catalog_title">Titoli di viaggio</string>
@@ -835,7 +836,7 @@
     <string name="ui_transport_preset_today_tomorrow">Oggi + domani</string>
     <string name="ui_transport_preset_week">Settimana</string>
     <string name="ui_transport_navetta_number">Navetta #%1$s</string>
-    <string name="ui_transport_show_official_ticket">Mostra biglietto ufficiale</string>
+    <string name="ui_transport_date_unavailable">Data non disponibile</string>
     <string name="ui_transport_ticket_options">Opzioni biglietto</string>
     <string name="ui_transport_canceling">Annullamento…</string>
     <string name="ui_transport_brand_name">UniTransport</string>

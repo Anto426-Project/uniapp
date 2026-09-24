@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.LiquidFloatingActionButton
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
@@ -37,8 +36,6 @@ fun ReservationDetailScreen(
     onReloadImage: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val uriHandler = LocalUriHandler.current
-    val officialUrl = reservation.ticketUrl.ifBlank { "https://trasporti.unimol.it" }
     val isFabVisible = LocalNavigationBarVisible.current
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -75,7 +72,8 @@ fun ReservationDetailScreen(
                 LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
                 LiquidPreferenceItem(
                     title = stringResource(Res.string.ui_transport_trip_date),
-                    subtitle = reservation.date,
+                    subtitle = reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) } +
+                        reservation.time.takeIf(String::isNotBlank)?.let { " • $it" }.orEmpty(),
                     icon = LiquidIcons.Calendar,
                 )
                 LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
@@ -96,6 +94,14 @@ fun ReservationDetailScreen(
                         icon = LiquidIcons.Home,
                     )
                 }
+                if (reservation.arrivalStop.isNotBlank()) {
+                    LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
+                    LiquidPreferenceItem(
+                        title = stringResource(Res.string.ui_trip_arrival_stop),
+                        subtitle = reservation.arrivalStop,
+                        icon = LiquidIcons.Home,
+                    )
+                }
                 if (reservation.busNumber.isNotBlank()) {
                     LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
                     LiquidPreferenceItem(
@@ -108,17 +114,8 @@ fun ReservationDetailScreen(
                     LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
                     LiquidPreferenceItem(
                         title = stringResource(Res.string.ui_transport_ticket_title_badge),
-                        subtitle = reservation.id,
+                        subtitle = reservation.ticketNumber.ifBlank { reservation.id },
                         icon = LiquidIcons.QrCode,
-                    )
-                }
-                if (officialUrl.isNotBlank()) {
-                    LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-                    LiquidPreferenceItem(
-                        title = stringResource(Res.string.ui_transport_show_official_ticket),
-                        subtitle = officialUrl,
-                        icon = LiquidIcons.Info,
-                        onClick = { uriHandler.openUri(officialUrl) },
                     )
                 }
             }

@@ -6,6 +6,7 @@ import com.anto426.uniapp.data.UniAppPortraitSharer
 import com.anto426.unisdk.backend.model.ExamRoundData
 import com.anto426.unisdk.backend.model.SurveySaveRequest
 import com.anto426.unisdk.transport.TransportBookingRequest
+import com.anto426.unisdk.transport.TransportData
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -25,6 +26,7 @@ class UniAppDataCoordinator(
     private val guard = Mutex()
     private val network = Semaphore(concurrency)
     private val entries = linkedMapOf<String, Entry<*>>()
+    private var ticketArchiveJob: Job? = null
     private var closed = false
     private val scheduleRevision = MutableStateFlow(0L)
 
@@ -219,6 +221,10 @@ class UniAppDataCoordinator(
         }
         if (!force && !invalidated && dueIn(entry) > 0) return@withLock null
         val effectiveForce = force || entry.invalidated
+        if (entry.request.id == UniAppDataRequests.Transport.id) {
+            ticketArchiveJob?.cancel()
+            ticketArchiveJob = null
+        }
         entry.forcing = effectiveForce
         entry.invalidated = false
         entry.forcePending = false
@@ -272,7 +278,10 @@ class UniAppDataCoordinator(
                             entry.invalidated = false
                             if (result.isSuccess) {
                                 entry.savedAt = savedAt ?: nowMillis()
-                                entry.retryAt = null
+                                val age = nowMillis() - entry.savedAt!!
+                                entry.retryAt = if (age >= (entry.request.policy?.maxAgeMillis ?: Long.MAX_VALUE)) {
+                                    nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
+                                } else null
                             } else entry.retryAt = nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
                             scheduleRevision.value += 1
                             result.fold(completion::complete, completion::completeExceptionally)
@@ -280,7 +289,31 @@ class UniAppDataCoordinator(
                             false
                         }
                     }
-                    if (!again) break
+                    if (!again) {
+                        (result.getOrNull() as? TransportData)?.takeIf {
+                            entry.request.id == UniAppDataRequests.Transport.id
+                        }?.let { data ->
+                            guard.withLock {
+                                ticketArchiveJob?.cancel()
+                                ticketArchiveJob = scope.launch {
+                                    for (booking in data.bookings) {
+                                        ensureActive()
+                                        if (booking.ticketUrl.isBlank()) continue
+                                        try {
+                                            network.withPermit {
+                                                source.loadTransportTicketImage(booking.id, booking.ticketUrl)
+                                            }
+                                        } catch (error: CancellationException) {
+                                            throw error
+                                        } catch (_: Exception) {
+                                            // A failed image can be retried on the next refresh or detail view.
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break
+                    }
                 }
             } catch (error: CancellationException) {
                 completion.cancel(error)
@@ -312,6 +345,7 @@ class UniAppDataCoordinator(
     suspend fun close() {
         guard.withLock {
             closed = true
+            ticketArchiveJob?.cancel()
             scope.cancel()
             entries.values.forEach { it.clear() }
             entries.clear()

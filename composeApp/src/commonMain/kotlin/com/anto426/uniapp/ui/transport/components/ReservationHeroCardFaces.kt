@@ -147,7 +147,7 @@ fun ReservationHeroFrontFace(
             }
 
             Text(
-                text = reservation.date,
+                text = reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) },
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = colorScheme.onSurface,
@@ -307,7 +307,7 @@ fun ReservationHeroBackFace(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text = reservation.id,
+                    text = reservation.ticketNumber.ifBlank { reservation.id },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace,

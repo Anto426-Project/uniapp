@@ -1,3 +1,9 @@
+## [2.0.10] - 2026-09-25 (build set by CI)
+
+- Biglietti salvati e disponibili offline anche se il portale risponde con errori o elenchi incompleti.
+- Dati del viaggio corretti e prenotazioni ordinate per data e ora.
+- Rimosso il collegamento ridondante al biglietto ufficiale dal dettaglio.
+
 ## [2.0.9] - 2026-09-23 (build set by CI)
 
 - Riprogettata la schermata di prenotazione corse con selezione direzione in card tematiche e pass di riepilogo con posto garantito.

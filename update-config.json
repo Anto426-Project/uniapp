@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Riprogettata la schermata di prenotazione corse con selezione direzione in card tematiche e pass di riepilogo con posto garantito.\n- Rinnovata la vista del biglietto originale e dei codici QR con contenitori LiquidSheet compatti ad altezza ridotta.\n- Aggiunte azioni rapide (email e chiamata) nella scheda contatto e migliorata la navigazione alla rubrica dalla schermata corso.\n- Armonizzata la spaziatura delle card notizie con il design system Liquid Monet."
+  "notes": "- Biglietti salvati e disponibili offline anche se il portale risponde con errori o elenchi incompleti.\n- Dati del viaggio corretti e prenotazioni ordinate per data e ora.\n- Rimosso il collegamento ridondante al biglietto ufficiale dal dettaglio."
 }

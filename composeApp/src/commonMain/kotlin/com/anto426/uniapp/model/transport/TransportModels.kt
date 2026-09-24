@@ -29,4 +29,5 @@ data class TransportReservation(
     val arrivalStop: String = "",
     val busNumber: String = "",
     val ticketUrl: String = "",
+    val ticketNumber: String = "",
 )
