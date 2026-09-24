@@ -8,6 +8,7 @@ import com.google.zxing.multi.GenericMultipleBarcodeReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import zxingcpp.BarcodeReader
 
 actual fun createCodeReader(): CodeReader = CodeReader { image ->
     withContext(Dispatchers.Default) {
@@ -21,6 +22,8 @@ actual fun createCodeReader(): CodeReader = CodeReader { image ->
         }
         val bitmap = requireNotNull(BitmapFactory.decodeByteArray(image, 0, image.size, options)) { "Invalid image" }
         try {
+            // The native reader handles narrow Code 128 bars that ZXing Java can miss in real ticket GIFs.
+            val nativeResults = readNativeCodes(bitmap)
             val pixels = IntArray(bitmap.width * bitmap.height)
             bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
             var source: LuminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
@@ -44,9 +47,50 @@ actual fun createCodeReader(): CodeReader = CodeReader { image ->
                     source = RGBLuminanceSource(bitmap.height, bitmap.width, rotated)
                 }
             }
-            results.distinct()
+            (nativeResults + results).distinctBy { it.format to it.value }
         } finally { bitmap.recycle() }
     }
+}
+
+private fun readNativeCodes(bitmap: android.graphics.Bitmap): List<DecodedCode> = try {
+    BarcodeReader(
+        BarcodeReader.Options(
+            tryHarder = true,
+            tryRotate = true,
+            tryInvert = true,
+            textMode = BarcodeReader.TextMode.PLAIN,
+        ),
+    ).read(bitmap).mapNotNull { it.toDecodedCode() }
+} catch (_: LinkageError) {
+    // Robolectric has no Android JNI runtime; the Java reader remains available.
+    emptyList()
+} catch (_: RuntimeException) {
+    emptyList()
+}
+
+private fun BarcodeReader.Result.toDecodedCode(): DecodedCode? {
+    val value = text?.takeIf { it.isNotEmpty() } ?: return null
+    val format = when (format) {
+        BarcodeReader.Format.QR_CODE, BarcodeReader.Format.QR_CODE_MODEL_2 -> CodeFormat.Qr
+        BarcodeReader.Format.CODE_128 -> CodeFormat.Code128
+        BarcodeReader.Format.CODE_39, BarcodeReader.Format.CODE_39_STD -> CodeFormat.Code39
+        BarcodeReader.Format.CODE_93 -> CodeFormat.Code93
+        BarcodeReader.Format.EAN_13 -> CodeFormat.Ean13
+        BarcodeReader.Format.EAN_8 -> CodeFormat.Ean8
+        BarcodeReader.Format.UPC_A -> CodeFormat.UpcA
+        BarcodeReader.Format.UPC_E -> CodeFormat.UpcE
+        BarcodeReader.Format.ITF -> CodeFormat.Itf
+        BarcodeReader.Format.CODABAR -> CodeFormat.Codabar
+        else -> CodeFormat.Unsupported
+    }
+    val exactText = bytes?.contentEquals(value.encodeToByteArray()) == true
+    val ordinary = symbologyIdentifier !in setOf("]C1", "]Q3", "]Q4", "]Q5", "]Q6")
+    return DecodedCode(
+        value,
+        format,
+        format != CodeFormat.Unsupported && contentType == BarcodeReader.ContentType.TEXT &&
+            exactText && ordinary && error == null && '\uFFFD' !in value,
+    )
 }
 
 private fun Result.toDecodedCode(): DecodedCode {

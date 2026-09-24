@@ -22,7 +22,9 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 import kotlin.test.*
 
 /** Input pixels come from an independent encoder, placed inside a photographed-ticket layout. */
@@ -43,6 +45,36 @@ class CodeReaderTest {
     @Test fun readsRotatedTicketBarcode() = runTest {
         val decoded = createCodeReader().read(image("000123", ZxingFormat.CODE_128, rotated = true))
         assertEquals(listOf(DecodedCode("000123", CodeFormat.Code128)), decoded)
+    }
+
+    @Test fun readsBarcodeFromOriginalGifBytes() = runTest {
+        val png = image("trip000001234", ZxingFormat.CODE_128)
+        val gif = ByteArrayOutputStream().use { output ->
+            assertTrue(ImageIO.write(ImageIO.read(ByteArrayInputStream(png)), "gif", output))
+            output.toByteArray()
+        }
+        assertEquals(listOf(DecodedCode("trip000001234", CodeFormat.Code128)), createCodeReader().read(gif))
+    }
+
+    @Test fun readsQrAndBarcodeFromTheSameOriginalTicket() = runTest {
+        val ticket = Bitmap.createBitmap(900, 1200, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.WHITE) }
+        val writer = MultiFormatWriter()
+        for ((value, format, width, height, x, y) in listOf(
+            TicketCode("TRIP|001234|OUTBOUND", ZxingFormat.QR_CODE, 440, 440, 230f, 120f),
+            TicketCode("000001234", ZxingFormat.CODE_128, 600, 150, 150f, 850f),
+        )) {
+            val matrix = writer.encode(value, format, width, height)
+            val code = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            for (row in 0 until height) for (column in 0 until width) {
+                code.setPixel(column, row, if (matrix[column, row]) Color.BLACK else Color.WHITE)
+            }
+            Canvas(ticket).drawBitmap(code, x, y, null)
+            code.recycle()
+        }
+        assertEquals(
+            setOf(DecodedCode("TRIP|001234|OUTBOUND", CodeFormat.Qr), DecodedCode("000001234", CodeFormat.Code128)),
+            createCodeReader().read(png(ticket)).toSet(),
+        )
     }
 
     @Test fun gs1AndUnsupportedFormatsRemainOriginalOnly() = runTest {
@@ -98,6 +130,15 @@ class CodeReaderTest {
         ticket.recycle()
         return png(turned)
     }
+
+    private data class TicketCode(
+        val value: String,
+        val format: ZxingFormat,
+        val width: Int,
+        val height: Int,
+        val x: Float,
+        val y: Float,
+    )
 
     private fun png(bitmap: Bitmap): ByteArray = ByteArrayOutputStream().use { stream ->
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)

@@ -15,6 +15,7 @@ import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.codes.CodeFormat
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TripDirection
 import com.anto426.uniapp.transport.presentation.TicketImageUiState
@@ -54,7 +55,8 @@ fun ReservationDetailScreen(
                 backContent = {
                     ReservationHeroBackFace(
                         reservation = reservation,
-                        code = imageState.codes.singleOrNull(),
+                        code = imageState.codes.firstOrNull { it.format == CodeFormat.Qr && it.canRegenerate }
+                            ?: imageState.codes.firstOrNull { it.canRegenerate && it.format != CodeFormat.Unsupported },
                     )
                 },
             )

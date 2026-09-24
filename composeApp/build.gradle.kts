@@ -56,6 +56,8 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.zxing.core)
+            implementation(libs.zxing.cpp.android)
+            implementation(libs.coil.gif)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
             implementation(libs.ktor.client.okhttp)

@@ -2,12 +2,20 @@ package com.anto426.uniapp.ui.didactics.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -17,7 +25,10 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.anto426.uniapp.codes.QrCodeStyle
+import com.anto426.uniapp.codes.CodeGenerator
 import com.kyant.shapes.RoundedRectangle
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 /** Engraved contour ribbons, cached at the card size; the QR quiet zone stays opaque. */
 @Composable
@@ -66,5 +77,48 @@ internal fun AcademicBadgeQr(value: String, modifier: Modifier = Modifier) {
         .padding(8.dp)
     ) {
         QrCodeMatrixCanvas(value, Modifier.fillMaxSize(), style = QrCodeStyle.Artistic)
+    }
+}
+
+/** Keeps the official scannable codes visible even before the badge is flipped. */
+@Composable
+internal fun AcademicBadgeCodes(
+    qrValue: String,
+    barcodeValue: String,
+    modifier: Modifier = Modifier,
+) {
+    val barcodePainter = remember(barcodeValue) {
+        barcodeValue.takeIf(String::isNotBlank)?.let { value ->
+            runCatching { CodeGenerator().barcode(value) }.getOrNull()
+        }
+    }
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (qrValue.isNotBlank()) {
+            AcademicBadgeQr(qrValue)
+        }
+        if (barcodePainter != null) {
+            Text(
+                text = stringResource(Res.string.ui_badge_barcode),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Image(
+                painter = barcodePainter,
+                contentDescription = stringResource(Res.string.ui_badge_barcode),
+                modifier = Modifier.fillMaxWidth()
+                    .height(96.dp)
+                    .background(Color.White, RoundedRectangle(16.dp))
+                    .padding(12.dp),
+            )
+        }
+        if (qrValue.isBlank() && barcodePainter == null) {
+            Text(
+                text = stringResource(Res.string.ui_code_unavailable),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }

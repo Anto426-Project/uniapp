@@ -218,6 +218,7 @@
     <string name="ui_badge_professor_title">Badge docente</string>
     <string name="ui_badge_digital_pass">Pass digitale</string>
     <string name="ui_badge_scan_gates_hint">Scansiona ai varchi e lettori ottici</string>
+    <string name="ui_badge_barcode">Codice a barre del badge</string>
     <string name="ui_badge_tap_to_flip_hint">Tocca per girare e visualizzare il QR Code</string>
     <string name="ui_badge_tap_to_flip_back_hint">Identità verificata • tocca per girare</string>
 

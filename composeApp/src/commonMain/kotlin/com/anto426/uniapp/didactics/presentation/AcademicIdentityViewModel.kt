@@ -28,6 +28,7 @@ data class AcademicIdentityUiState(
     val departmentId: String = "",
     val badgeCode: String = "",
     val badgeQrValue: String = "",
+    val badgeBarcodeValue: String = "",
     val photoData: ByteArray? = null,
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
@@ -58,6 +59,7 @@ class AcademicIdentityViewModel(
                     fullName = details.fullName, matricola = details.matricola.orEmpty(),
                     degreeName = details.degreeName.orEmpty(), departmentName = details.departmentName.orEmpty(),
                     badgeCode = details.badgeCode.orEmpty(), badgeQrValue = details.badgeQrValue.orEmpty(),
+                    badgeBarcodeValue = details.badgeBarcodeValue.orEmpty(),
                     loadState = FeatureLoadState.Content, errorMessage = null,
                 )
             }

@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -267,7 +267,7 @@ internal fun TransportTicketActions(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 220.dp)
+                        .heightIn(max = 260.dp)
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -277,9 +277,9 @@ internal fun TransportTicketActions(
                             TicketCodeImage(
                                 code = code,
                                 modifier = Modifier
-                                    .fillMaxWidth()
                                     .then(
-                                        if (code.format == CodeFormat.Qr) Modifier.aspectRatio(1f) else Modifier.height(180.dp),
+                                        if (code.format == CodeFormat.Qr) Modifier.size(240.dp)
+                                        else Modifier.fillMaxWidth().height(180.dp),
                                     ),
                             )
                         } else {

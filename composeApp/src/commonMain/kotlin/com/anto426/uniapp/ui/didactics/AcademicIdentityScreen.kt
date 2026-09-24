@@ -11,8 +11,10 @@ import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityUiState
+import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.AcademicIdentityBannerCard
+import com.anto426.uniapp.ui.didactics.components.AcademicBadgeCodes
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -25,6 +27,14 @@ fun AcademicIdentityScreen(uiState: AcademicIdentityUiState) {
         AcademicIdentityBannerCard(
             uiState = uiState,
         )
+
+        if (!uiState.isProfessor && uiState.loadState == FeatureLoadState.Content) {
+            Spacer(modifier = Modifier.height(12.dp))
+            AcademicBadgeCodes(
+                qrValue = uiState.badgeQrValue,
+                barcodeValue = uiState.badgeBarcodeValue,
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 

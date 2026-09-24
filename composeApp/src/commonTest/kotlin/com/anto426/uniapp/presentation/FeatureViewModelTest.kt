@@ -406,6 +406,8 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 StudentDetailsData(
                     fullName = "Ada Lovelace",
                     matricola = "12345",
+                    badgeQrValue = "001234|LOVELACE|ADA|Informatica",
+                    badgeBarcodeValue = "001234",
                     photoUrl = expectedPhoto,
                 )
 
@@ -421,6 +423,8 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         home.uiState.first { it.profilePhotoData != null || it.loadState == FeatureLoadState.Error }
         assertContentEquals(expectedBytes, home.uiState.value.profilePhotoData)
         assertContentEquals(expectedBytes, badge.uiState.value.photoData)
+        assertEquals("001234|LOVELACE|ADA|Informatica", badge.uiState.value.badgeQrValue)
+        assertEquals("001234", badge.uiState.value.badgeBarcodeValue)
     }
 
     @Test
