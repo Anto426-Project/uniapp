@@ -298,7 +298,7 @@ fun ReservationHeroBackFace(
             ) {
                 TicketCodeImage(
                     code = code,
-                    modifier = if (code?.format == CodeFormat.Qr) Modifier.size(156.dp) else Modifier.fillMaxWidth().height(120.dp),
+                    modifier = if (code?.format == CodeFormat.Qr) Modifier.size(156.dp) else Modifier.fillMaxWidth().height(140.dp),
                 )
             }
 

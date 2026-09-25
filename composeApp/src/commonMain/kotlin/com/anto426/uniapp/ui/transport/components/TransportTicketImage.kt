@@ -10,11 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,8 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
@@ -63,12 +62,36 @@ internal fun TicketCodeImage(code: DecodedCode?, modifier: Modifier = Modifier) 
             .padding(12.dp),
         contentAlignment = Alignment.Center,
     ) {
-        if (painter != null) {
-            Image(
-                painter = painter,
-                contentDescription = stringResource(Res.string.ui_ticket_digital_code),
-                modifier = Modifier.fillMaxSize(),
-            )
+        if (painter != null && code != null) {
+            if (code.format == CodeFormat.Qr) {
+                Image(
+                    painter = painter,
+                    contentDescription = stringResource(Res.string.ui_ticket_digital_code),
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Image(
+                        painter = painter,
+                        contentDescription = stringResource(Res.string.ui_ticket_digital_code),
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                    )
+                    Text(
+                        text = code.value,
+                        color = Color.Black,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        letterSpacing = 0.5.sp,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                    )
+                }
+            }
         } else {
             Text(
                 text = stringResource(Res.string.ui_ticket_use_original),
@@ -87,10 +110,6 @@ internal fun TransportTicketActions(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     var originalVisible by remember(state.original) { mutableStateOf(false) }
-    var digitalVisible by remember(state.original) { mutableStateOf(false) }
-    val reproducible = remember(state.codes) {
-        state.codes.filter { runCatching { CodeGenerator().generate(it) }.isSuccess }
-    }
 
     LiquidCard(
         modifier = Modifier.fillMaxWidth(),
@@ -158,26 +177,12 @@ internal fun TransportTicketActions(
 
             // Action Buttons
             if (state.original != null) {
-                Column(
+                LiquidButton(
+                    text = stringResource(Res.string.ui_ticket_show_original),
+                    onClick = { originalVisible = true },
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    if (reproducible.isNotEmpty()) {
-                        LiquidButton(
-                            text = stringResource(Res.string.ui_ticket_show_digital),
-                            onClick = { digitalVisible = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            variant = LiquidButtonVariant.Primary,
-                        )
-                    }
-
-                    LiquidButton(
-                        text = stringResource(Res.string.ui_ticket_show_original),
-                        onClick = { originalVisible = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        variant = if (reproducible.isNotEmpty()) LiquidButtonVariant.Tonal else LiquidButtonVariant.Primary,
-                    )
-                }
+                    variant = LiquidButtonVariant.Primary,
+                )
             } else if (!state.isLoading && !state.isReading) {
                 LiquidButton(
                     text = stringResource(if (state.errorMessage != null) Res.string.ui_ticket_reload else Res.string.ui_ticket_show_original),
@@ -245,56 +250,6 @@ internal fun TransportTicketActions(
                 LiquidButton(
                     text = stringResource(Res.string.ui_ticket_close),
                     onClick = { originalVisible = false },
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = LiquidButtonVariant.Tonal,
-                )
-            }
-        }
-    }
-
-    // Sheet per i Codici Digitali QR
-    if (digitalVisible) {
-        LiquidSheet(
-            onDismissRequest = { digitalVisible = false },
-            title = stringResource(Res.string.ui_ticket_digital_code),
-            subtitle = stringResource(Res.string.ui_transport_scan_turnstile_hint),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 260.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    for (code in state.codes) {
-                        if (code in reproducible) {
-                            TicketCodeImage(
-                                code = code,
-                                modifier = Modifier
-                                    .then(
-                                        if (code.format == CodeFormat.Qr) Modifier.size(240.dp)
-                                        else Modifier.fillMaxWidth().height(180.dp),
-                                    ),
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(Res.string.ui_ticket_use_original),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-                    }
-                }
-
-                LiquidButton(
-                    text = stringResource(Res.string.ui_ticket_close),
-                    onClick = { digitalVisible = false },
                     modifier = Modifier.fillMaxWidth(),
                     variant = LiquidButtonVariant.Tonal,
                 )

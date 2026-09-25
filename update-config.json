@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Biglietti salvati e disponibili offline anche se il portale risponde con errori o elenchi incompleti.\n- Dati del viaggio corretti e prenotazioni ordinate per data e ora.\n- Rimosso il collegamento ridondante al biglietto ufficiale dal dettaglio."
+  "notes": "- Il codice a barre del biglietto mostra il valore sotto le barre; rimossa la vista digitale duplicata sotto la tessera."
 }

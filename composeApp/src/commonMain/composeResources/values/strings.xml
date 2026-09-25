@@ -1264,14 +1264,12 @@
     <string name="ui_demo_invalid_credentials">Credenziali dell’account dimostrativo non valide.</string>
     <string name="ui_code_unavailable">Codice non disponibile</string>
     <string name="ui_ticket_show_original">Mostra originale</string>
-    <string name="ui_ticket_show_digital">Mostra codice digitale</string>
     <string name="ui_ticket_download_failed">Impossibile scaricare e salvare il biglietto. Riprova o apri il portale dei trasporti.</string>
     <string name="ui_ticket_use_original">Codice non leggibile o non riproducibile. Usa il biglietto originale.</string>
     <string name="ui_ticket_reading">Lettura del codice in corso…</string>
     <string name="ui_ticket_downloading">Salvataggio del biglietto in corso…</string>
     <string name="ui_ticket_reload">Scarica di nuovo</string>
     <string name="ui_ticket_original_saved">Originale salvato sul dispositivo, disponibile anche offline.</string>
-    <string name="ui_ticket_multiple_codes">Il biglietto contiene più codici. Apri la vista digitale per mostrarli.</string>
     <string name="ui_ticket_catalog_no_code">Prenota una corsa per ottenere il biglietto e il suo codice.</string>
     <string name="ui_ticket_original_image">Biglietto originale</string>
     <string name="ui_ticket_digital_code">Codice del biglietto</string>

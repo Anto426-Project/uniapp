@@ -1,3 +1,7 @@
+## [2.0.11] - 2026-09-25 (build set by CI)
+
+- Il codice a barre del biglietto mostra il valore sotto le barre; rimossa la vista digitale duplicata sotto la tessera.
+
 ## [2.0.10] - 2026-09-25 (build set by CI)
 
 - Biglietti salvati e disponibili offline anche se il portale risponde con errori o elenchi incompleti.
