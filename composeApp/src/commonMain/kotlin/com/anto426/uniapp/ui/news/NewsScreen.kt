@@ -9,6 +9,7 @@ import com.anto426.liquidmonet.components.navigation.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.news.presentation.NewsUiState
+import com.anto426.uniapp.news.presentation.NewsFilter
 import com.anto426.uniapp.ui.components.items.UniNewsCard
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 
@@ -21,11 +22,14 @@ fun NewsScreen(
     onTabSelected: (Int) -> Unit,
     onNewsSelected: (NewsItem) -> Unit,
 ) {
-    val tabs = listOf(
-        LiquidNavigationItem(label = stringResource(Res.string.ui_news_university), icon = LiquidIcons.Home),
-        LiquidNavigationItem(label = stringResource(Res.string.ui_news_department), icon = LiquidIcons.Star),
-        LiquidNavigationItem(label = stringResource(Res.string.ui_news_events), icon = LiquidIcons.Calendar)
-    )
+    val tabs = uiState.filters.map { filter ->
+        when (filter) {
+            NewsFilter.All -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_all), icon = LiquidIcons.MenuBook)
+            NewsFilter.University -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_university), icon = LiquidIcons.Home)
+            NewsFilter.Department -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_department), icon = LiquidIcons.Star)
+            NewsFilter.Course -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_course), icon = LiquidIcons.MenuBook)
+        }
+    }
     UniScreenLazyColumn {
         item(key = "news-tabs") {
             LiquidTabBar(

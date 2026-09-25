@@ -81,11 +81,11 @@ internal fun TicketCodeImage(code: DecodedCode?, modifier: Modifier = Modifier) 
                         modifier = Modifier.fillMaxWidth().weight(1f),
                     )
                     Text(
-                        text = code.value,
+                        text = code.value.uppercase(),
                         color = Color.Black,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         letterSpacing = 0.5.sp,
                         textAlign = TextAlign.Center,
                         maxLines = 2,

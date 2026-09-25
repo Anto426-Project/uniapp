@@ -422,7 +422,7 @@ fun HomeNewsSection(
 
     Column(
         modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         LiquidSectionHeader(
             title = stringResource(Res.string.nav_route_news_title),
@@ -459,6 +459,7 @@ fun HomeNewsSection(
                 news = newsItem,
                 onClick = { onShowNews(newsItem) },
                 modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                homeCard = true,
             )
         }
     }

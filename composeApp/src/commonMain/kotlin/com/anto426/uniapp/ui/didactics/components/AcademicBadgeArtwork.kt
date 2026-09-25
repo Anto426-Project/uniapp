@@ -23,7 +23,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.uniapp.codes.QrCodeStyle
 import com.anto426.uniapp.codes.CodeGenerator
 import com.kyant.shapes.RoundedRectangle
@@ -80,45 +84,40 @@ internal fun AcademicBadgeQr(value: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Keeps the official scannable codes visible even before the badge is flipped. */
+/** The barcode belongs to the front of the badge; its encoded value is never changed. */
 @Composable
-internal fun AcademicBadgeCodes(
-    qrValue: String,
-    barcodeValue: String,
+internal fun AcademicBadgeBarcode(
+    value: String,
     modifier: Modifier = Modifier,
 ) {
-    val barcodePainter = remember(barcodeValue) {
-        barcodeValue.takeIf(String::isNotBlank)?.let { value ->
-            runCatching { CodeGenerator().barcode(value) }.getOrNull()
+    val barcodePainter = remember(value) {
+        value.takeIf(String::isNotBlank)?.let { encoded ->
+            runCatching { CodeGenerator().barcode(encoded) }.getOrNull()
         }
     }
+    if (barcodePainter == null) return
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.White, RoundedRectangle(16.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (qrValue.isNotBlank()) {
-            AcademicBadgeQr(qrValue)
-        }
-        if (barcodePainter != null) {
-            Text(
-                text = stringResource(Res.string.ui_badge_barcode),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Image(
-                painter = barcodePainter,
-                contentDescription = stringResource(Res.string.ui_badge_barcode),
-                modifier = Modifier.fillMaxWidth()
-                    .height(96.dp)
-                    .background(Color.White, RoundedRectangle(16.dp))
-                    .padding(12.dp),
-            )
-        }
-        if (qrValue.isBlank() && barcodePainter == null) {
-            Text(
-                text = stringResource(Res.string.ui_code_unavailable),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
+        Image(
+            painter = barcodePainter,
+            contentDescription = stringResource(Res.string.ui_badge_barcode),
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        )
+        Text(
+            text = value.uppercase(),
+            color = Color.Black,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            letterSpacing = 0.6.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
     }
 }

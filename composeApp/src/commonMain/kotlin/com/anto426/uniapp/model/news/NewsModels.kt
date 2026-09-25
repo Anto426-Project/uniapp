@@ -7,4 +7,6 @@ data class NewsItem(
     val description: String,
     val fullContent: String,
     val type: LiquidStatusType = LiquidStatusType.Info,
+    val category: String = "",
+    val publishedAt: String = "",
 )

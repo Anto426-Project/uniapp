@@ -27,6 +27,7 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.model.services.contactDialUri
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.encodeURLParameter
@@ -42,7 +43,7 @@ fun ContactDetailScreen(contact: ContactData) {
     val openFailed = stringResource(Res.string.ui_contact_open_failed)
 
     val emailUri = if (contact.email.isNotBlank()) "mailto:${contact.email.encodeURLParameter(spaceToPlus = false)}" else null
-    val firstPhoneUri = contact.phoneNumbers.firstOrNull()?.let { "tel:${it.encodeURLParameter(spaceToPlus = false)}" }
+    val firstPhoneUri = contact.phoneNumbers.firstNotNullOfOrNull(String::contactDialUri)
 
     val contactFields = buildList {
         if (contact.email.isNotBlank()) {
@@ -58,10 +59,10 @@ fun ContactDetailScreen(contact: ContactData) {
         contact.phoneNumbers.forEach { phone ->
             add(
                 ContactDetailField(
-                    Res.string.ui_phone,
+                    if (phone.count(Char::isDigit) < 7) Res.string.ui_contact_internal_phone else Res.string.ui_phone,
                     phone,
                     LiquidIcons.Phone,
-                    "tel:${phone.encodeURLParameter(spaceToPlus = false)}",
+                    phone.contactDialUri(),
                 ),
             )
         }

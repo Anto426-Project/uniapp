@@ -341,6 +341,9 @@
     <string name="ui_home_news_all">Apri tutte</string>
     <string name="ui_news_university">Ateneo</string>
     <string name="ui_news_department">Dipartimento</string>
+    <string name="ui_news_all">Tutte</string>
+    <string name="ui_news_course">Corso di studi</string>
+    <string name="ui_news_generic">Notizia</string>
     <string name="ui_news_events">Eventi</string>
     <string name="ui_news_empty_title">Nessuna notizia disponibile</string>
     <string name="ui_news_empty_desc">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
@@ -831,6 +834,9 @@
     <string name="ui_transport_direction_subtitle">Seleziona se prenotare la sola andata, il ritorno o entrambi (A/R)</string>
     <string name="ui_transport_round_trip">Andata e ritorno</string>
     <string name="ui_transport_dates_title">Date del viaggio</string>
+    <string name="ui_transport_booking_date_policy">Prenotazioni da domani fino a 15 giorni, esclusi sabato e domenica.</string>
+    <string name="ui_transport_booking_completed">%1$d corse prenotate con successo.</string>
+    <string name="ui_transport_booking_partial">%1$d/%2$d corse prenotate; %3$d già presenti, %4$d non riuscite.</string>
     <string name="ui_transport_dates_subtitle">Tocca i giorni desiderati sul calendario per selezionare più date</string>
     <string name="ui_transport_preset_today">Oggi</string>
     <string name="ui_transport_preset_today_tomorrow">Oggi + domani</string>
@@ -1274,4 +1280,5 @@
     <string name="ui_ticket_original_image">Biglietto originale</string>
     <string name="ui_ticket_digital_code">Codice del biglietto</string>
     <string name="ui_ticket_close">Chiudi</string>
+    <string name="ui_contact_internal_phone">Interno</string>
 </resources>

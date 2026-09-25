@@ -78,6 +78,8 @@ class SettingsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.biometricEnabled)
+            assertFalse(viewModel.uiState.value.isPasswordSetupVisible)
+            assertFalse(viewModel.uiState.value.isBiometricAuthenticating)
             assertFalse(
                 dataStore.contains(LocalDataScope.Account(ACCOUNT_ID), UniAppDataKeys.BiometricUnlock),
             )

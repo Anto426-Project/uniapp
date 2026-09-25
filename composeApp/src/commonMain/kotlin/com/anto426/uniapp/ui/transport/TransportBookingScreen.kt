@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,14 +57,19 @@ import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.transport.presentation.TransportBookingUiState
+import com.anto426.uniapp.transport.presentation.isTransportBookingDateAllowed
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.transport.TransportDirection
+import com.anto426.unisdk.transport.TransportRouteData
+import com.anto426.unisdk.transport.displayFor
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
+import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -78,10 +84,17 @@ fun TransportBookingScreen(
     val colorScheme = MaterialTheme.colorScheme
     var selectedDirection by remember { mutableStateOf(TransportDirection.OUTBOUND) }
 
-    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val lastBookableDate = today.plus(15, DateTimeUnit.DAY)
     var displayedYear by remember { mutableIntStateOf(today.year) }
     var displayedMonth by remember { mutableIntStateOf(today.month.number) }
-    var selectedDates by remember { mutableStateOf(setOf(today)) }
+    var selectedDates by remember { mutableStateOf(emptySet<LocalDate>()) }
+    LaunchedEffect(today) {
+        selectedDates = selectedDates.filterTo(mutableSetOf()) { isTransportBookingDateAllowed(it, today) }
+    }
+    val displayedMonthIndex = displayedYear * 12 + displayedMonth
+    val firstMonthIndex = today.year * 12 + today.month.number
+    val lastMonthIndex = lastBookableDate.year * 12 + lastBookableDate.month.number
 
     val monthNames = listOf(
         "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
@@ -117,6 +130,20 @@ fun TransportBookingScreen(
             label = stringResource(Res.string.ui_trip_route),
             modifier = Modifier.fillMaxWidth(),
         )
+        if (uiState.selectedRoute.isNotBlank()) {
+            val route = TransportRouteData(code = "", label = uiState.selectedRoute)
+            val outbound = route.displayFor(TransportDirection.OUTBOUND).label
+            val returning = route.displayFor(TransportDirection.RETURN).label
+            Text(
+                text = when (selectedDirection) {
+                    TransportDirection.OUTBOUND -> outbound
+                    TransportDirection.RETURN -> returning
+                    TransportDirection.ROUND_TRIP -> "$outbound • $returning"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = colorScheme.onSurfaceVariant,
+            )
+        }
 
         // 2. Selezione Direzione (Andata, Ritorno, Andata e Ritorno) - Stile Card come Schermata Temi
         LiquidSectionHeader(
@@ -200,6 +227,11 @@ fun TransportBookingScreen(
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_transport_dates_title),
         )
+        Text(
+            text = stringResource(Res.string.ui_transport_booking_date_policy),
+            style = MaterialTheme.typography.bodySmall,
+            color = colorScheme.onSurfaceVariant,
+        )
 
         // Calendario Multi-Selezione in Vetro Liquido
         LiquidCard(
@@ -233,6 +265,7 @@ fun TransportBookingScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         LiquidIconButton(
                             icon = LiquidIcons.ChevronLeft,
+                            enabled = displayedMonthIndex > firstMonthIndex,
                             onClick = {
                                 if (displayedMonth == 1) {
                                     displayedMonth = 12
@@ -244,6 +277,7 @@ fun TransportBookingScreen(
                         )
                         LiquidIconButton(
                             icon = LiquidIcons.ChevronRight,
+                            enabled = displayedMonthIndex < lastMonthIndex,
                             onClick = {
                                 if (displayedMonth == 12) {
                                     displayedMonth = 1
@@ -291,7 +325,7 @@ fun TransportBookingScreen(
                                     val cellDate = LocalDate(displayedYear, displayedMonth, dayNumber)
                                     val isSelected = cellDate in selectedDates
                                     val isToday = cellDate == today
-                                    val isPast = cellDate < today
+                                    val isAllowed = isTransportBookingDateAllowed(cellDate, today)
 
                                     val cellScale by animateFloatAsState(
                                         targetValue = if (isSelected) 1.08f else 1f,
@@ -305,7 +339,7 @@ fun TransportBookingScreen(
                                             .graphicsLayer {
                                                 scaleX = cellScale
                                                 scaleY = cellScale
-                                                alpha = if (isPast) 0.35f else 1f
+                                                alpha = if (isAllowed) 1f else 0.35f
                                             }
                                             .liquidGlass(
                                                 shape = Capsule(),
@@ -321,9 +355,9 @@ fun TransportBookingScreen(
                                                 color = if (isSelected) colorScheme.primary else if (isToday) colorScheme.primary.copy(alpha = 0.45f) else Color.Transparent,
                                                 shape = Capsule(),
                                             )
-                                            .clickable(enabled = !isPast) {
+                                            .clickable(enabled = isAllowed) {
                                                 selectedDates = if (isSelected) {
-                                                    if (selectedDates.size > 1) selectedDates - cellDate else selectedDates
+                                                    selectedDates - cellDate
                                                 } else {
                                                     selectedDates + cellDate
                                                 }
@@ -406,71 +440,76 @@ fun TransportBookingScreen(
                         )
                     }
 
-                    // Route Segment Display (Origin -> Destination visualizer)
-                    val routeParts = remember(uiState.selectedRoute) {
-                        val parts = uiState.selectedRoute.split(Regex("[-–—>]"))
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                        if (parts.size >= 2) parts[0] to parts[1] else uiState.selectedRoute to ""
-                    }
-
-                    if (routeParts.second.isNotEmpty()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            val (origin, destination) = when (selectedDirection) {
-                                TransportDirection.RETURN -> routeParts.second to routeParts.first
-                                else -> routeParts.first to routeParts.second
-                            }
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = origin,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = colorScheme.onSurface,
-                                    maxLines = 1,
-                                )
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .padding(horizontal = 12.dp)
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(colorScheme.primary.copy(alpha = 0.12f)),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = if (selectedDirection == TransportDirection.ROUND_TRIP) LiquidIcons.Refresh else LiquidIcons.ArrowForward,
-                                    contentDescription = null,
-                                    tint = colorScheme.primary,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                            }
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.End,
-                            ) {
-                                Text(
-                                    text = destination,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = colorScheme.onSurface,
-                                    maxLines = 1,
-                                )
-                            }
+                    // Use the SDK's direction-aware route names in every leg of the summary.
+                    val route = TransportRouteData(code = "", label = uiState.selectedRoute)
+                    val directions = if (selectedDirection == TransportDirection.ROUND_TRIP) {
+                        listOf(TransportDirection.OUTBOUND, TransportDirection.RETURN)
+                    } else listOf(selectedDirection)
+                    directions.forEach { direction ->
+                        val display = route.displayFor(direction)
+                        if (directions.size > 1) {
+                            Text(
+                                text = stringResource(
+                                    if (direction == TransportDirection.OUTBOUND) Res.string.ui_trip_outbound
+                                    else Res.string.ui_trip_return,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colorScheme.onSurfaceVariant,
+                            )
                         }
-                    } else {
-                        Text(
-                            text = uiState.selectedRoute,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
-                        )
+                        if (display.arrivalStop.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = display.departureStop,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = colorScheme.onSurface,
+                                        maxLines = 1,
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp)
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(colorScheme.primary.copy(alpha = 0.12f)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = LiquidIcons.ArrowForward,
+                                        contentDescription = null,
+                                        tint = colorScheme.primary,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                }
+
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.End,
+                                ) {
+                                    Text(
+                                        text = display.arrivalStop,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = colorScheme.onSurface,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = display.label,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                            )
+                        }
                     }
 
                     LiquidHorizontalDivider()

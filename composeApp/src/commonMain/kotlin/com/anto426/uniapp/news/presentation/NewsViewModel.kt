@@ -7,7 +7,6 @@ import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.data.UniAppDataSource
-import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.data.toNewsItems
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -17,16 +16,22 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+
+enum class NewsFilter(val category: String?) {
+    All(null), University("Ateneo"), Department("Dipartimento"), Course("Corso di studi"),
+}
 
 data class NewsUiState(
     val selectedTab: Int = 0,
-    val newsByTab: List<List<NewsItem>> = listOf(emptyList(), emptyList(), emptyList()),
+    val filters: List<NewsFilter> = listOf(NewsFilter.All),
+    val news: List<NewsItem> = emptyList(),
     val selectedNews: NewsItem? = null,
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
 ) {
-    val visibleNews: List<NewsItem> get() = newsByTab.getOrNull(selectedTab).orEmpty()
+    val visibleNews: List<NewsItem> get() = filters.getOrNull(selectedTab)?.category?.let { category ->
+        news.filter { it.category.equals(category, ignoreCase = true) }
+    } ?: news
 }
 
 class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
@@ -38,13 +43,15 @@ class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val news = snapshot.require(UniAppDataRequests.News)
-            val tabs = listOf(
-                news.toNewsItems(),
-                news.filter { it.category?.contains("dipartiment", ignoreCase = true) == true }.toNewsItems(),
-                news.filter { it.category?.contains("event", ignoreCase = true) == true }.toNewsItems(),
-            )
+            val items = news.toNewsItems()
+            val filters = listOf(NewsFilter.All) + NewsFilter.entries.drop(1).filter { filter ->
+                items.any { it.category.equals(filter.category, ignoreCase = true) }
+            }
+            val selected = mutableUiState.value.filters.getOrNull(mutableUiState.value.selectedTab)
             mutableUiState.value = mutableUiState.value.copy(
-                newsByTab = tabs,
+                filters = filters,
+                selectedTab = filters.indexOfFirst { it == selected }.coerceAtLeast(0),
+                news = items,
                 loadState = if (news.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 errorMessage = null,
             )
@@ -62,7 +69,7 @@ class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
     fun refresh(force: Boolean = false) { sharedData.refresh(dataRequests, force) }
 
     fun selectTab(index: Int) {
-        val lastIndex = mutableUiState.value.newsByTab.lastIndex.coerceAtLeast(0)
+        val lastIndex = mutableUiState.value.filters.lastIndex.coerceAtLeast(0)
         mutableUiState.value = mutableUiState.value.copy(selectedTab = index.coerceIn(0, lastIndex))
     }
 

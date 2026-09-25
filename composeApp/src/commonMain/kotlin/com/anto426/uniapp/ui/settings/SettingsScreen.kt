@@ -16,6 +16,7 @@ import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -187,13 +188,15 @@ fun SettingsScreen(
                     },
                 icon = LiquidIcons.Check,
                 trailingContent = {
-                    LiquidSwitch(
-                        checked = uiState.biometricEnabled,
-                        onCheckedChange = onBiometricEnabledChange,
-                        enabled =
-                            uiState.biometricAvailability == BiometricAvailability.Available &&
-                                !uiState.isBiometricAuthenticating,
-                    )
+                    key(uiState.biometricEnabled, uiState.isPasswordSetupVisible, uiState.isBiometricAuthenticating) {
+                        LiquidSwitch(
+                            checked = uiState.biometricEnabled,
+                            onCheckedChange = onBiometricEnabledChange,
+                            enabled =
+                                uiState.biometricAvailability == BiometricAvailability.Available &&
+                                    !uiState.isBiometricAuthenticating,
+                        )
+                    }
                 }
             )
         }

@@ -1,3 +1,12 @@
+## [2.0.12] - 2026-09-25 (build set by CI)
+
+- Rubrica con numeri e dettagli completi, notizie filtrate per fonte e card Home uniformate.
+- Badge accademico con un'unica tessera e barcode integrato; valore del biglietto più leggibile sotto le barre.
+- Prenotazioni navetta consentite solo nei feriali da domani a 15 giorni; selezioni multiple e andata/ritorno inviate come corse separate, con esito parziale visibile.
+- Tratte normalizzate nel UniSDK: andata prima del ritorno e percorso del ritorno mostrato in direzione inversa in elenco, dettaglio e riepilogo.
+- Il toggle biometrico torna allo stato precedente se la conferma viene annullata; l'attivazione viene mostrata solo dopo il salvataggio riuscito.
+- Migliorata la gestione del task Android quando l'app viene riaperta dal launcher o da una notifica.
+
 ## [2.0.11] - 2026-09-25 (build set by CI)
 
 - Il codice a barre del biglietto mostra il valore sotto le barre; rimossa la vista digitale duplicata sotto la tessera.

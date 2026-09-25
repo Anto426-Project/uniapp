@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Il codice a barre del biglietto mostra il valore sotto le barre; rimossa la vista digitale duplicata sotto la tessera."
+  "notes": "- Rubrica e notizie corrette; badge senza duplicati; prenotazioni navetta feriali e tratte nel verso giusto; conferma biometrica senza toggle bloccato."
 }

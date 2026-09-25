@@ -27,6 +27,21 @@ class TransportMappingTest {
         assertEquals("Campobasso", reservations.first().departureStop)
         assertEquals("Pesche", reservations.last().departureStop)
         assertEquals("Campobasso", reservations.last().arrivalStop)
+        assertEquals(listOf("Campobasso/Pesche", "Pesche/Campobasso"), reservations.map { it.route })
+    }
+
+    @Test fun outboundIsShownBeforeReturnOnTheSameDayEvenWhenTheReturnTimeIsEarlier() {
+        val data = TransportData(
+            routeLabel = "Campobasso/Pesche/A/R",
+            availableRoutes = listOf(TransportRouteData("A01", "Campobasso/Pesche/A/R")),
+            bookings = listOf(
+                booking("back", "T-004", "28/09/2026 08:00", isReturn = true),
+                booking("out", "T-005", "28/09/2026 09:00"),
+            ),
+            totalCount = 2,
+        )
+
+        assertEquals(listOf("out", "back"), data.toReservations().map { it.id })
     }
 
     @Test fun weekdayOrDirectionAloneNeverBecomesTravelDateOrStop() {

@@ -34,6 +34,6 @@ open class FakeUniAppDataSource : UniAppDataSource {
     override suspend fun saveSurvey(courseId: String, request: SurveySaveRequest) = "OK"
     override suspend fun loadSurveyCompilationStatus(adCod: String, forceRefresh: Boolean) = false
     override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData("", bookings = emptyList(), totalCount = 0)
-    override suspend fun bookTransport(request: TransportBookingRequest) = TransportActionResult.Completed
+    override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult = TransportActionResult.Completed
     override suspend fun deleteTransportBooking(bookingId: String) = TransportActionResult.Completed
 }

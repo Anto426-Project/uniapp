@@ -47,38 +47,47 @@ fun UniNewsCard(
     modifier: Modifier = Modifier,
     fixedHeight: Dp? = null,
     categoryLabel: String? = null,
+    homeCard: Boolean = false,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
+    val sourceLabel = categoryLabel ?: news.category.takeIf { value ->
+        value.isNotBlank() && !value.all(Char::isDigit)
+    }
+    val dateLabel = news.publishedAt.ifBlank { stringResource(Res.string.ui_news_official_notice) }
 
     val categoryConfig = when {
-        categoryLabel != null -> NewsCategoryConfig(
-            label = categoryLabel,
-            subtitle = "Notizia accademica",
-            icon = if (categoryLabel.contains("dip", ignoreCase = true)) LiquidIcons.Star else LiquidIcons.MenuBook,
+        sourceLabel != null -> NewsCategoryConfig(
+            label = sourceLabel,
+            subtitle = dateLabel,
+            icon = when {
+                sourceLabel.contains("dip", ignoreCase = true) -> LiquidIcons.Star
+                sourceLabel.contains("ateneo", ignoreCase = true) -> LiquidIcons.Home
+                else -> LiquidIcons.MenuBook
+            },
             color = colorScheme.primary,
         )
         news.type == LiquidStatusType.Success -> NewsCategoryConfig(
-            label = stringResource(Res.string.ui_news_events),
-            subtitle = "Iniziative & Campus",
+            label = stringResource(Res.string.ui_news_generic),
+            subtitle = dateLabel,
             icon = LiquidIcons.Calendar,
             color = glassColors.success,
         )
         news.type == LiquidStatusType.Warning -> NewsCategoryConfig(
             label = "Avviso",
-            subtitle = stringResource(Res.string.ui_news_official_notice),
+            subtitle = dateLabel,
             icon = LiquidIcons.Notifications,
             color = glassColors.warning,
         )
         news.type == LiquidStatusType.Error -> NewsCategoryConfig(
             label = "Importante",
-            subtitle = "Avviso urgente",
+            subtitle = dateLabel,
             icon = LiquidIcons.Warning,
             color = glassColors.error,
         )
         else -> NewsCategoryConfig(
-            label = stringResource(Res.string.ui_news_university),
-            subtitle = "Notizia accademica",
+            label = stringResource(Res.string.ui_news_generic),
+            subtitle = dateLabel,
             icon = LiquidIcons.MenuBook,
             color = colorScheme.primary,
         )
@@ -90,13 +99,13 @@ fun UniNewsCard(
         modifier = modifier
             .fillMaxWidth()
             .then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier),
-        shape = RoundedRectangle(20.dp),
+        shape = RoundedRectangle(if (homeCard) 22.dp else 20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(if (homeCard) 12.dp else 10.dp),
         ) {
             // Header: Optical icon pod + Category info + Trailing CTA pill
             Row(
@@ -111,8 +120,8 @@ fun UniNewsCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedRectangle(10.dp))
+                            .size(if (homeCard) 40.dp else 32.dp)
+                            .clip(RoundedRectangle(if (homeCard) 12.dp else 10.dp))
                             .background(categoryConfig.color.copy(alpha = 0.14f)),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -120,7 +129,7 @@ fun UniNewsCard(
                             imageVector = categoryConfig.icon,
                             contentDescription = null,
                             tint = categoryConfig.color,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(if (homeCard) 20.dp else 16.dp),
                         )
                     }
 

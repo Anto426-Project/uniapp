@@ -183,7 +183,9 @@ class SettingsViewModel(
                         )
                     }
 
-                    BiometricAuthenticationResult.Cancelled -> Unit
+                    BiometricAuthenticationResult.Cancelled -> {
+                        if (enabled) update { copy(isPasswordSetupVisible = false, passwordSetupError = null) }
+                    }
                     is BiometricAuthenticationResult.Failed ->
                         toastSink.error(result.message.ifBlank { getString(Res.string.msg_autenticazione_non_riuscita) })
                 }

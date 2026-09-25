@@ -78,6 +78,30 @@ class ContactMappingTest {
     }
 
     @Test
+    fun fullPublicNumbersComeBeforeExtensionsAndDetailsRetainRoleAndHours() {
+        val contact = listOf(UniversityContact(
+            id = "person-1",
+            firstName = "Ada",
+            lastName = "Lovelace",
+            displayName = "Ada Lovelace",
+            email = "ada@example.org",
+            phones = listOf("2281", "+39 0874 404 281"),
+            organization = "Dipartimento",
+            address = null,
+            building = "Edificio II",
+            city = "Campobasso",
+            role = "Professoressa",
+            officeHours = "Martedì 10:00",
+        )).toContacts().single()
+
+        assertEquals(listOf("+39 0874 404 281", "2281"), contact.phoneNumbers)
+        assertEquals("+39 0874 404 281", contact.phone)
+        assertEquals("Professoressa", contact.role)
+        assertEquals("Martedì 10:00", contact.officeHours)
+        assertEquals("Dipartimento", contact.department)
+    }
+
+    @Test
     fun contactsWithoutApiIdsHaveDistinctKeysWhenTheirContactDetailsDiffer() {
         val original = ContactData(
             name = "Segreteria",

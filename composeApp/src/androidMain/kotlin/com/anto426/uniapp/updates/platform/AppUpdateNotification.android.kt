@@ -34,7 +34,7 @@ internal actual fun NotifyAvailableAppUpdate(state: AppUpdateUiState, enabled: B
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("app-updates", channelName, NotificationManager.IMPORTANCE_DEFAULT))
         val launch = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return@LaunchedEffect
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pending = PendingIntent.getActivity(context, 4206, launch, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, "app-updates")
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
