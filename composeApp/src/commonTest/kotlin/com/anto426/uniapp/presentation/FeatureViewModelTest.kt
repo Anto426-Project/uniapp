@@ -416,7 +416,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 return expectedBytes
             }
         }
-        val home = HomeDashboardViewModel(source, quickActions = emptyList())
+        val home = HomeDashboardViewModel(source, quickActions = emptyList(), preparationDispatcher = Dispatchers.Main)
         val badge = AcademicIdentityViewModel(source)
         advanceUntilIdle()
 
@@ -488,7 +488,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 )
         }
 
-        val viewModel = HomeDashboardViewModel(source, emptyList(), professorAccount())
+        val viewModel = HomeDashboardViewModel(source, emptyList(), professorAccount(), preparationDispatcher = Dispatchers.Main)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
