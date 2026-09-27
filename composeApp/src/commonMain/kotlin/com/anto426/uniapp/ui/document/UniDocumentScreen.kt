@@ -387,29 +387,26 @@ fun List<LegalSectionData>.toMarkdownString(): String {
  */
 @Composable
 fun ChangelogUiState.toMarkdownString(): String {
+    val version = versions.firstOrNull() ?: return ""
+    val rawDesc = version.items.firstOrNull()?.rawDescription?.trim().orEmpty()
+    if (rawDesc.isNotBlank()) {
+        return rawDesc
+    }
+
     val sb = StringBuilder()
-    for (i in versions.indices) {
-        val version = versions[i]
-        sb.append("## Versione ").append(version.version)
-        val date = version.date
-        if (date.isNotBlank()) {
-            sb.append(" • ").append(date)
-        }
-        sb.append("\n\n")
-        for (item in version.items) {
-            val itemTitle = item.title
-            val itemDescription = item.description
-            sb.append("- **")
-                .append(itemTitle)
-                .append("**: ")
-                .append(itemDescription)
-                .append("\n")
-        }
-        if (i < versions.lastIndex) {
-            sb.append("\n---\n\n")
+    for (item in version.items) {
+        val title = item.title.trim()
+        val desc = item.description.trim()
+        if (title.isNotBlank() && desc.isNotBlank()) {
+            sb.append("• **$title**: $desc\n")
+        } else if (desc.isNotBlank()) {
+            sb.append("• $desc\n")
+        } else if (title.isNotBlank()) {
+            sb.append("• **$title**\n")
         }
     }
-    return sb.toString()
+
+    return sb.toString().trim()
 }
 
 
