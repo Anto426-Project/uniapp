@@ -810,6 +810,16 @@ internal fun AppRouteContent(
 
         AppRoute.Changelog -> {
             val changelogViewModel = viewModel(key = viewModelKey) { ChangelogViewModel(updateUiState) }
+            LaunchedEffect(
+                changelogViewModel,
+                updateUiState.releaseNotes,
+                updateUiState.displayedVersion,
+                updateUiState.installedVersion,
+                updateUiState.publishedAt,
+                updateUiState.channel,
+            ) {
+                changelogViewModel.update(updateUiState)
+            }
             val changelogUiState by changelogViewModel.uiState.collectAsStateWithLifecycle()
             ChangelogScreen(
                 uiState = changelogUiState,

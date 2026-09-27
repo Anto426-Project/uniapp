@@ -15,12 +15,40 @@ data class ChangelogUiState(
 )
 
 class ChangelogViewModel(update: AppUpdateUiState) : ViewModel() {
-    private val versions =
-        update.releaseNotes?.takeIf(String::isNotBlank)?.let { notes ->
-            listOf(
+    private val versions = buildSingleVersion(update)
+
+    private val mutableUiState = MutableStateFlow(
+        ChangelogUiState(
+            versions = versions,
+            expandedVersion = versions.firstOrNull()?.version.orEmpty(),
+        ),
+    )
+    val uiState: StateFlow<ChangelogUiState> = mutableUiState.asStateFlow()
+
+    fun update(update: AppUpdateUiState) {
+        val versions = buildSingleVersion(update)
+        if (versions == mutableUiState.value.versions) return
+        mutableUiState.value = ChangelogUiState(
+            versions = versions,
+            expandedVersion = versions.firstOrNull()?.version.orEmpty(),
+        )
+    }
+
+    fun setExpanded(version: String, expanded: Boolean) {
+        if (version !in mutableUiState.value.versions.map { it.version }) return
+        mutableUiState.value = mutableUiState.value.copy(expandedVersion = if (expanded) version else "")
+    }
+
+    private companion object {
+        fun buildSingleVersion(update: AppUpdateUiState): List<ChangelogVersionData> {
+            val notes = update.releaseNotes?.trim()?.takeIf(String::isNotBlank) ?: return emptyList()
+            val rawVer = update.displayedVersion.ifBlank { update.installedVersion }.removePrefix("v")
+            if (rawVer.isBlank()) return emptyList()
+
+            return listOf(
                 ChangelogVersionData(
-                    version = "v${update.displayedVersion}",
-                    date = update.publishedAt.orEmpty(),
+                    version = "v$rawVer",
+                    rawDate = update.publishedAt.orEmpty(),
                     items = listOf(
                         ChangelogItemData(
                             tag = "UPDATE",
@@ -29,20 +57,9 @@ class ChangelogViewModel(update: AppUpdateUiState) : ViewModel() {
                             rawDescription = notes,
                         ),
                     ),
+                    channel = update.channel.orEmpty(),
                 ),
             )
-        }.orEmpty()
-    private val mutableUiState =
-        MutableStateFlow(
-            ChangelogUiState(
-                versions = versions,
-                expandedVersion = versions.firstOrNull()?.version.orEmpty(),
-            ),
-        )
-    val uiState: StateFlow<ChangelogUiState> = mutableUiState.asStateFlow()
-
-    fun setExpanded(version: String, expanded: Boolean) {
-        if (version !in mutableUiState.value.versions.map { it.version }) return
-        mutableUiState.value = mutableUiState.value.copy(expandedVersion = if (expanded) version else "")
+        }
     }
 }
