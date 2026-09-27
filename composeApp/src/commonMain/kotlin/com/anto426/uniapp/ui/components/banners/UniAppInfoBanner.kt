@@ -29,6 +29,7 @@ fun UniAppInfoBanner(
     subtitle: String,
     buildInfo: String? = null,
     onClick: (() -> Unit)? = null,
+    palette: UniHeroCardPalette = rememberUniHeroCardPalette(),
 ) {
     val heroFontSize = if (height <= 250.dp) 72 else if (height < 360.dp) 82 else 96
 
@@ -37,8 +38,8 @@ fun UniAppInfoBanner(
         height = height,
         flipTrigger = UniHeroFlipTrigger.LONG_PRESS,
         onClick = onClick,
+        palette = palette,
         frontContent = {
-            val scheme = MaterialTheme.colorScheme
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -56,14 +57,16 @@ fun UniAppInfoBanner(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = title,
-                        color = scheme.onSurface,
+                        color = Color.White,
+                        style = HeroBannerTextStyle,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.5).sp,
                     )
                     Text(
                         text = subtitle,
-                        color = scheme.onSurface.copy(alpha = 0.72f),
+                        color = Color.White.copy(alpha = 0.94f),
+                        style = HeroBannerTextStyle,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                     )
@@ -73,7 +76,7 @@ fun UniAppInfoBanner(
                 if (buildInfo != null) {
                     Text(
                         text = buildInfo,
-                        color = scheme.onSurface.copy(alpha = 0.62f),
+                        color = Color.White.copy(alpha = 0.65f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.align(Alignment.BottomCenter),

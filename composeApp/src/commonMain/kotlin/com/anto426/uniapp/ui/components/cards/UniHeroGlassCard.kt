@@ -63,6 +63,7 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 /**
  * Palette cromatica condivisa per lo shader fluido hero delle card di UniApp.
+ * Sincronizzata dinamicamente con il ColorScheme attivo (Material You, preset Monet e tinte personalizzate).
  */
 data class UniHeroCardPalette(
     val cool: Color,
@@ -71,15 +72,143 @@ data class UniHeroCardPalette(
     val glow: Color,
 )
 
-@Composable
-fun rememberUniHeroCardPalette(): UniHeroCardPalette {
-    val scheme = MaterialTheme.colorScheme
-    return UniHeroCardPalette(
-        cool = lerp(scheme.primary, Color(0xFF3D8DFF), 0.74f),
-        violet = lerp(scheme.tertiary, Color(0xFFB85CFF), 0.64f),
-        warm = lerp(scheme.error, Color(0xFFFF6D54), 0.46f),
-        glow = lerp(scheme.secondary, Color(0xFFFFC857), 0.50f),
+/**
+ * CompositionLocal per la palette visiva della card hero.
+ */
+val LocalUniHeroCardPalette = compositionLocalOf<UniHeroCardPalette?> { null }
+
+/**
+ * Converte un [Color] nelle coordinate HSV (Hue 0..360, Saturation 0..1, Value 0..1).
+ */
+internal fun Color.toHsv(): FloatArray {
+    val r = red
+    val g = green
+    val b = blue
+    val max = maxOf(r, g, b)
+    val min = minOf(r, g, b)
+    val delta = max - min
+
+    var h = 0f
+    if (delta > 0.0001f) {
+        h = when (max) {
+            r -> 60f * (((g - b) / delta) % 6f)
+            g -> 60f * (((b - r) / delta) + 2f)
+            else -> 60f * (((r - g) / delta) + 4f)
+        }
+        if (h < 0f) h += 360f
+    }
+
+    val s = if (max > 0.0001f) delta / max else 0f
+    val v = max
+    return floatArrayOf(h, s, v)
+}
+
+/**
+ * Converte coordinate HSV in un [Color] Compose.
+ */
+internal fun hsvToColor(hue: Float, saturation: Float, value: Float, alpha: Float = 1f): Color {
+    val h = ((hue % 360f) + 360f) % 360f
+    val s = saturation.coerceIn(0f, 1f)
+    val v = value.coerceIn(0f, 1f)
+
+    val c = v * s
+    val x = c * (1f - kotlin.math.abs((h / 60f) % 2f - 1f))
+    val m = v - c
+
+    val (r1, g1, b1) = when {
+        h < 60f -> Triple(c, x, 0f)
+        h < 120f -> Triple(x, c, 0f)
+        h < 180f -> Triple(0f, c, x)
+        h < 240f -> Triple(0f, x, c)
+        h < 300f -> Triple(x, 0f, c)
+        else -> Triple(c, 0f, x)
+    }
+
+    return Color(
+        red = (r1 + m).coerceIn(0f, 1f),
+        green = (g1 + m).coerceIn(0f, 1f),
+        blue = (b1 + m).coerceIn(0f, 1f),
+        alpha = alpha,
     )
+}
+
+/**
+ * Keeps each pigment's hue while limiting its perceived brightness so white copy remains legible
+ * for bright seeds (especially yellow, lime and monochrome themes).
+ */
+fun generateUniHeroCardPalette(seed: Color): UniHeroCardPalette {
+    val (h, s, v) = seed.toHsv()
+
+    val isMonochrome = s < 0.08f
+    val baseSat = if (isMonochrome) s else s.coerceIn(0.46f, 0.90f)
+    val baseVal = v.coerceIn(if (isMonochrome) 0.30f else 0.55f, 0.95f)
+
+    val cool = hsvToColor(
+        hue = h,
+        saturation = baseSat,
+        value = baseVal,
+    ).limitLuminance(0.14f)
+
+    val violet = hsvToColor(
+        hue = (h + 12f) % 360f,
+        saturation = (baseSat * 1.08f).coerceIn(0f, 0.95f),
+        value = baseVal * 0.90f,
+    ).limitLuminance(0.10f)
+
+    val warm = hsvToColor(
+        hue = ((h - 12f) % 360f + 360f) % 360f,
+        saturation = if (isMonochrome) baseSat else (baseSat * 0.88f).coerceIn(0.35f, 0.85f),
+        value = baseVal * 1.08f,
+    ).limitLuminance(0.17f)
+
+    val glow = hsvToColor(
+        hue = (h + 3f) % 360f,
+        saturation = if (isMonochrome) baseSat else (baseSat * 0.45f).coerceIn(0.18f, 0.50f),
+        value = 1.0f,
+    ).limitLuminance(0.22f)
+
+    return UniHeroCardPalette(
+        cool = cool,
+        violet = violet,
+        warm = warm,
+        glow = glow,
+    )
+}
+
+private fun Color.limitLuminance(maxLuminance: Float): Color {
+    if (luminance() <= maxLuminance) return this
+    val (hue, saturation, value) = toHsv()
+    var low = 0f
+    var high = value
+    repeat(10) {
+        val mid = (low + high) * 0.5f
+        if (hsvToColor(hue, saturation, mid).luminance() > maxLuminance) high = mid else low = mid
+    }
+    return hsvToColor(hue, saturation, low)
+}
+
+/** A pale accent for text and controls, separate from the darker artwork pigment. */
+internal fun Color.heroTextAccent(): Color {
+    if (luminance() >= 0.72f) return this
+    var low = 0f
+    var high = 1f
+    repeat(10) {
+        val mid = (low + high) * 0.5f
+        if (lerp(this, Color.White, mid).luminance() < 0.72f) low = mid else high = mid
+    }
+    return lerp(this, Color.White, high)
+}
+
+@Composable
+fun rememberUniHeroCardPalette(
+    seed: Color = MaterialTheme.colorScheme.primary,
+): UniHeroCardPalette {
+    val local = LocalUniHeroCardPalette.current
+    if (local != null) return local
+
+    return remember(seed) {
+        generateUniHeroCardPalette(seed)
+    }
 }
 
 /**
@@ -93,7 +222,6 @@ layout(color) uniform float4 secondaryColor;
 layout(color) uniform float4 tertiaryColor;
 layout(color) uniform float4 glowColor;
 layout(color) uniform float4 baseColor;
-layout(color) uniform float4 contentColor;
 
 float softField(float2 point, float2 center, float radius) {
     return 1.0 - smoothstep(0.0, radius, length(point - center));
@@ -108,7 +236,6 @@ half4 main(float2 p) {
     float3 tertiary = tertiaryColor.rgb;
     float3 glow = glowColor.rgb;
     float3 deepBase = baseColor.rgb;
-    float3 content = contentColor.rgb;
 
     float3 container = mix(deepBase, mix(primary, tertiary, 0.34), 0.78);
     float3 primaryTone = mix(deepBase, primary, 0.92);
@@ -152,6 +279,9 @@ half4 main(float2 p) {
     float vignette = smoothstep(0.35, 0.86, length(centered));
     base = mix(base, deepBase, vignette * 0.16);
 
+    float header = 1.0 - smoothstep(0.10, 0.48, uv.y);
+    base = mix(base, deepBase, header * 0.42);
+
     return half4(clamp(base, 0.0, 1.0), 0.88);
 }
 """
@@ -166,8 +296,11 @@ fun UniHeroFluidBackground(
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val baseColor = if (isSystemInDarkTheme()) scheme.surfaceContainerLowest else scheme.inverseSurface
-    val contentColor = if (isSystemInDarkTheme()) scheme.onSurface else scheme.inverseOnSurface
+    val baseColor = if (scheme.surfaceContainerLowest.luminance() <= scheme.inverseSurface.luminance()) {
+        scheme.surfaceContainerLowest
+    } else {
+        scheme.inverseSurface
+    }
     val transition = rememberInfiniteTransition(label = "uniHeroBackground")
     val movement = transition.animateFloat(
         initialValue = 0f,
@@ -203,7 +336,6 @@ fun UniHeroFluidBackground(
                 runtimeShader.setColorUniform("tertiaryColor", palette.warm)
                 runtimeShader.setColorUniform("glowColor", palette.glow)
                 runtimeShader.setColorUniform("baseColor", baseColor)
-                runtimeShader.setColorUniform("contentColor", contentColor)
                 drawRect(brush = ShaderBrush(runtimeShader.asComposeShader()))
                 true
             } catch (error: Throwable) {
@@ -215,7 +347,7 @@ fun UniHeroFluidBackground(
         if (!shaderDrawn) {
             drawRect(
                 brush = Brush.radialGradient(
-                    colors = listOf(palette.cool, palette.violet, baseColor),
+                    colors = listOf(lerp(palette.cool, baseColor, 0.42f), palette.violet, baseColor),
                     center = Offset(size.width * 0.3f, size.height * 0.2f),
                     radius = size.maxDimension * 0.9f,
                 ),
@@ -298,13 +430,15 @@ enum class UniHeroFlipTrigger {
 fun UniHeroGlassCard(
     modifier: Modifier = Modifier,
     height: Dp = 480.dp,
-    shape: Shape = RoundedRectangle(32.dp),
+    cornerRadius: Dp = 28.dp,
+    shape: Shape = RoundedRectangle(cornerRadius),
     flipTrigger: UniHeroFlipTrigger = UniHeroFlipTrigger.LONG_PRESS,
     isFlipped: Boolean = false,
     onFlippedChange: ((Boolean) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
     palette: UniHeroCardPalette = rememberUniHeroCardPalette(),
+    backgroundContent: (@Composable BoxScope.(Backdrop) -> Unit)? = null,
     backContent: (@Composable BoxScope.() -> Unit)? = null,
     frontContent: @Composable BoxScope.() -> Unit,
 ) {
@@ -330,6 +464,31 @@ fun UniHeroGlassCard(
 
     val cardArtworkBackdrop = rememberLayerBackdrop()
 
+    val currentScheme = MaterialTheme.colorScheme
+    val heroColorScheme = remember(currentScheme, palette) {
+        currentScheme.copy(
+            onSurface = Color.White,
+            onSurfaceVariant = Color.White.copy(alpha = 0.78f),
+            primary = palette.cool.heroTextAccent(),
+            onPrimary = Color.Black,
+            primaryContainer = palette.cool.copy(alpha = 0.25f),
+            onPrimaryContainer = Color.White,
+            secondary = palette.violet.heroTextAccent(),
+            onSecondary = Color.Black,
+            secondaryContainer = palette.violet.copy(alpha = 0.25f),
+            onSecondaryContainer = Color.White,
+            tertiary = palette.warm.heroTextAccent(),
+            onTertiary = Color.Black,
+            tertiaryContainer = palette.warm.copy(alpha = 0.25f),
+            onTertiaryContainer = Color.White,
+            surface = Color.White.copy(alpha = 0.12f),
+            surfaceContainerHigh = Color.White.copy(alpha = 0.15f),
+            surfaceContainerHighest = Color.White.copy(alpha = 0.22f),
+            outline = Color.White.copy(alpha = 0.30f),
+            outlineVariant = Color.White.copy(alpha = 0.18f),
+        )
+    }
+
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
@@ -342,10 +501,15 @@ fun UniHeroGlassCard(
         contentPadding = 0.dp,
         colors = LiquidCardDefaults.colors(containerColor = Color.Transparent),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(shape)
+        MaterialTheme(colorScheme = heroColorScheme) {
+            CompositionLocalProvider(
+                LocalUniHeroCardPalette provides palette,
+                LocalContentColor provides Color.White,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(shape)
                 .pointerInput(flipTrigger, flipped) {
                     detectTapGestures(
                         onLongPress = {
@@ -368,17 +532,21 @@ fun UniHeroGlassCard(
                     )
                 },
         ) {
-            // 1. Shader Fluido con LayerBackdrop
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .layerBackdrop(cardArtworkBackdrop),
-            ) {
-                UniHeroFluidBackground(alpha = 0.98f, palette = palette)
-            }
+            if (backgroundContent != null) {
+                backgroundContent(cardArtworkBackdrop)
+            } else {
+                // 1. Shader Fluido con LayerBackdrop
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .layerBackdrop(cardArtworkBackdrop),
+                ) {
+                    UniHeroFluidBackground(alpha = 0.98f, palette = palette)
+                }
 
-            // 2. Lenti ottiche in vetro
-            UniHeroGlassLenses(cardArtworkBackdrop)
+                // 2. Lenti ottiche in vetro
+                UniHeroGlassLenses(cardArtworkBackdrop)
+            }
 
             // 3. Facce della card in base alla rotazione
             if (rotation <= 90f) {
@@ -408,10 +576,12 @@ fun UniHeroGlassCard(
                         start = Offset(0f, 0f),
                         end = Offset(size.width, size.height),
                     ),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(32.dp.toPx(), 32.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius.toPx(), cornerRadius.toPx()),
                     style = Stroke(width = 1.2.dp.toPx()),
                 )
             }
         }
     }
+}
+}
 }

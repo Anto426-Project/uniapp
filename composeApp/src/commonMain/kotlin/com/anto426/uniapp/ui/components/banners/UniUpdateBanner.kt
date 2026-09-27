@@ -38,6 +38,10 @@ import com.anto426.uniapp.ui.components.cards.heroTextAccent
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
 import kotlin.math.roundToInt
 
+internal val HeroBannerTextStyle = TextStyle(
+    shadow = Shadow(Color.Black.copy(alpha = 0.72f), Offset(0f, 2f), blurRadius = 7f),
+)
+
 @Composable
 fun UniAppUpdateBanner(
     modifier: Modifier = Modifier,
@@ -55,6 +59,7 @@ fun UniAppUpdateBanner(
     title: String,
     subtitle: String,
     statusText: String? = null,
+    palette: UniHeroCardPalette = rememberUniHeroCardPalette(),
 ) {
     val heroFontSize = if (height < 400.dp) 88 else 104
 
@@ -63,6 +68,7 @@ fun UniAppUpdateBanner(
         height = height,
         flipTrigger = UniHeroFlipTrigger.LONG_PRESS,
         onClick = onClick,
+        palette = palette,
         frontContent = {
             UpdateBannerFrontFace(
                 state = state,
@@ -179,8 +185,8 @@ private fun UpdateBannerFrontFace(
  */
 @Composable
 internal fun UpdateBannerNeverSettleBackFace() {
-    val scheme = MaterialTheme.colorScheme
     val palette = rememberUniHeroCardPalette()
+    val accent = remember(palette) { palette.warm.heroTextAccent() }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -211,7 +217,7 @@ internal fun UpdateBannerNeverSettleBackFace() {
                 lineHeight = 58.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 7.sp,
-                color = scheme.onSurface,
+                color = Color.White,
             )
             Text(
                 text = "SETTLE",
@@ -219,7 +225,8 @@ internal fun UpdateBannerNeverSettleBackFace() {
                 lineHeight = 58.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 7.sp,
-                color = palette.warm,
+                color = accent,
+                style = HeroBannerTextStyle,
             )
         }
     }
@@ -232,7 +239,6 @@ private fun BoxScope.UpdateBannerHeader(
     subtitle: String,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier.align(Alignment.TopCenter),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -241,14 +247,16 @@ private fun BoxScope.UpdateBannerHeader(
         VersionText(version = version, fontSize = fontSize)
         Text(
             text = title,
-            color = scheme.onSurface,
+            color = Color.White,
+            style = HeroBannerTextStyle,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = (-0.5).sp,
         )
         Text(
             text = subtitle,
-            color = scheme.onSurface.copy(alpha = 0.72f),
+            color = Color.White.copy(alpha = 0.94f),
+            style = HeroBannerTextStyle,
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
         )
@@ -263,7 +271,6 @@ private fun UpToDateContent(
     statusText: String,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -278,7 +285,7 @@ private fun UpToDateContent(
 
         Text(
             text = statusText,
-            color = scheme.onSurface.copy(alpha = 0.66f),
+            color = Color.White.copy(alpha = 0.85f),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -296,7 +303,8 @@ private fun AvailableContent(
     canDownload: Boolean,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
+    val palette = rememberUniHeroCardPalette()
+    val accent = remember(palette) { palette.cool.heroTextAccent() }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -316,7 +324,7 @@ private fun AvailableContent(
         ) {
             Text(
                 text = statusText,
-                color = scheme.primary,
+                color = accent,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -338,7 +346,6 @@ private fun CheckingContent(
     subtitle: String,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
     val transition = rememberInfiniteTransition(label = "updateCheckingTransition")
     val rotation by transition.animateFloat(
         initialValue = 0f,
@@ -359,11 +366,13 @@ private fun CheckingContent(
             fontSize = fontSize,
         )
 
+        val palette = rememberUniHeroCardPalette()
+        val accent = remember(palette) { palette.cool.heroTextAccent() }
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .clip(CircleShape)
-                .background(scheme.surfaceContainerHigh.copy(alpha = 0.5f))
+                .background(Color.White.copy(alpha = 0.12f))
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -371,7 +380,7 @@ private fun CheckingContent(
             Canvas(modifier = Modifier.size(16.dp)) {
                 drawArc(
                     brush = Brush.sweepGradient(
-                        listOf(Color.Transparent, scheme.primary.copy(alpha = 0.25f), scheme.primary),
+                        listOf(Color.Transparent, accent.copy(alpha = 0.25f), accent),
                     ),
                     startAngle = rotation,
                     sweepAngle = 280f,
@@ -381,7 +390,7 @@ private fun CheckingContent(
             }
             Text(
                 text = stringResource(Res.string.ui_update_checking),
-                color = scheme.onSurface.copy(alpha = 0.85f),
+                color = Color.White.copy(alpha = 0.90f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -399,7 +408,8 @@ private fun DownloadingContent(
     totalMb: Float,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
+    val palette = rememberUniHeroCardPalette()
+    val accent = remember(palette) { palette.cool.heroTextAccent() }
     val percent = progress?.let { (it.coerceIn(0f, 1f) * 100).roundToInt() }
 
     Box(
@@ -429,7 +439,7 @@ private fun DownloadingContent(
             ) {
                 Text(
                     text = percent?.let { "$it%" } ?: "…",
-                    color = scheme.primary,
+                    color = accent,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -438,7 +448,7 @@ private fun DownloadingContent(
                     val totalStr = ((totalMb * 10).roundToInt() / 10f).toString()
                     Text(
                         text = "$downloadedStr MB / $totalStr MB",
-                        color = scheme.onSurface.copy(alpha = 0.65f),
+                        color = Color.White.copy(alpha = 0.78f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                     )
@@ -452,7 +462,7 @@ private fun DownloadingContent(
 
             Text(
                 text = stringResource(Res.string.ui_update_status_downloading),
-                color = scheme.onSurface.copy(alpha = 0.55f),
+                color = Color.White.copy(alpha = 0.65f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
             )
@@ -467,7 +477,8 @@ private fun VerifyingContent(
     subtitle: String,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
+    val palette = rememberUniHeroCardPalette()
+    val accent = remember(palette) { palette.cool.heroTextAccent() }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -484,7 +495,7 @@ private fun VerifyingContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .clip(CircleShape)
-                .background(scheme.surfaceContainerHigh.copy(alpha = 0.5f))
+                .background(Color.White.copy(alpha = 0.12f))
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -492,12 +503,12 @@ private fun VerifyingContent(
             Icon(
                 imageVector = LiquidIcons.Lock,
                 contentDescription = null,
-                tint = scheme.primary,
+                tint = accent,
                 modifier = Modifier.size(16.dp),
             )
             Text(
                 text = stringResource(Res.string.ui_update_integrity),
-                color = scheme.onSurface.copy(alpha = 0.85f),
+                color = Color.White.copy(alpha = 0.90f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -513,7 +524,6 @@ private fun InstallingContent(
     progress: Float?,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -540,7 +550,7 @@ private fun InstallingContent(
             )
             Text(
                 text = stringResource(Res.string.ui_update_do_not_close),
-                color = scheme.onSurface.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.70f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
             )
@@ -556,7 +566,6 @@ private fun RestartContent(
     onRestart: () -> Unit,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -576,7 +585,7 @@ private fun RestartContent(
         ) {
             Text(
                 text = stringResource(Res.string.ui_update_restart_info),
-                color = scheme.onSurface.copy(alpha = 0.7f),
+                color = Color.White.copy(alpha = 0.85f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
             )
@@ -598,7 +607,6 @@ private fun ErrorContent(
     onRetry: () -> Unit,
     fontSize: Int,
 ) {
-    val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -623,12 +631,12 @@ private fun ErrorContent(
                 Icon(
                     imageVector = LiquidIcons.Warning,
                     contentDescription = null,
-                    tint = scheme.error,
+                    tint = Color(0xFFFF8A80),
                     modifier = Modifier.size(16.dp),
                 )
                 Text(
                     text = stringResource(Res.string.ui_update_error_desc),
-                    color = scheme.error,
+                    color = Color(0xFFFF8A80),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                 )
@@ -648,9 +656,9 @@ internal fun VersionText(
     version: String,
     fontSize: Int = 88,
 ) {
-    val scheme = MaterialTheme.colorScheme
     val palette = rememberUniHeroCardPalette()
-    val targetHighlightIndex = version.indexOf('1').takeIf { it != -1 } ?: version.indexOfFirst { it.isDigit() }
+    val accent = remember(palette) { palette.warm.heroTextAccent() }
+    val targetHighlightIndex = version.indexOfFirst { it.isDigit() }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -674,11 +682,11 @@ internal fun VersionText(
             text = buildAnnotatedString {
                 version.forEachIndexed { index, character ->
                     if (index == targetHighlightIndex) {
-                        withStyle(SpanStyle(color = palette.warm)) {
+                        withStyle(SpanStyle(color = accent)) {
                             append(character)
                         }
                     } else {
-                        withStyle(SpanStyle(color = scheme.onSurface)) {
+                        withStyle(SpanStyle(color = Color.White)) {
                             append(character)
                         }
                     }
@@ -687,6 +695,7 @@ internal fun VersionText(
             fontSize = fontSize.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = (-3).sp,
+            style = HeroBannerTextStyle,
         )
     }
 }
