@@ -120,7 +120,6 @@ class TransportBookingViewModel(
                     isSubmitting = false,
                     bookedSuccessfully = completed > 0 && failed == 0,
                 )
-                if (completed > 0) sharedData.refresh(dataRequests, force = true)
                 when {
                     failed > 0 && completed > 0 -> toastSink.warning(
                         getString(Res.string.ui_transport_booking_partial, completed, requests.size, existing, failed),
@@ -134,6 +133,7 @@ class TransportBookingViewModel(
                     )
                     else -> toastSink.warning(getString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
                 }
+                if (completed > 0) sharedData.refresh(dataRequests, force = true)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {

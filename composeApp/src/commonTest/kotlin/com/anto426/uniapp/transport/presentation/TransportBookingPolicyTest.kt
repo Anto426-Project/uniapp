@@ -81,6 +81,11 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             assertTrue(model.uiState.value.routes.isNotEmpty())
             model.book(listOf(LocalDate(2026, 9, 28), LocalDate(2026, 9, 29)), TransportDirection.ROUND_TRIP)
             advanceUntilIdle()
+            var attempts = 0
+            while (messages.isEmpty() && attempts++ < 50) {
+                advanceUntilIdle()
+                kotlinx.coroutines.delay(20)
+            }
 
             assertEquals(
                 transportBookingRequests(

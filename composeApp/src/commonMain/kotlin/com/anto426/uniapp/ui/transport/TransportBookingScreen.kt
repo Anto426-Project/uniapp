@@ -147,83 +147,50 @@ fun TransportBookingScreen(
             )
         }
 
-        // 2. Selezione Direzione (Andata, Ritorno, Andata e Ritorno) - Stile Card come Schermata Temi
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_transport_direction_title),
-        )
+        // 2. Selezione Direzione (Andata, Ritorno, Andata e Ritorno) con LiquidTabBar
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LiquidSectionHeader(
+                title = stringResource(Res.string.ui_transport_direction_title),
+                size = LiquidSectionHeaderSize.Small,
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-                val directions = listOf(
-                    Triple(
-                        TransportDirection.OUTBOUND,
-                        stringResource(Res.string.ui_trip_outbound),
-                        LiquidIcons.ArrowForward,
+            val outboundLabel = stringResource(Res.string.ui_trip_outbound)
+            val returnLabel = stringResource(Res.string.ui_trip_return)
+            val roundTripLabel = stringResource(Res.string.ui_transport_round_trip)
+            val directionItems = remember(outboundLabel, returnLabel, roundTripLabel) {
+                listOf(
+                    LiquidNavigationItem(
+                        label = outboundLabel,
+                        icon = LiquidIcons.ArrowForward,
                     ),
-                    Triple(
-                        TransportDirection.RETURN,
-                        stringResource(Res.string.ui_trip_return),
-                        LiquidIcons.ArrowBack,
+                    LiquidNavigationItem(
+                        label = returnLabel,
+                        icon = LiquidIcons.ArrowBack,
                     ),
-                    Triple(
-                        TransportDirection.ROUND_TRIP,
-                        stringResource(Res.string.ui_transport_round_trip),
-                        LiquidIcons.Refresh,
+                    LiquidNavigationItem(
+                        label = roundTripLabel,
+                        icon = LiquidIcons.Refresh,
                     ),
                 )
-
-                directions.forEach { (direction, label, icon) ->
-                    val isSelected = selectedDirection == direction
-                    val animatedBg by animateColorAsState(
-                        if (isSelected) colorScheme.primary.copy(alpha = 0.15f)
-                        else Color.Transparent,
-                        label = "dirBg",
-                    )
-                    val animatedBorder by animateColorAsState(
-                        if (isSelected) colorScheme.primary
-                        else colorScheme.outlineVariant.copy(alpha = 0.25f),
-                        label = "dirBorder",
-                    )
-
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedRectangle(16.dp))
-                            .background(animatedBg)
-                            .border(
-                                width = if (isSelected) 1.5.dp else 1.dp,
-                                color = animatedBorder,
-                                shape = RoundedRectangle(16.dp),
-                            )
-                            .clickable { selectedDirection = direction }
-                            .padding(vertical = 16.dp, horizontal = 4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp),
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                fontSize = 12.sp,
-                            ),
-                            color = if (isSelected) colorScheme.primary else colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                        )
-                    }
-                }
             }
+            val selectedDirectionIndex = when (selectedDirection) {
+                TransportDirection.OUTBOUND -> 0
+                TransportDirection.RETURN -> 1
+                TransportDirection.ROUND_TRIP -> 2
+            }
+            LiquidTabBar(
+                items = directionItems,
+                selectedIndex = selectedDirectionIndex,
+                onTabSelected = { index ->
+                    selectedDirection = when (index) {
+                        0 -> TransportDirection.OUTBOUND
+                        1 -> TransportDirection.RETURN
+                        else -> TransportDirection.ROUND_TRIP
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
 
         // 3. Selezione Date Multi-Giorno (Calendario)
         LiquidSectionHeader(
