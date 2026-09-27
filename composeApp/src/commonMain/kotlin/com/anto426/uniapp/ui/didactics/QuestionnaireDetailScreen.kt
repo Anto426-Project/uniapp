@@ -15,9 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.LiquidButton
-import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.feedback.LiquidLinearProgressIndicator
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.uniapp.ui.didactics.components.SurveyQuestionCard

@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.uniapp.services.presentation.ServicesUiState
 import com.anto426.uniapp.ui.components.items.ServiceRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn

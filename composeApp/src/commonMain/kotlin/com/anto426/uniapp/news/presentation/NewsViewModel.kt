@@ -7,11 +7,12 @@ import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.data.UniAppDataSource
-import com.anto426.uniapp.data.toNewsItems
+import com.anto426.uniapp.model.news.NewsFeed
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

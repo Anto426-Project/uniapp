@@ -30,8 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.anto426.liquidmonet.components.buttons.LiquidButton
-import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.zscanner.BarcodeResult
 import com.zscanner.ZScannerCameraMode

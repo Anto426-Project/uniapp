@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.uniapp.didactics.presentation.ExamsHistoryUiState
 import com.anto426.uniapp.ui.components.items.PastExamItem
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn

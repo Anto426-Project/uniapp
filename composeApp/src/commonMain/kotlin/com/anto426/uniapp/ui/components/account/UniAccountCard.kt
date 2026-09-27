@@ -13,10 +13,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.LiquidIconButton
-import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.cards.LiquidCardDefaults
-import com.anto426.liquidmonet.components.display.LiquidBadge
+import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
+import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.kyant.shapes.RoundedRectangle

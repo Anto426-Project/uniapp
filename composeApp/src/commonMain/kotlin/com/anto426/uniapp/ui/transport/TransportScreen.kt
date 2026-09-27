@@ -11,9 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
+import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.transport.presentation.TransportUiState

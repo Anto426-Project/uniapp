@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.transport.presentation.TransportCatalogUiState

@@ -11,8 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.LiquidAvatar
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
+import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.settings.LanguageInfo
 

@@ -9,14 +9,13 @@ import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppInitialData
-import com.anto426.uniapp.data.toNewsItems
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

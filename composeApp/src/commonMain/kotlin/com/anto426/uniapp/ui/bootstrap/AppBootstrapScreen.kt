@@ -18,10 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
-import com.anto426.liquidmonet.components.buttons.LiquidButton
-import com.anto426.liquidmonet.components.inputs.LiquidTextField
-import com.anto426.liquidmonet.components.inputs.LiquidTextFieldType
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
+import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.session.presentation.AppUnlockUiState
 import com.anto426.uniapp.session.presentation.AppPasswordUnlockError

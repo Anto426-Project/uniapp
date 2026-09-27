@@ -5,11 +5,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.LiquidButton
-import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger

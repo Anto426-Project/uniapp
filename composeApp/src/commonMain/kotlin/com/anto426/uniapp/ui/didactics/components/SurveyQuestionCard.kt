@@ -14,11 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.inputs.LiquidTextField
-import com.anto426.liquidmonet.components.inputs.LiquidTextFieldType
-import com.anto426.liquidmonet.components.selection.LiquidCheckbox
-import com.anto426.liquidmonet.components.selection.LiquidRadioButton
+import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
+import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
+import com.anto426.liquidmonet.components.selection.checkbox.LiquidCheckbox
+import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
 import com.anto426.unisdk.backend.model.SurveyQuestionData
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

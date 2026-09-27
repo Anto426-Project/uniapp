@@ -1,7 +1,7 @@
 package com.anto426.uniapp.data
 
 import kotlinx.datetime.number
-import com.anto426.liquidmonet.components.cards.LiquidStatusType
+import com.anto426.liquidmonet.components.cards.statuscard.LiquidStatusType
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.AttendanceData
 import com.anto426.uniapp.model.didactics.CourseStatus

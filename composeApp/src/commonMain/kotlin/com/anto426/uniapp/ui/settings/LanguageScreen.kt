@@ -10,8 +10,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.uniapp.settings.presentation.LanguageUiState
 import com.anto426.uniapp.ui.components.items.LanguageItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn

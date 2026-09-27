@@ -19,7 +19,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import com.anto426.liquidmonet.components.display.LiquidAvatar
+import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 
 internal val LocalAccountAvatars = androidx.compose.runtime.staticCompositionLocalOf<Map<String, com.anto426.uniapp.account.data.AccountAvatar>> { emptyMap() }
 

@@ -9,10 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.LiquidFloatingActionButton
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.buttons.floatingactionbutton.LiquidFloatingActionButton
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.codes.CodeFormat
 import com.anto426.uniapp.model.transport.TransportReservation

@@ -2,15 +2,19 @@ package com.anto426.uniapp.news.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.toNewsItems
+import com.anto426.uniapp.data.runtime.UniAppDataCoordinator
+import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.backend.model.UniversityNews
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertSame
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {

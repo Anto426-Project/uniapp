@@ -4,6 +4,7 @@ import com.anto426.securestorage.SecureStorage
 import com.anto426.securestorage.SecureStorageFactory
 import com.anto426.securestorage.SecureStorageManager
 import com.anto426.securestorage.getString
+import com.anto426.securestorage.putString
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.unisdk.session.UniSessionTicket
@@ -18,6 +19,10 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 class UniAccountStoreTest {
     @Test

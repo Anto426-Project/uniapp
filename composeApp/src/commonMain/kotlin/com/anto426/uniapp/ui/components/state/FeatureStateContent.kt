@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn

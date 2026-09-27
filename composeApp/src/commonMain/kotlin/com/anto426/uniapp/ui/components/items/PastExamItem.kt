@@ -19,9 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.LiquidAccordionItem
-import com.anto426.liquidmonet.components.display.LiquidAvatar
-import com.anto426.liquidmonet.components.display.LiquidBadge
+import com.anto426.liquidmonet.components.cards.accordion.LiquidAccordionItem
+import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.PastExam
 import com.anto426.uniapp.model.didactics.PastExamStatus

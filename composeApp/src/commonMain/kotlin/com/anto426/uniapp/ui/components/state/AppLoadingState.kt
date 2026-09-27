@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.anto426.liquidmonet.components.feedback.LiquidLoading
-import com.anto426.liquidmonet.components.feedback.LiquidLoadingSize
-import com.anto426.liquidmonet.components.feedback.LiquidLoadingStyle
+import com.anto426.liquidmonet.components.feedback.loading.LiquidLoading
+import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingSize
+import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingStyle
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.Res

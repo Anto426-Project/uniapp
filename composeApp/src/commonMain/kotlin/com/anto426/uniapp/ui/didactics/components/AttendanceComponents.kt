@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anto426.liquidmonet.components.cards.LiquidCard
+import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.kyant.shapes.RoundedRectangle
 
 @Composable

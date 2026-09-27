@@ -1,6 +1,8 @@
 package com.anto426.uniapp.data.runtime
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.toNewsItems
+import com.anto426.unisdk.backend.model.UniversityNews
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel

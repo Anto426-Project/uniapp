@@ -1,9 +1,9 @@
 package com.anto426.uniapp.ui.account
 
 import androidx.compose.runtime.Composable
-import com.anto426.liquidmonet.components.buttons.LiquidButton
-import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
-import com.anto426.liquidmonet.components.feedback.LiquidDialog
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
+import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

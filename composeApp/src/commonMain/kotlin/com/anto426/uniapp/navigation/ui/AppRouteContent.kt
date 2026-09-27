@@ -35,6 +35,7 @@ import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.runtime.AppNavigator
 import com.anto426.uniapp.notifications.runtime.AppNotificationController
 import com.anto426.uniapp.news.presentation.NewsViewModel
+import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.services.presentation.ContactsViewModel
 import com.anto426.uniapp.services.presentation.ContactDetailViewModel
 import com.anto426.uniapp.services.presentation.ServicesViewModel

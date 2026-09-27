@@ -5,7 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.liquidmonet.components.charts.LiquidChartEntry
+import com.anto426.liquidmonet.components.charts.model.LiquidChartEntry
 import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toGradeExams

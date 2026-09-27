@@ -21,11 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.LiquidButton
-import com.anto426.liquidmonet.components.buttons.LiquidButtonSize
-import com.anto426.liquidmonet.components.buttons.LiquidButtonVariant
-import com.anto426.liquidmonet.components.cards.LiquidAccordionItem
-import com.anto426.liquidmonet.components.display.LiquidAvatar
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
+import com.anto426.liquidmonet.components.cards.accordion.LiquidAccordionItem
+import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ExamSession
 import org.jetbrains.compose.resources.stringResource

@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
-import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.LiquidTabBar
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
+import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
+import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.ExamsUiState
 import com.anto426.uniapp.ui.components.items.ExamSessionItem

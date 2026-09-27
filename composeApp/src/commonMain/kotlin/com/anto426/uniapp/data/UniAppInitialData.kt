@@ -3,7 +3,7 @@ package com.anto426.uniapp.data
 import org.jetbrains.compose.resources.getString
 
 import androidx.compose.ui.graphics.Color
-import com.anto426.liquidmonet.components.pickers.LiquidPaletteOption
+import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.legal.LegalSectionData

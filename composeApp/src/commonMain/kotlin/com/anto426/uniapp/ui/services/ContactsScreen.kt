@@ -2,10 +2,10 @@ package com.anto426.uniapp.ui.services
 
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import com.anto426.liquidmonet.components.display.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
-import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.LiquidTabBar
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
+import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
+import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.services.presentation.ContactsUiState
 import com.anto426.uniapp.ui.components.items.ContactItem

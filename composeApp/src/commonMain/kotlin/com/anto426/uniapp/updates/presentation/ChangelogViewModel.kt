@@ -1,15 +1,13 @@
 package com.anto426.uniapp.updates.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
-import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.ViewModel
 import com.anto426.uniapp.model.updates.ChangelogItemData
 import com.anto426.uniapp.model.updates.ChangelogVersionData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import uniapp.composeapp.generated.resources.*
 
 data class ChangelogUiState(
     val versions: List<ChangelogVersionData> = emptyList(),

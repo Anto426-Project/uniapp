@@ -1,6 +1,7 @@
 package com.anto426.uniapp.model.news
 
-import com.anto426.liquidmonet.components.cards.LiquidStatusType
+import androidx.compose.runtime.Immutable
+import com.anto426.liquidmonet.components.cards.statuscard.LiquidStatusType
 
 data class NewsItem(
     val title: String,

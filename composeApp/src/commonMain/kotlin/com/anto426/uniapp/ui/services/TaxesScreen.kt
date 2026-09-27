@@ -1,7 +1,7 @@
 package com.anto426.uniapp.ui.services
 
 import androidx.compose.runtime.Composable
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.uniapp.services.presentation.TaxesUiState
 import com.anto426.uniapp.ui.components.items.TaxPaymentList
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn

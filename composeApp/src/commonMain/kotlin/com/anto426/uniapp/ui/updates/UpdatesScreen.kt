@@ -1,24 +1,31 @@
 package com.anto426.uniapp.ui.updates
 
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.components.banners.UniAppUpdateBanner
-import com.anto426.uniapp.updates.presentation.AppUpdateUiState
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.ui.components.banners.UniAppUpdateBanner
+import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.model.updates.UpdateState
+import com.anto426.uniapp.updates.presentation.AppUpdateUiState
+import com.kyant.shapes.Capsule
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.LiquidHorizontalDivider
-import com.anto426.liquidmonet.icons.LiquidIcons
 
 @Composable
 fun UpdatesScreen(

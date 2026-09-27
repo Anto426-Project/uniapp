@@ -7,8 +7,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-import com.anto426.liquidmonet.components.navigation.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.LiquidTabBar
+import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
+import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.GradesUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn

@@ -1,8 +1,16 @@
 package com.anto426.uniapp.ui.news
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxWidth
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.ui.document.UniDocumentScreen
+import io.ktor.http.Url
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun NewsDetailScreen(

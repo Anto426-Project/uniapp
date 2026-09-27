@@ -6,8 +6,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.feedback.LiquidSheet
-import com.anto426.liquidmonet.components.buttons.LiquidButton
+import com.anto426.liquidmonet.components.feedback.sheet.LiquidSheet
+import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

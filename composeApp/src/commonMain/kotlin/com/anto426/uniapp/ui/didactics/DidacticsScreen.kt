@@ -19,10 +19,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anto426.liquidmonet.components.cards.LiquidCard
-import com.anto426.liquidmonet.components.display.LiquidBadge
-import com.anto426.liquidmonet.components.display.LiquidSectionHeader
-import com.anto426.liquidmonet.components.feedback.LiquidLinearProgressIndicator
+import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
 import com.anto426.uniapp.ui.components.items.DidacticItem

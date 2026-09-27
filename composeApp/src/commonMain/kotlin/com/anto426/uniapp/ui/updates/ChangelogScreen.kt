@@ -1,13 +1,13 @@
 package com.anto426.uniapp.ui.updates
 
-import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.ui.document.UniDocumentScreen
 import com.anto426.uniapp.ui.document.toMarkdownString
 import com.anto426.uniapp.updates.presentation.ChangelogUiState
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun ChangelogScreen(
