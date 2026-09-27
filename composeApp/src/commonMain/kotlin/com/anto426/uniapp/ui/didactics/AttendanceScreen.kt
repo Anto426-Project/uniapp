@@ -284,8 +284,6 @@ fun AttendanceScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(110.dp))
     }
 
     // ==========================================

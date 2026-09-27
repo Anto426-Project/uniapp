@@ -52,7 +52,5 @@ fun ServicesScreen(
                 .chunked(2)
                 .forEach { ServiceRow(it, onNavigateToService) }
         }
-
-        Spacer(modifier = Modifier.height(110.dp))
     }
 }

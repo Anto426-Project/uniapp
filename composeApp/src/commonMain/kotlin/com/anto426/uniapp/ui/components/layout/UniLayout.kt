@@ -40,7 +40,7 @@ fun UniScreenColumn(
                 start = 18.dp,
                 top = padding.calculateTopPadding() + 12.dp,
                 end = 18.dp,
-                bottom = padding.calculateBottomPadding() + 32.dp,
+                bottom = padding.calculateBottomPadding() + 8.dp,
             ),
     ) {
         item(key = "screen-content") {
@@ -63,7 +63,7 @@ fun UniScreenLazyColumn(content: LazyListScope.() -> Unit) {
                 start = 18.dp,
                 top = padding.calculateTopPadding() + 12.dp,
                 end = 18.dp,
-                bottom = padding.calculateBottomPadding() + 32.dp,
+                bottom = padding.calculateBottomPadding() + 8.dp,
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
