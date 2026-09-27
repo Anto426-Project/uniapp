@@ -32,8 +32,8 @@ object UniAppDataRequests {
     val Contacts = UniAppDataRequest("contacts", "university-contacts-v2", ListSerializer(UniversityContact.serializer()), UniAppCachePolicies.Contacts, UniAppDataSource::loadUniversityContacts)
     val Surveys = UniAppDataRequest("surveys", "survey-courses", ListSerializer(SurveyCourseData.serializer()), UniAppCachePolicies.SurveyCourses, UniAppDataSource::loadSurveyCourses)
     val Transport = UniAppDataRequest("transport", "transport-data", TransportData.serializer(), UniAppCachePolicies.Transport, UniAppDataSource::loadTransportData)
-    fun syllabus(id: String) = UniAppDataRequest("syllabus/$id", "course-syllabus-${id.hashCode()}", CourseSyllabusData.serializer(), UniAppCachePolicies.CourseSyllabus) { force -> loadCourseSyllabus(id, force) }
-    fun surveyStatus(code: String) = UniAppDataRequest("survey-status/$code", "survey-status-${code.hashCode()}", Boolean.serializer(), UniAppCachePolicies.SurveyStatus) { force -> loadSurveyCompilationStatus(code, force) }
+    fun syllabus(id: String) = UniAppDataRequest("syllabus/$id", datasetCacheKey("course-syllabus", id), CourseSyllabusData.serializer(), UniAppCachePolicies.CourseSyllabus) { force -> loadCourseSyllabus(id, force) }
+    fun surveyStatus(code: String) = UniAppDataRequest("survey-status/$code", datasetCacheKey("survey-status", code), Boolean.serializer(), UniAppCachePolicies.SurveyStatus) { force -> loadSurveyCompilationStatus(code, force) }
     fun surveyPage(course: String, tags: String) = UniAppDataRequest<SurveyFirstPageData>("survey-page/${course.length}:$course$tags", policy = UniAppCachePolicies.SurveyPage) { loadSurveyFirstPage(course, tags) }
     fun portrait(source: String) = UniAppDataRequest<ByteArray>("portrait/$source", policy = UniAppCachePolicies.ProfileImage) { force -> loadProfileImage(source, force) }
 }

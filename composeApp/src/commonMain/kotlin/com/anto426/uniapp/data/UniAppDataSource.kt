@@ -95,7 +95,7 @@ class SessionUniAppDataSource(
     private val memoryCache = mutableMapOf<String, CachedValue<Any?>>()
 
     private fun ActiveAccountContext.profileScopedKey(key: String): String =
-        "profile-${(sessionState.account.activeProfileId ?: "default").hashCode().toUInt().toString(16)}-$key"
+        profileCacheKey(sessionState.account.activeProfileId, key)
 
     private fun activeContext(): ActiveAccountContext {
         val sessionState = sessions.state.value as? AppSessionState.Authenticated
@@ -159,7 +159,7 @@ class SessionUniAppDataSource(
 
     override suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean): CourseSyllabusData =
         cached(
-            "course-syllabus-${adsceId.hashCode()}",
+            datasetCacheKey("course-syllabus", adsceId),
             UniAppCachePolicies.CourseSyllabus,
             CourseSyllabusData.serializer(),
             forceRefresh,
@@ -274,10 +274,8 @@ class SessionUniAppDataSource(
 
     override suspend fun loadUniversityNews(forceRefresh: Boolean): List<UniversityNews> =
         cached(
-            "university-news",
-            UniAppCachePolicies.News,
-            ListSerializer(UniversityNews.serializer()),
-            forceRefresh,
+            "university-news", UniAppCachePolicies.News,
+            ListSerializer(UniversityNews.serializer()), forceRefresh,
         ) { client -> client.loadUniversityNews() }
 
     override suspend fun loadUniversityContacts(forceRefresh: Boolean): List<UniversityContact> =
@@ -308,7 +306,7 @@ class SessionUniAppDataSource(
 
     override suspend fun loadSurveyCompilationStatus(adCod: String, forceRefresh: Boolean): Boolean =
         cached(
-            "survey-status-${adCod.hashCode()}",
+            datasetCacheKey("survey-status", adCod),
             UniAppCachePolicies.SurveyStatus,
             Boolean.serializer(),
             forceRefresh,
@@ -463,7 +461,7 @@ class SessionUniAppDataSource(
     private suspend fun requestLock(accountId: String, key: String): Mutex =
         requestLocksGuard.withLock { requestLocks.getOrPut("$accountId|$key") { Mutex() } }
 
-    private suspend fun <T> readEntry(accountId: String, key: String, serializer: KSerializer<T>): CachedValue<T>? {
+    private suspend fun <T> readEntry(accountId: String?, key: String, serializer: KSerializer<T>): CachedValue<T>? {
         @Suppress("UNCHECKED_CAST")
         memoryCacheGuard.withLock {
             memoryCache[cacheIdentity(accountId, key)]?.let { return it as CachedValue<T> }
@@ -488,7 +486,7 @@ class SessionUniAppDataSource(
         }
     }
 
-    private suspend fun <T> writeEntry(accountId: String, key: String, serializer: KSerializer<T>, value: T, savedAtMillis: Long = nowMillis()) {
+    private suspend fun <T> writeEntry(accountId: String?, key: String, serializer: KSerializer<T>, value: T, savedAtMillis: Long = nowMillis()) {
         val envelope = CacheEnvelope(CACHE_SCHEMA_VERSION, savedAtMillis, json.encodeToString(serializer, value))
         val bytes = json.encodeToString(CacheEnvelope.serializer(), envelope).encodeToByteArray()
         try {
@@ -508,7 +506,7 @@ class SessionUniAppDataSource(
         accounts.removeCachedData(accountId, key)
     }
 
-    private fun cacheIdentity(accountId: String, key: String): String = "$accountId|$key"
+    private fun cacheIdentity(accountId: String?, key: String): String = "${accountId?.let { "account:$it" } ?: "application"}|$key"
 
     internal data class CachedValue<T>(val savedAtMillis: Long, val value: T)
     private data class ActiveAccountContext(
