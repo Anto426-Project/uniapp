@@ -60,6 +60,19 @@ class UniAppRuntime internal constructor(
         lifecycleScope.launch {
             sessionController.state.collect { state ->
                 updateOwner(state)
+                // Authentication prepares its target before the SDK call; transient UI states
+                // must not replace that target with the previous account's preference.
+                if (state == AppSessionState.Initializing || state == AppSessionState.Authenticating) return@collect
+                val accountId = (state as? AppSessionState.Authenticated)?.account
+                    ?.takeUnless(DemoAccount::isDemo)?.accountId
+                if (notificationManager.boundOwnerId != accountId) {
+                    val enabled = accountId?.let { owner ->
+                        try { localDataStore.read(LocalDataScope.Account(owner), UniAppDataKeys.NotificationsEnabled) }
+                        catch (error: CancellationException) { throw error }
+                        catch (_: Exception) { false }
+                    } ?: false
+                    notificationManager.bindOwner(accountId, enabled)
+                }
             }
         }
         lifecycleScope.launch {
@@ -162,9 +175,23 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
             val backend = RemoteUniBackendService()
             val coordinator = UniSessionCoordinator(backend, accountStore)
             val localDataStore = EncryptedUniLocalDataStore(accountStore)
-            val sessionController = AppSessionController(coordinator, accountStore, localDataStore)
+            val notificationManager = AppNotificationManager(pushConnector, notificationPermissions)
+            val sessionController = AppSessionController(coordinator, accountStore, localDataStore) { accountId ->
+                val account = accountId?.let { id ->
+                    accountStore.snapshot().accounts.firstOrNull { it.accountId == id }
+                }
+                if (account == null || DemoAccount.isDemo(account)) {
+                    notificationManager.bindOwner(null, false)
+                } else {
+                    val consent = try {
+                        localDataStore.read(LocalDataScope.Account(account.accountId), UniAppDataKeys.NotificationsEnabled)
+                    } catch (error: CancellationException) { throw error }
+                    catch (_: Exception) { false }
+                    notificationManager.bindOwner(account.accountId, consent)
+                }
+            }
             val unregisterPushTokenProvider =
-                registerPushNotificationsTokenProvider { pushConnector.tokenFlow.value }
+                registerPushNotificationsTokenProvider(notificationManager::backendToken)
             UniAppRuntime(
                 sessionController = sessionController,
                 dataSource = SessionUniAppDataSource(sessionController, accountStore),
@@ -176,11 +203,7 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
                         installedBuild = updateEnvironment.installedBuild,
                         launcher = updateEnvironment.launcher,
                     ),
-                notificationManager =
-                    AppNotificationManager(
-                        connector = pushConnector,
-                        permissions = notificationPermissions,
-                    ),
+                notificationManager = notificationManager,
                 sessionCoordinator = coordinator,
                 backend = backend,
                 unregisterPushTokenProvider = unregisterPushTokenProvider,

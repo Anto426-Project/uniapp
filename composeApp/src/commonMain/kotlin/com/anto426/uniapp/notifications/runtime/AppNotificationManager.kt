@@ -23,8 +23,8 @@ interface AppNotificationController {
     val state: StateFlow<AppNotificationState>
     val messages: Flow<RemotePushMessage>
 
-    fun restoreEnabled(enabled: Boolean)
-    fun setEnabled(enabled: Boolean)
+    fun restoreEnabled(accountId: String, enabled: Boolean)
+    fun setEnabled(accountId: String, enabled: Boolean)
     fun refresh()
 }
 
@@ -32,8 +32,11 @@ internal class AppNotificationManager(
     private val connector: PushNotificationConnector,
     private val permissions: NotificationPermissionController,
 ) : AppNotificationController {
+    private data class Binding(val accountId: String?, val enabled: Boolean)
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val enabled = MutableStateFlow(false)
+    private val tokenMutation = Mutex()
+    private val binding = MutableStateFlow(Binding(null, false))
     private val lastError = MutableStateFlow<String?>(null)
     private val mutableState = MutableStateFlow(AppNotificationState())
 
@@ -43,13 +46,13 @@ internal class AppNotificationManager(
     init {
         scope.launch {
             combine(
-                enabled,
+                binding,
                 permissions.authorizationStatus,
                 connector.tokenFlow,
                 lastError,
-            ) { isEnabled, authorization, token, error ->
+            ) { current, authorization, token, error ->
                 AppNotificationState(
-                    enabled = isEnabled,
+                    enabled = current.enabled,
                     authorizationStatus = authorization,
                     hasRegistrationToken = !token.isNullOrBlank(),
                     errorMessage = error,
@@ -59,30 +62,46 @@ internal class AppNotificationManager(
         permissions.refresh()
     }
 
-    override fun restoreEnabled(enabled: Boolean) {
-        this.enabled.value = enabled
-        permissions.refresh()
-        permissions.setRegistrationEnabled(enabled)
-        if (enabled) refreshToken()
+    internal val boundOwnerId: String? get() = binding.value.accountId
+
+    /** The SDK may read this during login; a token is visible only for the consenting owner. */
+    internal fun backendToken(): String? {
+        val current = binding.value
+        if (current.accountId == null || !current.enabled) return null
+        return when (permissions.authorizationStatus.value) {
+            NotificationAuthorizationStatus.Authorized,
+            NotificationAuthorizationStatus.Provisional -> connector.tokenFlow.value
+            else -> null
+        }
     }
 
-    override fun setEnabled(enabled: Boolean) {
-        this.enabled.value = enabled
+    internal fun bindOwner(accountId: String?, consent: Boolean) {
+        binding.value = Binding(accountId, accountId != null && consent)
+        permissions.refresh()
+        permissions.setRegistrationEnabled(binding.value.enabled)
+        if (binding.value.enabled) refreshToken() else deleteToken()
+    }
+
+    override fun restoreEnabled(accountId: String, enabled: Boolean) {
+        if (binding.value.accountId == accountId) bindOwner(accountId, enabled)
+    }
+
+    override fun setEnabled(accountId: String, enabled: Boolean) {
+        if (binding.value.accountId != accountId) return
+        binding.value = Binding(accountId, enabled)
         lastError.value = null
         if (enabled) {
             permissions.requestAuthorization()
             refreshToken()
         } else {
             permissions.setRegistrationEnabled(false)
-            scope.launch {
-                connector.deleteToken().onFailure(::recordError)
-            }
+            deleteToken()
         }
     }
 
     override fun refresh() {
         permissions.refresh()
-        if (enabled.value) refreshToken()
+        if (binding.value.enabled) refreshToken()
     }
 
     internal fun close() {
@@ -92,11 +111,21 @@ internal class AppNotificationManager(
     private fun refreshToken() {
         scope.launch {
             try {
-                connector.getDeviceToken()
+                tokenMutation.withLock {
+                    if (binding.value.enabled) connector.getDeviceToken()
+                }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 recordError(error)
+            }
+        }
+    }
+
+    private fun deleteToken() {
+        scope.launch {
+            tokenMutation.withLock {
+                if (!binding.value.enabled) connector.deleteToken().onFailure(::recordError)
             }
         }
     }
@@ -119,7 +148,7 @@ object UnavailableAppNotificationController : AppNotificationController {
     override val state: StateFlow<AppNotificationState> = unavailableState.asStateFlow()
     override val messages: Flow<RemotePushMessage> = kotlinx.coroutines.flow.emptyFlow()
 
-    override fun restoreEnabled(enabled: Boolean) = Unit
-    override fun setEnabled(enabled: Boolean) = Unit
+    override fun restoreEnabled(accountId: String, enabled: Boolean) = Unit
+    override fun setEnabled(accountId: String, enabled: Boolean) = Unit
     override fun refresh() = Unit
 }

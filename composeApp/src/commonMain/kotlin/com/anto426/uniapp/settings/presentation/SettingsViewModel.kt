@@ -48,7 +48,7 @@ data class SettingsUiState(
 
 class SettingsViewModel(
     private val localDataStore: UniLocalDataStore,
-    accountId: String,
+    private val accountId: String,
     private val toastSink: AppToastSink = AppToastSink.None,
     private val biometricAuthenticator: BiometricAuthenticator = UnavailableBiometricAuthenticator,
     private val notificationController: AppNotificationController = UnavailableAppNotificationController,
@@ -81,7 +81,7 @@ class SettingsViewModel(
                         notificationsEnabled = notificationsEnabled,
                         biometricEnabled = localDataStore.read(dataScope, UniAppDataKeys.BiometricUnlock),
                     )
-                notificationController.restoreEnabled(notificationsEnabled)
+                notificationController.restoreEnabled(accountId, notificationsEnabled)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -92,14 +92,14 @@ class SettingsViewModel(
 
     fun setNotificationsEnabled(enabled: Boolean) {
         update { copy(notificationsEnabled = enabled) }
-        notificationController.setEnabled(enabled)
+        notificationController.setEnabled(accountId, enabled)
         persistToggle(
             key = UniAppDataKeys.NotificationsEnabled,
             enabled = enabled,
             successMessage = if (enabled) "Notifiche attivate." else "Notifiche disattivate.",
             rollback = {
                 update { copy(notificationsEnabled = !enabled) }
-                notificationController.setEnabled(!enabled)
+                notificationController.setEnabled(accountId, !enabled)
             },
         )
     }

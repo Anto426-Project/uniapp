@@ -33,6 +33,7 @@ class AppSessionController internal constructor(
     private val coordinator: UniSessionCoordinator,
     private val accountStore: UniAccountStore,
     private val localDataStore: UniLocalDataStore,
+    private val prepareNotificationOwner: suspend (String?) -> Unit = {},
 ) {
     val avatars = com.anto426.uniapp.account.data.AccountAvatarStore(accountStore)
     private val lock = Mutex()
@@ -42,9 +43,9 @@ class AppSessionController internal constructor(
     internal val accountsRevision: StateFlow<Long> = mutableAccountsRevision.asStateFlow()
 
     val state: StateFlow<AppSessionState> = mutableState.asStateFlow()
-
     internal val storageResetNotice = accountStore.storageResetNotice
     internal suspend fun acknowledgeStorageReset() = accountStore.acknowledgeStorageReset()
+
     suspend fun initialize() {
         lock.withLock {
             if (mutableState.value !is AppSessionState.Initializing) return
@@ -55,15 +56,30 @@ class AppSessionController internal constructor(
                         snapshot.accounts.firstOrNull { it.accountId == activeId }
                     }
                     when {
-                        account == null -> AppSessionState.SignedOut()
-                        requiresBiometricUnlock(account.accountId) ->
+                        account == null -> {
+                            prepareNotificationOwner(null)
+                            AppSessionState.SignedOut()
+                        }
+                        requiresBiometricUnlock(account.accountId) -> {
+                            prepareNotificationOwner(null)
                             AppSessionState.UnlockRequired(account)
-                        DemoAccount.isDemo(account) -> AppSessionState.Authenticated(refreshDemoProfileLocked(account))
-                        else -> coordinator.resumeActiveAccount().toAppState()
+                        }
+                        DemoAccount.isDemo(account) -> {
+                            prepareNotificationOwner(null)
+                            AppSessionState.Authenticated(refreshDemoProfileLocked(account))
+                        }
+                        else -> {
+                            prepareNotificationOwner(account.accountId)
+                            coordinator.resumeActiveAccount().toAppState().also { restored ->
+                                if (restored !is AppSessionState.Authenticated) prepareNotificationOwner(null)
+                            }
+                        }
                     }
                 } catch (error: CancellationException) {
+                    prepareNotificationOwner(null)
                     throw error
                 } catch (error: Throwable) {
+                    prepareNotificationOwner(null)
                     AppSessionState.SignedOut(error.message ?: getString(Res.string.msg_impossibile_ripristinare_la_sessione_protetta))
                 }
         }
@@ -75,11 +91,14 @@ class AppSessionController internal constructor(
             mutableState.value = AppSessionState.Initializing
             mutableState.value =
                 try {
+                    prepareNotificationOwner(requirement.account.accountId)
                     activateStoredAccount(requirement.account.accountId)
                 } catch (error: CancellationException) {
+                    prepareNotificationOwner(null)
                     mutableState.value = requirement
                     throw error
                 } catch (error: Throwable) {
+                    prepareNotificationOwner(null)
                     mutableState.value = requirement
                     throw error
                 }
@@ -89,6 +108,7 @@ class AppSessionController internal constructor(
     suspend fun cancelUnlock() {
         lock.withLock {
             val requirement = mutableState.value as? AppSessionState.UnlockRequired ?: return
+            prepareNotificationOwner(requirement.fallbackAccount?.accountId)
             mutableState.value =
                 requirement.fallbackAccount?.let(AppSessionState::Authenticated)
                     ?: run {
@@ -117,7 +137,13 @@ class AppSessionController internal constructor(
             if (!valid) return@withLock PasswordUnlockResult.Invalid
             localDataStore.remove(scope, UniAppDataKeys.PasswordRetryAfter)
             // Leave UnlockRequired in place until activation succeeds, allowing a safe retry.
-            mutableState.value = activateStoredAccount(requirement.account.accountId)
+            try {
+                prepareNotificationOwner(requirement.account.accountId)
+                mutableState.value = activateStoredAccount(requirement.account.accountId)
+            } catch (error: Throwable) {
+                prepareNotificationOwner(null)
+                throw error
+            }
             PasswordUnlockResult.Unlocked
         }
 
@@ -128,6 +154,7 @@ class AppSessionController internal constructor(
     ) {
         lock.withLock {
             if (DemoAccount.requested(credentials)) {
+                prepareNotificationOwner(null)
                 if (!DemoAccount.accepts(credentials)) {
                     mutableState.value = AppSessionState.SignedOut(getString(Res.string.ui_demo_invalid_credentials))
                     return@withLock
@@ -138,6 +165,7 @@ class AppSessionController internal constructor(
                 mutableAccountsRevision.value += 1
                 return@withLock
             }
+            prepareNotificationOwner(preferredAccountId)
             mutableState.value = AppSessionState.Authenticating
             mutableState.value =
                 try {
@@ -156,10 +184,13 @@ class AppSessionController internal constructor(
                             AppSessionState.CareerSelectionRequired(result.careers)
                     }
                 } catch (error: CancellationException) {
+                    prepareNotificationOwner(null)
                     throw error
                 } catch (error: Throwable) {
+                    prepareNotificationOwner(null)
                     AppSessionState.SignedOut(error.message ?: getString(Res.string.msg_accesso_non_riuscito))
                 }
+            prepareNotificationOwner((mutableState.value as? AppSessionState.Authenticated)?.account?.accountId)
         }
     }
 
@@ -178,6 +209,7 @@ class AppSessionController internal constructor(
                 ?: throw IllegalArgumentException("Unknown account")
             val current = (mutableState.value as? AppSessionState.Authenticated)?.account
             if (requiresBiometricUnlock(accountId)) {
+                prepareNotificationOwner(null)
                 return@withLock AppSessionState.UnlockRequired(
                     account = target,
                     fallbackAccount = current,
@@ -185,17 +217,25 @@ class AppSessionController internal constructor(
             }
             // Do not publish an intermediate state and do not hide resume failures: callers must
             // only report a successful switch after the selected account is actually active.
-            activateStoredAccount(accountId).also { nextState ->
-                mutableState.value = nextState
+            try {
+                prepareNotificationOwner(accountId)
+                activateStoredAccount(accountId).also { nextState -> mutableState.value = nextState }
+            } catch (error: Throwable) {
+                prepareNotificationOwner(current?.accountId)
+                throw error
             }
         }
 
     private suspend fun activateStoredAccount(accountId: String): AppSessionState {
         val account = accountStore.snapshot().accounts.first { it.accountId == accountId }
-        return if (DemoAccount.isDemo(account)) {
+        val next = if (DemoAccount.isDemo(account)) {
             accountStore.setActiveAccount(accountId)
             AppSessionState.Authenticated(refreshDemoProfileLocked(account))
         } else coordinator.activate(accountId).toAppState()
+        if (next !is AppSessionState.Authenticated || DemoAccount.isDemo(account)) {
+            prepareNotificationOwner(null)
+        }
+        return next
     }
 
     suspend fun activateProfile(profileId: String): AppSessionState =
@@ -205,12 +245,14 @@ class AppSessionController internal constructor(
                     ?: throw IllegalStateException(getString(Res.string.msg_nessun_account_attivo))
             if (current.activeProfileId == profileId) return@withLock mutableState.value
             coordinator.activateProfile(current.accountId, profileId).toAppState().also { nextState ->
+                if (nextState !is AppSessionState.Authenticated) prepareNotificationOwner(null)
                 mutableState.value = nextState
             }
         }
 
     suspend fun signOut() {
         lock.withLock {
+            prepareNotificationOwner(null)
             (mutableState.value as? AppSessionState.Authenticated)?.account?.accountId?.let { accountId ->
                 coordinator.closeRuntimeSession(accountId)
             }
@@ -295,6 +337,7 @@ class AppSessionController internal constructor(
                     if (previous.account.accountId == accountId) AppSessionState.SignedOut() else previous
                 else -> previous
             }
+            prepareNotificationOwner((mutableState.value as? AppSessionState.Authenticated)?.account?.accountId)
             localDataStore.invalidateAccount(accountId)
             avatars.remove(accountId)
             mutableAccountsRevision.value += 1
