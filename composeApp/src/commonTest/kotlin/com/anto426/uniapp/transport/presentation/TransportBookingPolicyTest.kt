@@ -9,6 +9,7 @@ import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportDirection
 import com.anto426.unisdk.transport.TransportRouteData
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -61,7 +62,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
             val calls = mutableListOf<TransportBookingRequest>()
-            val messages = mutableListOf<AppToastMessage>()
+            val resultMessage = CompletableDeferred<AppToastMessage>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
                     routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRouteData("A01", "Campus A/R")),
@@ -75,17 +76,13 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source, AppToastSink { message -> messages += message }, today = { friday })
+            val model = TransportBookingViewModel(source, AppToastSink { message -> resultMessage.complete(message) }, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             assertTrue(model.uiState.value.routes.isNotEmpty())
             model.book(listOf(LocalDate(2026, 9, 28), LocalDate(2026, 9, 29)), TransportDirection.ROUND_TRIP)
             advanceUntilIdle()
-            var attempts = 0
-            while (messages.isEmpty() && attempts++ < 50) {
-                advanceUntilIdle()
-                kotlinx.coroutines.delay(20)
-            }
+            val message = resultMessage.await()
 
             assertEquals(
                 transportBookingRequests(
@@ -94,7 +91,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                 calls,
             )
             assertFalse(model.uiState.value.bookedSuccessfully)
-            assertEquals(AppToastKind.Warning, messages.last().kind)
+            assertEquals(AppToastKind.Warning, message.kind)
         } finally {
             Dispatchers.resetMain()
         }
