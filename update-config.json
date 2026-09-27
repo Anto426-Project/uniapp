@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Rubrica e notizie corrette; badge senza duplicati; prenotazioni navetta feriali e tratte nel verso giusto; conferma biometrica senza toggle bloccato."
+  "notes": "- Notizie più fluide: feed preparato una sola volta, card Home di altezza stabile e dettaglio formattato con link alla fonte.\n- Cache e navigazione separate per account e profilo; consenso notifiche associato all’account attivo.\n- Banner Info app e Aggiornamenti più leggibili; verifica del pacchetto collegata allo stato reale dell’updater.\n- Storage locale reimpostato una sola volta per questa migrazione, con avviso da confermare all’apertura. Sarà necessario accedere di nuovo.\n- Liquid Monet 2.0.32 e UniSDK 1.0.18; log trasporti senza contenuti delle risposte del portale."
 }

@@ -1,3 +1,11 @@
+## [2.0.13] - 2026-09-27 (build set by CI)
+
+- Notizie più fluide: feed preparato una sola volta, card Home di altezza stabile e dettaglio formattato con link alla fonte.
+- Cache e navigazione separate per account e profilo; consenso notifiche associato all’account attivo.
+- Banner Info app e Aggiornamenti più leggibili; verifica del pacchetto collegata allo stato reale dell’updater.
+- Storage locale reimpostato una sola volta per questa migrazione, con avviso da confermare all’apertura. Sarà necessario accedere di nuovo.
+- Liquid Monet 2.0.32 e UniSDK 1.0.18; log trasporti senza contenuti delle risposte del portale.
+
 ## [2.0.12] - 2026-09-25 (build set by CI)
 
 - Rubrica con numeri e dettagli completi, notizie filtrate per fonte e card Home uniformate.
