@@ -30,7 +30,7 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadUniversityNews(forceRefresh: Boolean) = items
             }
-            val viewModel = NewsViewModel(source)
+            val viewModel = NewsViewModel(source, preparationDispatcher = Dispatchers.Main)
             advanceUntilIdle()
 
             assertEquals(
@@ -54,7 +54,7 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadUniversityNews(forceRefresh: Boolean) = listOf(news("a", "Ateneo", "2026-09-25"))
             }
-            val viewModel = NewsViewModel(source)
+            val viewModel = NewsViewModel(source, preparationDispatcher = Dispatchers.Main)
             advanceUntilIdle()
             assertEquals(listOf(NewsFilter.All, NewsFilter.University), viewModel.uiState.value.filters)
         } finally {
@@ -69,6 +69,44 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals(listOf("new", "old"), items.map { it.title })
         assertEquals(listOf("Dipartimento", "Ateneo"), items.map { it.category })
         assertEquals("2026-09-25", items.first().publishedAt)
+    }
+
+    @Test
+    fun openingUsesPreparedAccountFeedImmediatelyAndRefreshPreservesTheSelectedScope() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        var input = listOf(news("a", "Ateneo", "2026-09-25"), news("b", "Dipartimento", "2026-09-24"))
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadUniversityNews(forceRefresh: Boolean) = input
+        }
+        val data = UniAppDataCoordinator(source, backgroundScope)
+        try {
+            val prepared = data.prepareNews(input, StandardTestDispatcher(testScheduler))
+            val viewModel = NewsViewModel(data, preparationDispatcher = Dispatchers.Main)
+            // No coroutine or loading frame is needed to expose the feed already used by Home.
+            assertEquals(FeatureLoadState.Content, viewModel.uiState.value.loadState)
+            assertSame(prepared.items, viewModel.uiState.value.visibleNews)
+            advanceUntilIdle()
+            viewModel.selectTab(2)
+            val department = prepared.byCategory.getValue("dipartimento")
+            assertSame(department, viewModel.uiState.value.visibleNews)
+            viewModel.showNews(department.single())
+            viewModel.dismissNews()
+            assertSame(department, viewModel.uiState.value.visibleNews)
+            input = input + news("c", "Ateneo", "2026-09-26")
+            viewModel.refresh(force = true)
+            runCurrent()
+            advanceUntilIdle()
+            assertEquals(NewsFilter.Department, viewModel.uiState.value.filters[viewModel.uiState.value.selectedTab])
+            input = input.filter { it.category != "Dipartimento" }
+            viewModel.refresh(force = true)
+            runCurrent()
+            advanceUntilIdle()
+            assertEquals(0, viewModel.uiState.value.selectedTab)
+            assertEquals(listOf("c", "a"), viewModel.uiState.value.visibleNews.map { it.title })
+        } finally {
+            data.close()
+            Dispatchers.resetMain()
+        }
     }
 
     private fun news(title: String, category: String, date: String) = UniversityNews(

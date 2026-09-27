@@ -442,7 +442,7 @@ fun HomeNewsSection(
         )
 
         if (currentNews == null) {
-            com.anto426.liquidmonet.components.display.LiquidEmptyState(
+            com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState(
                 title = stringResource(Res.string.ui_news_empty_title),
                 description = stringResource(Res.string.ui_news_empty_desc),
             )

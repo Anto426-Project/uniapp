@@ -26,6 +26,27 @@ class UniAppDataCoordinator(
     private val nowMillis: () -> Long = { com.anto426.unisdk.platform.currentEpochMillis() },
 ) : UniAppDataSource by source {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
+    private data class PreparedNews(val source: List<UniversityNews>, val feed: NewsFeed)
+    private val preparedNews = MutableStateFlow<PreparedNews?>(null)
+    private val newsPreparation = Mutex()
+    internal val newsFeed: NewsFeed? get() = preparedNews.value?.feed
+
+    internal suspend fun prepareNews(news: List<UniversityNews>, dispatcher: CoroutineDispatcher): NewsFeed {
+        preparedNews.value?.takeIf { it.source === news }?.let { return it.feed }
+        return withContext(dispatcher) {
+            newsPreparation.withLock {
+                preparedNews.value?.takeIf { it.source == news }?.let { previous ->
+                    preparedNews.value = PreparedNews(news, previous.feed)
+                    previous.feed
+                } ?: run {
+                    val items = news.toNewsItems()
+                    NewsFeed(items, items.groupBy { it.category.lowercase() }).also {
+                        preparedNews.value = PreparedNews(news, it)
+                    }
+                }
+            }
+        }
+    }
     private val guard = Mutex()
     private val network = Semaphore(concurrency)
     private val entries = linkedMapOf<String, Entry<*>>()
@@ -352,6 +373,7 @@ class UniAppDataCoordinator(
             scope.cancel()
             entries.values.forEach { it.clear() }
             entries.clear()
+            preparedNews.value = null
             mutablePortrait.value = null
         }
     }

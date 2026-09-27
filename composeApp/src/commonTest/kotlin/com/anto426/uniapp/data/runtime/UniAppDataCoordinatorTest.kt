@@ -305,7 +305,7 @@ class UniAppDataCoordinatorTest {
         }
         val data = UniAppDataCoordinator(source, backgroundScope)
         try {
-            val home = HomeDashboardViewModel(data, emptyList())
+            val home = HomeDashboardViewModel(data, emptyList(), preparationDispatcher = Dispatchers.Main)
             val taxes = TaxesViewModel(data)
             runCurrent()
             assertEquals("Mario Rossi", home.uiState.value.profileName)
@@ -334,7 +334,7 @@ class UniAppDataCoordinatorTest {
         }
         val data = UniAppDataCoordinator(source, backgroundScope)
         try {
-            val home = HomeDashboardViewModel(data, emptyList())
+            val home = HomeDashboardViewModel(data, emptyList(), preparationDispatcher = Dispatchers.Main)
             val badge = AcademicIdentityViewModel(data)
             runCurrent()
             assertSame(data.portrait.value, home.uiState.value.profilePhotoData)
@@ -347,4 +347,57 @@ class UniAppDataCoordinatorTest {
             assertEquals(2, calls)
         } finally { data.close(); Dispatchers.resetMain() }
     }
+    @Test
+    fun concurrentConsumersAndEquivalentSnapshotsReuseThePreparedFeed() = runTest {
+        val cache = UniAppDataCoordinator(FakeUniAppDataSource(), backgroundScope)
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val input = listOf(news("a", "Ateneo"), news("b", "Dipartimento"))
+        val home = async { cache.prepareNews(input, dispatcher) }
+        val list = async { cache.prepareNews(input.toList(), dispatcher) }
+        assertSame(home.await(), list.await())
+        assertSame(home.await(), cache.newsFeed)
+        assertSame(home.await().byCategory.getValue("ateneo"), cache.newsFeed!!.byCategory.getValue("ateneo"))
+    }
+
+    @Test
+    fun refreshReplacesChangedContentAndKeepsStableKeysAndAccountIsolation() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val cache = UniAppDataCoordinator(FakeUniAppDataSource(), backgroundScope)
+        val first = cache.prepareNews(listOf(news("a", "Ateneo")), dispatcher)
+        val update = cache.prepareNews(listOf(news("a", "Ateneo").copy(title = "Updated", publishedAt = "26/09/2026")), dispatcher)
+        assertNotSame(first, update)
+        assertEquals(first.items.single().key, update.items.single().key)
+        assertEquals("Updated", cache.newsFeed!!.items.single().title)
+        assertNull(UniAppDataCoordinator(FakeUniAppDataSource(), backgroundScope).newsFeed)
+        val empty = cache.prepareNews(emptyList(), dispatcher)
+        assertEquals(emptyList(), empty.items)
+        assertEquals(emptyMap(), empty.byCategory)
+    }
+
+    @Test
+    fun keysStayUniqueForDuplicateBackendIdsAndStableWhenOtherItemsMove() {
+        val first = news("same", "Ateneo")
+        val department = news("same", "Dipartimento")
+        val input = listOf(first, first, department, news("other", "Ateneo"))
+        val items = input.toNewsItems()
+        assertEquals(items.size, items.map { it.key }.distinct().size)
+        val reversed = input.reversed().toNewsItems()
+        assertEquals(items.map { it.key }.toSet(), reversed.map { it.key }.toSet())
+    }
+
+    @Test
+    fun sortPreservesDatesTitlesAndMissingDateOrdering() {
+        val items = listOf(
+            news("z", "Ateneo").copy(publishedAt = ""),
+            news("b", "Ateneo").copy(publishedAt = "25/09/2026"),
+            news("a", "Ateneo").copy(publishedAt = "2026-09-25T12:30:00Z"),
+            news("old", "Ateneo").copy(publishedAt = "2025-12-31"),
+        ).toNewsItems()
+        assertEquals(listOf("a", "b", "old", "z"), items.map { it.title })
+    }
+
+    private fun news(id: String, category: String) = UniversityNews(
+        id = id, title = id, summary = "Summary", content = "Content",
+        publishedAt = "2026-09-25", category = category, sourceUrl = null,
+    )
 }

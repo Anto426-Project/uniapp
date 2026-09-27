@@ -24,35 +24,45 @@ enum class NewsFilter(val category: String?) {
 
 data class NewsUiState(
     val selectedTab: Int = 0,
-    val filters: List<NewsFilter> = listOf(NewsFilter.All),
-    val news: List<NewsItem> = emptyList(),
+    val feed: NewsFeed = NewsFeed(),
     val selectedNews: NewsItem? = null,
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
 ) {
+    val news: List<NewsItem> get() = feed.items
+    val filters: List<NewsFilter> = feed.filters()
     val visibleNews: List<NewsItem> get() = filters.getOrNull(selectedTab)?.category?.let { category ->
-        news.filter { it.category.equals(category, ignoreCase = true) }
+        feed.byCategory[category.lowercase()].orEmpty()
     } ?: news
 }
 
-class NewsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
-    private val mutableUiState = MutableStateFlow(NewsUiState())
+private fun NewsFeed.filters(): List<NewsFilter> =
+    listOf(NewsFilter.All) + NewsFilter.entries.drop(1).filter {
+        !byCategory[it.category?.lowercase()].isNullOrEmpty()
+    }
+
+class NewsViewModel(
+    dataSource: UniAppDataSource,
+    private val preparationDispatcher: CoroutineDispatcher = Dispatchers.Default,
+) : ViewModel() {
+    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val mutableUiState = MutableStateFlow(
+        sharedData.newsFeed?.let { feed ->
+            NewsUiState(feed = feed, loadState = if (feed.items.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content)
+        } ?: NewsUiState(),
+    )
     val uiState: StateFlow<NewsUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.News)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
             val news = snapshot.require(UniAppDataRequests.News)
-            val items = news.toNewsItems()
-            val filters = listOf(NewsFilter.All) + NewsFilter.entries.drop(1).filter { filter ->
-                items.any { it.category.equals(filter.category, ignoreCase = true) }
-            }
+            val feed = sharedData.prepareNews(news, preparationDispatcher)
+            val filters = feed.filters()
             val selected = mutableUiState.value.filters.getOrNull(mutableUiState.value.selectedTab)
             mutableUiState.value = mutableUiState.value.copy(
-                filters = filters,
                 selectedTab = filters.indexOfFirst { it == selected }.coerceAtLeast(0),
-                news = items,
+                feed = feed,
                 loadState = if (news.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 errorMessage = null,
             )

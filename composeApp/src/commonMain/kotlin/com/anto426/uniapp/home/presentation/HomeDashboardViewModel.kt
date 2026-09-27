@@ -26,6 +26,7 @@ class HomeDashboardViewModel(
     private val dataSource: UniAppDataSource,
     quickActions: List<QuickActionItem>,
     private val account: UniAccountSummary? = null,
+    private val preparationDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val mutableUiState =
         MutableStateFlow(
@@ -49,6 +50,9 @@ class HomeDashboardViewModel(
 
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, partial = true, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         val failure = snapshot.firstError?.userMessage(getString(Res.string.msg_impossibile_aggiornare_la_panoramica))
+        val preparedNews = snapshot.value(UniAppDataRequests.News)?.let {
+            sharedData.prepareNews(it, preparationDispatcher)
+        }
         mutableUiState.update { current ->
             var next = current.copy(errorMessage = failure)
             snapshot.value(UniAppDataRequests.Student)?.let { student ->
@@ -74,8 +78,8 @@ class HomeDashboardViewModel(
                 next = next.copy(openExamRounds = rounds.count { it.open && !it.booked },
                     nextExamLabel = upcoming?.let { "${it.courseName} • ${it.dateTime}" }.orEmpty())
             }
-            snapshot.value(UniAppDataRequests.News)?.let { news ->
-                val items = news.toNewsItems()
+            preparedNews?.let { feed ->
+                val items = feed.items
                 next = next.copy(news = items, activeNewsIndex = next.activeNewsIndex.coerceIn(0, items.lastIndex.coerceAtLeast(0)))
             }
             if (account?.isProfessor == true) {

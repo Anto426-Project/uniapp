@@ -100,12 +100,12 @@ fun UniNewsCard(
             .fillMaxWidth()
             .then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier),
         shape = RoundedRectangle(if (homeCard) 22.dp else 20.dp),
-        contentPadding = 16.dp,
+        contentPadding = if (homeCard) 14.dp else 16.dp,
         onClick = onClick,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(if (homeCard) 12.dp else 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Header: Optical icon pod + Category info + Trailing CTA pill
             Row(
@@ -189,17 +189,20 @@ fun UniNewsCard(
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
                     fontSize = 14.sp,
+                    minLines = if (homeCard) 2 else 1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp,
                 )
 
-                if (hasDescription) {
+                // Keep the carousel viewport stable when headlines or summaries change length.
+                if (hasDescription || homeCard) {
                     Text(
                         text = news.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.88f),
                         fontSize = 12.sp,
+                        minLines = if (homeCard) 2 else 1,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 16.sp,

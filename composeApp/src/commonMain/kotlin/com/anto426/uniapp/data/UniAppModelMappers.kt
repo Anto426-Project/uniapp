@@ -199,14 +199,14 @@ internal fun List<UniversityContact>.toContacts(): List<ContactData> =
         }
         ContactData(
             name = name,
-            role = contact.role?.trim()?.takeIf(String::isNotBlank) ?: organization,
+            role = contact.role?.trim()?.takeIf { it.isNotBlank() } ?: organization,
             initials = name.initials(),
             email = contact.email?.trim().orEmpty(),
             phone = phones.firstOrNull().orEmpty(),
             city = contact.city?.trim().orEmpty(),
             category = organization.toContactCategory(),
             department = organization,
-            office = listOfNotNull(contact.building?.trim()?.takeIf(String::isNotBlank), contact.address?.trim()?.takeIf(String::isNotBlank)).joinToString(" • "),
+            office = listOfNotNull(contact.building?.trim()?.takeIf { it.isNotBlank() }, contact.address?.trim()?.takeIf { it.isNotBlank() }).joinToString(" • "),
             officeHours = contact.officeHours?.trim().orEmpty(),
             id = contact.id?.trim().orEmpty(),
             firstName = contact.firstName?.trim().orEmpty(),
@@ -243,21 +243,36 @@ internal fun List<AttendanceRecord>.toAttendanceData(): List<AttendanceData> =
         )
     }
 
-internal fun List<UniversityNews>.toNewsItems(): List<NewsItem> =
-    map { news ->
-        NewsItem(
+private val NewsDatePattern = Regex("(\\d{4})-(\\d{1,2})-(\\d{1,2})|(\\d{1,2})/(\\d{1,2})/(\\d{4})")
+
+internal fun List<UniversityNews>.toNewsItems(): List<NewsItem> {
+    val occurrences = mutableMapOf<String, Int>()
+    return map { news ->
+        val category = news.category?.trim().orEmpty()
+        val publishedAt = news.publishedAt?.trim().orEmpty()
+        val rawId = news.id?.trim()
+        val identityParts = if (rawId.isNullOrBlank()) listOf(category.lowercase(), publishedAt, news.title)
+        else listOf(category.lowercase(), rawId)
+        val identity = identityParts.joinToString("|") { "${it.length}:$it" }
+        val occurrence = occurrences.getOrElse(identity) { 0 }
+        occurrences[identity] = occurrence + 1
+        val item = NewsItem(
             title = news.title,
             description = news.summary ?: news.content.orEmpty().take(160),
             fullContent = news.content ?: news.summary.orEmpty(),
             type = news.category.toNewsType(),
-            category = news.category?.trim().orEmpty(),
-            publishedAt = news.publishedAt?.trim().orEmpty(),
+            category = category,
+            publishedAt = publishedAt,
+            key = "${datasetCacheKey("news", identity)}#$occurrence",
+            sourceUrl = news.sourceUrl?.trim()?.takeIf(String::isNotBlank),
         )
-    }.sortedWith(compareByDescending<NewsItem> { it.publishedAt.newsDateSortKey() }.thenBy { it.title })
+        item to publishedAt.newsDateSortKey()
+    }.sortedWith(compareByDescending<Pair<NewsItem, Long>> { it.second }.thenBy { it.first.title })
+        .map { it.first }
+}
 
 private fun String.newsDateSortKey(): Long {
-    val date = Regex("(\\d{4})-(\\d{1,2})-(\\d{1,2})|(\\d{1,2})/(\\d{1,2})/(\\d{4})")
-        .find(this)?.value ?: return Long.MIN_VALUE
+    val date = NewsDatePattern.find(this)?.value ?: return Long.MIN_VALUE
     val parts = date.split('-', '/')
     val (year, month, day) = if ('-' in date) Triple(parts[0], parts[1], parts[2])
     else Triple(parts[2], parts[1], parts[0])
