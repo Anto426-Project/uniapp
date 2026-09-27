@@ -31,14 +31,73 @@ import kotlinx.serialization.Serializable
  */
 class UniAccountStore(
     private val storageManager: SecureStorageManager,
+    private val resetStorageForRelease: Boolean = false,
+    private val resetPlatformStorage: suspend () -> Unit = {},
     private val generateIdentifier: () -> String = ::generateAccountStorageIdentifier,
 ) {
     private val lock = Mutex()
     private val applicationLock = Mutex()
     private var cachedRegistry: StoredAccountRegistry? = null
+    private val migrationLock = Mutex()
+    private val migrationReady = MutableStateFlow(!resetStorageForRelease)
+    private val legacySharedNewsPurged = MutableStateFlow(false)
+
+    private val mutableStorageResetNotice = MutableStateFlow(false)
+    internal val storageResetNotice = mutableStorageResetNotice.asStateFlow()
+
+    /** A fixed migration id, independent of versionCode, preserves all data saved afterward. */
+    private suspend fun prepareStorage() {
+        if (migrationReady.value && legacySharedNewsPurged.value) return
+        withContext(Dispatchers.Default) {
+            migrationLock.withLock {
+                if (!migrationReady.value) {
+                    val maintenance = storageManager.vault("storage-migrations")
+                    when (val status = maintenance.getString(RELEASE_STORAGE_RESET_KEY)) {
+                        "complete" -> Unit
+                        "notice-pending" -> mutableStorageResetNotice.value = true
+                        else -> {
+                            val registryStorage = storageManager.registry()
+                            val registry = registryStorage.getObject<StoredAccountRegistry>(REGISTRY_KEY)
+                            val showNotice = status == "resetting-notice" || registry != null
+                            maintenance.putString(RELEASE_STORAGE_RESET_KEY, if (showNotice) "resetting-notice" else "resetting")
+                            storageManager.destroyAll(registry?.accounts.orEmpty().map(StoredAccount::accountId) + "application-data")
+                            cachedRegistry = null
+                            resetPlatformStorage()
+                            // A separate migration marker survives cleanup and interruption retries.
+                            maintenance.putString(RELEASE_STORAGE_RESET_KEY, if (showNotice) "notice-pending" else "complete")
+                            mutableStorageResetNotice.value = showNotice
+                        }
+                    }
+                    migrationReady.value = true
+                }
+                if (!legacySharedNewsPurged.value) {
+                    storageManager.vault("application-data").remove("cache.v1.university-news-unimol-ateneo")
+                    legacySharedNewsPurged.value = true
+                }
+            }
+        }
+    }
+
+    internal suspend fun acknowledgeStorageReset() {
+        prepareStorage()
+        migrationLock.withLock {
+            storageManager.vault("storage-migrations").putString(RELEASE_STORAGE_RESET_KEY, "complete")
+            mutableStorageResetNotice.value = false
+        }
+    }
+
+    private suspend fun <T> withAccountStorage(block: suspend () -> T): T {
+        prepareStorage()
+        return lock.withLock { block() }
+    }
+
+    private suspend fun <T> withApplicationStorage(block: suspend () -> T): T {
+        prepareStorage()
+        return applicationLock.withLock { block() }
+    }
 
     suspend fun snapshot(): UniAccountRegistrySnapshot =
-        lock.withLock { loadRegistry().toSnapshot() }
+        withAccountStorage { loadRegistry().toSnapshot() }
 
     internal suspend fun persistAuthenticatedAccount(
         credentials: UniAccountCredentials,
@@ -46,7 +105,7 @@ class UniAccountStore(
         ticket: UniSessionTicket,
         preferredAccountId: String? = null,
     ): UniAccountSummary =
-        lock.withLock {
+        withAccountStorage {
             val registry = loadRegistry()
             val identityAccounts = registry.accounts.filter { it.serverUserId == profile.id }
             val existing =
@@ -92,7 +151,7 @@ class UniAccountStore(
         profile: UniUserProfile,
         ticket: UniSessionTicket,
     ): UniAccountSummary =
-        lock.withLock {
+        withAccountStorage {
             val registry = loadRegistry()
             require(registry.accounts.any { it.accountId == accountId }) { "Unknown account" }
             val updated = profile.toStoredAccount(accountId, listOf(registry.accounts.first { it.accountId == accountId }))
@@ -109,9 +168,9 @@ class UniAccountStore(
         }
 
     internal suspend fun loadSessionTicket(accountId: String): UniSessionTicket? =
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
-            val bytes = storageManager.vault(accountId).getBytes(SESSION_TICKET_KEY) ?: return@withLock null
+            val bytes = storageManager.vault(accountId).getBytes(SESSION_TICKET_KEY) ?: return@withAccountStorage null
             try {
                 UniSessionTicket.restore(bytes)
             } finally {
@@ -120,49 +179,46 @@ class UniAccountStore(
         }
 
     internal suspend fun clearSessionTicket(accountId: String) {
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).remove(SESSION_TICKET_KEY)
         }
     }
 
-    internal suspend fun readCachedData(
-        accountId: String,
-        key: String,
-    ): ByteArray? =
-        lock.withLock {
+    /** A null account identifies application-wide data; profile keys remain account-owned. */
+    internal suspend fun readCachedData(accountId: String?, key: String): ByteArray? =
+        if (accountId == null) withApplicationStorage {
+            storageManager.vault("application-data").getBytes(cacheKey(key))
+        } else withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).getBytes(cacheKey(key))
         }
 
-    internal suspend fun writeCachedData(
-        accountId: String,
-        key: String,
-        value: ByteArray,
-    ) {
-        lock.withLock {
+    internal suspend fun writeCachedData(accountId: String?, key: String, value: ByteArray) {
+        if (accountId == null) withApplicationStorage {
+            storageManager.vault("application-data").putBytes(cacheKey(key), value)
+        } else withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).putBytes(cacheKey(key), value)
         }
     }
 
-    internal suspend fun removeCachedData(
-        accountId: String,
-        key: String,
-    ) {
-        lock.withLock {
+    internal suspend fun removeCachedData(accountId: String?, key: String) {
+        if (accountId == null) withApplicationStorage {
+            storageManager.vault("application-data").remove(cacheKey(key))
+        } else withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).remove(cacheKey(key))
         }
     }
 
     /** App-wide content has its own vault, independent of registry and account removal. */
-    internal suspend fun readApplicationData(key: String): ByteArray? = applicationLock.withLock {
+    internal suspend fun readApplicationData(key: String): ByteArray? = withApplicationStorage {
         val appStorage = storageManager.vault("application-data")
         val storageKey = localDataKey(key)
-        appStorage.getBytes(storageKey)?.let { return@withLock it }
+        appStorage.getBytes(storageKey)?.let { return@withApplicationStorage it }
         // Migrate existing preferences and project data. Delete the old value only after saving.
-        val legacy = storageManager.registry().getBytes(storageKey) ?: return@withLock null
+        val legacy = storageManager.registry().getBytes(storageKey) ?: return@withApplicationStorage null
         try {
             appStorage.putBytes(storageKey, legacy)
             storageManager.registry().remove(storageKey)
@@ -172,32 +228,32 @@ class UniAccountStore(
         }
     }
 
-    internal suspend fun writeApplicationData(key: String, value: ByteArray) = applicationLock.withLock {
+    internal suspend fun writeApplicationData(key: String, value: ByteArray) = withApplicationStorage {
         storageManager.vault("application-data").putBytes(localDataKey(key), value)
         storageManager.registry().remove(localDataKey(key))
     }
 
-    internal suspend fun removeApplicationData(key: String) = applicationLock.withLock {
+    internal suspend fun removeApplicationData(key: String) = withApplicationStorage {
         storageManager.vault("application-data").remove(localDataKey(key))
         storageManager.registry().remove(localDataKey(key))
     }
 
     /** Account-owned data kept separate from credentials, sessions and response caches. */
     internal suspend fun readAccountData(accountId: String, key: String): ByteArray? =
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).getBytes(localDataKey(key))
         }
 
     internal suspend fun writeAccountData(accountId: String, key: String, value: ByteArray) {
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).putBytes(localDataKey(key), value)
         }
     }
 
     internal suspend fun removeAccountData(accountId: String, key: String) {
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             storageManager.vault(accountId).remove(localDataKey(key))
         }
@@ -207,13 +263,13 @@ class UniAccountStore(
         accountId: String,
         expectedSource: String? = null,
     ): CachedProfileImage? =
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             val vault = storageManager.vault(accountId)
-            val storedSource = vault.getString(PROFILE_IMAGE_SOURCE_KEY) ?: return@withLock null
-            if (expectedSource != null && storedSource != expectedSource) return@withLock null
-            val savedAt = vault.getString(PROFILE_IMAGE_SAVED_AT_KEY)?.toLongOrNull() ?: return@withLock null
-            val bytes = vault.getBytes(PROFILE_IMAGE_BYTES_KEY) ?: return@withLock null
+            val storedSource = vault.getString(PROFILE_IMAGE_SOURCE_KEY) ?: return@withAccountStorage null
+            if (expectedSource != null && storedSource != expectedSource) return@withAccountStorage null
+            val savedAt = vault.getString(PROFILE_IMAGE_SAVED_AT_KEY)?.toLongOrNull() ?: return@withAccountStorage null
+            val bytes = vault.getBytes(PROFILE_IMAGE_BYTES_KEY) ?: return@withAccountStorage null
             CachedProfileImage(savedAtMillis = savedAt, bytes = bytes, source = storedSource)
         }
 
@@ -223,7 +279,7 @@ class UniAccountStore(
         savedAtMillis: Long,
         bytes: ByteArray,
     ) {
-        lock.withLock {
+        withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             val vault = storageManager.vault(accountId)
             vault.putBytes(PROFILE_IMAGE_BYTES_KEY, bytes)
@@ -237,7 +293,7 @@ class UniAccountStore(
         block: suspend (UniCredentials) -> T,
     ): T {
         val credentials =
-            lock.withLock {
+            withAccountStorage {
                 requireKnownAccount(loadRegistry(), accountId)
                 val accountStorage = storageManager.vault(accountId)
                 val username = accountStorage.getString(USERNAME_KEY)
@@ -250,7 +306,7 @@ class UniAccountStore(
     }
 
     suspend fun setActiveAccount(accountId: String?) {
-        lock.withLock {
+        withAccountStorage {
             val registry = loadRegistry()
             if (accountId != null) requireKnownAccount(registry, accountId)
             persistRegistry(registry.copy(activeAccountId = accountId))
@@ -258,7 +314,7 @@ class UniAccountStore(
     }
 
     suspend fun forgetAccount(accountId: String) {
-        lock.withLock {
+        withAccountStorage {
             val registry = loadRegistry()
             requireKnownAccount(registry, accountId)
 
@@ -275,7 +331,7 @@ class UniAccountStore(
     }
 
     suspend fun destroyAll() {
-        lock.withLock {
+        withAccountStorage {
             val registry = loadRegistry()
             storageManager.destroyAll(registry.accounts.map(StoredAccount::accountId) + "application-data")
             cachedRegistry = null
@@ -352,6 +408,7 @@ class UniAccountStore(
     }
 
     private companion object {
+        const val RELEASE_STORAGE_RESET_KEY = "migration.storage-reset-20260927"
         const val REGISTRY_SCHEMA_VERSION = 1
         const val REGISTRY_KEY = "account-registry"
         const val USERNAME_KEY = "credentials.username"

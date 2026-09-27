@@ -31,6 +31,15 @@ class AppSessionViewModel(
     private val sessionController: AppSessionController,
 ) : ViewModel() {
     val state: StateFlow<AppSessionState> = sessionController.state
+    val storageResetNotice: StateFlow<Boolean> = sessionController.storageResetNotice
+
+    fun acknowledgeStorageReset() {
+        viewModelScope.launch {
+            try { sessionController.acknowledgeStorageReset() }
+            catch (error: CancellationException) { throw error }
+            catch (_: Exception) { /* Keep the notice visible so acknowledgment can be retried. */ }
+        }
+    }
     private val mutableUnlockUiState = MutableStateFlow(AppUnlockUiState())
     val unlockUiState: StateFlow<AppUnlockUiState> = mutableUnlockUiState.asStateFlow()
     private var unlockJob: Job? = null

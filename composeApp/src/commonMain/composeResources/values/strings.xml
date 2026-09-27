@@ -3,6 +3,8 @@
 
     <string name="ui_app_name">UniApp</string>
     <string name="ui_university">Università degli Studi del Molise</string>
+    <string name="ui_storage_reset_title">Dati locali reimpostati</string>
+    <string name="ui_storage_reset_message">Questo aggiornamento ha reimpostato lo storage di UniApp: account salvati, sessioni, preferenze e dati scaricati sono stati rimossi dal dispositivo. Accedi di nuovo per scaricare i dati aggiornati. I tuoi dati sul portale universitario non sono stati modificati.</string>
     <string name="ui_loading">Caricamento…</string>
     <string name="ui_cancel">Annulla</string>
     <string name="ui_save">Salva</string>

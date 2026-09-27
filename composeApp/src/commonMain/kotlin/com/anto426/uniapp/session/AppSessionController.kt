@@ -43,6 +43,8 @@ class AppSessionController internal constructor(
 
     val state: StateFlow<AppSessionState> = mutableState.asStateFlow()
 
+    internal val storageResetNotice = accountStore.storageResetNotice
+    internal suspend fun acknowledgeStorageReset() = accountStore.acknowledgeStorageReset()
     suspend fun initialize() {
         lock.withLock {
             if (mutableState.value !is AppSessionState.Initializing) return

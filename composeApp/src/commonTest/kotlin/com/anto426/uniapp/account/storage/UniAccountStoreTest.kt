@@ -235,13 +235,118 @@ class UniAccountStoreTest {
         assertEquals("second", factory.open("test.vault.account-b").getString("credentials.username"))
     }
 
+    @Test
+    fun applicationCacheIsSharedWhileProfileDataRemainsIsolatedAndSurvivesAccountRemoval() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val store = createStore(listOf("installation", "account-a", "account-b"), factory)
+        val first = store.persistAuthenticatedAccount(UniAccountCredentials("first", "secret"), profile("first"), UniSessionTicket.restore(byteArrayOf(1)))
+        val second = store.persistAuthenticatedAccount(UniAccountCredentials("second", "secret"), profile("second"), UniSessionTicket.restore(byteArrayOf(2)))
+        store.writeCachedData(null, "public-project-data", byteArrayOf(7))
+        store.writeCachedData(first.accountId, "profile-a-news", byteArrayOf(8))
+        assertContentEquals(byteArrayOf(7), store.readCachedData(null, "public-project-data"))
+        assertNull(store.readCachedData(second.accountId, "profile-a-news"))
+        store.forgetAccount(first.accountId)
+        val reopened = createStore(emptyList(), factory)
+        assertContentEquals(byteArrayOf(7), reopened.readCachedData(null, "public-project-data"))
+        assertEquals(listOf(second), reopened.snapshot().accounts)
+    }
+
+    @Test
+    fun oldSharedNewsCacheIsRemovedWhenStorageOpens() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val old = createStore(listOf("installation"), factory)
+        old.writeCachedData(null, "university-news-unimol-ateneo", byteArrayOf(7))
+
+        val updated = createStore(emptyList(), factory)
+        assertNull(updated.readCachedData(null, "university-news-unimol-ateneo"))
+    }
+
+    @Test
+    fun releaseResetErasesAllManagedDataOnceAndPersistsTheNoticeUntilAcknowledgment() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val old = createStore(listOf("old-installation", "old-account-a", "old-account-b"), factory)
+        repeat(2) { index ->
+            val account = old.persistAuthenticatedAccount(UniAccountCredentials("user-$index", "secret"), profile("user-$index"), UniSessionTicket.restore(byteArrayOf(1)))
+            old.writeCachedData(account.accountId, "response", byteArrayOf(2))
+            old.writeAccountData(account.accountId, "security.preference", byteArrayOf(3))
+            old.writeProfileImage(account.accountId, "portrait", 100L, byteArrayOf(4))
+        }
+        old.writeCachedData(null, "general-news", byteArrayOf(5))
+        old.writeApplicationData("application.theme.mode", "Dark".encodeToByteArray())
+        var cleanups = 0
+        val updated = createStore(listOf("new-installation", "new-account"), factory, true) { cleanups++ }
+        // The preference path must await reset too, before session initialization runs.
+        assertNull(updated.readApplicationData("application.theme.mode"))
+        assertTrue(updated.storageResetNotice.value)
+        assertTrue(updated.snapshot().accounts.isEmpty())
+        assertNull(updated.readCachedData(null, "general-news"))
+        for (accountId in listOf("old-account-a", "old-account-b")) {
+            val vault = factory.open("test.vault.$accountId")
+            assertFalse(vault.contains("credentials.username"))
+            assertFalse(vault.contains("session.primary.ticket"))
+            assertFalse(vault.contains("cache.v1.response"))
+            assertFalse(vault.contains("local.v1.security.preference"))
+            assertFalse(vault.contains("profile.image.bytes"))
+        }
+        val saved = updated.persistAuthenticatedAccount(UniAccountCredentials("new", "secret"), profile("new"), UniSessionTicket.restore(byteArrayOf(9)))
+        updated.writeApplicationData("application.theme.mode", "Light".encodeToByteArray())
+        updated.writeCachedData(saved.accountId, "response", byteArrayOf(8))
+        val nextLaunch = createStore(emptyList(), factory, true) { cleanups++ }
+        assertEquals(saved, nextLaunch.snapshot().accounts.single())
+        assertTrue(nextLaunch.storageResetNotice.value)
+        assertContentEquals("Light".encodeToByteArray(), nextLaunch.readApplicationData("application.theme.mode"))
+        assertContentEquals(byteArrayOf(8), nextLaunch.readCachedData(saved.accountId, "response"))
+        nextLaunch.acknowledgeStorageReset()
+        val futureVersion = createStore(emptyList(), factory, true) { cleanups++ }
+        assertEquals(saved, futureVersion.snapshot().accounts.single())
+        assertFalse(futureVersion.storageResetNotice.value)
+        assertContentEquals(byteArrayOf(9), futureVersion.loadSessionTicket(saved.accountId)!!.export())
+        assertEquals(1, cleanups)
+    }
+
+    @Test
+    fun interruptedResetRetriesCleanupAndKeepsTheNoticeEvenAfterTheRegistryWasRemoved() = runTest {
+        val factory = MemorySecureStorageFactory()
+        createStore(listOf("old-installation"), factory).snapshot()
+        var fail = true
+        var attempts = 0
+        val updated = createStore(listOf("new-installation"), factory, true) {
+            attempts++
+            if (fail) error("Cleanup interrupted")
+        }
+        assertFailsWith<IllegalStateException> { updated.writeApplicationData("application.theme.mode", "Dark".encodeToByteArray()) }
+        fail = false
+        assertTrue(updated.snapshot().accounts.isEmpty())
+        assertTrue(updated.storageResetNotice.value)
+        assertNull(updated.readApplicationData("application.theme.mode"))
+        assertEquals(2, attempts)
+    }
+
+    @Test
+    fun freshInstallHasNoResetNoticeAndConcurrentFirstReadsRunMigrationOnlyOnce() = runTest {
+        val factory = MemorySecureStorageFactory()
+        var cleanups = 0
+        val fresh = createStore(listOf("installation"), factory, true) { cleanups++ }
+        List(8) { async { fresh.readApplicationData("application.theme.mode") } }.awaitAll()
+        assertFalse(fresh.storageResetNotice.value)
+        fresh.writeApplicationData("application.theme.mode", "Dark".encodeToByteArray())
+        val restarted = createStore(emptyList(), factory, true) { cleanups++ }
+        assertContentEquals("Dark".encodeToByteArray(), restarted.readApplicationData("application.theme.mode"))
+        assertFalse(restarted.storageResetNotice.value)
+        assertEquals(1, cleanups)
+    }
+
     private fun createStore(
         identifiers: List<String>,
         factory: MemorySecureStorageFactory = MemorySecureStorageFactory(),
+        resetStorageForRelease: Boolean = false,
+        resetPlatformStorage: suspend () -> Unit = {},
     ): UniAccountStore {
         val iterator = identifiers.iterator()
         return UniAccountStore(
             storageManager = SecureStorageManager(factory, rootScope = "test"),
+            resetStorageForRelease = resetStorageForRelease,
+            resetPlatformStorage = resetPlatformStorage,
             generateIdentifier = { iterator.next() },
         )
     }

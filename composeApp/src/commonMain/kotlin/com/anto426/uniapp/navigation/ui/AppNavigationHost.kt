@@ -145,6 +145,7 @@ internal fun AppNavigationHost(
     val updateViewModel = viewModel { AppUpdateViewModel(runtime.updateController, toastManager) }
     val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
     val notificationState by runtime.notificationManager.state.collectAsStateWithLifecycle()
+    val storageResetNotice by sessionViewModel.storageResetNotice.collectAsStateWithLifecycle()
     com.anto426.uniapp.updates.platform.NotifyAvailableAppUpdate(updateUiState, notificationState.enabled)
     val updateLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(updateLifecycle, accountDataSource) {
@@ -326,7 +327,7 @@ internal fun AppNavigationHost(
             val screenPadding =
                 PaddingValues(
                     top = innerPadding.calculateTopPadding(),
-                    bottom = if (showBottomBar) 110.dp else 24.dp,
+                    bottom = if (showBottomBar) 80.dp else 16.dp,
                 )
             CompositionLocalProvider(
                 LocalAppToastSink provides toastManager,
@@ -412,7 +413,22 @@ internal fun AppNavigationHost(
             }
         }
 
-        if (updateUiState.showUpdateSheet) {
+        if (storageResetNotice && sessionState !is AppSessionState.Initializing) {
+            LiquidDialog(
+                title = stringResource(Res.string.ui_storage_reset_title),
+                text = stringResource(Res.string.ui_storage_reset_message),
+                onDismissRequest = {},
+                confirmButton = {
+                    LiquidButton(
+                        text = stringResource(Res.string.ui_understand),
+                        onClick = sessionViewModel::acknowledgeStorageReset,
+                        variant = LiquidButtonVariant.Primary,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                },
+            )
+        }
+        if (!storageResetNotice && updateUiState.showUpdateSheet) {
             com.anto426.uniapp.ui.updates.AppUpdateSheet(
                 state = updateUiState,
                 onDismiss = updateViewModel::dismissUpdateSheet,
