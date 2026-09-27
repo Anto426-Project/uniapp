@@ -38,17 +38,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.SDK_READ_TOKEN || secrets.DEPLOY_TOKEN || github.token }}
         run: python3 scripts/fetch_sdk_binaries.py
+      - name: Use disk-backed build temporary files
+        run: |
+          set -euo pipefail
+          build_temp_dir="$RUNNER_TEMP/uniapp-build-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p -- "$build_temp_dir"
+          printf 'TMPDIR=%s\n' "$build_temp_dir" >> "$GITHUB_ENV"
+          printf 'JAVA_TOOL_OPTIONS=%s-Djava.io.tmpdir=%s\n' "${JAVA_TOOL_OPTIONS:+$JAVA_TOOL_OPTIONS }" "$build_temp_dir" >> "$GITHUB_ENV"
+          df -h "$build_temp_dir"
+          df -i "$build_temp_dir"
+          dd if=/dev/zero of="$build_temp_dir/.write-check" bs=1M count=64 status=none
+          rm -- "$build_temp_dir/.write-check"
       - name: Validate release tooling and app
         run: |
           set -euo pipefail
-          test_temp_dir="$RUNNER_TEMP/uniapp-tests-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          mkdir -p -- "$test_temp_dir"
-          export TMPDIR="$test_temp_dir"
-          export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:+$JAVA_TOOL_OPTIONS }-Djava.io.tmpdir=$test_temp_dir"
-          df -h "$test_temp_dir"
-          df -i "$test_temp_dir"
-          dd if=/dev/zero of="$test_temp_dir/.write-check" bs=1M count=64 status=none
-          rm -- "$test_temp_dir/.write-check"
           python3 scripts/validate_release.py
           ./gradlew --no-daemon --max-workers=2 :composeApp:testAndroidHostTest
       - name: Upload test results
@@ -109,3 +112,6 @@ jobs:
       - name: Remove signing material
         if: always()
         run: rm -f "${RUNNER_TEMP}/uniapp-release-${GITHUB_RUN_ID}.keystore"
+      - name: Remove build temporary files
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/uniapp-build-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
