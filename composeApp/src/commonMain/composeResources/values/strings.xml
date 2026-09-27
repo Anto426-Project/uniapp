@@ -553,6 +553,21 @@
     <string name="ui_update_download">Scarica</string>
     <string name="ui_update_new_available">Nuovo aggiornamento disponibile</string>
     <string name="ui_update_channel">Canale di rilascio</string>
+    <string name="ui_update_system_information">Sistema e informazioni</string>
+    <string name="ui_update_installed_version">Versione installata</string>
+    <string name="ui_update_installed_details">%1$s %2$s • %3$s</string>
+    <string name="ui_update_stable_channel">Canale stabile</string>
+    <string name="ui_update_channel_unknown">Canale non disponibile</string>
+    <string name="ui_update_installed_badge">INSTALLATA</string>
+    <string name="ui_update_up_to_date_badge">AGGIORNATA</string>
+    <string name="ui_update_verification_title">Verifica del pacchetto</string>
+    <string name="ui_update_verification_pending">La firma e la versione saranno controllate dopo il download</string>
+    <string name="ui_update_verification_downloading">In attesa che il download termini</string>
+    <string name="ui_update_verification_running">Controllo della firma e della versione in corso…</string>
+    <string name="ui_update_verification_passed">Firma e versione verificate prima dell’installazione</string>
+    <string name="ui_update_check_action">Controlla aggiornamenti</string>
+    <string name="ui_update_check_in_progress">Ricerca di nuove versioni in corso…</string>
+    <string name="ui_update_check_description">Verifica se è disponibile una nuova versione</string>
 
     <string name="ui_account_profiles_title">Profili e carriere</string>
 

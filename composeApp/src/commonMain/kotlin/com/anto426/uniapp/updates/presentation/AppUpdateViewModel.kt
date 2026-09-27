@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 data class AppUpdateUiState(
     val bannerState: UpdateState = UpdateState.CHECKING,
     val installedVersion: String = "",
+    val channel: String? = null,
+    val supportsPackageVerification: Boolean = false,
     val displayedVersion: String = "",
     val statusText: org.jetbrains.compose.resources.StringResource? = null,
     val releaseNotes: String? = null,
@@ -123,6 +125,8 @@ internal fun AppUpdateState.toUiState(): AppUpdateUiState {
                 AppUpdatePhase.Failed -> UpdateState.ERROR
             },
         installedVersion = installedBuild.versionName,
+        channel = info?.channel,
+        supportsPackageVerification = installedBuild.platform.equals("android", ignoreCase = true),
         displayedVersion = if (info?.isUpdateAvailable == true) info.latestVersion else installedBuild.versionName,
         statusText = when {
             phase == AppUpdatePhase.Verifying -> Res.string.ui_update_status_verifying
