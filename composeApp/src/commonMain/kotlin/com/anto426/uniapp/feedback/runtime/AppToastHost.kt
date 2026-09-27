@@ -22,7 +22,7 @@ fun AppToastHost(
             state.show(
                 message = message.text,
                 subtitle = message.subtitle,
-                type = message.kind.toLiquidType(),
+                icon = message.kind.toIcon(),
             )
         }
     }
@@ -32,10 +32,10 @@ fun AppToastHost(
     )
 }
 
-private fun AppToastKind.toLiquidType(): LiquidToastType =
+private fun AppToastKind.toIcon(): ImageVector =
     when (this) {
-        AppToastKind.Success -> LiquidToastType.Success
-        AppToastKind.Info -> LiquidToastType.Info
-        AppToastKind.Warning -> LiquidToastType.Warning
-        AppToastKind.Error -> LiquidToastType.Error
+        AppToastKind.Success -> LiquidIcons.Check
+        AppToastKind.Info -> LiquidIcons.Info
+        AppToastKind.Warning -> LiquidIcons.Warning
+        AppToastKind.Error -> LiquidIcons.Close
     }
