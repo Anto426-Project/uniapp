@@ -206,7 +206,7 @@ fun SettingsScreen(
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_theme_colors),
                 subtitle = stringResource(Res.string.ui_theme_subtitle),
-                icon = LiquidIcons.Star,
+                icon = LiquidIcons.Palette,
                 onClick = onOpenTheme,
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))

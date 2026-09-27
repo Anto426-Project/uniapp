@@ -25,13 +25,23 @@ fun ColorLabScreen(
     onColorSelected: (Color) -> Unit,
 ) {
     UniScreenColumn {
-        // 1. Interactive Liquid Color Picker
+        // 1. Tonalità di base rapide tramite LiquidPaletteSelector
+        LiquidPaletteSelector(
+            options = UniAppInitialData.palettes,
+            selectedIndex = UniAppInitialData.palettes.indexOfFirst { it.color == uiState.selectedColor },
+            onSelectIndex = { index -> onColorSelected(UniAppInitialData.palettes[index].color) },
+            title = stringResource(Res.string.ui_theme_selection_title),
+            showBadge = true,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+        )
+
+        // 2. Interactive Liquid Color Picker
         LiquidColorPicker(
             selectedColor = uiState.selectedColor,
             onColorSelected = onColorSelected,
         )
 
-        // 2. Info Section
+        // 3. Info Section
         LiquidPreferenceGroup {
             Text(
                 text = stringResource(Res.string.ui_colors_info),
@@ -41,8 +51,5 @@ fun ColorLabScreen(
                 lineHeight = 20.sp,
             )
         }
-
-        // Spaziatura per non coprire il contenuto con la floating dock bar
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(110.dp))
     }
 }

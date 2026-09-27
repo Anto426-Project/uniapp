@@ -51,8 +51,14 @@ import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 /**
- * Schermata Temi e personalizzazione visiva rinnovata.
- * Modalità aspetto rifinita, tavolozza colori con campioni rapidi inline e controlli di fluidità.
+ * Schermata Temi e Personalizzazione Visiva Liquid Monet v2.
+ *
+ * Include:
+ * 1. Selettore Modalità Aspetto a Mockup Visivi (Sistema, Chiaro, Scuro)
+ * 2. Tavolozza Colori completa (Material You, Sapphire, Emerald, Sunset, Violet)
+ *    con opzione finale per accedere direttamente al Laboratorio Colori avanzato
+ * 3. Motore Grafico Sfondo Liquid (Aurora, Mesh Glow, Orbital Pulse, Radiant Beam)
+ * 4. Ottimizzazioni di Fisica e Ripristino Impostazioni
  */
 @Composable
 fun ThemeScreen(
@@ -65,219 +71,152 @@ fun ThemeScreen(
     onCustomColorSelected: (Color) -> Unit = {},
     onNavigateToColorLab: () -> Unit = {}
 ) {
+    val activeAccentColor = when {
+        uiState.selectedThemeIndex == 0 -> MaterialTheme.colorScheme.primary
+        uiState.selectedThemeIndex == 5 || (uiState.themes.getOrNull(uiState.selectedThemeIndex)?.isCustom == true) ->
+            uiState.customColor ?: Color(0xFF0B57D0)
+        else -> uiState.themes.getOrNull(uiState.selectedThemeIndex)?.color ?: MaterialTheme.colorScheme.primary
+    }
+
     UniScreenColumn {
-        // 1. Modalità Aspetto (Sistema / Chiaro / Scuro)
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_mode_group)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val modes = listOf(
-                    Triple(
-                        AppThemeMode.System,
-                        stringResource(Res.string.ui_theme_mode_system),
-                        ThemeSystemIcon,
-                    ),
-                    Triple(
-                        AppThemeMode.Light,
-                        stringResource(Res.string.ui_theme_mode_light),
-                        ThemeLightIcon,
-                    ),
-                    Triple(
-                        AppThemeMode.Dark,
-                        stringResource(Res.string.ui_theme_mode_dark),
-                        ThemeDarkIcon,
-                    )
-                )
-
-                modes.forEach { (mode, label, icon) ->
-                    val isSelected = uiState.themeMode == mode
-                    val animatedBg by animateColorAsState(
-                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        else Color.Transparent,
-                        label = "modeBg"
-                    )
-                    val animatedBorder by animateColorAsState(
-                        if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
-                        label = "modeBorder"
-                    )
-
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedRectangle(16.dp))
-                            .background(animatedBg)
-                            .border(
-                                width = if (isSelected) 1.5.dp else 1.dp,
-                                color = animatedBorder,
-                                shape = RoundedRectangle(16.dp)
-                            )
-                            .clickable { onThemeModeSelected(mode) }
-                            .padding(vertical = 16.dp, horizontal = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(26.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            ),
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
+        // 1. Modalità aspetto con anteprime visive
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LiquidSectionHeader(
+                title = stringResource(Res.string.ui_theme_mode_group),
+                size = LiquidSectionHeaderSize.Small,
+            )
+            ThemeAppearanceSelector(
+                selectedMode = uiState.themeMode,
+                accentColor = activeAccentColor,
+                onModeSelected = onThemeModeSelected,
+            )
         }
 
-        // 3. Tavolozza Colori & Monet Seed
+        // 2. Tavolozza Colori & Monet Seed (Racchiusi in un unico contenitore)
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_palette_group)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                uiState.themes.forEachIndexed { index, theme ->
-                    val isSelected = index == uiState.selectedThemeIndex
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onThemeSelected(index)
-                                if (theme.isCustom && uiState.customColor == null) {
-                                    onCustomColorSelected(Color(0xFF0B57D0))
-                                }
-                            }
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f, fill = false)
-                        ) {
-                            // Campione cromatico con anello animato
-                            Box(
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(CircleShape)
-                                    .then(
-                                        if (theme.color != null) {
-                                            Modifier.background(theme.color)
-                                        } else {
-                                            Modifier.background(
-                                                Brush.sweepGradient(
-                                                    listOf(
-                                                        Color(0xFF4285F4),
-                                                        Color(0xFF34A853),
-                                                        Color(0xFFFBBC05),
-                                                        Color(0xFFEA4335),
-                                                        Color(0xFF4285F4)
-                                                    )
+            // Palette predefinite (Material You, Sapphire, Emerald, Sunset, Violet)
+            uiState.themes.forEachIndexed { index, theme ->
+                if (theme.isCustom) return@forEachIndexed
+
+                val isSelected = uiState.selectedThemeIndex == index
+
+                LiquidPreferenceItem(
+                    title = if (index == 0) stringResource(Res.string.ui_theme_material_you_title) else theme.name,
+                    subtitle = if (index == 0) stringResource(Res.string.ui_theme_material_you_sub) else theme.description,
+                    leadingContent = {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .then(
+                                    if (theme.color != null) {
+                                        Modifier.background(theme.color)
+                                    } else {
+                                        Modifier.background(
+                                            Brush.sweepGradient(
+                                                listOf(
+                                                    Color(0xFF4285F4),
+                                                    Color(0xFF34A853),
+                                                    Color(0xFFFBBC05),
+                                                    Color(0xFFEA4335),
+                                                    Color(0xFF4285F4),
                                                 )
                                             )
-                                        }
-                                    )
-                                    .then(
-                                        if (isSelected) {
-                                            Modifier.border(2.5.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                        } else {
-                                            Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), CircleShape)
-                                        }
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = LiquidIcons.Check,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
-
-                            Text(
-                                text = theme.name,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                        )
+                                    }
+                                )
+                                .border(
+                                    width = if (isSelected) 2.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    shape = CircleShape,
                                 ),
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = LiquidIcons.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        }
+                    },
+                    trailingContent = {
+                        LiquidRadioButton(
+                            selected = isSelected,
+                            onClick = { onThemeSelected(index) },
+                        )
+                    },
+                    onClick = { onThemeSelected(index) },
+                )
+
+                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
+            }
+
+            // Ultima opzione: Laboratorio Colori Personalizzati (che rimanda alla schermata Laboratorio)
+            val isCustomActive = uiState.selectedThemeIndex == 5 || (uiState.themes.getOrNull(uiState.selectedThemeIndex)?.isCustom == true)
+            val customColor = uiState.customColor ?: Color(0xFF0B57D0)
+
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_theme_palette_custom_lab),
+                subtitle = if (isCustomActive) {
+                    "Personalizzato • ${customColor.toHexString()}"
+                } else {
+                    stringResource(Res.string.ui_theme_palette_custom_lab_sub)
+                },
+                leadingContent = {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(customColor)
+                            .border(
+                                width = if (isCustomActive) 2.dp else 1.dp,
+                                color = if (isCustomActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                shape = CircleShape,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (isCustomActive) {
+                            Icon(
+                                imageVector = LiquidIcons.Check,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        } else {
+                            Icon(
+                                imageVector = LiquidIcons.Palette,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp),
                             )
                         }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            if (theme.isCustom && uiState.customColor != null) {
-                                Text(
-                                    text = uiState.customColor.toHexString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            if (isSelected) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedRectangle(8.dp))
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.msg_attivo),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                            if (theme.isCustom) {
-                                Icon(
-                                    imageVector = LiquidIcons.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
                     }
-
-                    // Sezione campioni rapidi inline per colore personalizzato
-                    if (theme.isCustom && isSelected) {
-                        CustomColorInlinePicker(
-                            currentColor = uiState.customColor ?: Color(0xFF0B57D0),
-                            onColorSelected = onCustomColorSelected,
-                            onOpenAdvanced = onNavigateToColorLab
-                        )
-                    }
-
-                    if (index < uiState.themes.lastIndex) {
-                        LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
-                    }
-                }
-            }
+                },
+                trailingContent = {
+                    Icon(
+                        imageVector = LiquidIcons.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                },
+                onClick = onNavigateToColorLab,
+            )
         }
 
-        // 4. Sfondo Ottico & Sfumature Fluide
+        // 3. Motore Grafico Sfondo Liquid
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_engine_group)) {
             LiquidBackgroundSelector(
                 selectedEffect = uiState.selectedBackgroundStyle.toBackgroundEffect(),
                 onEffectSelected = { onBackgroundStyleSelected(it.toStyleName()) },
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             )
         }
 
-        // 5. Fisica e Feedback Tattile
+        // 4. Fisica e Prestazioni
         LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_haptics_group)) {
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_theme_reduced_motion_title),
@@ -286,104 +225,316 @@ fun ThemeScreen(
                 trailingContent = {
                     LiquidSwitch(
                         checked = uiState.reducedMotion,
-                        onCheckedChange = onReducedMotionChanged
+                        onCheckedChange = onReducedMotionChanged,
                     )
-                }
+                },
             )
         }
 
-        // 6. Ripristino Valori Predefiniti
+        // 5. Ripristino Valori Predefiniti
         LiquidButton(
             text = stringResource(Res.string.ui_theme_reset_button),
             onClick = onReset,
+            leadingIcon = {
+                Icon(
+                    imageVector = LiquidIcons.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            },
+            variant = LiquidButtonVariant.Secondary,
             modifier = Modifier.fillMaxWidth(),
-            variant = LiquidButtonVariant.Secondary
         )
-
-        // Spaziatura di sicurezza per non coprire il pulsante con la floating bar
-        Spacer(modifier = Modifier.height(110.dp))
     }
 }
 
-
-
 /**
- * Selettore compatto di colori rapidi per la modalità Personalizzato.
+ * Selettore Modalità Aspetto a Mockup Visivi (Sistema, Chiaro, Scuro).
  */
 @Composable
-private fun CustomColorInlinePicker(
-    currentColor: Color,
-    onColorSelected: (Color) -> Unit,
-    onOpenAdvanced: () -> Unit
+private fun ThemeAppearanceSelector(
+    selectedMode: AppThemeMode,
+    accentColor: Color,
+    onModeSelected: (AppThemeMode) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val quickColors = listOf(
-        Color(0xFF0B57D0), // UniMol / Royal Blue
-        Color(0xFFE91E63), // Amaranto Vivo
-        Color(0xFF00897B), // Smeraldo Luminoso
-        Color(0xFFE65100), // Arancio Caldo
-        Color(0xFF7E57C2), // Viola Luminoso
-        Color(0xFFC2185B), // Rubino
-        Color(0xFF00ACC1), // Turchese Vivo
-        Color(0xFFD97706)  // Ambra
+    val modes = remember {
+        listOf(
+            Triple(AppThemeMode.System, "Sistema", "Segui disp."),
+            Triple(AppThemeMode.Light, "Chiaro", "Luminoso"),
+            Triple(AppThemeMode.Dark, "Scuro", "Contrasto"),
+        )
+    }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        modes.forEach { (mode, title, subtitle) ->
+            val isSelected = selectedMode == mode
+            AppearanceMockupCard(
+                mode = mode,
+                title = title,
+                subtitle = subtitle,
+                isSelected = isSelected,
+                accentColor = accentColor,
+                onClick = { onModeSelected(mode) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+/**
+ * Card singola con mockup visivo del layout dello smartphone, basata su [LiquidCard].
+ */
+@Composable
+private fun AppearanceMockupCard(
+    mode: AppThemeMode,
+    title: String,
+    subtitle: String,
+    isSelected: Boolean,
+    accentColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val animatedContainerColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+        label = "appearanceContainer",
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-            .clip(RoundedRectangle(14.dp))
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
-                shape = RoundedRectangle(14.dp)
-            )
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+    LiquidCard(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedRectangle(16.dp),
+        contentPadding = 8.dp,
+        colors = LiquidCardDefaults.colors(
+            containerColor = animatedContainerColor,
+        ),
     ) {
-        Row(
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .border(
+                        width = 1.5.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedRectangle(16.dp),
+                    ),
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // Mockup Finestra Dispositivo
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .height(78.dp)
+                .clip(RoundedRectangle(10.dp))
+                .border(
+                    width = 1.dp,
+                    color = Color.Black.copy(alpha = 0.12f),
+                    shape = RoundedRectangle(10.dp),
+                ),
         ) {
-            quickColors.forEach { color ->
-                val isSelected = currentColor.toHexByteString() == color.toHexByteString()
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .clickable { onColorSelected(color) }
-                        .then(
-                            if (isSelected) {
-                                Modifier.border(2.5.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                            } else {
-                                Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), CircleShape)
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isSelected) {
-                        Icon(
-                            imageVector = LiquidIcons.Check,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+            when (mode) {
+                AppThemeMode.Light -> {
+                    // Finestra Chiara
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF2F4F7))
+                            .padding(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        // Barra superiore simulata
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(Capsule())
+                                .background(Color.White),
                         )
+                        // Card centrale simulata
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .clip(RoundedRectangle(6.dp))
+                                .background(Color.White)
+                                .padding(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(36.dp)
+                                    .height(6.dp)
+                                    .clip(Capsule())
+                                    .background(Color(0xFFD1D5DB)),
+                            )
+                        }
+                        // Tasto d'azione simulato
+                        Box(
+                            modifier = Modifier
+                                .width(42.dp)
+                                .height(12.dp)
+                                .clip(Capsule())
+                                .background(accentColor),
+                        )
+                    }
+                }
+
+                AppThemeMode.Dark -> {
+                    // Finestra Scura
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF121418))
+                            .padding(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        // Barra superiore simulata
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(Capsule())
+                                .background(Color(0xFF1E2128)),
+                        )
+                        // Card centrale simulata
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .clip(RoundedRectangle(6.dp))
+                                .background(Color(0xFF222630))
+                                .padding(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(36.dp)
+                                    .height(6.dp)
+                                    .clip(Capsule())
+                                    .background(Color(0xFF4B5563)),
+                            )
+                        }
+                        // Tasto d'azione simulato
+                        Box(
+                            modifier = Modifier
+                                .width(42.dp)
+                                .height(12.dp)
+                                .clip(Capsule())
+                                .background(accentColor),
+                        )
+                    }
+                }
+
+                AppThemeMode.System -> {
+                    // Finestra Sistema Schermo Diviso (Day / Night)
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        // Lato Giorno
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(Color(0xFFF2F4F7))
+                                .padding(5.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(Capsule())
+                                    .background(Color.White),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(32.dp)
+                                    .clip(RoundedRectangle(6.dp))
+                                    .background(Color.White),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(12.dp)
+                                    .clip(Capsule())
+                                    .background(accentColor),
+                            )
+                        }
+
+                        // Divisore centrale
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxWidth()
+                                .background(Color.Gray.copy(alpha = 0.4f)),
+                        )
+
+                        // Lato Notte
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(Color(0xFF121418))
+                                .padding(5.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(Capsule())
+                                    .background(Color(0xFF1E2128)),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(32.dp)
+                                    .clip(RoundedRectangle(6.dp))
+                                    .background(Color.White.copy(alpha = 0.08f)),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(12.dp)
+                                    .clip(Capsule())
+                                    .background(accentColor.copy(alpha = 0.8f)),
+                            )
+                        }
                     }
                 }
             }
         }
 
-        LiquidButton(
-            text = "Apri spettro completo & HEX",
-            onClick = onOpenAdvanced,
-            variant = LiquidButtonVariant.Tonal,
-            size = LiquidButtonSize.Small,
-            modifier = Modifier.fillMaxWidth()
+        // Titolo & Sottotitolo
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(1.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 11.sp,
+            )
+        }
+
+        // Indicatore di selezione radio
+        LiquidRadioButton(
+            selected = isSelected,
+            onClick = onClick,
         )
     }
+}
 }
 
 private fun String.toBackgroundEffect(): LiquidBackgroundEffect = when (this) {
@@ -407,151 +558,9 @@ private fun Color.toHexString(): String {
     return "#${r.toHexByte()}${g.toHexByte()}${b.toHexByte()}"
 }
 
-private fun Color.toHexByteString(): String {
-    val r = (red * 255).toInt().coerceIn(0, 255)
-    val g = (green * 255).toInt().coerceIn(0, 255)
-    val b = (blue * 255).toInt().coerceIn(0, 255)
-    return "$r-$g-$b"
-}
-
 private fun Int.toHexByte(): String {
     val hex = "0123456789ABCDEF"
     val h = hex[(this ushr 4) and 0x0F]
     val l = hex[this and 0x0F]
     return "$h$l"
-}
-
-private val ThemeLightIcon: ImageVector by lazy {
-    ImageVector.Builder(
-        name = "ThemeLight",
-        defaultWidth = 24.dp,
-        defaultHeight = 24.dp,
-        viewportWidth = 24f,
-        viewportHeight = 24f
-    ).path(fill = SolidColor(Color.Black)) {
-        moveTo(12f, 7f)
-        curveToRelative(-2.76f, 0f, -5f, 2.24f, -5f, 5f)
-        reflectiveCurveToRelative(2.24f, 5f, 5f, 5f)
-        reflectiveCurveToRelative(5f, -2.24f, 5f, -5f)
-        reflectiveCurveToRelative(-2.24f, -5f, -5f, -5f)
-        close()
-        moveTo(2f, 13f)
-        horizontalLineToRelative(2f)
-        curveToRelative(0.55f, 0f, 1f, -0.45f, 1f, -1f)
-        reflectiveCurveToRelative(-0.45f, -1f, -1f, -1f)
-        lineTo(2f, 11f)
-        curveToRelative(-0.55f, 0f, -1f, 0.45f, -1f, 1f)
-        reflectiveCurveToRelative(0.45f, 1f, 1f, 1f)
-        close()
-        moveTo(20f, 13f)
-        horizontalLineToRelative(2f)
-        curveToRelative(0.55f, 0f, 1f, -0.45f, 1f, -1f)
-        reflectiveCurveToRelative(-0.45f, -1f, -1f, -1f)
-        horizontalLineToRelative(-2f)
-        curveToRelative(-0.55f, 0f, -1f, 0.45f, -1f, 1f)
-        reflectiveCurveToRelative(0.45f, 1f, 1f, 1f)
-        close()
-        moveTo(11f, 2f)
-        verticalLineToRelative(2f)
-        curveToRelative(0f, 0.55f, 0.45f, 1f, 1f, 1f)
-        reflectiveCurveToRelative(1f, -0.45f, 1f, -1f)
-        lineTo(13f, 2f)
-        curveToRelative(0f, -0.55f, -0.45f, -1f, -1f, -1f)
-        reflectiveCurveToRelative(-1f, 0.45f, -1f, 1f)
-        close()
-        moveTo(11f, 20f)
-        verticalLineToRelative(2f)
-        curveToRelative(0f, 0.55f, 0.45f, 1f, 1f, 1f)
-        reflectiveCurveToRelative(1f, -0.45f, 1f, -1f)
-        verticalLineToRelative(-2f)
-        curveToRelative(0f, -0.55f, -0.45f, -1f, -1f, -1f)
-        reflectiveCurveToRelative(-1f, 0.45f, -1f, 1f)
-        close()
-        moveTo(5.99f, 4.58f)
-        curveToRelative(-0.39f, -0.39f, -1.03f, -0.39f, -1.41f, 0f)
-        reflectiveCurveToRelative(-0.39f, 1.03f, 0f, 1.41f)
-        lineToRelative(1.06f, 1.06f)
-        curveToRelative(0.39f, 0.39f, 1.03f, 0.39f, 1.41f, 0f)
-        reflectiveCurveToRelative(0.39f, -1.03f, 0f, -1.41f)
-        lineTo(5.99f, 4.58f)
-        close()
-        moveTo(18.36f, 16.95f)
-        curveToRelative(-0.39f, -0.39f, -1.03f, -0.39f, -1.41f, 0f)
-        reflectiveCurveToRelative(-0.39f, 1.03f, 0f, 1.41f)
-        lineToRelative(1.06f, 1.06f)
-        curveToRelative(0.39f, 0.39f, 1.03f, 0.39f, 1.41f, 0f)
-        reflectiveCurveToRelative(0.39f, -1.03f, 0f, -1.41f)
-        lineToRelative(-1.06f, -1.06f)
-        close()
-        moveTo(7.05f, 18.36f)
-        curveToRelative(0.39f, -0.39f, 0.39f, -1.03f, 0f, -1.41f)
-        reflectiveCurveToRelative(-1.03f, -0.39f, -1.41f, 0f)
-        lineToRelative(-1.06f, 1.06f)
-        curveToRelative(-0.39f, 0.39f, -0.39f, 1.03f, 0f, 1.41f)
-        reflectiveCurveToRelative(1.03f, 0.39f, 1.41f, 0f)
-        lineToRelative(1.06f, -1.06f)
-        close()
-        moveTo(19.42f, 6.05f)
-        curveToRelative(0.39f, -0.39f, 0.39f, -1.03f, 0f, -1.41f)
-        reflectiveCurveToRelative(-1.03f, -0.39f, -1.41f, 0f)
-        lineToRelative(-1.06f, 1.06f)
-        curveToRelative(-0.39f, 0.39f, -0.39f, 1.03f, 0f, 1.41f)
-        reflectiveCurveToRelative(1.03f, 0.39f, 1.41f, 0f)
-        lineToRelative(1.06f, -1.06f)
-        close()
-    }.build()
-}
-
-private val ThemeDarkIcon: ImageVector by lazy {
-    ImageVector.Builder(
-        name = "ThemeDark",
-        defaultWidth = 24.dp,
-        defaultHeight = 24.dp,
-        viewportWidth = 24f,
-        viewportHeight = 24f
-    ).path(fill = SolidColor(Color.Black)) {
-        moveTo(12f, 3f)
-        curveToRelative(-4.97f, 0f, -9f, 4.03f, -9f, 9f)
-        reflectiveCurveToRelative(4.03f, 9f, 9f, 9f)
-        reflectiveCurveToRelative(9f, -4.03f, 9f, -9f)
-        curveToRelative(0f, -0.46f, -0.04f, -0.92f, -0.1f, -1.36f)
-        curveToRelative(-0.98f, 1.37f, -2.58f, 2.26f, -4.4f, 2.26f)
-        curveToRelative(-3.03f, 0f, -5.5f, -2.47f, -5.5f, -5.5f)
-        curveToRelative(0f, -1.82f, 0.89f, -3.42f, 2.26f, -4.4f)
-        curveToRelative(-0.44f, -0.06f, -0.9f, -0.1f, -1.36f, -0.1f)
-        close()
-    }.build()
-}
-
-private val ThemeSystemIcon: ImageVector by lazy {
-    ImageVector.Builder(
-        name = "ThemeSystem",
-        defaultWidth = 24.dp,
-        defaultHeight = 24.dp,
-        viewportWidth = 24f,
-        viewportHeight = 24f
-    ).path(fill = SolidColor(Color.Black)) {
-        moveTo(16f, 1f)
-        lineTo(8f, 1f)
-        curveToRelative(-1.66f, 0f, -3f, 1.34f, -3f, 3f)
-        verticalLineToRelative(16f)
-        curveToRelative(0f, 1.66f, 1.34f, 3f, 3f, 3f)
-        horizontalLineToRelative(8f)
-        curveToRelative(1.66f, 0f, 3f, -1.34f, 3f, -3f)
-        lineTo(19f, 4f)
-        curveToRelative(0f, -1.66f, -1.34f, -3f, -3f, -3f)
-        close()
-        moveTo(14f, 21f)
-        horizontalLineToRelative(-4f)
-        verticalLineToRelative(-1f)
-        horizontalLineToRelative(4f)
-        verticalLineToRelative(1f)
-        close()
-        moveTo(17.25f, 18f)
-        lineTo(6.75f, 18f)
-        lineTo(6.75f, 4f)
-        horizontalLineToRelative(10.5f)
-        verticalLineToRelative(14f)
-        close()
-    }.build()
 }
