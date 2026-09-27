@@ -26,6 +26,7 @@ class AppNavigator internal constructor(
     private val authBackStack: NavBackStack<NavKey>,
     private val topLevelBackStacks: Map<AppRoute, NavBackStack<NavKey>>,
     private val activeRootState: MutableState<AppRoute>,
+    private val authenticatedOwnerState: MutableState<String?>,
     private val sessionState: () -> AppSessionState,
     private val routeGuard: AppRouteGuard,
 ) {
@@ -112,6 +113,18 @@ class AppNavigator internal constructor(
 
     /** Revalidates restored destinations and reacts atomically to authentication changes. */
     fun reconcile(): AppRoute {
+        val authenticated = sessionState() as? AppSessionState.Authenticated
+        if (authenticated != null) {
+            val account = authenticated.account
+            val owner = "${account.accountId.length}:${account.accountId}|${account.activeProfileId?.let { "${it.length}:$it" } ?: "-"}"
+            if (authenticatedOwnerState.value != owner) {
+                Snapshot.withMutableSnapshot {
+                    resetAuthenticatedStacks()
+                    activeRootState.value = AppRoute.Home
+                    authenticatedOwnerState.value = owner
+                }
+            }
+        }
         val current = currentRoute
         val allowed = routeGuard.resolve(current, sessionState())
         if (allowed != current) {

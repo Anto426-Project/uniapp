@@ -205,9 +205,9 @@ internal fun AppRouteContent(
                 onShowNews = { news ->
                     navigator.navigate(
                         AppRoute.NewsDetail(
-                            title = news.title,
-                            description = news.description,
-                            fullContent = news.fullContent,
+                            newsKey = news.key,
+                            accountId = accountId,
+                            profileId = activeProfileId,
                         ),
                     )
                 },
@@ -831,9 +831,9 @@ internal fun AppRouteContent(
                     onNewsSelected = { news ->
                         navigator.navigate(
                             AppRoute.NewsDetail(
-                                title = news.title,
-                                description = news.description,
-                                fullContent = news.fullContent,
+                                newsKey = news.key,
+                                accountId = accountId,
+                                profileId = activeProfileId,
                             ),
                         )
                     },
@@ -842,12 +842,28 @@ internal fun AppRouteContent(
         }
 
         is AppRoute.NewsDetail -> {
-            NewsDetailScreen(
-                title = route.title,
-                description = route.description,
-                fullContent = route.fullContent,
-                onBack = { navigator.goBack() },
-            )
+            val newsViewModel = viewModel(key = viewModelKey) { NewsViewModel(dataSource) }
+            val newsUiState by newsViewModel.uiState.collectAsStateWithLifecycle()
+            val news = newsUiState.news.firstOrNull { it.key == route.newsKey }
+            if (news != null) {
+                NewsDetailScreen(
+                    title = news.title,
+                    description = news.description,
+                    fullContent = news.fullContent,
+                    category = news.category,
+                    publishedAt = news.publishedAt,
+                    sourceUrl = news.sourceUrl,
+                    onOpenSource = { url -> uriHandler.openUri(url) },
+                    onBack = { navigator.goBack() },
+                )
+            } else {
+                FeatureStateContent(
+                    state = if (newsUiState.loadState == FeatureLoadState.Content) FeatureLoadState.Empty else newsUiState.loadState,
+                    errorMessage = newsUiState.errorMessage,
+                    onRetry = { newsViewModel.refresh(force = true) },
+                    emptyMessage = stringResource(Res.string.ui_news_empty_desc),
+                ) {}
+            }
         }
 
         AppRoute.Devices -> {

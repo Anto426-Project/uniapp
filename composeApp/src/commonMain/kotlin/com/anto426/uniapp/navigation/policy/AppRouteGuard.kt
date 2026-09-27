@@ -18,6 +18,9 @@ class AppRouteGuard {
 
             is AppSessionState.Authenticated ->
                 when {
+                    requested is AppRoute.NewsDetail &&
+                        (requested.accountId != sessionState.account.accountId ||
+                            requested.profileId != sessionState.account.activeProfileId) -> AppRoute.Home
                     sessionState.account.isProfessor && requested.isStudentOnly() -> AppRoute.Didactics
                     !sessionState.account.isProfessor && requested.isProfessorOnly() -> AppRoute.Didactics
                     else -> when (requested.requirement) {

@@ -92,6 +92,33 @@ class AppNavigatorTest {
         assertEquals(AppRoute.Services, guard.resolve(AppRoute.Services, professorSession))
     }
 
+    @Test
+    fun changingAccountClearsSavedNewsAndOtherAuthenticatedStacks() {
+        val fixture = Fixture(activeRoot = AppRoute.Home)
+        fixture.navigator.reconcile()
+        fixture.navigator.navigate(AppRoute.NewsDetail("news-1", "account", null))
+        fixture.navigator.selectTopLevel(AppRoute.Services)
+        fixture.navigator.navigate(AppRoute.Transport)
+
+        fixture.currentSession = AppSessionState.Authenticated(
+            authenticatedSession.account.copy(accountId = "another-account"),
+        )
+        fixture.navigator.reconcile()
+
+        assertEquals(AppRoute.Home, fixture.navigator.currentRoute)
+        assertEquals(listOf(AppRoute.Home), fixture.stack(AppRoute.Home))
+        assertEquals(listOf(AppRoute.Services), fixture.stack(AppRoute.Services))
+    }
+
+    @Test
+    fun newsDetailFromAnotherAccountIsRejectedBeforeRendering() {
+        val guard = AppRouteGuard()
+        assertEquals(
+            AppRoute.Home,
+            guard.resolve(AppRoute.NewsDetail("news-1", "another-account", null), authenticatedSession),
+        )
+    }
+
     private class Fixture(
         activeRoot: AppRoute,
         sessionState: AppSessionState = authenticatedSession,
@@ -100,12 +127,15 @@ class AppNavigatorTest {
         val stacks =
             appTopLevelRoutes.associateWith { route -> NavBackStack<NavKey>(route) }
         val activeRoot = mutableStateOf(activeRoot)
+        var currentSession = sessionState
+        private val authenticatedOwner = mutableStateOf<String?>(null)
         val navigator =
             AppNavigator(
                 authBackStack = authStack,
                 topLevelBackStacks = stacks,
                 activeRootState = this.activeRoot,
-                sessionState = { sessionState },
+                authenticatedOwnerState = authenticatedOwner,
+                sessionState = { currentSession },
                 routeGuard = AppRouteGuard(),
             )
 

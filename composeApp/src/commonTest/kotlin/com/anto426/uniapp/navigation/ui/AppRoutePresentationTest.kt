@@ -10,9 +10,9 @@ class AppRoutePresentationTest {
     fun newsDetailUsesStandardTitleResource() {
         val route =
             AppRoute.NewsDetail(
-                title = "Bando borse di studio",
-                description = "Descrizione",
-                fullContent = "Contenuto",
+                newsKey = "news-1",
+                accountId = "account-1",
+                profileId = "profile-1",
             )
 
         assertEquals(null, route.presentation().titleString)

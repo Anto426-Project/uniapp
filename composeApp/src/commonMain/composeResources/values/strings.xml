@@ -351,6 +351,9 @@
     <string name="ui_news_empty_desc">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_news_official_notice">Comunicazione ufficiale</string>
     <string name="ui_news_notice_body">Testo della notizia</string>
+    <string name="ui_news_summary_heading">In breve</string>
+    <string name="ui_news_article_heading">Notizia</string>
+    <string name="ui_news_open_original">Apri la notizia originale</string>
     <string name="ui_home_news_page_notice">Notizia %1$d di %2$d • scorri per sfogliare</string>
 
 

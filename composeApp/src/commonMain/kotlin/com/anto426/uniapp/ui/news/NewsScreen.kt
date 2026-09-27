@@ -30,6 +30,7 @@ fun NewsScreen(
             NewsFilter.Course -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_course), icon = LiquidIcons.MenuBook)
         }
     }
+    val visibleNews = uiState.visibleNews
     UniScreenLazyColumn {
         item(key = "news-tabs") {
             LiquidTabBar(
@@ -38,7 +39,7 @@ fun NewsScreen(
                 onTabSelected = onTabSelected,
             )
         }
-        if (uiState.visibleNews.isEmpty()) {
+        if (visibleNews.isEmpty()) {
             item(key = "news-empty-${uiState.selectedTab}") {
                 LiquidEmptyState(
                     title = stringResource(Res.string.ui_news_empty_title),
@@ -47,8 +48,9 @@ fun NewsScreen(
             }
         }
         itemsIndexed(
-            items = uiState.visibleNews,
-            key = { index, news -> "${uiState.selectedTab}|${news.title}|$index" },
+            items = visibleNews,
+            contentType = { _, _ -> "news-card" },
+            key = { index, news -> news.key.ifBlank { "${news.title}|$index" } },
         ) { _, news ->
             UniNewsCard(
                 news = news,

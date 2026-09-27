@@ -150,9 +150,9 @@ sealed interface AppRoute : NavKey {
 
     @Serializable
     data class NewsDetail(
-        val title: String,
-        val description: String,
-        val fullContent: String,
+        val newsKey: String,
+        val accountId: String,
+        val profileId: String?,
     ) : AppRoute
 
     @Serializable
