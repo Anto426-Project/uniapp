@@ -588,11 +588,6 @@ internal fun AppRouteContent(
                     TransportBookingViewModel(dataSource, toastSink)
                 }
             val bookingUiState by bookingViewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(bookingUiState.bookedSuccessfully) {
-                if (bookingUiState.bookedSuccessfully) {
-                    navigator.goBack()
-                }
-            }
             FeatureStateContent(
                 bookingUiState.loadState,
                 bookingUiState.errorMessage,

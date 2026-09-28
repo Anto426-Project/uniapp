@@ -39,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,7 +61,9 @@ import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.transport.presentation.TransportBookingUiState
+import com.anto426.uniapp.transport.presentation.isTransportDateBooked
 import com.anto426.uniapp.transport.presentation.isTransportBookingDateAllowed
+import com.anto426.uniapp.transport.presentation.transportBookingWindow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.transport.TransportDirection
 import com.anto426.unisdk.transport.TransportRouteData
@@ -68,10 +72,8 @@ import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
-import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -87,17 +89,26 @@ fun TransportBookingScreen(
     var selectedDirection by remember { mutableStateOf(TransportDirection.OUTBOUND) }
 
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val lastBookableDate = today.plus(15, DateTimeUnit.DAY)
+    val lastBookableDate = remember(today) { transportBookingWindow(today).last() }
     var displayedYear by remember { mutableIntStateOf(today.year) }
     var displayedMonth by remember { mutableIntStateOf(today.month.number) }
     var selectedDates by remember { mutableStateOf(emptySet<LocalDate>()) }
-    LaunchedEffect(today) {
-        selectedDates = selectedDates.filterTo(mutableSetOf()) { isTransportBookingDateAllowed(it, today) }
+    val availableSelectedDates = selectedDates.filterTo(mutableSetOf()) { date ->
+        isTransportBookingDateAllowed(date, today) &&
+            !isTransportDateBooked(date, uiState.selectedRouteCode, selectedDirection, uiState.bookedRequests)
+    }
+    LaunchedEffect(today, selectedDirection, uiState.selectedRouteCode, uiState.bookedRequests) {
+        selectedDates = availableSelectedDates
     }
     val displayedMonthIndex = displayedYear * 12 + displayedMonth
     val firstMonthIndex = today.year * 12 + today.month.number
     val lastMonthIndex = lastBookableDate.year * 12 + lastBookableDate.month.number
-
+    LaunchedEffect(today) {
+        if (displayedMonthIndex !in firstMonthIndex..lastMonthIndex) {
+            displayedYear = today.year
+            displayedMonth = today.month.number
+        }
+    }
     val monthNames = listOf(
         "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
         "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre",
@@ -212,7 +223,7 @@ fun TransportBookingScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Mese / Anno Header
+                // Show whole months while allowing bookings only inside the rolling 15-day window.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -230,7 +241,6 @@ fun TransportBookingScreen(
                             color = colorScheme.onSurface,
                         )
                     }
-
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         LiquidIconButton(
                             icon = LiquidIcons.ChevronLeft,
@@ -239,9 +249,7 @@ fun TransportBookingScreen(
                                 if (displayedMonth == 1) {
                                     displayedMonth = 12
                                     displayedYear -= 1
-                                } else {
-                                    displayedMonth -= 1
-                                }
+                                } else displayedMonth -= 1
                             },
                         )
                         LiquidIconButton(
@@ -251,9 +259,7 @@ fun TransportBookingScreen(
                                 if (displayedMonth == 12) {
                                     displayedMonth = 1
                                     displayedYear += 1
-                                } else {
-                                    displayedMonth += 1
-                                }
+                                } else displayedMonth += 1
                             },
                         )
                     }
@@ -277,6 +283,7 @@ fun TransportBookingScreen(
                 }
 
                 // Griglia dei Giorni (Multi-Select)
+                val bookedDescription = stringResource(Res.string.ui_transport_ride_booked)
                 val totalCells = firstDayOffset + daysInCurrentMonth
                 val rows = (totalCells + 6) / 7
 
@@ -292,9 +299,11 @@ fun TransportBookingScreen(
 
                                 if (dayNumber in 1..daysInCurrentMonth) {
                                     val cellDate = LocalDate(displayedYear, displayedMonth, dayNumber)
-                                    val isSelected = cellDate in selectedDates
-                                    val isToday = cellDate == today
-                                    val isAllowed = isTransportBookingDateAllowed(cellDate, today)
+                                    val isBooked = isTransportDateBooked(
+                                        cellDate, uiState.selectedRouteCode, selectedDirection, uiState.bookedRequests,
+                                    )
+                                    val isSelected = cellDate in availableSelectedDates
+                                    val isAllowed = isTransportBookingDateAllowed(cellDate, today) && !isBooked
 
                                     val cellScale by animateFloatAsState(
                                         targetValue = if (isSelected) 1.08f else 1f,
@@ -308,41 +317,53 @@ fun TransportBookingScreen(
                                             .graphicsLayer {
                                                 scaleX = cellScale
                                                 scaleY = cellScale
-                                                alpha = if (isAllowed) 1f else 0.35f
+                                                alpha = when {
+                                                    isAllowed -> 1f
+                                                    isBooked -> 0.7f
+                                                    else -> 0.35f
+                                                }
                                             }
                                             .liquidGlass(
                                                 shape = Capsule(),
                                                 role = LiquidGlassRole.Control,
-                                                containerColor = if (isSelected) {
-                                                    LiquidGlassTheme.colors.selectedContainer
-                                                } else if (isToday) {
-                                                    colorScheme.primary.copy(alpha = 0.12f)
-                                                } else null,
+                                                containerColor = when {
+                                                    isSelected -> LiquidGlassTheme.colors.selectedContainer
+                                                    isBooked -> colorScheme.primary.copy(alpha = 0.1f)
+                                                    else -> null
+                                                },
                                             )
                                             .border(
-                                                width = if (isSelected) 1.5.dp else if (isToday) 1.dp else 0.dp,
-                                                color = if (isSelected) colorScheme.primary else if (isToday) colorScheme.primary.copy(alpha = 0.45f) else Color.Transparent,
+                                                width = if (isSelected) 1.5.dp else 0.dp,
+                                                color = if (isSelected) colorScheme.primary else Color.Transparent,
                                                 shape = Capsule(),
                                             )
+                                            .semantics {
+                                                if (isBooked) stateDescription = bookedDescription
+                                            }
                                             .clickable(enabled = isAllowed) {
                                                 selectedDates = if (isSelected) {
-                                                    selectedDates - cellDate
+                                                    availableSelectedDates - cellDate
                                                 } else {
-                                                    selectedDates + cellDate
+                                                    availableSelectedDates + cellDate
                                                 }
                                             },
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Text(
-                                            text = dayNumber.toString(),
+                                            text = cellDate.day.toString(),
                                             style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = if (isSelected) FontWeight.ExtraBold else if (isToday) FontWeight.Bold else FontWeight.Normal,
-                                            color = when {
-                                                isSelected -> colorScheme.primary
-                                                isToday -> colorScheme.primary
-                                                else -> colorScheme.onSurface
-                                            },
+                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                                            color = if (isSelected) colorScheme.primary else colorScheme.onSurface,
                                         )
+                                        if (isBooked) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .padding(bottom = 4.dp)
+                                                    .size(4.dp)
+                                                    .background(colorScheme.primary, CircleShape),
+                                            )
+                                        }
                                     }
                                 } else {
                                     Spacer(modifier = Modifier.size(38.dp))
@@ -356,11 +377,11 @@ fun TransportBookingScreen(
 
         // 4. Riepilogo Selezione (High-Fidelity Liquid Glass Ticket Pass)
         AnimatedVisibility(
-            visible = uiState.selectedRoute.isNotBlank() && selectedDates.isNotEmpty(),
+            visible = uiState.selectedRoute.isNotBlank() && availableSelectedDates.isNotEmpty(),
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically(),
         ) {
-            val totalRides = selectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
+            val totalRides = availableSelectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
 
             LiquidCard(
                 shape = RoundedRectangle(24.dp),
@@ -539,12 +560,12 @@ fun TransportBookingScreen(
                                 tint = colorScheme.primary,
                                 modifier = Modifier.size(18.dp),
                             )
-                            val formattedDateSummary = remember(selectedDates) {
-                                if (selectedDates.size == 1) {
-                                    val single = selectedDates.first()
+                            val formattedDateSummary = remember(availableSelectedDates) {
+                                if (availableSelectedDates.size == 1) {
+                                    val single = availableSelectedDates.first()
                                     "${single.day} ${monthNamesShort[single.month.number - 1]} ${single.year}"
                                 } else {
-                                    selectedDates.sorted().joinToString(", ") { "${it.day} ${monthNamesShort[it.month.number - 1]}" }
+                                    availableSelectedDates.sorted().joinToString(", ") { "${it.day} ${monthNamesShort[it.month.number - 1]}" }
                                 }
                             }
                             Text(
@@ -582,9 +603,9 @@ fun TransportBookingScreen(
         }
 
         // 5. Bottone di Conferma Prenotazione
-        val totalRides = selectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
+        val totalRides = availableSelectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
         val buttonText = when {
-            selectedDirection == TransportDirection.ROUND_TRIP && selectedDates.size > 1 -> stringResource(Res.string.ui_transport_confirm_rides_roundtrip, totalRides)
+            selectedDirection == TransportDirection.ROUND_TRIP && availableSelectedDates.size > 1 -> stringResource(Res.string.ui_transport_confirm_rides_roundtrip, totalRides)
             selectedDirection == TransportDirection.ROUND_TRIP -> stringResource(Res.string.ui_transport_confirm_two_rides_roundtrip)
             totalRides > 1 -> stringResource(Res.string.ui_transport_confirm_rides, totalRides)
             selectedDirection == TransportDirection.RETURN -> stringResource(Res.string.ui_transport_confirm_return_ride)
@@ -594,9 +615,9 @@ fun TransportBookingScreen(
         LiquidButton(
             text = buttonText,
             onClick = {
-                onBook(selectedDates.toList().sorted(), selectedDirection)
+                onBook(availableSelectedDates.toList().sorted(), selectedDirection)
             },
-            enabled = selectedDates.isNotEmpty() && uiState.selectedRoute.isNotBlank(),
+            enabled = availableSelectedDates.isNotEmpty() && uiState.selectedRoute.isNotBlank(),
             isLoading = uiState.isSubmitting,
             modifier = Modifier.fillMaxWidth(),
             variant = LiquidButtonVariant.Primary,

@@ -854,7 +854,7 @@
     <string name="ui_transport_direction_subtitle">Seleziona se prenotare la sola andata, il ritorno o entrambi (A/R)</string>
     <string name="ui_transport_round_trip">Andata e ritorno</string>
     <string name="ui_transport_dates_title">Date del viaggio</string>
-    <string name="ui_transport_booking_date_policy">Prenotazioni da domani fino a 15 giorni, esclusi sabato e domenica.</string>
+    <string name="ui_transport_booking_date_policy">Prenotazioni da domani fino a 15 giorni, esclusi sabato e domenica. Le date già prenotate restano visibili ma non selezionabili.</string>
     <string name="ui_transport_booking_completed">%1$d corse prenotate con successo.</string>
     <string name="ui_transport_booking_partial">%1$d/%2$d corse prenotate; %3$d già presenti, %4$d non riuscite.</string>
     <string name="ui_transport_dates_subtitle">Tocca i giorni desiderati sul calendario per selezionare più date</string>
