@@ -12,15 +12,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -271,17 +275,20 @@ fun HomeQuickIndicatorsRow(
     val colorScheme = MaterialTheme.colorScheme
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // Card Appelli
         LiquidCard(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
             onClick = onOpenExams,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -304,12 +311,15 @@ fun HomeQuickIndicatorsRow(
                         contentColor = colorScheme.primary,
                     )
                 }
+                Spacer(Modifier.height(12.dp))
                 Column {
                     Text(
                         text = stringResource(Res.string.ui_exams),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = if (uiState.isProfessor) {
@@ -317,7 +327,9 @@ fun HomeQuickIndicatorsRow(
                         } else uiState.nextExamLabel.ifBlank { stringResource(Res.string.msg_nessun_appello_disponibile) },
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        minLines = 2,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -325,12 +337,15 @@ fun HomeQuickIndicatorsRow(
 
         // Secondo indicatore: prenotazioni docente oppure tasse studente.
         LiquidCard(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
             onClick = if (uiState.isProfessor) onOpenTheses else onOpenTaxes,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -353,6 +368,7 @@ fun HomeQuickIndicatorsRow(
                         contentColor = colorScheme.primary,
                     )
                 }
+                Spacer(Modifier.height(12.dp))
                 Column {
                     Text(
                         text = stringResource(
@@ -362,6 +378,8 @@ fun HomeQuickIndicatorsRow(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = if (uiState.isProfessor) {
@@ -369,7 +387,9 @@ fun HomeQuickIndicatorsRow(
                         } else uiState.nextTaxLabel.ifBlank { stringResource(Res.string.ui_home_no_due_taxes) },
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        minLines = 2,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -397,11 +417,19 @@ private fun ProfessorHomeIdentitySummary(
                 text = stringResource(Res.string.ui_professor_courses_count, uiState.teachingCount),
                 containerColor = colors.primaryContainer.copy(alpha = .5f),
                 contentColor = colors.primary,
+                modifier = Modifier.weight(1f),
             )
             LiquidBadge(
                 text = stringResource(Res.string.ui_professor_rounds_count, uiState.openExamRounds),
                 containerColor = colors.primaryContainer.copy(alpha = .5f),
                 contentColor = colors.primary,
+                modifier = Modifier.weight(1f),
+            )
+            LiquidBadge(
+                text = stringResource(Res.string.ui_professor_theses_count, uiState.thesisCount),
+                containerColor = colors.primaryContainer.copy(alpha = .5f),
+                contentColor = colors.primary,
+                modifier = Modifier.weight(1f),
             )
         }
     }

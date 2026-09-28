@@ -41,13 +41,14 @@ fun AppInfoScreen(
 ) {
     val appInfo by AppInfoProvider.info.collectAsState()
     val isUpdateAvailable = updateUiState?.isUpdateAvailable == true
+    val displayVersion = appInfo.versionName.substringBefore('-').substringBefore('+')
 
     UniScreenColumn {
         // 1. Hero Brand Card (360dp con flip 3D)
         UniAppInfoBanner(
             modifier = Modifier.fillMaxWidth(),
             height = 360.dp,
-            version = appInfo.versionName,
+            version = displayVersion,
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
             buildInfo = stringResource(

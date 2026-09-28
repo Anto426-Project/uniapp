@@ -100,12 +100,12 @@ fun UniNewsCard(
             .fillMaxWidth()
             .then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier),
         shape = RoundedRectangle(if (homeCard) 22.dp else 20.dp),
-        contentPadding = if (homeCard) 14.dp else 16.dp,
+        contentPadding = if (homeCard) 12.dp else 16.dp,
         onClick = onClick,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(if (homeCard) 8.dp else 10.dp),
         ) {
             // Header: Optical icon pod + Category info + Trailing CTA pill
             Row(
@@ -120,7 +120,7 @@ fun UniNewsCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(if (homeCard) 40.dp else 32.dp)
+                            .size(if (homeCard) 34.dp else 32.dp)
                             .clip(RoundedRectangle(if (homeCard) 12.dp else 10.dp))
                             .background(categoryConfig.color.copy(alpha = 0.14f)),
                         contentAlignment = Alignment.Center,
@@ -129,7 +129,7 @@ fun UniNewsCard(
                             imageVector = categoryConfig.icon,
                             contentDescription = null,
                             tint = categoryConfig.color,
-                            modifier = Modifier.size(if (homeCard) 20.dp else 16.dp),
+                            modifier = Modifier.size(if (homeCard) 18.dp else 16.dp),
                         )
                     }
 
@@ -189,21 +189,21 @@ fun UniNewsCard(
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
                     fontSize = 14.sp,
-                    minLines = if (homeCard) 2 else 1,
+                    minLines = 1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp,
                 )
 
-                // Keep the carousel viewport stable when headlines or summaries change length.
+                // The Home preview stays short; the full text is available in the detail screen.
                 if (hasDescription || homeCard) {
                     Text(
                         text = news.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.88f),
                         fontSize = 12.sp,
-                        minLines = if (homeCard) 2 else 1,
-                        maxLines = 2,
+                        minLines = 1,
+                        maxLines = if (homeCard) 1 else 2,
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 16.sp,
                     )

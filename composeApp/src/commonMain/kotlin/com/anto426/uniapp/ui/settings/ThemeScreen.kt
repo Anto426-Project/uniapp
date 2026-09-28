@@ -208,11 +208,15 @@ fun ThemeScreen(
         }
 
         // 3. Motore Grafico Sfondo Liquid
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_engine_group)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LiquidSectionHeader(
+                title = stringResource(Res.string.ui_theme_engine_group),
+                size = LiquidSectionHeaderSize.Small,
+            )
             LiquidBackgroundSelector(
                 selectedEffect = uiState.selectedBackgroundStyle.toBackgroundEffect(),
                 onEffectSelected = { onBackgroundStyleSelected(it.toStyleName()) },
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -312,18 +316,6 @@ private fun AppearanceMockupCard(
             containerColor = animatedContainerColor,
         ),
     ) {
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .border(
-                        width = 1.5.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedRectangle(16.dp),
-                    ),
-            )
-        }
-
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
