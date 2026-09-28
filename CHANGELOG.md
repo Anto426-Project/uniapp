@@ -1,3 +1,10 @@
+## [2.0.14] - 2026-09-28 (build set by CI)
+
+- Trasporti: il calendario mostra il mese intero; sono selezionabili solo i giorni feriali da domani fino a 15 giorni.
+- Le corse già prenotate restano visibili ma non selezionabili per tratta e direzione, anche dopo una risposta di duplicato del portale.
+- Dopo la prenotazione il calendario resta aperto e aggiorna subito le date non disponibili.
+- Icone dell’app aggiornate e variante di sviluppo separata dalla versione installata.
+
 ## [2.0.13] - 2026-09-27 (build set by CI)
 
 - Notizie più fluide: feed preparato una sola volta, card Home di altezza stabile e dettaglio formattato con link alla fonte.
