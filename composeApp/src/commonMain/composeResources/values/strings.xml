@@ -221,6 +221,7 @@
     <string name="ui_badge_digital_pass">Pass digitale</string>
     <string name="ui_badge_scan_gates_hint">Scansiona ai varchi e lettori ottici</string>
     <string name="ui_badge_barcode">Codice a barre del badge</string>
+    <string name="ui_badge_barcode_short">CODICE A BARRE</string>
     <string name="ui_badge_tap_to_flip_hint">Tocca per girare e visualizzare il QR Code</string>
     <string name="ui_badge_tap_to_flip_back_hint">Identità verificata • tocca per girare</string>
 
@@ -425,6 +426,9 @@
     <string name="ui_biometric_not_enrolled">Configura prima impronta, volto o codice del dispositivo</string>
     <string name="ui_biometric_unavailable">Autenticazione del dispositivo non disponibile</string>
     <string name="ui_unlock_title">Sblocca UniApp</string>
+    <string name="ui_unlock_protected_access">Accesso protetto</string>
+    <string name="ui_unlock_security_badge">Sistema</string>
+    <string name="ui_unlock_methods">Sblocca UniApp con il dispositivo o con la password dell’app.</string>
     <string name="ui_app_password_setup_title">Crea la password di UniApp</string>
     <string name="ui_app_password_setup_description">Prima di attivare impronta o volto, crea una password da 8 a 128 caratteri. Potrai usarla per sbloccare questo account quando la biometria non è disponibile. È distinta dalla password universitaria.</string>
     <string name="ui_app_password_label">Password di UniApp</string>
@@ -439,7 +443,7 @@
     <string name="ui_app_password_unlock_failed">Impossibile sbloccare l’account. Riprova.</string>
     <string name="ui_unlock_authenticating">Verifica dell’identità in corso…</string>
     <string name="ui_unlock_account">Autenticati per aprire l’account di %1$s.</string>
-    <string name="ui_unlock_action">Autenticati</string>
+    <string name="ui_unlock_action">Sblocca con il dispositivo</string>
     <string name="ui_unlock_other_account">Usa un altro account</string>
     <string name="ui_professor_area_title">Area docente</string>
     <string name="ui_professor_area_subtitle">Insegnamenti, appelli, tesi e verbalizzazioni del profilo attivo.</string>

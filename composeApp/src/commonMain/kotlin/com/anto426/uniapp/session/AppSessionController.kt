@@ -108,13 +108,18 @@ class AppSessionController internal constructor(
     suspend fun cancelUnlock() {
         lock.withLock {
             val requirement = mutableState.value as? AppSessionState.UnlockRequired ?: return
-            prepareNotificationOwner(requirement.fallbackAccount?.accountId)
-            mutableState.value =
-                requirement.fallbackAccount?.let(AppSessionState::Authenticated)
-                    ?: run {
-                        accountStore.setActiveAccount(null)
-                        AppSessionState.SignedOut()
-                    }
+            prepareNotificationOwner(null)
+            accountStore.setActiveAccount(null)
+            mutableState.value = AppSessionState.SignedOut()
+            requirement.fallbackAccount?.accountId?.let { accountId ->
+                try {
+                    coordinator.closeRuntimeSession(accountId)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    // The login screen remains available even if closing the old RAM session fails.
+                }
+            }
         }
     }
 

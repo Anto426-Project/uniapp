@@ -141,9 +141,8 @@ class AccountSwitcherViewModel(
     fun selectProfile(profileId: String) {
         if (mutableUiState.value.isRemovingAccount || mutableUiState.value.pendingRemovalAccountId != null) return
         val currentAccount =
-            mutableUiState.value.accounts.firstOrNull {
-                it.accountId == mutableUiState.value.activeAccountId
-            } ?: return
+            (sessionController.state.value as? AppSessionState.Authenticated)?.account ?: return
+        if (currentAccount.profiles.none { it.profileId == profileId }) return
         if (
             profileId == currentAccount.activeProfileId ||
             mutableUiState.value.activatingAccountId != null ||

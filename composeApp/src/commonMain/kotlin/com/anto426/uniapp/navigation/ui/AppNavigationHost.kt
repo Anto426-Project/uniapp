@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -183,11 +184,6 @@ internal fun AppNavigationHost(
     }
 
     LaunchedEffect(sessionState) { navigator.reconcile() }
-    LaunchedEffect((sessionState as? AppSessionState.UnlockRequired)?.account?.accountId) {
-        if (sessionState is AppSessionState.UnlockRequired) {
-            sessionViewModel.requestUnlock(biometricAuthenticator)
-        }
-    }
     LaunchedEffect(route) {
         shellViewModel.routeChanged(route)
         scrollBehavior.state.heightOffset = 0f
@@ -361,50 +357,56 @@ internal fun AppNavigationHost(
                         onOpenChangelog = {},
                     )
                 } else {
+                    // Navigation 3 may retain this entry while initialization changes the session.
+                    val currentSessionState = rememberUpdatedState(sessionState)
+                    val routeContent: @Composable (AppRoute) -> Unit = { entryRoute ->
+                        AppRouteContent(
+                            route = entryRoute,
+                            reservationDeleteActionHost = reservationDeleteActionHost,
+                            navigator = navigator,
+                            sessionController = runtime.sessionController,
+                            dataSource = accountDataSource,
+                            localDataStore = runtime.localDataStore,
+                            projectData = runtime.projectData,
+                            accountId = accountId,
+                            searchQuery = shellUiState.searchQuery,
+                            isSearchActive = shellUiState.isSearchActive,
+                            updateUiState = updateUiState,
+                            notificationController = runtime.notificationManager,
+                            toastSink = toastManager,
+                            biometricAuthenticator = biometricAuthenticator,
+                            sessionState = sessionState,
+                            unlockUiState = unlockUiState,
+                            onRequestUnlock = { sessionViewModel.requestUnlock(biometricAuthenticator, toastManager) },
+                            onPasswordUnlock = sessionViewModel::requestPasswordUnlock,
+                            onCancelUnlock = sessionViewModel::cancelUnlock,
+                            onRetryUpdate = updateViewModel::refresh,
+                            onOpenUpdate = updateViewModel::openUpdate,
+                            themeUiState = themeUiState,
+                            onThemeModeSelected = themeViewModel::selectThemeMode,
+                            onThemeSelected = themeViewModel::selectTheme,
+                            onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
+                            onReducedMotionChanged = themeViewModel::setReducedMotion,
+                            onResetTheme = themeViewModel::reset,
+                            onCustomColorSelected = themeViewModel::selectCustomColor,
+                            languageUiState = languageUiState,
+                            onLanguageSelected = languageViewModel::selectLanguage,
+                            onSignOut = {
+                                toastManager.info("Disconnessione in corso…")
+                                sessionViewModel.signOut()
+                            },
+                        )
+                    }
+                    val currentRouteContent = rememberUpdatedState(routeContent)
                     val entries =
                         navigationState.rememberDecoratedEntries { key ->
                             val entryRoute = key as AppRoute
                             NavEntry(key = key) {
                                 Box(Modifier.fillMaxSize().graphicsLayer(clip = false)) {
                                     if (navigator.canRender(entryRoute)) {
-                                        AppRouteContent(
-                                            route = entryRoute,
-                                            reservationDeleteActionHost = reservationDeleteActionHost,
-                                            navigator = navigator,
-                                            sessionController = runtime.sessionController,
-                                            dataSource = accountDataSource,
-                                            localDataStore = runtime.localDataStore,
-                                            projectData = runtime.projectData,
-                                            accountId = accountId,
-                                            searchQuery = shellUiState.searchQuery,
-                                            isSearchActive = shellUiState.isSearchActive,
-                                            updateUiState = updateUiState,
-                                            notificationController = runtime.notificationManager,
-                                            toastSink = toastManager,
-                                            biometricAuthenticator = biometricAuthenticator,
-                                            sessionState = sessionState,
-                                            unlockUiState = unlockUiState,
-                                            onRequestUnlock = { sessionViewModel.requestUnlock(biometricAuthenticator) },
-                                            onPasswordUnlock = sessionViewModel::requestPasswordUnlock,
-                                            onCancelUnlock = sessionViewModel::cancelUnlock,
-                                            onRetryUpdate = updateViewModel::refresh,
-                                            onOpenUpdate = updateViewModel::openUpdate,
-                                            themeUiState = themeUiState,
-                                            onThemeModeSelected = themeViewModel::selectThemeMode,
-                                            onThemeSelected = themeViewModel::selectTheme,
-                                            onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
-                                            onReducedMotionChanged = themeViewModel::setReducedMotion,
-                                            onResetTheme = themeViewModel::reset,
-                                            onCustomColorSelected = themeViewModel::selectCustomColor,
-                                            languageUiState = languageUiState,
-                                            onLanguageSelected = languageViewModel::selectLanguage,
-                                            onSignOut = {
-                                                toastManager.info("Disconnessione in corso…")
-                                                sessionViewModel.signOut()
-                                            },
-                                        )
+                                        currentRouteContent.value(entryRoute)
                                     } else {
-                                        LaunchedEffect(entryRoute, sessionState) { navigator.reconcile() }
+                                        LaunchedEffect(entryRoute, currentSessionState.value) { navigator.reconcile() }
                                     }
                                 }
                             }
@@ -533,8 +535,8 @@ private fun topBarActions(
     onRequestDisconnectAll: () -> Unit,
     account: UniAccountSummary?,
     onSelectProfile: (String) -> Unit,
-): List<LiquidTopBarAction> =
-    when (route) {
+): List<LiquidTopBarAction> {
+    val contextualActions = when (route) {
         AppRoute.Contacts,
         AppRoute.Teachings,
         AppRoute.Theses,
@@ -589,39 +591,32 @@ private fun topBarActions(
 
         AppRoute.Transport -> emptyList()
 
-        AppRoute.Home ->
-            (account
-
-                ?.profiles
-                ?.distinctBy { it.profileId }
-                ?.takeIf { it.size > 1 }
-                ?.let { profiles ->
-                    listOf(
-                        LiquidTopBarAction(
-                            icon = LiquidIcons.SwitchAccount,
-                            label = stringResource(Res.string.ui_home_switch_career),
-                            subItems =
-                                profiles.map { profile ->
-                                    val role =
-                                        stringResource(
-                                            if (profile.type == BackendCareerType.PROFESSOR) {
-                                                Res.string.ui_professor_role
-                                            } else {
-                                                Res.string.ui_student_role
-                                            },
-                                        )
-                                    val profileName = profile.degreeName.ifBlank { profile.displayName }
-                                    LiquidTopBarAction(
-                                        icon = LiquidIcons.SwitchAccount,
-                                        label = "$role · $profileName",
-                                        selected = profile.profileId == account.activeProfileId,
-                                        onClick = { onSelectProfile(profile.profileId) },
-                                    )
-                                },
-                        ),
-                    )
-                }
-                .orEmpty())
-
         else -> emptyList()
     }
+    val profiles = account?.profiles?.distinctBy { it.profileId }.orEmpty()
+    val careerAction = if (route in appTopLevelRoutes && profiles.size > 1 && account != null) {
+        listOf(
+            LiquidTopBarAction(
+                icon = LiquidIcons.SwitchAccount,
+                label = stringResource(Res.string.ui_home_switch_career),
+                subItems = profiles.map { profile ->
+                    val role = stringResource(
+                        if (profile.type == BackendCareerType.PROFESSOR) {
+                            Res.string.ui_professor_role
+                        } else {
+                            Res.string.ui_student_role
+                        },
+                    )
+                    val profileName = profile.degreeName.ifBlank { profile.displayName }
+                    LiquidTopBarAction(
+                        icon = LiquidIcons.SwitchAccount,
+                        label = "$role · $profileName",
+                        selected = profile.profileId == account.activeProfileId,
+                        onClick = { onSelectProfile(profile.profileId) },
+                    )
+                },
+            ),
+        )
+    } else emptyList()
+    return contextualActions + careerAction
+}

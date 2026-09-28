@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.session.AppSessionController
 import com.anto426.uniapp.session.PasswordUnlockResult
 import com.anto426.uniapp.session.model.AppSessionState
+import com.anto426.uniapp.feedback.runtime.AppToastSink
+import com.anto426.uniapp.feedback.runtime.info
 import com.anto426.uniapp.security.biometric.BiometricAuthenticationResult
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.security.biometric.BiometricAvailability
@@ -52,7 +54,10 @@ class AppSessionViewModel(
         viewModelScope.launch { sessionController.signOut() }
     }
 
-    fun requestUnlock(authenticator: BiometricAuthenticator) {
+    fun requestUnlock(
+        authenticator: BiometricAuthenticator,
+        toastSink: AppToastSink? = null,
+    ) {
         if (state.value !is AppSessionState.UnlockRequired || unlockJob?.isActive == true) return
         unlockJob =
             viewModelScope.launch {
@@ -73,8 +78,11 @@ class AppSessionViewModel(
                             mutableUnlockUiState.value = AppUnlockUiState()
                         }
 
-                        BiometricAuthenticationResult.Cancelled ->
-                            mutableUnlockUiState.value = AppUnlockUiState(errorMessage = getString(Res.string.msg_accesso_annullato))
+                        BiometricAuthenticationResult.Cancelled -> {
+                            val message = getString(Res.string.msg_accesso_annullato)
+                            toastSink?.info(message)
+                            mutableUnlockUiState.value = AppUnlockUiState()
+                        }
 
                         is BiometricAuthenticationResult.Failed ->
                             mutableUnlockUiState.value =
