@@ -18,6 +18,7 @@ android {
         require(run >= 0 && code in 1..2_100_000_000L) { "Invalid Android build versionCode" }
         versionCode = code.toInt()
         versionName = "2.0.13"
+        manifestPlaceholders["appLabel"] = "UniApp"
         ndk {
             abiFilters += "arm64-v8a"
         }
@@ -25,6 +26,7 @@ android {
 
     buildTypes {
         release {
+            manifestPlaceholders["appLabel"] = "UniApp"
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -33,6 +35,9 @@ android {
             )
         }
         debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appLabel"] = "UniApp Dev"
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
