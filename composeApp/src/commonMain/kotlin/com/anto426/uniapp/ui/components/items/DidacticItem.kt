@@ -4,12 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
@@ -41,14 +37,12 @@ fun DidacticRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Max)
             .graphicsLayer(clip = false),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
                 .graphicsLayer(clip = false),
         ) {
             item1()
@@ -56,7 +50,6 @@ fun DidacticRow(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
                 .graphicsLayer(clip = false),
         ) {
             item2()
@@ -76,19 +69,14 @@ fun DidacticItem(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LiquidCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .graphicsLayer(clip = false),
+        modifier = modifier.graphicsLayer(clip = false),
         shape = RoundedRectangle(22.dp),
         contentPadding = 16.dp,
         onClick = onClick,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LiquidBadgedBox(badge = { badgeCount?.let { LiquidBadge(count = it) } }) {
                 Icon(
@@ -103,7 +91,6 @@ fun DidacticItem(
                     ),
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -122,9 +109,8 @@ fun DidacticItem(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     color = colorScheme.onSurfaceVariant,
-                    lineHeight = 15.sp,
-                    minLines = 2,
-                    maxLines = 2,
+                    lineHeight = 14.sp,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

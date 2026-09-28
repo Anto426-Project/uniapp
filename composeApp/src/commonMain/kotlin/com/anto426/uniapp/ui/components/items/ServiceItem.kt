@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -28,9 +28,7 @@ import com.anto426.uniapp.model.services.ServiceData
 fun ServiceItem(data: ServiceData, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     val colorScheme = MaterialTheme.colorScheme
     LiquidCard(
-        modifier = modifier
-            .graphicsLayer(clip = false)
-            .heightIn(min = 108.dp),
+        modifier = modifier.graphicsLayer(clip = false),
         shape = RoundedRectangle(20.dp),
         contentPadding = 16.dp,
         onClick = onClick,
@@ -60,13 +58,17 @@ fun ServiceItem(data: ServiceData, modifier: Modifier = Modifier, onClick: () ->
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
-                    letterSpacing = (-0.2).sp
+                    letterSpacing = (-0.2).sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = data.subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     color = colorScheme.onSurfaceVariant,
-                    lineHeight = 14.sp
+                    lineHeight = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -275,44 +273,43 @@ fun HomeQuickIndicatorsRow(
     val colorScheme = MaterialTheme.colorScheme
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // Card Appelli
         LiquidCard(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
+            modifier = Modifier.weight(1f).graphicsLayer(clip = false),
             shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
             onClick = onOpenExams,
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = LiquidIcons.Calendar,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.liquidIconContainer(
-                            containerSize = 40.dp,
-                            iconSize = 20.dp,
-                            containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            shape = RoundedRectangle(12.dp),
-                        ),
-                    )
                     LiquidBadge(
-                        text = uiState.openExamRounds.toString(),
+                        text = if (uiState.isProfessor) "${uiState.openExamRounds}" else "${uiState.availableExamsCount}",
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
                     )
+                    Icon(
+                        imageVector = LiquidIcons.Calendar,
+                        contentDescription = null,
+                        modifier = Modifier.liquidIconContainer(
+                            containerSize = 36.dp,
+                            iconSize = 18.dp,
+                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.35f),
+                            shape = RoundedRectangle(10.dp),
+                        ),
+                        contentColor = colorScheme.primary,
+                    )
                 }
-                Spacer(Modifier.height(12.dp))
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = stringResource(Res.string.ui_exams),
                         style = MaterialTheme.typography.titleSmall,
@@ -327,8 +324,7 @@ fun HomeQuickIndicatorsRow(
                         } else uiState.nextExamLabel.ifBlank { stringResource(Res.string.msg_nessun_appello_disponibile) },
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
-                        minLines = 2,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -337,39 +333,42 @@ fun HomeQuickIndicatorsRow(
 
         // Secondo indicatore: prenotazioni docente oppure tasse studente.
         LiquidCard(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
+            modifier = Modifier.weight(1f).graphicsLayer(clip = false),
             shape = RoundedRectangle(22.dp),
             contentPadding = 16.dp,
             onClick = if (uiState.isProfessor) onOpenTheses else onOpenTaxes,
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = if (uiState.isProfessor) LiquidIcons.Assignment else LiquidIcons.CreditCard,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.liquidIconContainer(
-                            containerSize = 40.dp,
-                            iconSize = 20.dp,
-                            containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            shape = RoundedRectangle(12.dp),
-                        ),
-                    )
                     LiquidBadge(
-                        text = if (uiState.isProfessor) uiState.thesisCount.toString() else uiState.dueAmount,
+                        text = if (uiState.isProfessor) {
+                            "${uiState.thesisCount}"
+                        } else {
+                            uiState.dueAmount.ifBlank { "${uiState.dueTaxesCount}" }
+                        },
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
                     )
+                    Icon(
+                        imageVector = if (uiState.isProfessor) LiquidIcons.Assignment else LiquidIcons.Payments,
+                        contentDescription = null,
+                        modifier = Modifier.liquidIconContainer(
+                            containerSize = 36.dp,
+                            iconSize = 18.dp,
+                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.35f),
+                            shape = RoundedRectangle(10.dp),
+                        ),
+                        contentColor = colorScheme.primary,
+                    )
                 }
-                Spacer(Modifier.height(12.dp))
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = stringResource(
                             if (uiState.isProfessor) Res.string.ui_professor_theses
@@ -387,8 +386,7 @@ fun HomeQuickIndicatorsRow(
                         } else uiState.nextTaxLabel.ifBlank { stringResource(Res.string.ui_home_no_due_taxes) },
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
-                        minLines = 2,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
