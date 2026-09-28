@@ -102,11 +102,11 @@ internal fun TicketCodeImage(code: DecodedCode?, modifier: Modifier = Modifier) 
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(5.dp)
+                                    .size(8.dp)
                                     .clip(CircleShape)
                                     .background(Color(0xFF94A3B8)),
                             )
@@ -122,11 +122,11 @@ internal fun TicketCodeImage(code: DecodedCode?, modifier: Modifier = Modifier) 
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(5.dp)
+                                    .size(8.dp)
                                     .clip(CircleShape)
                                     .background(palette.primary),
                             )
