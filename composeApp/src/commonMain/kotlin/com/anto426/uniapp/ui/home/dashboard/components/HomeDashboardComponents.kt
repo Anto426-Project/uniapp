@@ -293,20 +293,20 @@ fun HomeQuickIndicatorsRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     LiquidBadge(
-                        text = if (uiState.isProfessor) "${uiState.openExamRounds}" else "${uiState.availableExamsCount}",
+                        text = "${uiState.openExamRounds}",
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
                     )
                     Icon(
                         imageVector = LiquidIcons.Calendar,
                         contentDescription = null,
+                        tint = colorScheme.primary,
                         modifier = Modifier.liquidIconContainer(
-                            containerSize = 36.dp,
-                            iconSize = 18.dp,
-                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.35f),
-                            shape = RoundedRectangle(10.dp),
+                            containerSize = 40.dp,
+                            iconSize = 20.dp,
+                            containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                            shape = RoundedRectangle(12.dp),
                         ),
-                        contentColor = colorScheme.primary,
                     )
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -348,24 +348,20 @@ fun HomeQuickIndicatorsRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     LiquidBadge(
-                        text = if (uiState.isProfessor) {
-                            "${uiState.thesisCount}"
-                        } else {
-                            uiState.dueAmount.ifBlank { "${uiState.dueTaxesCount}" }
-                        },
+                        text = if (uiState.isProfessor) "${uiState.thesisCount}" else uiState.dueAmount,
                         containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
                         contentColor = colorScheme.primary,
                     )
                     Icon(
-                        imageVector = if (uiState.isProfessor) LiquidIcons.Assignment else LiquidIcons.Payments,
+                        imageVector = if (uiState.isProfessor) LiquidIcons.Assignment else LiquidIcons.CreditCard,
                         contentDescription = null,
+                        tint = colorScheme.primary,
                         modifier = Modifier.liquidIconContainer(
-                            containerSize = 36.dp,
-                            iconSize = 18.dp,
-                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.35f),
-                            shape = RoundedRectangle(10.dp),
+                            containerSize = 40.dp,
+                            iconSize = 20.dp,
+                            containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                            shape = RoundedRectangle(12.dp),
                         ),
-                        contentColor = colorScheme.primary,
                     )
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
