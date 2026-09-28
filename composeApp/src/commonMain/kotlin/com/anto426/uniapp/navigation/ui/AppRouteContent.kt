@@ -3,8 +3,10 @@ package com.anto426.uniapp.navigation.ui
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,6 +109,7 @@ import uniapp.composeapp.generated.resources.*
 @Composable
 internal fun AppRouteContent(
     route: AppRoute,
+    reservationDeleteActionHost: ReservationDeleteActionHost,
     navigator: AppNavigator,
     sessionController: AppSessionController,
     dataSource: UniAppDataSource,
@@ -621,6 +624,30 @@ internal fun AppRouteContent(
                     ReservationDetailViewModel(route.reservationId, dataSource, toastSink)
                 }
             val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            val hasVisibleReservation = detailUiState.loadState == FeatureLoadState.Content &&
+                detailUiState.reservation != null && !detailUiState.deleted
+            val deleteAction = remember(
+                route.reservationId,
+                detailViewModel,
+                hasVisibleReservation,
+                detailUiState.isDeleting,
+            ) {
+                if (hasVisibleReservation) {
+                    ReservationDeleteAction(
+                        reservationId = route.reservationId,
+                        enabled = !detailUiState.isDeleting,
+                        onClick = detailViewModel::delete,
+                    )
+                } else {
+                    null
+                }
+            }
+            DisposableEffect(deleteAction, reservationDeleteActionHost) {
+                if (deleteAction != null) reservationDeleteActionHost.register(deleteAction)
+                onDispose {
+                    if (deleteAction != null) reservationDeleteActionHost.unregister(deleteAction)
+                }
+            }
             LaunchedEffect(detailUiState.deleted) {
                 if (detailUiState.deleted) navigator.goBack()
             }
@@ -632,10 +659,8 @@ internal fun AppRouteContent(
                 detailUiState.reservation?.let { reservation ->
                     ReservationDetailScreen(
                         reservation = reservation,
-                        isDeleting = detailUiState.isDeleting,
                         imageState = detailUiState.image,
                         onReloadImage = { detailViewModel.loadTicketImage(forceRefresh = true) },
-                        onDelete = detailViewModel::delete,
                     )
                 }
             }

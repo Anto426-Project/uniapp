@@ -124,6 +124,7 @@ internal fun AppNavigationHost(
     val accountDataSource = accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
         ?: runtime.dataSource
     val dataGeneration = (accountDataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.generation ?: 0L
+    val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
     val themeViewModel =
         viewModel(key = "app-theme") {
             ThemeViewModel(runtime.localDataStore, toastManager)
@@ -291,6 +292,24 @@ internal fun AppNavigationHost(
                         Icon(LiquidIcons.Add, contentDescription = null, tint = Color.White)
                     }
 
+                is AppRoute.ReservationDetail ->
+                    reservationDeleteActionHost.action
+                        ?.takeIf { it.reservationId == route.reservationId }
+                        ?.let { action ->
+                            LiquidFloatingActionButton(
+                                onClick = action.onClick,
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 112.dp),
+                                enabled = action.enabled,
+                                visible = shellUiState.isNavigationBarVisible,
+                            ) {
+                                Icon(
+                                    LiquidIcons.Delete,
+                                    contentDescription = stringResource(Res.string.ui_cancel_booking),
+                                    tint = Color.White,
+                                )
+                            }
+                        }
+
                 else -> Unit
             }
             AppToastHost(
@@ -350,6 +369,7 @@ internal fun AppNavigationHost(
                                     if (navigator.canRender(entryRoute)) {
                                         AppRouteContent(
                                             route = entryRoute,
+                                            reservationDeleteActionHost = reservationDeleteActionHost,
                                             navigator = navigator,
                                             sessionController = runtime.sessionController,
                                             dataSource = accountDataSource,
