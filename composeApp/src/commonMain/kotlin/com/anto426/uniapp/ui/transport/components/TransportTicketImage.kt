@@ -2,6 +2,7 @@ package com.anto426.uniapp.ui.transport.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -55,10 +59,25 @@ import uniapp.composeapp.generated.resources.*
 
 @Composable
 internal fun TicketCodeImage(code: DecodedCode?, modifier: Modifier = Modifier) {
+    val palette = MaterialTheme.colorScheme
     val painter = remember(code) { code?.let { runCatching { CodeGenerator().generate(it) }.getOrNull() } }
     Box(
         modifier = modifier
-            .background(Color.White, shape = RoundedRectangle(16.dp))
+            .border(
+                1.dp,
+                Brush.linearGradient(
+                    listOf(
+                        palette.primary.copy(alpha = 0.55f),
+                        Color.White.copy(alpha = 0.90f),
+                        palette.tertiary.copy(alpha = 0.40f),
+                    ),
+                ),
+                RoundedRectangle(20.dp),
+            )
+            .padding(3.dp)
+            .background(Color.White.copy(alpha = 0.35f), RoundedRectangle(17.dp))
+            .padding(3.dp)
+            .background(Color.White, shape = RoundedRectangle(14.dp))
             .padding(12.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -73,23 +92,80 @@ internal fun TicketCodeImage(code: DecodedCode?, modifier: Modifier = Modifier) 
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
+                    // Header Codice a barre scansionabile
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(5.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF94A3B8)),
+                            )
+                            Text(
+                                text = "BIGLIETTO DIGITALE",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF64748B),
+                                fontSize = 8.5.sp,
+                                letterSpacing = 0.8.sp,
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(5.dp)
+                                    .clip(CircleShape)
+                                    .background(palette.primary),
+                            )
+                            Text(
+                                text = "SCANSIONABILE",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = palette.primary,
+                                fontSize = 8.sp,
+                                letterSpacing = 0.5.sp,
+                            )
+                        }
+                    }
+
                     Image(
                         painter = painter,
                         contentDescription = stringResource(Res.string.ui_ticket_digital_code),
                         modifier = Modifier.fillMaxWidth().weight(1f),
                     )
-                    Text(
-                        text = code.value.uppercase(),
-                        color = Color.Black,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        letterSpacing = 0.5.sp,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                    )
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedRectangle(8.dp))
+                            .background(Color(0xFFF1F5F9))
+                            .border(0.5.dp, Color(0xFFCBD5E1), RoundedRectangle(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 2.5.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = code.value.uppercase(),
+                            color = Color(0xFF0F172A),
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 13.sp,
+                            letterSpacing = 1.5.sp,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
         } else {
