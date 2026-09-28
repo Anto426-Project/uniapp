@@ -1,9 +1,14 @@
 ## [2.0.14] - 2026-09-28 (build set by CI)
 
-- Trasporti: il calendario mostra il mese intero; sono selezionabili solo i giorni feriali da domani fino a 15 giorni.
-- Le corse già prenotate restano visibili ma non selezionabili per tratta e direzione, anche dopo una risposta di duplicato del portale.
-- Dopo la prenotazione il calendario resta aperto e aggiorna subito le date non disponibili.
-- Icone dell’app aggiornate e variante di sviluppo separata dalla versione installata.
+- **Sblocco App**: schermata visibile già all'avvio, con password UniApp e pulsante per richiamare l'autenticazione del dispositivo senza prompt automatico; “Usa un altro account” apre il login.
+- **Prenotazioni Trasporti**: il calendario mostra il mese intero, ma permette di scegliere solo i giorni feriali da domani fino a 15 giorni. Le corse già prenotate restano visibili e non selezionabili; dopo una prenotazione la disponibilità si aggiorna subito. Rinnovate le card di selezione della direzione.
+- **Biglietti**: il pulsante per annullare la corsa rifrange il contenuto sottostante; aggiornata la resa del codice a barre.
+- **Area Docente**: card e sezioni con altezze più coerenti, metriche bilanciate e icone dedicate.
+- **Badge Accademico**: nuova grafica del codice a barre con cornice Monet e stato attivo.
+- **Home e Temi**: card notizie più compatte e selettore del motore grafico aggiornato.
+- **Carriere**: cambio profilo disponibile dalla barra superiore delle sezioni principali, con gestione dell'elenco delle carriere restituito dal portale.
+- **Informazioni**: corretto l'allineamento della versione e del nome dell'app nel banner.
+- Icone dell'app aggiornate e variante di sviluppo separata dalla versione installata.
 
 ## [2.0.13] - 2026-09-27 (build set by CI)
 
