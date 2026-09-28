@@ -16,6 +16,7 @@ import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.transport.TransportActionResult
+import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportDirection
 import com.anto426.unisdk.transport.TransportRouteData
 import kotlinx.coroutines.CancellationException
@@ -31,6 +32,8 @@ import kotlin.time.Clock
 data class TransportBookingUiState(
     val routes: List<String> = emptyList(),
     val selectedRoute: String = "",
+    val selectedRouteCode: String = "",
+    val bookedRequests: Set<TransportBookingRequest> = emptySet(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
     val isSubmitting: Boolean = false,
@@ -45,19 +48,23 @@ class TransportBookingViewModel(
     private val mutableUiState = MutableStateFlow(TransportBookingUiState())
     val uiState: StateFlow<TransportBookingUiState> = mutableUiState.asStateFlow()
     private var routesByLabel: Map<String, TransportRouteData> = emptyMap()
+    private val confirmedBookings = mutableSetOf<TransportBookingRequest>()
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Transport)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val routes = snapshot.require(UniAppDataRequests.Transport).availableRoutes
+            val transport = snapshot.require(UniAppDataRequests.Transport)
+            val routes = transport.availableRoutes
             routesByLabel = routes.associateBy(TransportRouteData::label)
             val selectedRoute = mutableUiState.value.selectedRoute.takeIf { it in routesByLabel }
                 ?: routes.firstOrNull()?.label.orEmpty()
             mutableUiState.value = mutableUiState.value.copy(
                 routes = routes.map(TransportRouteData::label),
                 selectedRoute = selectedRoute,
+                selectedRouteCode = routesByLabel[selectedRoute]?.code.orEmpty(),
+                bookedRequests = bookedTransportRequests(transport.bookings) + confirmedBookings,
                 loadState = if (routes.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
@@ -78,7 +85,10 @@ class TransportBookingViewModel(
 
     fun selectRoute(route: String) {
         if (route !in mutableUiState.value.routes) return
-        mutableUiState.value = mutableUiState.value.copy(selectedRoute = route)
+        mutableUiState.value = mutableUiState.value.copy(
+            selectedRoute = route,
+            selectedRouteCode = routesByLabel[route]?.code.orEmpty(),
+        )
     }
 
     fun book(date: LocalDate, direction: TransportDirection = TransportDirection.OUTBOUND) {
@@ -88,13 +98,20 @@ class TransportBookingViewModel(
     fun book(dates: List<LocalDate>, direction: TransportDirection = TransportDirection.OUTBOUND) {
         val route = routesByLabel[mutableUiState.value.selectedRoute] ?: return
         if (dates.isEmpty() || mutableUiState.value.isSubmitting) return
-        if (dates.any { !isTransportBookingDateAllowed(it, today()) }) {
+        val bookingToday = today()
+        if (dates.any { !isTransportBookingDateAllowed(it, bookingToday) }) {
             viewModelScope.launch {
                 toastSink.warning(getString(Res.string.ui_transport_booking_date_policy))
             }
             return
         }
         val requests = transportBookingRequests(route.code, dates, direction)
+        if (dates.any { isTransportDateBooked(it, route.code, direction, mutableUiState.value.bookedRequests) }) {
+            viewModelScope.launch {
+                toastSink.warning(getString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
+            }
+            return
+        }
         mutableUiState.value = mutableUiState.value.copy(isSubmitting = true)
         viewModelScope.launch {
             try {
@@ -109,6 +126,7 @@ class TransportBookingViewModel(
                             TransportActionResult.Completed -> completed++
                             TransportActionResult.AlreadyExists -> existing++
                         }
+                        confirmedBookings += request.copy(routeCode = request.routeCode.trim().uppercase())
                     } catch (error: CancellationException) {
                         throw error
                     } catch (error: Throwable) {
@@ -119,6 +137,7 @@ class TransportBookingViewModel(
                 mutableUiState.value = mutableUiState.value.copy(
                     isSubmitting = false,
                     bookedSuccessfully = completed > 0 && failed == 0,
+                    bookedRequests = mutableUiState.value.bookedRequests + confirmedBookings,
                 )
                 when {
                     failed > 0 && completed > 0 -> toastSink.warning(
@@ -133,7 +152,7 @@ class TransportBookingViewModel(
                     )
                     else -> toastSink.warning(getString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
                 }
-                if (completed > 0) sharedData.refresh(dataRequests, force = true)
+                if (completed > 0 || existing > 0) sharedData.refresh(dataRequests, force = true)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
