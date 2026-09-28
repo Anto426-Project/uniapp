@@ -3,8 +3,10 @@ package com.anto426.uniapp.ui.didactics.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
@@ -14,10 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
@@ -39,32 +44,70 @@ fun ProfessorDidacticsContent(
 ) {
     UniScreenColumn {
         LiquidCard(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_professor_role) },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                )
-                Text(
-                    text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_university) },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // Header row with Role Badge
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(
+                            text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_professor_role) },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_university) },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    LiquidBadge(
+                        text = stringResource(Res.string.ui_professor_area_title),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    )
+                }
+
+                LiquidHorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+
+                // Metric Badges row - perfectly distributed
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    ProfessorMetricBadge(
-                        stringResource(Res.string.ui_professor_courses_count, uiState.teachingCount),
+                    ProfessorMetricTile(
+                        label = stringResource(Res.string.ui_professor_teachings),
+                        value = "${uiState.teachingCount}",
+                        icon = LiquidIcons.MenuBook,
+                        modifier = Modifier.weight(1f),
                     )
-                    ProfessorMetricBadge(
-                        stringResource(Res.string.ui_professor_rounds_count, uiState.openExamRounds),
+                    ProfessorMetricTile(
+                        label = stringResource(Res.string.ui_exams),
+                        value = "${uiState.openExamRounds}",
+                        icon = LiquidIcons.Calendar,
+                        modifier = Modifier.weight(1f),
                     )
-                    ProfessorMetricBadge(
-                        stringResource(Res.string.ui_professor_theses_count, uiState.thesisCount),
+                    ProfessorMetricTile(
+                        label = stringResource(Res.string.ui_professor_theses),
+                        value = "${uiState.thesisCount}",
+                        icon = LiquidIcons.Assignment,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -142,9 +185,52 @@ fun ProfessorDidacticsContent(
 }
 
 @Composable
-fun ProfessorMetricBadge(text: String) {
+private fun ProfessorMetricTile(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = colorScheme.primary,
+                modifier = Modifier.size(14.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black,
+            color = colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+fun ProfessorMetricBadge(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     LiquidBadge(
         text = text,
+        modifier = modifier,
         containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f),
         contentColor = MaterialTheme.colorScheme.primary,
     )

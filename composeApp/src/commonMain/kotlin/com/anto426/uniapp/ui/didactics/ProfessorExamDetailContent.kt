@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -72,6 +73,7 @@ internal fun ProfessorExamDetailContent(
         // 1. HERO HEADER CARD
         // ==========================================
         LiquidCard(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
         ) {
@@ -122,13 +124,14 @@ internal fun ProfessorExamDetailContent(
                 // Hero Quick Stat Tiles Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ProfessorHeroStatTile(
                         label = stringResource(Res.string.ui_professor_registered_students),
                         value = if (bookingsCount > 0) "$bookingsCount" else "0",
                         icon = LiquidIcons.AccountCircle,
+                        modifier = Modifier.weight(1f),
                     )
 
                     item.date?.takeIf(String::isNotBlank)?.let { date ->
@@ -136,6 +139,7 @@ internal fun ProfessorExamDetailContent(
                             label = stringResource(Res.string.ui_date_time_label),
                             value = date,
                             icon = LiquidIcons.Calendar,
+                            modifier = Modifier.weight(1f),
                         )
                     }
 
@@ -144,6 +148,7 @@ internal fun ProfessorExamDetailContent(
                             label = stringResource(Res.string.ui_professor_commission),
                             value = stringResource(Res.string.ui_professor_members_count, item.commission.size),
                             icon = LiquidIcons.AccountCircle,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
@@ -175,8 +180,12 @@ private fun ProfessorHeroStatTile(
     label: String,
     value: String,
     icon: ImageVector,
+    modifier: Modifier = Modifier,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -191,6 +200,8 @@ private fun ProfessorHeroStatTile(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
@@ -198,6 +209,8 @@ private fun ProfessorHeroStatTile(
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

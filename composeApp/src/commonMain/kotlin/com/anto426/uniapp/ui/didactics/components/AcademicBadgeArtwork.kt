@@ -6,17 +6,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -90,34 +93,115 @@ internal fun AcademicBadgeBarcode(
     value: String,
     modifier: Modifier = Modifier,
 ) {
+    val palette = MaterialTheme.colorScheme
     val barcodePainter = remember(value) {
         value.takeIf(String::isNotBlank)?.let { encoded ->
             runCatching { CodeGenerator().barcode(encoded) }.getOrNull()
         }
     }
     if (barcodePainter == null) return
-    Column(
+
+    Box(
         modifier = modifier
             .fillMaxWidth()
+            .border(
+                1.dp,
+                Brush.linearGradient(
+                    listOf(
+                        palette.primary.copy(alpha = 0.65f),
+                        Color.White.copy(alpha = 0.90f),
+                        palette.tertiary.copy(alpha = 0.50f),
+                    ),
+                ),
+                RoundedRectangle(22.dp),
+            )
+            .padding(3.dp)
+            .background(Color.White.copy(alpha = 0.35f), RoundedRectangle(19.dp))
+            .padding(3.dp)
             .background(Color.White, RoundedRectangle(16.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
     ) {
-        Image(
-            painter = barcodePainter,
-            contentDescription = stringResource(Res.string.ui_badge_barcode),
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        )
-        Text(
-            text = value.uppercase(),
-            color = Color.Black,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            letterSpacing = 0.6.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            // Header Ottico con indicatore di stato attivo
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF94A3B8)),
+                    )
+                    Text(
+                        text = stringResource(Res.string.ui_badge_barcode_short),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF64748B),
+                        fontSize = 9.sp,
+                        letterSpacing = 1.sp,
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .clip(CircleShape)
+                            .background(palette.primary),
+                    )
+                    Text(
+                        text = stringResource(Res.string.ui_account_active),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = palette.primary,
+                        fontSize = 8.5.sp,
+                        letterSpacing = 0.8.sp,
+                    )
+                }
+            }
+
+            // Codice a barre vettoriale scansionabile ad alto contrasto
+            Image(
+                painter = barcodePainter,
+                contentDescription = stringResource(Res.string.ui_badge_barcode),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+            )
+
+            // Capsule badge monospace elegante per il codice
+            Box(
+                modifier = Modifier
+                    .clip(RoundedRectangle(8.dp))
+                    .background(Color(0xFFF1F5F9))
+                    .border(0.5.dp, Color(0xFFCBD5E1), RoundedRectangle(8.dp))
+                    .padding(horizontal = 12.dp, vertical = 2.5.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = value.uppercase(),
+                    color = Color(0xFF0F172A),
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 13.sp,
+                    letterSpacing = 2.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                )
+            }
+        }
     }
 }

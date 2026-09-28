@@ -4,8 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
@@ -19,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -28,10 +33,34 @@ import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContai
 import com.anto426.liquidmonet.icons.LiquidIcons
 
 @Composable
-fun DidacticRow(item1: @Composable () -> Unit, item2: @Composable () -> Unit) {
-    Row(Modifier.fillMaxWidth().graphicsLayer(clip = false), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(Modifier.weight(1f).graphicsLayer(clip = false)) { item1() }
-        Box(Modifier.weight(1f).graphicsLayer(clip = false)) { item2() }
+fun DidacticRow(
+    item1: @Composable () -> Unit,
+    item2: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Max)
+            .graphicsLayer(clip = false),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .graphicsLayer(clip = false),
+        ) {
+            item1()
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .graphicsLayer(clip = false),
+        ) {
+            item2()
+        }
     }
 }
 
@@ -42,11 +71,25 @@ fun DidacticItem(
     icon: ImageVector,
     badgeCount: Int? = null,
     iconColor: Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit = {}
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    LiquidCard(modifier = Modifier.graphicsLayer(clip = false), shape = RoundedRectangle(22.dp), contentPadding = 16.dp, onClick = onClick) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LiquidCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .graphicsLayer(clip = false),
+        shape = RoundedRectangle(22.dp),
+        contentPadding = 16.dp,
+        onClick = onClick,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
             LiquidBadgedBox(badge = { badgeCount?.let { LiquidBadge(count = it) } }) {
                 Icon(
                     imageVector = icon,
@@ -60,9 +103,30 @@ fun DidacticItem(
                     ),
                 )
             }
-            Column {
-                Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = colorScheme.onSurface, letterSpacing = (-0.3).sp)
-                Text(subtitle, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colorScheme.onSurfaceVariant, lineHeight = 14.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    letterSpacing = (-0.3).sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = subtitle,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp,
+                    minLines = 2,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }

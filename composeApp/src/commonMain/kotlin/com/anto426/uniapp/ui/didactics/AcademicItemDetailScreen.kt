@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -73,6 +74,7 @@ fun AcademicItemDetailScreen(
     UniScreenColumn {
         // Hero Header Card
         LiquidCard(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
         ) {
@@ -108,12 +110,16 @@ fun AcademicItemDetailScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     item.subtitle?.takeIf(String::isNotBlank)?.let { subtitle ->
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }

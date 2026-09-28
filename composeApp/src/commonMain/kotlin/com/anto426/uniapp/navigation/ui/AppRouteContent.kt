@@ -961,6 +961,7 @@ private fun AcademicSectionRouteContent(
     ) {
         AcademicSectionScreen(
             uiState = sectionUiState,
+            section = section,
             onItemClick = { item ->
                 val route =
                     when (section) {

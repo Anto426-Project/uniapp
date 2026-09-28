@@ -1,26 +1,9 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.didactics.presentation.AcademicSection
 import com.anto426.uniapp.didactics.presentation.AcademicSectionUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.uniapp.ui.didactics.components.AcademicContentCard
@@ -29,8 +12,16 @@ import com.anto426.unisdk.backend.model.ProfessorContentItem
 @Composable
 fun AcademicSectionScreen(
     uiState: AcademicSectionUiState,
+    section: AcademicSection = AcademicSection.Teachings,
     onItemClick: (ProfessorContentItem) -> Unit,
 ) {
+    val sectionIcon = when (section) {
+        AcademicSection.Teachings -> LiquidIcons.MenuBook
+        AcademicSection.Theses -> LiquidIcons.Assignment
+        AcademicSection.Reports -> LiquidIcons.Edit
+        AcademicSection.ExamRounds -> LiquidIcons.Calendar
+    }
+
     UniScreenLazyColumn {
         itemsIndexed(
             items = uiState.visibleItems,
@@ -38,6 +29,7 @@ fun AcademicSectionScreen(
         ) { _, item ->
             AcademicContentCard(
                 item = item,
+                icon = sectionIcon,
                 onClick = { onItemClick(item) },
             )
         }

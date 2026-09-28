@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -44,6 +45,7 @@ fun ThesisDetailContent(
         // 1. HERO THESIS CARD
         // ==========================================
         LiquidCard(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
         ) {
@@ -91,18 +93,25 @@ fun ThesisDetailContent(
 
                     Spacer(modifier = Modifier.size(14.dp))
 
-                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
                         Text(
                             text = thesis.candidateName,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,
                             lineHeight = 26.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = thesis.cds ?: item.subtitle ?: stringResource(Res.string.ui_degree_label),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
@@ -112,7 +121,7 @@ fun ThesisDetailContent(
                 // Stat Tiles Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     thesis.date?.takeIf(String::isNotBlank)?.let { date ->
@@ -120,6 +129,7 @@ fun ThesisDetailContent(
                             label = stringResource(Res.string.ui_thesis_defense),
                             value = date,
                             icon = LiquidIcons.Calendar,
+                            modifier = Modifier.weight(1f),
                         )
                     }
 
@@ -128,6 +138,7 @@ fun ThesisDetailContent(
                             label = stringResource(Res.string.ui_thesis_final_grade),
                             value = voto,
                             icon = LiquidIcons.Star,
+                            modifier = Modifier.weight(1f),
                         )
                     }
 
@@ -136,6 +147,7 @@ fun ThesisDetailContent(
                             label = stringResource(Res.string.ui_thesis_supervisor),
                             value = thesis.relatore,
                             icon = LiquidIcons.AccountCircle,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
@@ -149,6 +161,7 @@ fun ThesisDetailContent(
         // ==========================================
         thesis.thesisTitle?.let { title ->
             LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedRectangle(20.dp),
                 contentPadding = 18.dp,
             ) {
@@ -274,8 +287,12 @@ fun ThesisHeroStatTile(
     label: String,
     value: String,
     icon: ImageVector,
+    modifier: Modifier = Modifier,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -290,6 +307,8 @@ fun ThesisHeroStatTile(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
@@ -298,6 +317,7 @@ fun ThesisHeroStatTile(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

@@ -14,7 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
@@ -25,6 +27,7 @@ import com.anto426.unisdk.backend.model.ProfessorContentItem
 @Composable
 fun AcademicContentCard(
     item: ProfessorContentItem,
+    icon: ImageVector = LiquidIcons.Assignment,
     onClick: (() -> Unit)? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -45,7 +48,7 @@ fun AcademicContentCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = LiquidIcons.Assignment,
+                    imageVector = icon,
                     contentDescription = null,
                     tint = colorScheme.primary,
                     modifier = Modifier.liquidIconContainer(
@@ -58,8 +61,12 @@ fun AcademicContentCard(
 
                 Spacer(modifier = Modifier.width(14.dp))
 
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
@@ -69,6 +76,7 @@ fun AcademicContentCard(
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f, fill = false),
                         )
                         item.code?.takeIf(String::isNotBlank)?.let { code ->
@@ -86,6 +94,7 @@ fun AcademicContentCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = colorScheme.onSurfaceVariant,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
 
@@ -96,6 +105,7 @@ fun AcademicContentCard(
                             fontWeight = FontWeight.SemiBold,
                             color = colorScheme.primary,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
