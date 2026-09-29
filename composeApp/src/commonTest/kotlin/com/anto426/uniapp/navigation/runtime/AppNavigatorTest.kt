@@ -77,6 +77,38 @@ class AppNavigatorTest {
     }
 
     @Test
+    fun initializationCannotRenderRestoredLoginOrPrivateRoute() {
+        val guard = AppRouteGuard()
+
+        assertEquals(false, guard.canRender(AppRoute.Login, AppSessionState.Initializing))
+        assertEquals(false, guard.canRender(AppRoute.Home, AppSessionState.Initializing))
+        assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Login, AppSessionState.Initializing))
+    }
+
+    @Test
+    fun switchingCareerHidesEveryPrivateRouteUntilTheNewSessionIsVerified() {
+        val guard = AppRouteGuard()
+
+        assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Home, AppSessionState.Switching))
+        assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Grades, AppSessionState.Switching))
+        assertEquals(false, guard.canRender(AppRoute.Home, AppSessionState.Switching))
+    }
+
+    @Test
+    fun restoredPrivateRouteIsRejectedUntilAccountIsAuthenticated() {
+        val fixture = Fixture(activeRoot = AppRoute.Home, sessionState = AppSessionState.SignedOut())
+
+        assertEquals(false, fixture.navigator.canRender(AppRoute.Home))
+        assertEquals(AppRoute.Login, fixture.navigator.reconcile())
+        assertEquals(AppRoute.Login, fixture.navigator.currentRoute)
+
+        fixture.currentSession = authenticatedSession
+        assertEquals(false, fixture.navigator.canRender(AppRoute.Login))
+        assertEquals(AppRoute.Home, fixture.navigator.reconcile())
+        assertEquals(AppRoute.Home, fixture.navigator.currentRoute)
+    }
+
+    @Test
     fun professorCannotOpenStudentOnlyDestinations() {
         val professorSession =
             AppSessionState.Authenticated(

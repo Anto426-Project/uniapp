@@ -42,6 +42,12 @@ internal object AppScreenTransitions {
         from: AppRoute? = null,
         to: AppRoute? = null,
     ): ContentTransform {
+        // Authentication changes invalidate the outgoing route immediately. Animating that
+        // empty entry exposes the dark scene background for part of the login transition.
+        if (crossesSessionBoundary(from, to)) {
+            return EnterTransition.None togetherWith ExitTransition.None
+        }
+
         // 1. Onboarding / Auth transition
         if (from == AppRoute.Bootstrap || from == AppRoute.Login) {
             val enter = slideInHorizontally(
@@ -87,6 +93,10 @@ internal object AppScreenTransitions {
         from: AppRoute? = null,
         to: AppRoute? = null,
     ): ContentTransform {
+        if (crossesSessionBoundary(from, to)) {
+            return EnterTransition.None togetherWith ExitTransition.None
+        }
+
         // 1. Tab-to-Tab directional slide transition
         val tabDirection = resolveDirection(from, to)
         if (tabDirection != null) {
@@ -114,6 +124,10 @@ internal object AppScreenTransitions {
     }
 
     fun predictiveBack(): ContentTransform = backward()
+
+    private fun crossesSessionBoundary(from: AppRoute?, to: AppRoute?): Boolean =
+        from == AppRoute.Bootstrap || to == AppRoute.Bootstrap ||
+            to == AppRoute.Login || (from == AppRoute.Login && to == AppRoute.Home)
 
     private fun resolveDirection(from: AppRoute?, to: AppRoute?): NavDirection? {
         if (from == null || to == null) return null

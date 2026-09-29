@@ -3,7 +3,7 @@ package com.anto426.uniapp.data.runtime
 import com.anto426.uniapp.model.news.NewsFeed
 import com.anto426.uniapp.data.toNewsItems
 import com.anto426.unisdk.backend.model.UniversityNews
-import com.anto426.uniapp.data.SessionUniAppDataSource
+import com.anto426.uniapp.data.PortalDataSource
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppPortraitSharer
 import com.anto426.unisdk.backend.model.ExamRoundData
@@ -18,7 +18,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 
 /** One instance per authenticated account/profile. Only this class starts shared data loads. */
-class UniAppDataCoordinator(
+class ScopedDataRepository(
     private val source: UniAppDataSource,
     parentScope: CoroutineScope,
     val generation: Long = 0,
@@ -190,7 +190,7 @@ class UniAppDataCoordinator(
                 } else {
                     observe(listOf(UniAppDataRequests.portrait(source))).collect { snapshot ->
                         snapshot.value(UniAppDataRequests.portrait(source))?.let { bytes ->
-                            val shared = (this@UniAppDataCoordinator.source as? UniAppPortraitSharer)
+                            val shared = (this@ScopedDataRepository.source as? UniAppPortraitSharer)
                                 ?.sharePortrait(source, bytes) ?: bytes
                             guard.withLock {
                                 currentCoroutineContext().ensureActive()
@@ -257,7 +257,7 @@ class UniAppDataCoordinator(
         entry.job = completion
         scope.launch {
             try {
-                if (entry.state.value.value == null && source is SessionUniAppDataSource) {
+                if (entry.state.value.value == null && source is PortalDataSource) {
                     source.readCached(entry.request)?.let { cached ->
                         guard.withLock {
                             currentCoroutineContext().ensureActive()
@@ -278,7 +278,7 @@ class UniAppDataCoordinator(
                         Result.success(network.withPermit { entry.request.load(source, mustRefresh) })
                     } catch (error: CancellationException) { throw error }
                     catch (error: Throwable) { Result.failure(error) }
-                    val savedAt = if (result.isSuccess && source is SessionUniAppDataSource) {
+                    val savedAt = if (result.isSuccess && source is PortalDataSource) {
                         try { source.readCached(entry.request)?.savedAtMillis }
                         catch (error: CancellationException) { throw error }
                         catch (_: Exception) { null }
@@ -307,7 +307,6 @@ class UniAppDataCoordinator(
                                     nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
                                 } else null
                             } else entry.retryAt = nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
-                            scheduleRevision.value += 1
                             result.fold(completion::complete, completion::completeExceptionally)
                             trimIdleEntries()
                             false
@@ -340,7 +339,21 @@ class UniAppDataCoordinator(
                     }
                 }
             } catch (error: CancellationException) {
-                completion.cancel(error)
+                if (currentCoroutineContext().isActive) {
+                    // A request may cancel itself without closing this owner. Publish a terminal
+                    // error so screens can leave Loading and the scheduler can retry it later.
+                    val failure = IllegalStateException()
+                    guard.withLock {
+                        if (!closed && entry.job === completion) {
+                            entry.state.value = entry.state.value.copy(
+                                error = failure, refreshing = false,
+                                revision = entry.state.value.revision + 1,
+                            )
+                            entry.retryAt = nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
+                        }
+                    }
+                    completion.completeExceptionally(failure)
+                } else completion.cancel(error)
             } catch (error: Throwable) {
                 completion.completeExceptionally(error)
             } finally {
@@ -350,6 +363,7 @@ class UniAppDataCoordinator(
                             entry.job = null
                             entry.forcing = false
                             entry.state.value = entry.state.value.copy(refreshing = false)
+                            scheduleRevision.value += 1
                         }
                     }
                 }
@@ -412,4 +426,21 @@ class UniAppDataCoordinator(
     }
     override suspend fun bookTransport(request: TransportBookingRequest) = source.bookTransport(request).also { invalidate(listOf(UniAppDataRequests.Transport)) }
     override suspend fun deleteTransportBooking(bookingId: String) = source.deleteTransportBooking(bookingId).also { invalidate(listOf(UniAppDataRequests.Transport)) }
+}
+
+/** ViewModels share the active owner; isolated source fakes use the same observable contract. */
+fun UniAppDataSource.sharedData(scope: CoroutineScope): ScopedDataRepository =
+    this as? ScopedDataRepository ?: ScopedDataRepository(this, scope)
+
+fun ScopedDataRepository.observeIn(
+    scope: CoroutineScope,
+    requests: List<UniAppDataRequest<*>>,
+    partial: Boolean = false,
+    subscriptions: StateFlow<Int>? = null,
+    render: suspend (UniAppDataSnapshot) -> Unit,
+) = scope.launch {
+    observe(requests, subscriptions?.map { it > 0 } ?: flowOf(true))
+        .filter { partial || it.resolved }
+        .distinctUntilChangedBy { it.version }
+        .collect { render(it) }
 }

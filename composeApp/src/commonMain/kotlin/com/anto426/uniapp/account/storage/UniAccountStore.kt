@@ -38,20 +38,19 @@ class UniAccountStore(
     private val lock = Mutex()
     private val applicationLock = Mutex()
     private var cachedRegistry: StoredAccountRegistry? = null
-    private val migrationLock = Mutex()
-    private val migrationReady = MutableStateFlow(!resetStorageForRelease)
-    private val legacySharedNewsPurged = MutableStateFlow(false)
+    private val resetLock = Mutex()
+    private val resetReady = MutableStateFlow(!resetStorageForRelease)
 
     private val mutableStorageResetNotice = MutableStateFlow(false)
     internal val storageResetNotice = mutableStorageResetNotice.asStateFlow()
 
-    /** A fixed migration id, independent of versionCode, preserves all data saved afterward. */
+    /** Clears the previous local format once; subsequent logins remain stored. */
     private suspend fun prepareStorage() {
-        if (migrationReady.value && legacySharedNewsPurged.value) return
+        if (resetReady.value) return
         withContext(Dispatchers.Default) {
-            migrationLock.withLock {
-                if (!migrationReady.value) {
-                    val maintenance = storageManager.vault("storage-migrations")
+            resetLock.withLock {
+                if (!resetReady.value) {
+                    val maintenance = storageManager.vault("storage-reset")
                     when (val status = maintenance.getString(RELEASE_STORAGE_RESET_KEY)) {
                         "complete" -> Unit
                         "notice-pending" -> mutableStorageResetNotice.value = true
@@ -60,19 +59,15 @@ class UniAccountStore(
                             val registry = registryStorage.getObject<StoredAccountRegistry>(REGISTRY_KEY)
                             val showNotice = status == "resetting-notice" || registry != null
                             maintenance.putString(RELEASE_STORAGE_RESET_KEY, if (showNotice) "resetting-notice" else "resetting")
-                            storageManager.destroyAll(registry?.accounts.orEmpty().map(StoredAccount::accountId) + "application-data")
+                            storageManager.destroyAll(registry?.accounts.orEmpty().map(StoredAccount::accountId) + listOf("application-data", "storage-migrations"))
                             cachedRegistry = null
                             resetPlatformStorage()
-                            // A separate migration marker survives cleanup and interruption retries.
+                            // The reset marker survives cleanup and interruption retries.
                             maintenance.putString(RELEASE_STORAGE_RESET_KEY, if (showNotice) "notice-pending" else "complete")
                             mutableStorageResetNotice.value = showNotice
                         }
                     }
-                    migrationReady.value = true
-                }
-                if (!legacySharedNewsPurged.value) {
-                    storageManager.vault("application-data").remove("cache.v1.university-news-unimol-ateneo")
-                    legacySharedNewsPurged.value = true
+                    resetReady.value = true
                 }
             }
         }
@@ -80,8 +75,8 @@ class UniAccountStore(
 
     internal suspend fun acknowledgeStorageReset() {
         prepareStorage()
-        migrationLock.withLock {
-            storageManager.vault("storage-migrations").putString(RELEASE_STORAGE_RESET_KEY, "complete")
+        resetLock.withLock {
+            storageManager.vault("storage-reset").putString(RELEASE_STORAGE_RESET_KEY, "complete")
             mutableStorageResetNotice.value = false
         }
     }
@@ -112,6 +107,9 @@ class UniAccountStore(
                 if (preferredAccountId != null) {
                     registry.accounts.firstOrNull { it.accountId == preferredAccountId }
                         ?: throw IllegalArgumentException("Unknown preferred account")
+                    identityAccounts.firstOrNull { it.accountId == preferredAccountId }
+                        ?: identityAccounts.firstOrNull { it.accountId == registry.activeAccountId }
+                        ?: identityAccounts.firstOrNull()
                 } else {
                     identityAccounts.firstOrNull { it.accountId == registry.activeAccountId }
                         ?: identityAccounts.firstOrNull()
@@ -153,8 +151,10 @@ class UniAccountStore(
     ): UniAccountSummary =
         withAccountStorage {
             val registry = loadRegistry()
-            require(registry.accounts.any { it.accountId == accountId }) { "Unknown account" }
-            val updated = profile.toStoredAccount(accountId, listOf(registry.accounts.first { it.accountId == accountId }))
+            val existing = registry.accounts.firstOrNull { it.accountId == accountId }
+                ?: throw IllegalArgumentException("Unknown account")
+            require(existing.serverUserId == profile.id) { "Session identity does not match the selected account" }
+            val updated = profile.toStoredAccount(accountId, listOf(existing))
             val exportedTicket = ticket.export()
             try {
                 storageManager.vault(accountId).putBytes(SESSION_TICKET_KEY, exportedTicket)
@@ -176,6 +176,13 @@ class UniAccountStore(
             } finally {
                 bytes.fill(0)
             }
+        }
+
+    internal suspend fun matchesStoredUsername(accountId: String, username: String): Boolean =
+        withAccountStorage {
+            requireKnownAccount(loadRegistry(), accountId)
+            storageManager.vault(accountId).getString(USERNAME_KEY)
+                ?.trim()?.equals(username.trim(), ignoreCase = true) == true
         }
 
     internal suspend fun clearSessionTicket(accountId: String) {
@@ -214,28 +221,15 @@ class UniAccountStore(
 
     /** App-wide content has its own vault, independent of registry and account removal. */
     internal suspend fun readApplicationData(key: String): ByteArray? = withApplicationStorage {
-        val appStorage = storageManager.vault("application-data")
-        val storageKey = localDataKey(key)
-        appStorage.getBytes(storageKey)?.let { return@withApplicationStorage it }
-        // Migrate existing preferences and project data. Delete the old value only after saving.
-        val legacy = storageManager.registry().getBytes(storageKey) ?: return@withApplicationStorage null
-        try {
-            appStorage.putBytes(storageKey, legacy)
-            storageManager.registry().remove(storageKey)
-            legacy.copyOf()
-        } finally {
-            legacy.fill(0)
-        }
+        storageManager.vault("application-data").getBytes(localDataKey(key))
     }
 
     internal suspend fun writeApplicationData(key: String, value: ByteArray) = withApplicationStorage {
         storageManager.vault("application-data").putBytes(localDataKey(key), value)
-        storageManager.registry().remove(localDataKey(key))
     }
 
     internal suspend fun removeApplicationData(key: String) = withApplicationStorage {
         storageManager.vault("application-data").remove(localDataKey(key))
-        storageManager.registry().remove(localDataKey(key))
     }
 
     /** Account-owned data kept separate from credentials, sessions and response caches. */
@@ -408,7 +402,7 @@ class UniAccountStore(
     }
 
     private companion object {
-        const val RELEASE_STORAGE_RESET_KEY = "migration.storage-reset-20260927"
+        const val RELEASE_STORAGE_RESET_KEY = "storage-reset-20260929"
         const val REGISTRY_SCHEMA_VERSION = 1
         const val REGISTRY_KEY = "account-registry"
         const val USERNAME_KEY = "credentials.username"
@@ -569,63 +563,6 @@ private fun StoredAccount.withNormalizedProfiles(): StoredAccount =
 private fun coalesceStoredProfiles(
     profiles: List<StoredAccountProfile>,
     activeProfileId: String?,
-): List<StoredAccountProfile> {
-    val result = mutableListOf<StoredAccountProfile>()
-    profiles
-        .distinctBy(StoredAccountProfile::profileId)
+): List<StoredAccountProfile> =
+    profiles.distinctBy(StoredAccountProfile::profileId)
         .sortedByDescending { it.profileId == activeProfileId }
-        .forEach { candidate ->
-            val existingIndex = result.indexOfFirst { existing -> existing.sameCareerAs(candidate) }
-            if (existingIndex < 0) {
-                result += candidate
-            } else {
-                result[existingIndex] = result[existingIndex].mergeMetadata(candidate)
-            }
-        }
-    return result
-}
-
-private fun StoredAccountProfile.sameCareerAs(other: StoredAccountProfile): Boolean {
-    if (profileId == other.profileId) return true
-    if (type != other.type) return false
-
-    if (type == BackendCareerType.PROFESSOR) {
-        if (teacherId.matchesNonBlank(other.teacherId)) return true
-        if (
-            dipId.matchesNonBlank(other.dipId) &&
-            degreeName.normalizedProfilePart() == other.degreeName.normalizedProfilePart()
-        ) return true
-        return degreeName.normalizedProfilePart().isNotBlank() &&
-            degreeName.normalizedProfilePart() == other.degreeName.normalizedProfilePart() &&
-            displayName.normalizedProfilePart() == other.displayName.normalizedProfilePart()
-    }
-
-    if (!matId.isNullOrBlank() && !other.matId.isNullOrBlank()) return matId == other.matId
-    if (!matricola.isNullOrBlank() && !other.matricola.isNullOrBlank()) {
-        if (matricola != other.matricola) return false
-        return cdsId.isNullOrBlank() || other.cdsId.isNullOrBlank() || cdsId == other.cdsId
-    }
-    if (stuId.matchesNonBlank(other.stuId) && cdsId.matchesNonBlank(other.cdsId)) return true
-    return degreeName.normalizedProfilePart().isNotBlank() &&
-        degreeName.normalizedProfilePart() == other.degreeName.normalizedProfilePart() &&
-        displayName.normalizedProfilePart() == other.displayName.normalizedProfilePart()
-}
-
-private fun StoredAccountProfile.mergeMetadata(other: StoredAccountProfile): StoredAccountProfile =
-    copy(
-        displayName = other.displayName.ifBlank { displayName },
-        degreeName = other.degreeName.ifBlank { degreeName },
-        matricola = other.matricola.takeUnless { it.isNullOrBlank() } ?: matricola,
-        matId = other.matId.takeUnless { it.isNullOrBlank() } ?: matId,
-        stuId = other.stuId.takeUnless { it.isNullOrBlank() } ?: stuId,
-        anaId = other.anaId.takeUnless { it.isNullOrBlank() } ?: anaId,
-        cdsId = other.cdsId.takeUnless { it.isNullOrBlank() } ?: cdsId,
-        dipId = other.dipId.takeUnless { it.isNullOrBlank() } ?: dipId,
-        departmentName = other.departmentName.takeUnless { it.isNullOrBlank() } ?: departmentName,
-        teacherId = other.teacherId.takeUnless { it.isNullOrBlank() } ?: teacherId,
-    )
-
-private fun String?.matchesNonBlank(other: String?): Boolean =
-    !isNullOrBlank() && !other.isNullOrBlank() && trim().equals(other.trim(), ignoreCase = true)
-
-private fun String.normalizedProfilePart(): String = trim().lowercase()

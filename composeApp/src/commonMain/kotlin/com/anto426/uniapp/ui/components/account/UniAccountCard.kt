@@ -46,7 +46,7 @@ fun UniAccountCard(
         .map { it.first() }
         .joinToString("")
 
-    val identity = accountDisplayIdentity(account.displayName, initials, profileImage, account)
+    val identity = accountDisplayIdentity(account.displayName, initials, profileImage)
 
     val colorScheme = MaterialTheme.colorScheme
 

@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
+import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.feedback.runtime.AppToastSink
@@ -42,7 +43,7 @@ import com.anto426.uniapp.services.presentation.ContactsViewModel
 import com.anto426.uniapp.services.presentation.ContactDetailViewModel
 import com.anto426.uniapp.services.presentation.ServicesViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
-import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.session.presentation.AppUnlockUiState
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
@@ -111,7 +112,9 @@ internal fun AppRouteContent(
     route: AppRoute,
     reservationDeleteActionHost: ReservationDeleteActionHost,
     navigator: AppNavigator,
-    sessionController: AppSessionController,
+    sessionController: SessionManager,
+    accountSwitcherViewModel: AccountSwitcherViewModel,
+    accountSwitcherUiState: AccountSwitcherUiState,
     dataSource: UniAppDataSource,
     localDataStore: UniLocalDataStore,
     projectData: com.anto426.uniapp.project.data.ProjectDataStore,
@@ -141,7 +144,7 @@ internal fun AppRouteContent(
     onSignOut: () -> Unit,
 ) {
     val activeProfileId = (sessionState as? AppSessionState.Authenticated)?.account?.activeProfileId
-    val dataGeneration = (dataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.generation ?: 0
+    val dataGeneration = (dataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.generation ?: 0
     val viewModelKey = "$accountId|${activeProfileId.orEmpty()}|$dataGeneration|$route"
     val uriHandler = LocalUriHandler.current
     when (route) {
@@ -159,19 +162,16 @@ internal fun AppRouteContent(
             val loginViewModel =
                 viewModel(key = viewModelKey) { LoginViewModel(sessionController, toastSink) }
             val loginUiState by loginViewModel.uiState.collectAsStateWithLifecycle()
-            val accountViewModel =
-                viewModel(key = "${viewModelKey}_account") { AccountSwitcherViewModel(sessionController, toastSink) }
-            val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
             AccountRemovalDialog(
-                state = accountUiState,
-                onConfirm = { accountViewModel.confirmAccountRemoval(biometricAuthenticator) },
-                onDismiss = accountViewModel::dismissAccountRemoval,
+                state = accountSwitcherUiState,
+                onConfirm = { accountSwitcherViewModel.confirmAccountRemoval(biometricAuthenticator) },
+                onDismiss = accountSwitcherViewModel::dismissAccountRemoval,
             )
             LoginScreen(
                 uiState = loginUiState,
-                accountUiState = accountUiState,
-                onSelectAccount = accountViewModel::selectAccount,
-                onRemoveAccount = accountViewModel::requestAccountRemoval,
+                accountUiState = accountSwitcherUiState,
+                onSelectAccount = accountSwitcherViewModel::selectAccount,
+                onRemoveAccount = accountSwitcherViewModel::requestAccountRemoval,
                 onUsernameChange = loginViewModel::updateUsername,
                 onPasswordChange = loginViewModel::updatePassword,
                 onRememberCredentialsChange = loginViewModel::updateRememberCredentials,
@@ -358,26 +358,23 @@ internal fun AppRouteContent(
                     )
                 }
             val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-            val accountViewModel =
-                viewModel(key = "${viewModelKey}_account") { AccountSwitcherViewModel(sessionController, toastSink) }
-            val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
             AccountRemovalDialog(
-                state = accountUiState,
-                onConfirm = { accountViewModel.confirmAccountRemoval(biometricAuthenticator) },
-                onDismiss = accountViewModel::dismissAccountRemoval,
+                state = accountSwitcherUiState,
+                onConfirm = { accountSwitcherViewModel.confirmAccountRemoval(biometricAuthenticator) },
+                onDismiss = accountSwitcherViewModel::dismissAccountRemoval,
             )
             SettingsScreen(
                 uiState = settingsUiState,
-                accountUiState = accountUiState,
+                accountUiState = accountSwitcherUiState,
                 installedVersion = updateUiState.installedVersion,
                 updateSubtitle = if (updateUiState.bannerState == com.anto426.uniapp.model.updates.UpdateState.AVAILABLE) {
                     updateUiState.statusText?.let { stringResource(it) } ?: stringResource(Res.string.msg_aggiornamento_disponibile)
                 } else {
                     "Versione ${updateUiState.installedVersion.ifBlank { "2.0" }}"
                 },
-                onSelectAccount = accountViewModel::selectAccount,
-                onRemoveAccount = accountViewModel::requestAccountRemoval,
-                onAddAccount = accountViewModel::addAccount,
+                onSelectAccount = accountSwitcherViewModel::selectAccount,
+                onRemoveAccount = accountSwitcherViewModel::requestAccountRemoval,
+                onAddAccount = accountSwitcherViewModel::addAccount,
                 onOpenInfo = { navigator.navigate(AppRoute.Info) },
                 onOpenTheme = { navigator.navigate(AppRoute.Theme) },
                 onOpenUpdates = { navigator.navigate(AppRoute.Updates) },
@@ -385,7 +382,7 @@ internal fun AppRouteContent(
                 onOpenLanguage = { navigator.navigate(AppRoute.Language) },
                 onOpenContribute = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.repositoryUrl) },
                 onOpenReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.issuesUrl) },
-                onOpenLogin = accountViewModel::addAccount,
+                onOpenLogin = accountSwitcherViewModel::addAccount,
                 onSignOut = onSignOut,
                 onNotificationsEnabledChange = settingsViewModel::setNotificationsEnabled,
                 onBiometricEnabledChange = settingsViewModel::setBiometricEnabled,

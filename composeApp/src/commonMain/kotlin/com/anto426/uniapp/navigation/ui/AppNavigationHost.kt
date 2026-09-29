@@ -46,6 +46,9 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.floatingactionbutton.LiquidFloatingActionButton
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
+import com.anto426.liquidmonet.components.feedback.loading.LiquidLoading
+import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingSize
+import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingStyle
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationBar
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.topbar.LiquidTopBar
@@ -79,6 +82,7 @@ import com.anto426.uniapp.settings.presentation.LanguageViewModel
 import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
+import com.anto426.uniapp.ui.components.state.AppLoadingState
 import com.anto426.uniapp.ui.theme.UniTheme
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
@@ -93,38 +97,22 @@ internal fun AppNavigationHost(
     sessionViewModel: AppSessionViewModel,
     sessionState: AppSessionState,
     biometricAuthenticator: BiometricAuthenticator,
+    accountSwitcherViewModel: AccountSwitcherViewModel,
+    toastManager: AppToastManager,
 ) {
     val navigationState = rememberAppNavigationState(sessionState)
     val navigator = navigationState.navigator
-    val toastManager = remember { AppToastManager() }
-    val topBarAccountSwitcherViewModel =
-        viewModel(key = "top-bar-profile-switcher") {
-            AccountSwitcherViewModel(runtime.sessionController, toastManager)
-        }
+    val accountSwitcherState by accountSwitcherViewModel.uiState.collectAsStateWithLifecycle()
     val unlockUiState by sessionViewModel.unlockUiState.collectAsStateWithLifecycle()
     val shellViewModel = viewModel { AppShellViewModel() }
     val shellUiState by shellViewModel.uiState.collectAsStateWithLifecycle()
     val accountAvatars by runtime.sessionController.avatars.images.collectAsStateWithLifecycle()
     val authenticatedAccount = (sessionState as? AppSessionState.Authenticated)?.account
-    val projectState by runtime.projectData.uiState.collectAsStateWithLifecycle()
-    val accountSwitcherState by topBarAccountSwitcherViewModel.uiState.collectAsStateWithLifecycle()
-    val creator = projectState.data?.author
-    val needsCreatorAvatar = com.anto426.uniapp.ui.components.account.isCreatorDisplayAccount(authenticatedAccount) ||
-        accountSwitcherState.accounts.any { com.anto426.uniapp.ui.components.account.isCreatorDisplayAccount(it) }
-    val creatorAvatarUrl = creator?.takeIf {
-        needsCreatorAvatar && it.login.equals(com.anto426.unisdk.platform.ProjectInfo.authorLogin, ignoreCase = true)
-    }?.avatarUrl
-    val creatorImage by androidx.compose.runtime.produceState<com.anto426.uniapp.data.images.ApplicationImage?>(
-        null, runtime.applicationImages, creatorAvatarUrl,
-    ) {
-        value = null
-        value = creatorAvatarUrl?.let { runtime.applicationImages.load(it) }
-    }
     val accountId = authenticatedAccount?.accountId.orEmpty()
     val profileId = authenticatedAccount?.activeProfileId
     val accountDataSource = accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
         ?: runtime.dataSource
-    val dataGeneration = (accountDataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.generation ?: 0L
+    val dataGeneration = (accountDataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.generation ?: 0L
     val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
     val themeViewModel =
         viewModel(key = "app-theme") {
@@ -152,7 +140,7 @@ internal fun AppNavigationHost(
     val updateLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(updateLifecycle, accountDataSource) {
         updateLifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
-            (accountDataSource as? com.anto426.uniapp.data.runtime.UniAppDataCoordinator)?.maintainFreshData()
+            (accountDataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.maintainFreshData()
             kotlinx.coroutines.awaitCancellation()
         }
     }
@@ -168,14 +156,19 @@ internal fun AppNavigationHost(
         runtime.notificationManager.messages.collect { runtime.updateController.refresh() }
     }
     val navigationRoute = navigator.currentRoute
+    // Restored navigation state can still point to Login (or a previous account) while the
+    // session is being restored. Keep one loading surface until the guard and route agree.
+    val isResolvingSessionRoute =
+        sessionState == AppSessionState.Initializing || !navigator.canRender(navigationRoute)
     val isMandatoryUpdate = updateUiState.isMandatory && !runtime.appInfo.isDebuggable
     val route = if (isMandatoryUpdate) AppRoute.Updates else navigationRoute
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val isAuthenticated = sessionState is AppSessionState.Authenticated
     val isProfessor = authenticatedAccount?.isProfessor == true
-    val showTopBar = route != AppRoute.Bootstrap && route != AppRoute.Login
+    val showTopBar = !isResolvingSessionRoute && route != AppRoute.Bootstrap && route != AppRoute.Login
     val showBottomBar =
-        isAuthenticated && !isMandatoryUpdate && route != AppRoute.Bootstrap && route != AppRoute.Login
+        !isResolvingSessionRoute && isAuthenticated && !isMandatoryUpdate &&
+            route != AppRoute.Bootstrap && route != AppRoute.Login
     var topBarHeight by remember { mutableStateOf(136.dp) }
     val topLevelRoutes = appTopLevelRoutes
     val topLevelNavigationItems = topLevelRoutes.map { item ->
@@ -206,8 +199,6 @@ internal fun AppNavigationHost(
     // Shared above the scene so modal sheets see the same identity and image cache as screens.
     CompositionLocalProvider(
         com.anto426.uniapp.ui.components.account.LocalAccountAvatars provides accountAvatars,
-        com.anto426.uniapp.ui.components.account.LocalAccountPresentation provides
-            com.anto426.uniapp.ui.components.account.AccountPresentation(authenticatedAccount, creator, creatorImage),
         com.anto426.uniapp.ui.components.display.LocalApplicationImages provides runtime.applicationImages,
     ) {
     UniTheme(state = themeUiState) {
@@ -258,7 +249,7 @@ internal fun AppNavigationHost(
                         onRefreshUpdate = updateViewModel::refresh,
                         onRequestDisconnectAll = deviceSessionsViewModel::requestDisconnectAll,
                         account = authenticatedAccount,
-                        onSelectProfile = topBarAccountSwitcherViewModel::selectProfile,
+                        onSelectProfile = accountSwitcherViewModel::selectProfile,
                     ),
                 )
             }
@@ -278,7 +269,7 @@ internal fun AppNavigationHost(
             }
         },
         overlay = {
-            when (route) {
+            when (val visibleRoute = route.takeUnless { isResolvingSessionRoute }) {
                 AppRoute.Transport ->
                     LiquidFloatingActionButton(
                         onClick = { navigator.navigate(AppRoute.TransportBooking) },
@@ -290,7 +281,7 @@ internal fun AppNavigationHost(
 
                 is AppRoute.ReservationDetail ->
                     reservationDeleteActionHost.action
-                        ?.takeIf { it.reservationId == route.reservationId }
+                        ?.takeIf { it.reservationId == visibleRoute.reservationId }
                         ?.let { action ->
                             LiquidFloatingActionButton(
                                 onClick = action.onClick,
@@ -349,7 +340,9 @@ internal fun AppNavigationHost(
                 LocalUniScreenPadding provides screenPadding,
                 LocalNavigationBarVisible provides shellUiState.isNavigationBarVisible,
             ) {
-                if (isMandatoryUpdate) {
+                if (isResolvingSessionRoute) {
+                    AppLoadingState()
+                } else if (isMandatoryUpdate) {
                     UpdatesScreen(
                         uiState = updateUiState,
                         onRetry = updateViewModel::refresh,
@@ -365,6 +358,8 @@ internal fun AppNavigationHost(
                             reservationDeleteActionHost = reservationDeleteActionHost,
                             navigator = navigator,
                             sessionController = runtime.sessionController,
+                            accountSwitcherViewModel = accountSwitcherViewModel,
+                            accountSwitcherUiState = accountSwitcherState,
                             dataSource = accountDataSource,
                             localDataStore = runtime.localDataStore,
                             projectData = runtime.projectData,
@@ -450,7 +445,33 @@ internal fun AppNavigationHost(
                 },
             )
         }
-        if (!storageResetNotice && updateUiState.showUpdateSheet) {
+        if (!storageResetNotice && accountSwitcherState.activatingProfileId != null) {
+            LiquidDialog(
+                title = stringResource(Res.string.ui_home_switch_career),
+                onDismissRequest = {},
+                content = {
+                    LiquidLoading(
+                        style = LiquidLoadingStyle.Dots,
+                        size = LiquidLoadingSize.Large,
+                        message = stringResource(Res.string.ui_loading),
+                    )
+                },
+            )
+        } else if (!storageResetNotice && isAuthenticated && accountSwitcherState.profileErrorMessage != null) {
+            LiquidDialog(
+                title = stringResource(Res.string.msg_impossibile_attivare_il_profilo),
+                text = accountSwitcherState.profileErrorMessage,
+                onDismissRequest = accountSwitcherViewModel::dismissProfileError,
+                confirmButton = {
+                    LiquidButton(
+                        text = stringResource(Res.string.ui_understand),
+                        onClick = accountSwitcherViewModel::dismissProfileError,
+                        variant = LiquidButtonVariant.Primary,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                },
+            )
+        } else if (!storageResetNotice && updateUiState.showUpdateSheet) {
             com.anto426.uniapp.ui.updates.AppUpdateSheet(
                 state = updateUiState,
                 onDismiss = updateViewModel::dismissUpdateSheet,

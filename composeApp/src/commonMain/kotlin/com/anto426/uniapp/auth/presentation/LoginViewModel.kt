@@ -10,7 +10,7 @@ import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.unisdk.backend.model.LoginCareerOption
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val sessionController: AppSessionController,
+    private val sessionController: SessionManager,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(LoginUiState())
@@ -86,6 +86,7 @@ class LoginViewModel(
                 AppSessionState.Initializing -> current.copy(isLoading = true)
                 is AppSessionState.UnlockRequired -> current.copy(isLoading = false)
                 AppSessionState.Authenticating -> current.copy(isLoading = true)
+                AppSessionState.Switching -> current.copy(isLoading = true)
                 is AppSessionState.CareerSelectionRequired ->
                     current.copy(isLoading = false, careers = sessionState.careers)
 
@@ -93,7 +94,10 @@ class LoginViewModel(
                     current.copy(
                         isLoading = false,
                         careers = emptyList(),
-                    ).also { sessionState.message?.takeIf(String::isNotBlank)?.let(toastSink::error) }
+                    ).also {
+                        reauthenticationAccountId = null
+                        sessionState.message?.takeIf(String::isNotBlank)?.let(toastSink::error)
+                    }
 
                 is AppSessionState.ReauthenticationRequired ->
                     current.copy(

@@ -1236,6 +1236,8 @@
     <string name="msg_accesso_annullato">Accesso annullato.</string>
     <string name="msg_impossibile_aprire_laccount">Impossibile aprire l’account.</string>
     <string name="msg_il_portale_non_ha_attivato_il_profilo_selezionato">Il portale non ha attivato il profilo selezionato.</string>
+    <string name="msg_il_portale_richiede_ancora_la_scelta_della_carriera">Il portale richiede ancora la scelta della carriera.</string>
+    <string name="msg_il_portale_ha_restituito_una_carriera_diversa">Il portale ha restituito una carriera diversa da quella selezionata.</string>
     <string name="msg_impossibile_caricare_gli_account">Impossibile caricare gli account</string>
     <string name="msg_impossibile_attivare_laccount">Impossibile attivare l’account.</string>
     <string name="msg_impossibile_attivare_laccount_2">Impossibile attivare l’account</string>

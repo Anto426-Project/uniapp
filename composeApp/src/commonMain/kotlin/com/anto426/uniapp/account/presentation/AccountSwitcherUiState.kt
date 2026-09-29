@@ -12,4 +12,5 @@ data class AccountSwitcherUiState(
     val isRemovingAccount: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val profileErrorMessage: String? = null,
 )

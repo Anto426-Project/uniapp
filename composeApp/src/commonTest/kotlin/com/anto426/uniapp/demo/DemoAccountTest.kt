@@ -2,10 +2,9 @@ package com.anto426.uniapp.demo
 
 import com.anto426.securestorage.SecureStorageManager
 import com.anto426.uniapp.account.model.UniAccountCredentials
-import com.anto426.uniapp.account.session.UniSessionCoordinator
 import com.anto426.uniapp.account.storage.UniAccountStore
 import com.anto426.uniapp.data.local.FakeUniLocalDataStore
-import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.testing.ResourceTest
 import com.anto426.uniapp.testing.StorageTestFactory
@@ -13,25 +12,50 @@ import com.anto426.unisdk.backend.RemoteUniBackendService
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class DemoAccountTest : ResourceTest() {
+    @Test
+    fun cancelledAccountActivationDoesNotLeaveSessionSwitching() = runTest {
+        val client = HttpClient(MockEngine { error("Unexpected university request") })
+        val backend = RemoteUniBackendService(client)
+        val accounts = UniAccountStore(SecureStorageManager(StorageTestFactory(), "demo-cancel-switch"))
+        val releaseNotificationBinding = CompletableDeferred<Unit>()
+        try {
+            val controller = SessionManager(backend, accounts, FakeUniLocalDataStore()) { owner ->
+                if (owner != null) releaseNotificationBinding.await()
+            }
+            controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, DemoAccount.PASSWORD))
+            val accountId = assertIs<AppSessionState.Authenticated>(controller.state.value).account.accountId
+            controller.signOut()
+
+            val switching = async { controller.state.first { it == AppSessionState.Switching } }
+            val activation = launch { controller.activate(accountId) }
+            switching.await()
+            activation.cancelAndJoin()
+
+            assertIs<AppSessionState.SignedOut>(controller.state.value)
+        } finally { backend.close(); client.close() }
+    }
+
     @Test
     fun demoLoginRestoreAndSwitchNeverUseTheUniversityBackend() = runTest {
         var requests = 0
         val client = HttpClient(MockEngine { requests++; error("A demo account must never contact the university") })
         val backend = RemoteUniBackendService(client)
         val accounts = UniAccountStore(SecureStorageManager(StorageTestFactory(), "demo"))
-        val coordinator = UniSessionCoordinator(backend, accounts)
-        val local = FakeUniLocalDataStore()
+                val local = FakeUniLocalDataStore()
         try {
-            val controller = AppSessionController(coordinator, accounts, local)
+            val controller = SessionManager(backend, accounts, local)
             controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, DemoAccount.PASSWORD))
             val account = assertIs<AppSessionState.Authenticated>(controller.state.value).account
             assertTrue(DemoAccount.isDemo(account))
-            assertNull(controller.currentAccountClient())
-            val restored = AppSessionController(coordinator, accounts, local)
+            val restored = SessionManager(backend, accounts, local)
             restored.initialize()
             assertEquals(account, assertIs<AppSessionState.Authenticated>(restored.state.value).account)
             controller.signOut()
@@ -54,7 +78,7 @@ class DemoAccountTest : ResourceTest() {
             com.anto426.uniapp.data.local.UniAppDataKeys.GitHubProject,
             com.anto426.uniapp.project.model.GitHubProjectSnapshot(author = author))
         try {
-            val controller = AppSessionController(UniSessionCoordinator(backend, accounts), accounts, local)
+            val controller = SessionManager(backend, accounts, local)
             controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, DemoAccount.PASSWORD))
             val original = assertIs<AppSessionState.Authenticated>(controller.state.value).account
             assertEquals(author.name, original.displayName)
@@ -86,7 +110,7 @@ class DemoAccountTest : ResourceTest() {
         val backend = RemoteUniBackendService(client)
         val accounts = UniAccountStore(SecureStorageManager(StorageTestFactory(), "demo"))
         try {
-            val controller = AppSessionController(UniSessionCoordinator(backend, accounts), accounts, FakeUniLocalDataStore())
+            val controller = SessionManager(backend, accounts, FakeUniLocalDataStore())
             controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, "incorrect"))
             assertIs<AppSessionState.SignedOut>(controller.state.value)
             assertTrue(accounts.snapshot().accounts.isEmpty())
@@ -116,7 +140,7 @@ class DemoAccountTest : ResourceTest() {
         val backend = RemoteUniBackendService(client)
         val accounts = UniAccountStore(SecureStorageManager(StorageTestFactory(), "demo-avatars"))
         try {
-            val controller = AppSessionController(UniSessionCoordinator(backend, accounts), accounts, FakeUniLocalDataStore())
+            val controller = SessionManager(backend, accounts, FakeUniLocalDataStore())
             controller.authenticate(UniAccountCredentials(DemoAccount.USERNAME, DemoAccount.PASSWORD))
             val account = assertIs<AppSessionState.Authenticated>(controller.state.value).account
             val testBytes = byteArrayOf(9, 8, 7)
@@ -125,7 +149,7 @@ class DemoAccountTest : ResourceTest() {
                 imageLoader = { testBytes },
                 portraitSharer = { src, bytes -> controller.avatars.publish(account.accountId, src, bytes) },
             )
-            val coordinator = com.anto426.uniapp.data.runtime.UniAppDataCoordinator(source, backgroundScope)
+            val coordinator = com.anto426.uniapp.data.runtime.ScopedDataRepository(source, backgroundScope)
             coordinator.startPortrait(account)
             controller.avatars.images.first { it.containsKey(account.accountId) }
             val published = controller.avatars.images.value[account.accountId]

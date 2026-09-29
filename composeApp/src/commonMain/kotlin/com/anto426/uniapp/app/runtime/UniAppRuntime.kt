@@ -4,15 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import com.anto426.uniapp.account.platform.rememberPlatformUniAccountStore
-import com.anto426.uniapp.account.session.UniSessionCoordinator
-import com.anto426.uniapp.data.SessionUniAppDataSource
-import com.anto426.uniapp.data.runtime.UniAppDataCoordinator
+import com.anto426.uniapp.data.PortalDataSource
+import com.anto426.uniapp.data.runtime.ScopedDataRepository
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.local.EncryptedUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniAppDataKeys
 import com.anto426.uniapp.data.local.UniLocalDataStore
-import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.notifications.platform.rememberPlatformNotificationPermissionController
 import com.anto426.uniapp.notifications.runtime.AppNotificationManager
 import com.anto426.uniapp.updates.data.UniSdkAppUpdateSource
@@ -35,13 +34,12 @@ import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.data.runtime.UniAppDataRequests
 
 class UniAppRuntime internal constructor(
-    val sessionController: AppSessionController,
+    val sessionController: SessionManager,
     val dataSource: UniAppDataSource,
     val localDataStore: UniLocalDataStore,
     private val accountStore: com.anto426.uniapp.account.storage.UniAccountStore,
     internal val updateController: AppUpdateController,
     internal val notificationManager: AppNotificationManager,
-    private val sessionCoordinator: UniSessionCoordinator,
     private val backend: RemoteUniBackendService,
     private val unregisterPushTokenProvider: () -> Unit,
 ) {
@@ -52,7 +50,8 @@ class UniAppRuntime internal constructor(
     internal val applicationImages = com.anto426.uniapp.data.images.ApplicationImageStore(localDataStore, dataScope)
     internal val projectData = com.anto426.uniapp.project.data.ProjectDataStore(dataScope, localDataStore)
     private val lifecycleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private val accountDataSources = mutableMapOf<Pair<String, String?>, UniAppDataCoordinator>()
+    private var activeDataOwner: Pair<String, String?>? = null
+    private var activeDataSource: ScopedDataRepository? = null
     private var generation = 0L
     private var ownerState = sessionController.state.value
 
@@ -87,28 +86,30 @@ class UniAppRuntime internal constructor(
         if (state === ownerState) return
         val before = (ownerState as? AppSessionState.Authenticated)?.account
         val after = (state as? AppSessionState.Authenticated)?.account
-        if (DemoAccount.isDemo(before) && DemoAccount.isDemo(after) &&
-            before?.accountId == after?.accountId && before?.activeProfileId == after?.activeProfileId
-        ) {
-            ownerState = state
-            // Updating the public portrait must preserve simulated bookings and ongoing operations.
-            accountDataSources.values.forEach { it.refresh(listOf(UniAppDataRequests.Student), force = true) }
+        val beforeOwner = before?.let { it.accountId to it.activeProfileId }
+        val afterOwner = after?.let { it.accountId to it.activeProfileId }
+        ownerState = state
+        if (beforeOwner == afterOwner) {
+            if (DemoAccount.isDemo(before) && before != after) {
+                activeDataSource?.refresh(listOf(UniAppDataRequests.Student), force = true)
+            }
             return
         }
-        val previous = accountDataSources.values.toList()
-        accountDataSources.clear()
-        ownerState = state
-        previous.forEach { old -> dataScope.launch { old.close() } }
+        val previous = activeDataSource
+        activeDataSource = null
+        activeDataOwner = null
+        if (previous != null) dataScope.launch { previous.close() }
     }
 
     internal fun dataSourceFor(accountId: String, profileId: String?): UniAppDataSource {
         require(accountId.isNotBlank()) { "Account id cannot be blank" }
         updateOwner(sessionController.state.value)
         val ownerKey = accountId to profileId
-        return accountDataSources.getOrPut(ownerKey) {
+        activeDataSource?.takeIf { activeDataOwner == ownerKey }?.let { return it }
+        return run {
             generation += 1
             val account = (sessionController.state.value as? com.anto426.uniapp.session.model.AppSessionState.Authenticated)?.account
-            UniAppDataCoordinator(
+            ScopedDataRepository(
                 source = if (DemoAccount.isDemo(account)) DemoAppDataSource(
                     identity = {
                         val current = (sessionController.state.value as? AppSessionState.Authenticated)?.account
@@ -130,7 +131,7 @@ class UniAppRuntime internal constructor(
                         }
                         sessionController.avatars.publish(accountId, source, bytes)
                     },
-                ) else SessionUniAppDataSource(
+                ) else PortalDataSource(
                     sessions = sessionController,
                     accounts = accountStore,
                     fixedAccountId = accountId,
@@ -140,6 +141,8 @@ class UniAppRuntime internal constructor(
                 parentScope = dataScope,
                 generation = generation,
             ).also {
+                activeDataOwner = ownerKey
+                activeDataSource = it
                 it.startPortrait(account)
                 it.preload(account?.isProfessor == true)
             }
@@ -155,7 +158,7 @@ class UniAppRuntime internal constructor(
         notificationManager.close()
         cleanupScope.launch {
             try {
-                sessionCoordinator.shutdown()
+                sessionController.shutdown()
                 backend.close()
             } finally {
                 cleanupScope.cancel()
@@ -173,10 +176,9 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
     val runtime =
         remember(accountStore, updateEnvironment, notificationPermissions, pushConnector) {
             val backend = RemoteUniBackendService()
-            val coordinator = UniSessionCoordinator(backend, accountStore)
             val localDataStore = EncryptedUniLocalDataStore(accountStore)
             val notificationManager = AppNotificationManager(pushConnector, notificationPermissions)
-            val sessionController = AppSessionController(coordinator, accountStore, localDataStore) { accountId ->
+            val sessionController = SessionManager(backend, accountStore, localDataStore) { accountId ->
                 val account = accountId?.let { id ->
                     accountStore.snapshot().accounts.firstOrNull { it.accountId == id }
                 }
@@ -194,7 +196,7 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
                 registerPushNotificationsTokenProvider(notificationManager::backendToken)
             UniAppRuntime(
                 sessionController = sessionController,
-                dataSource = SessionUniAppDataSource(sessionController, accountStore),
+                dataSource = PortalDataSource(sessionController, accountStore),
                 localDataStore = localDataStore,
                 accountStore = accountStore,
                 updateController =
@@ -204,7 +206,6 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
                         launcher = updateEnvironment.launcher,
                     ),
                 notificationManager = notificationManager,
-                sessionCoordinator = coordinator,
                 backend = backend,
                 unregisterPushTokenProvider = unregisterPushTokenProvider,
             )

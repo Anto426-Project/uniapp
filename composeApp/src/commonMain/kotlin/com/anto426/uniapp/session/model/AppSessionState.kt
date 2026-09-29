@@ -16,6 +16,9 @@ sealed interface AppSessionState {
 
     data object Authenticating : AppSessionState
 
+    /** A new SDK session is being verified; private routes must show loading. */
+    data object Switching : AppSessionState
+
     data class CareerSelectionRequired(val careers: List<LoginCareerOption>) : AppSessionState
 
     data class Authenticated(val account: UniAccountSummary) : AppSessionState

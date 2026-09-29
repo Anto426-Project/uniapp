@@ -107,7 +107,7 @@ fun SettingsScreen(
             val initials = account.displayName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
 
             val identity = com.anto426.uniapp.ui.components.account.accountDisplayIdentity(
-                account.displayName, initials, accountUiState.profileImages[account.accountId], account,
+                account.displayName, initials, accountUiState.profileImages[account.accountId],
             )
 
             LiquidCard(

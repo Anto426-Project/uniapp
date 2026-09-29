@@ -5,7 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.PasswordUnlockResult
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.feedback.runtime.AppToastSink
@@ -30,7 +30,7 @@ data class AppUnlockUiState(
 enum class AppPasswordUnlockError { Invalid, RetryLater, Failed }
 
 class AppSessionViewModel(
-    private val sessionController: AppSessionController,
+    private val sessionController: SessionManager,
 ) : ViewModel() {
     val state: StateFlow<AppSessionState> = sessionController.state
     val storageResetNotice: StateFlow<Boolean> = sessionController.storageResetNotice

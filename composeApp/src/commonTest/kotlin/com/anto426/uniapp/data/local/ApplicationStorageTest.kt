@@ -11,9 +11,9 @@ import kotlin.test.*
 
 class ApplicationStorageTest {
     @Test
-    fun legacyApplicationValuesMigrateToTheCommonVaultAndSurviveAccountRemoval() = runTest {
+    fun applicationValuesSurviveAccountRemoval() = runTest {
         val factory = StorageTestFactory()
-        val manager = SecureStorageManager(factory, "migration")
+        val manager = SecureStorageManager(factory, "application")
         val ids = listOf("installation", "account").iterator()
         val accounts = UniAccountStore(manager) { ids.next() }
         val account = accounts.persistAuthenticatedAccount(
@@ -21,31 +21,13 @@ class ApplicationStorageTest {
             UniUserProfile("server", "Student", "Course", null, null, null, false),
             UniSessionTicket.restore(byteArrayOf(1)),
         )
-        val legacyKey = "local.v1.application.${UniAppDataKeys.ThemeSelection.name}"
-        manager.registry().putBytes(legacyKey, "4".encodeToByteArray())
         val store = EncryptedUniLocalDataStore(accounts)
+        store.write(LocalDataScope.Application, UniAppDataKeys.ThemeSelection, 4)
         assertEquals(4, store.read(LocalDataScope.Application, UniAppDataKeys.ThemeSelection))
-        assertFalse(manager.registry().contains(legacyKey))
-        assertTrue(manager.vault("application-data").contains(legacyKey))
         accounts.forgetAccount(account.accountId)
         store.invalidateAccount(account.accountId)
         // Reopen to verify disk persistence, independently of the in-memory cache.
         assertEquals(4, EncryptedUniLocalDataStore(UniAccountStore(manager)).read(LocalDataScope.Application, UniAppDataKeys.ThemeSelection))
-    }
-
-    @Test
-    fun failedMigrationRetainsTheOriginalValueAndCanBeRetried() = runTest {
-        val factory = StorageTestFactory()
-        val manager = SecureStorageManager(factory, "migration")
-        val key = "local.v1.application.${UniAppDataKeys.ThemeSelection.name}"
-        manager.registry().putBytes(key, "3".encodeToByteArray())
-        factory.failingScope = "migration.vault.application-data"
-        val store = EncryptedUniLocalDataStore(UniAccountStore(manager))
-        assertFailsWith<IllegalStateException> { store.read(LocalDataScope.Application, UniAppDataKeys.ThemeSelection) }
-        assertContentEquals("3".encodeToByteArray(), manager.registry().getBytes(key))
-        factory.failingScope = null
-        assertEquals(3, store.read(LocalDataScope.Application, UniAppDataKeys.ThemeSelection))
-        assertFalse(manager.registry().contains(key))
     }
 
     @Test

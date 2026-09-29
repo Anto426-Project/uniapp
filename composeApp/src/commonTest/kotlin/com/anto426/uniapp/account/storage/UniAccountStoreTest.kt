@@ -7,6 +7,7 @@ import com.anto426.securestorage.getString
 import com.anto426.securestorage.putString
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.data.profileCacheKey
 import com.anto426.unisdk.session.UniSessionTicket
 import com.anto426.unisdk.session.UniUserProfile
 import com.anto426.unisdk.session.UniCareerProfile
@@ -25,6 +26,38 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
 class UniAccountStoreTest {
+    @Test
+    fun twoAccountsAndTwoCareersKeepIndependentCachedValues() = runTest {
+        val store = createStore(listOf("installation-id", "account-a", "account-b"))
+        val firstCareer = UniCareerProfile(
+            profileId = "001234|10", displayName = "Student", degreeName = "Informatica",
+            matricola = "001234", cdsId = "10",
+        )
+        val secondCareer = firstCareer.copy(profileId = "001234|11", degreeName = "Matematica", cdsId = "11")
+        val first = store.persistAuthenticatedAccount(
+            UniAccountCredentials("first", "secret"),
+            profile("first-user").copy(activeProfileId = firstCareer.profileId, profiles = listOf(firstCareer, secondCareer)),
+            UniSessionTicket.restore(byteArrayOf(1)),
+        )
+        val second = store.persistAuthenticatedAccount(
+            UniAccountCredentials("second", "secret"),
+            profile("second-user").copy(activeProfileId = firstCareer.profileId, profiles = listOf(firstCareer)),
+            UniSessionTicket.restore(byteArrayOf(2)),
+        )
+        val firstKey = profileCacheKey(firstCareer.profileId, "taxes")
+        val secondKey = profileCacheKey(secondCareer.profileId, "taxes")
+        store.writeCachedData(first.accountId, firstKey, byteArrayOf(10))
+        store.writeCachedData(first.accountId, secondKey, byteArrayOf(11))
+        store.writeCachedData(second.accountId, firstKey, byteArrayOf(20))
+
+        assertEquals(setOf(firstCareer.profileId, secondCareer.profileId),
+            store.snapshot().accounts.first { it.accountId == first.accountId }.profiles.map { it.profileId }.toSet())
+        assertContentEquals(byteArrayOf(10), store.readCachedData(first.accountId, firstKey))
+        assertContentEquals(byteArrayOf(11), store.readCachedData(first.accountId, secondKey))
+        assertContentEquals(byteArrayOf(20), store.readCachedData(second.accountId, firstKey))
+        assertNull(store.readCachedData(second.accountId, secondKey))
+    }
+
     @Test
     fun multipleCareersRemainProfilesOfOneServerIdentity() = runTest {
         val store = createStore(listOf("installation-id", "account-id"))
@@ -81,46 +114,68 @@ class UniAccountStoreTest {
     }
 
     @Test
-    fun staleAliasesOfTheSameCareerAreCollapsed() = runTest {
+    fun matchingNamesAndIncompleteIdsDoNotMergeDistinctCareers() = runTest {
         val store = createStore(listOf("installation-id", "account-id"))
-        val oldProfile =
-            UniCareerProfile(
-                profileId = "legacy-degree-key",
-                displayName = "Mario Rossi",
-                degreeName = "Informatica",
-                matricola = "12345",
-                cdsId = "10",
-            )
-        val currentProfile =
-            oldProfile.copy(
-                profileId = "12345|77|10",
-                matId = "77",
-                stuId = "20",
-            )
-
-        store.persistAuthenticatedAccount(
-            credentials = UniAccountCredentials("identity", "secret"),
-            profile =
-                profile("same-user").copy(
-                    activeProfileId = oldProfile.profileId,
-                    profiles = listOf(oldProfile),
-                ),
-            ticket = UniSessionTicket.restore(byteArrayOf(1)),
+        val first = UniCareerProfile(
+            profileId = "career-10", displayName = "Mario Rossi", degreeName = "Informatica",
+            matricola = "12345", cdsId = "10",
         )
-        store.persistAuthenticatedAccount(
-            credentials = UniAccountCredentials("identity", "secret"),
-            profile =
-                profile("same-user").copy(
-                    activeProfileId = currentProfile.profileId,
-                    profiles = listOf(currentProfile),
-                ),
-            ticket = UniSessionTicket.restore(byteArrayOf(2)),
+        val second = first.copy(profileId = "career-11", cdsId = null)
+        val account = store.persistAuthenticatedAccount(
+            UniAccountCredentials("mario", "secret"),
+            profile("same-user").copy(activeProfileId = first.profileId, profiles = listOf(first, second)),
+            UniSessionTicket.restore(byteArrayOf(1)),
         )
 
-        val account = store.snapshot().accounts.single()
-        assertEquals(currentProfile.profileId, account.activeProfileId)
-        assertEquals(listOf(currentProfile.profileId), account.profiles.map { it.profileId })
-        assertEquals("77", account.profiles.single().matId)
+        assertEquals(setOf(first.profileId, second.profileId), account.profiles.map { it.profileId }.toSet())
+    }
+
+    @Test
+    fun professorProfilesInDifferentDepartmentsStaySeparate() = runTest {
+        val store = createStore(listOf("installation-id", "account-id"))
+        val first = UniCareerProfile(
+            profileId = "professor|123|dip-1", displayName = "Mario Rossi", degreeName = "Docenza",
+            teacherId = "123", dipId = "dip-1", departmentName = "Scienze",
+            type = BackendCareerType.PROFESSOR,
+        )
+        val second = first.copy(profileId = "professor|123|dip-2", dipId = "dip-2", departmentName = "Medicina")
+        val account = store.persistAuthenticatedAccount(
+            UniAccountCredentials("mario", "secret"),
+            profile("same-user").copy(activeProfileId = first.profileId, profiles = listOf(first, second)),
+            UniSessionTicket.restore(byteArrayOf(1)),
+        )
+
+        assertEquals(setOf(first.profileId, second.profileId), account.profiles.map { it.profileId }.toSet())
+    }
+
+    @Test
+    fun professorLabelChangeKeepsTheSameStableProfile() = runTest {
+        val store = createStore(listOf("installation-id", "account-id"))
+        val original = UniCareerProfile(
+            profileId = "professor|123|dip-1",
+            displayName = "Mario Rossi", degreeName = "Docenza",
+            teacherId = "123", dipId = "dip-1", departmentName = "Scienze",
+            type = BackendCareerType.PROFESSOR,
+        )
+        val credentials = UniAccountCredentials("mario", "secret")
+        val saved = store.persistAuthenticatedAccount(
+            credentials, profile("same-user").copy(
+                activeProfileId = original.profileId, profiles = listOf(original),
+            ), UniSessionTicket.restore(byteArrayOf(1)),
+        )
+        val current = original.copy(
+            degreeName = "Insegnamento",
+            departmentName = "Dipartimento rinominato",
+        )
+        val updated = store.updateSession(
+            saved.accountId,
+            profile("same-user").copy(activeProfileId = current.profileId, profiles = listOf(current)),
+            UniSessionTicket.restore(byteArrayOf(2)),
+        )
+
+        assertEquals(current.profileId, updated.activeProfileId)
+        assertEquals(listOf(current.profileId), updated.profiles.map { it.profileId })
+        assertEquals("Insegnamento", updated.profiles.single().degreeName)
     }
 
     @Test
@@ -192,6 +247,45 @@ class UniAccountStoreTest {
     }
 
     @Test
+    fun differentLoginCannotOverwriteAccountAwaitingReauthentication() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val store = createStore(listOf("installation-id", "account-a", "account-b"), factory)
+        val first = store.persistAuthenticatedAccount(
+            UniAccountCredentials("first", "first-secret"), profile("first-user"),
+            UniSessionTicket.restore(byteArrayOf(1)),
+        )
+        store.writeCachedData(first.accountId, "career", byteArrayOf(7))
+
+        val second = store.persistAuthenticatedAccount(
+            UniAccountCredentials("second", "second-secret"), profile("second-user"),
+            UniSessionTicket.restore(byteArrayOf(2)), preferredAccountId = first.accountId,
+        )
+
+        assertEquals("account-b", second.accountId)
+        assertEquals(listOf("first-user", "second-user"), store.snapshot().accounts.map { it.serverUserId })
+        assertEquals(second.accountId, store.snapshot().activeAccountId)
+        assertEquals("first", factory.open("test.vault.account-a").getString("credentials.username"))
+        assertEquals("first-secret", factory.open("test.vault.account-a").getString("credentials.password"))
+        assertContentEquals(byteArrayOf(7), store.readCachedData(first.accountId, "career"))
+        assertNull(store.readCachedData(second.accountId, "career"))
+    }
+
+    @Test
+    fun resumedSessionWithDifferentIdentityCannotReplaceAccount() = runTest {
+        val store = createStore(listOf("installation-id", "account-a"))
+        val first = store.persistAuthenticatedAccount(
+            UniAccountCredentials("first", "secret"), profile("first-user"),
+            UniSessionTicket.restore(byteArrayOf(1)),
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            store.updateSession(first.accountId, profile("second-user"), UniSessionTicket.restore(byteArrayOf(2)))
+        }
+        assertEquals("first-user", store.snapshot().accounts.single().serverUserId)
+        assertContentEquals(byteArrayOf(1), store.loadSessionTicket(first.accountId)!!.export())
+    }
+
+    @Test
     fun clearingExpiredTicketKeepsEncryptedAccountAndCredentials() = runTest {
         val store = createStore(listOf("installation-id", "account-id"))
         store.persistAuthenticatedAccount(
@@ -252,12 +346,12 @@ class UniAccountStoreTest {
     }
 
     @Test
-    fun oldSharedNewsCacheIsRemovedWhenStorageOpens() = runTest {
+    fun releaseResetRemovesOldSharedNewsCache() = runTest {
         val factory = MemorySecureStorageFactory()
         val old = createStore(listOf("installation"), factory)
         old.writeCachedData(null, "university-news-unimol-ateneo", byteArrayOf(7))
 
-        val updated = createStore(emptyList(), factory)
+        val updated = createStore(emptyList(), factory, resetStorageForRelease = true)
         assertNull(updated.readCachedData(null, "university-news-unimol-ateneo"))
     }
 
@@ -305,6 +399,22 @@ class UniAccountStoreTest {
     }
 
     @Test
+    fun newResetRunsEvenWhenThePreviousReleaseWasAlreadyReset() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val old = createStore(listOf("old-installation", "old-account"), factory)
+        old.persistAuthenticatedAccount(
+            UniAccountCredentials("old", "secret"), profile("old-user"),
+            UniSessionTicket.restore(byteArrayOf(1)),
+        )
+        factory.open("test.vault.storage-migrations")
+            .putString("migration.storage-reset-20260927", "complete")
+
+        val current = createStore(listOf("new-installation"), factory, resetStorageForRelease = true)
+        assertTrue(current.snapshot().accounts.isEmpty())
+        assertTrue(current.storageResetNotice.value)
+    }
+
+    @Test
     fun interruptedResetRetriesCleanupAndKeepsTheNoticeEvenAfterTheRegistryWasRemoved() = runTest {
         val factory = MemorySecureStorageFactory()
         createStore(listOf("old-installation"), factory).snapshot()
@@ -323,7 +433,7 @@ class UniAccountStoreTest {
     }
 
     @Test
-    fun freshInstallHasNoResetNoticeAndConcurrentFirstReadsRunMigrationOnlyOnce() = runTest {
+    fun freshInstallHasNoResetNoticeAndConcurrentFirstReadsRunResetOnlyOnce() = runTest {
         val factory = MemorySecureStorageFactory()
         var cleanups = 0
         val fresh = createStore(listOf("installation"), factory, true) { cleanups++ }

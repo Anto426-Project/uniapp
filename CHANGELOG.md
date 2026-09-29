@@ -1,12 +1,19 @@
-## [2.0.14] - 2026-09-28 (build set by CI)
+## [2.0.14] - 2026-09-29 (build set by CI)
 
-- **Sblocco App**: schermata visibile già all'avvio, con password UniApp e pulsante per richiamare l'autenticazione del dispositivo senza prompt automatico; “Usa un altro account” apre il login.
+- **Avvio e Sblocco**: il navigatore mostra il caricamento finché la sessione non è risolta e apre solo la destinazione consentita; la schermata di sblocco appare solo per gli account protetti, con password UniApp e pulsante per richiamare l'autenticazione del dispositivo senza prompt automatico. “Usa un altro account” apre il login.
+- **Login**: il passaggio alle schermate dell’account non lascia visibile per un istante il fondo scuro dell’app.
+- **Caricamenti**: una richiesta dati interrotta termina con un errore recuperabile e viene ritentata, senza lasciare le sezioni in caricamento continuo.
+- **Account**: il cambio sessione mantiene separati identità, credenziali, carriere e dati salvati anche quando il login autentica un account diverso da quello in attesa di riaccesso; l'elenco carriere temporaneo appartiene al solo login che lo ha generato. La carriera restituita dal portale viene verificata prima di attivarla e i profili con identificativi incompleti non vengono più uniti per somiglianza.
+- **Sessioni e dati**: un solo gestore della sessione attiva e un archivio dati per account e carriera; rimossi i componenti che inoltravano soltanto le chiamate. Durante il cambio il navigatore mostra il caricamento e interrompe le richieste del profilo precedente. Il gestore del cambio account resta attivo quando Login o Impostazioni vengono chiuse, così l'attivazione può completarsi.
+- **Nuovo accesso richiesto**: account, credenziali, ticket, preferenze e cache locali vengono cancellati una sola volta al primo avvio di questa build. Nessun vecchio ticket o profilo viene convertito.
+- **UniSDK 1.0.23**: identità della carriera docente basata sugli ID del portale e completamento della selezione quando il portale richiede una seconda risposta di autenticazione.
+- **Identità**: rimossa la sostituzione del nome e della foto degli account reali con quelli dell'autore del progetto.
 - **Prenotazioni Trasporti**: il calendario mostra il mese intero, ma permette di scegliere solo i giorni feriali da domani fino a 15 giorni. Le corse già prenotate restano visibili e non selezionabili; dopo una prenotazione la disponibilità si aggiorna subito. Rinnovate le card di selezione della direzione.
 - **Biglietti**: il pulsante per annullare la corsa rifrange il contenuto sottostante; aggiornata la resa del codice a barre.
 - **Area Docente**: card e sezioni con altezze più coerenti, metriche bilanciate e icone dedicate.
 - **Badge Accademico**: nuova grafica del codice a barre con cornice Monet e stato attivo.
 - **Home e Temi**: card notizie più compatte e selettore del motore grafico aggiornato.
-- **Carriere**: cambio profilo disponibile dalla barra superiore delle sezioni principali, con gestione dell'elenco delle carriere restituito dal portale.
+- **Carriere**: cambio profilo disponibile dalla barra superiore delle sezioni principali, con gestione dell'elenco delle carriere restituito dal portale. Il cambio mostra l'attesa e segnala il motivo del rifiuto invece di chiudersi senza feedback.
 - **Informazioni**: corretto l'allineamento della versione e del nome dell'app nel banner.
 - Icone dell'app aggiornate e variante di sviluppo separata dalla versione installata.
 

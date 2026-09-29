@@ -13,6 +13,7 @@ class AppRouteGuard {
     ): AppRoute =
         when (sessionState) {
             AppSessionState.Initializing,
+            AppSessionState.Switching,
             is AppSessionState.UnlockRequired,
             -> AppRoute.Bootstrap
 

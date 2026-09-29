@@ -2,7 +2,7 @@ package com.anto426.uniapp.news.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.toNewsItems
-import com.anto426.uniapp.data.runtime.UniAppDataCoordinator
+import com.anto426.uniapp.data.runtime.ScopedDataRepository
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.backend.model.UniversityNews
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +78,7 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadUniversityNews(forceRefresh: Boolean) = input
         }
-        val data = UniAppDataCoordinator(source, backgroundScope)
+        val data = ScopedDataRepository(source, backgroundScope)
         try {
             val prepared = data.prepareNews(input, StandardTestDispatcher(testScheduler))
             val viewModel = NewsViewModel(data, preparationDispatcher = Dispatchers.Main)

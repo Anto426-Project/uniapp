@@ -5,7 +5,7 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.session.AppSessionController
+import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.info
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AccountSwitcherViewModel(
-    private val sessionController: AppSessionController,
+    private val sessionController: SessionManager,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(AccountSwitcherUiState())
@@ -150,7 +150,7 @@ class AccountSwitcherViewModel(
         ) return
 
         viewModelScope.launch {
-            mutableUiState.update { it.copy(activatingProfileId = profileId, errorMessage = null) }
+            mutableUiState.update { it.copy(activatingProfileId = profileId, profileErrorMessage = null) }
             try {
                 when (val state = sessionController.activateProfile(profileId)) {
                     is AppSessionState.Authenticated -> {
@@ -159,14 +159,15 @@ class AccountSwitcherViewModel(
                                 accounts = it.accounts.map { account ->
                                     if (account.accountId == state.account.accountId) state.account else account
                                 },
-                                activatingProfileId = null,
                             )
                         }
                         toastSink.success("Profilo universitario attivato.")
                     }
 
                     else -> {
-                        mutableUiState.update { it.copy(activatingProfileId = null) }
+                        mutableUiState.update {
+                            it.copy(profileErrorMessage = getString(Res.string.msg_impossibile_attivare_il_profilo))
+                        }
                         toastSink.error(getString(Res.string.msg_impossibile_attivare_il_profilo))
                     }
                 }
@@ -175,13 +176,18 @@ class AccountSwitcherViewModel(
             } catch (error: Throwable) {
                 mutableUiState.update {
                     it.copy(
-                        activatingProfileId = null,
-                        errorMessage = error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo_2),
+                        profileErrorMessage = error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo_2),
                     )
                 }
                 toastSink.error(error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo))
+            } finally {
+                mutableUiState.update { it.copy(activatingProfileId = null) }
             }
         }
+    }
+
+    fun dismissProfileError() {
+        mutableUiState.update { it.copy(profileErrorMessage = null) }
     }
 
     fun addAccount() {
