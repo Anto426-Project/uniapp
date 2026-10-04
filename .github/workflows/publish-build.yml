@@ -1,29 +1,31 @@
-name: Publish All Builds
+name: Publish Platform Build
 
 on:
-  workflow_run:
-    workflows: [Build Android (APK), Build iOS (Kotlin Multiplatform), Build Desktop]
-    types: [completed]
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      platform:
+        description: 'One application platform: android, ios or desktop'
+        required: true
+        type: string
       source_run_id:
-        description: 'Android, iOS or desktop build run ID (empty for the most recent completed build)'
+        description: 'Platform build run ID (empty for the most recent completed build)'
         required: false
         type: string
+        default: ''
+    secrets:
+      DEPLOY_TOKEN:
+        required: true
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: uniapp-distribution
+  group: uniapp-distribution-${{ inputs.platform }}
   cancel-in-progress: false
 
 jobs:
   publish:
-    # A failed matrix may still contain successfully verified packages for other operating systems.
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -33,12 +35,15 @@ jobs:
         id: source
         uses: actions/github-script@v9.0.0
         env:
-          REQUESTED_RUN_ID: ${{ inputs.source_run_id || github.event.workflow_run.id }}
+          REQUESTED_RUN_ID: ${{ inputs.source_run_id }}
+          REQUESTED_PLATFORM: ${{ inputs.platform }}
         with:
           script: |
             const allowed = {'build-android.yml': 'android', 'build-ios.yml': 'ios', 'build-desktop.yml': 'desktop'};
+            const requestedPlatform = process.env.REQUESTED_PLATFORM;
+            if (!Object.values(allowed).includes(requestedPlatform)) throw new Error('Unsupported application platform');
             const workflows = {};
-            for (const [path, platform] of Object.entries(allowed)) {
+            for (const [path, platform] of Object.entries(allowed).filter(([, platform]) => platform === requestedPlatform)) {
               const {data} = await github.rest.actions.getWorkflow({...context.repo, workflow_id: path});
               workflows[data.id] = platform;
             }
@@ -52,7 +57,7 @@ jobs:
             const platform = workflows[run.workflow_id];
             if (!platform || run.status !== 'completed' || !['success','failure'].includes(run.conclusion) ||
                 run.head_branch !== 'main' || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` || run.event !== 'workflow_dispatch') {
-              throw new Error('Only trusted main-branch Android/iOS/desktop builds can be published');
+              throw new Error('Only a trusted main-branch build for the selected platform can be published');
             }
             const {data} = await github.rest.actions.listWorkflowRunArtifacts({...context.repo, run_id: Number(id), per_page: 100});
             const prefix = `${platform}-build-${id}`;
@@ -96,15 +101,19 @@ jobs:
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_PLATFORM: ${{ steps.source.outputs.platform }}
         run: |
           python3 scripts/collect_build_artifacts.py --incoming incoming --output publish-plan \
-            --repository "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID"
-      - name: Publish signed, unsigned and desktop packages
+            --repository "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID" \
+            --platform "$SOURCE_PLATFORM"
+      - name: Publish one platform release
         env:
           GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_PLATFORM: ${{ steps.source.outputs.platform }}
         run: |
           python3 scripts/publish_builds.py --plan publish-plan/plan.json --repository "$DEPLOY_REPO" \
             --deploy-directory deploy-repo --policy build-source/update-config.json \
-            --source-repo "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID"
+            --source-repo "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID" \
+            --platform "$SOURCE_PLATFORM"

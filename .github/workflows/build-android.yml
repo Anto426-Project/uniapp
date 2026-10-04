@@ -64,20 +64,7 @@ jobs:
             composeApp/build/test-results/
           retention-days: 14
           if-no-files-found: ignore
-      - name: Build unsigned release and debug APKs
-        run: |
-          set -euo pipefail
-          unset RELEASE_STORE_FILE RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD
-          ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease :androidApp:assembleDebug
-          python3 scripts/prepare_build_artifact.py android --output publish-input-unsigned --signing unsigned
-      - name: Store unsigned release and debug APKs
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: android-build-${{ github.run_id }}-unsigned
-          path: publish-input-unsigned/
-          if-no-files-found: error
-          retention-days: 30
-      - name: Build officially signed release when the key is available
+      - name: Build one Android release with optional signing
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           RELEASE_STORE_FILE: ${{ runner.temp }}/uniapp-release-${{ github.run_id }}.keystore
@@ -86,24 +73,27 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          trap 'rm -f "$RELEASE_STORE_FILE"' EXIT
+          keystore_path="$RELEASE_STORE_FILE"
+          trap 'rm -f -- "$keystore_path"' EXIT
+          signing=unsigned
           if [[ -n "$RELEASE_KEYSTORE_BASE64" && -n "$RELEASE_STORE_PASSWORD" && -n "$RELEASE_KEY_ALIAS" && -n "$RELEASE_KEY_PASSWORD" ]]; then
             umask 077
             printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
+            signing=release-key
           else
-            echo 'Release signing key unavailable; unsigned and debug packages are already stored.'
-            exit 0
+            unset RELEASE_STORE_FILE RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD
           fi
           ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease
-          APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
-          for apk in androidApp/build/outputs/apk/release/*.apk; do "$APK_SIGNER" verify --verbose "$apk"; done
-          python3 scripts/prepare_build_artifact.py android --output publish-input-signed --signing release-key
-      - name: Store officially signed release and debug APKs
-        if: hashFiles('publish-input-signed/context.json') != ''
+          if [[ "$signing" == release-key ]]; then
+            APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+            for apk in androidApp/build/outputs/apk/release/*.apk; do "$APK_SIGNER" verify --verbose "$apk"; done
+          fi
+          python3 scripts/prepare_build_artifact.py android --output publish-input --signing "$signing"
+      - name: Store Android release for publication
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: android-build-${{ github.run_id }}-signed
-          path: publish-input-signed/
+          name: android-build-${{ github.run_id }}
+          path: publish-input/
           if-no-files-found: error
           retention-days: 30
       - name: Remove compiler temporary files

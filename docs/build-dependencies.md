@@ -57,9 +57,9 @@ e Google Maven; le versioni delle Actions con le Release dei rispettivi reposito
 ## Android e iOS
 
 Il runner Android richiede le etichette `self-hosted`, `Linux`, `X64`. Installa JDK
-21 e Android SDK, scarica le dipendenze dichiarate, esegue i test e produce sempre
-gli APK release non firmati e debug. Se la chiave è disponibile produce anche gli
-APK release firmati ufficialmente. I workflow SDK richiedono le stesse etichette e preparano
+21 e Android SDK, scarica le dipendenze dichiarate, esegue i test e produce un solo
+APK release: firmato se la chiave è disponibile, altrimenti non firmato.
+I workflow SDK richiedono le stesse etichette e preparano
 i propri binari indipendentemente da UniApp.
 
 Il runner iOS usa `macos-26` e verifica l'Xcode predefinito prima di Kotlin/Native.
@@ -68,8 +68,9 @@ nel repository. La fase Xcode `embedAndSignAppleFrameworkForXcode` compila il so
 framework dell'app usando gli SDK già scaricati. `Config.xcconfig` configura ricerca
 e collegamento di `ComposeApp`; il team di firma non cambia il bundle identifier.
 Il workflow conserva come file sia l'IPA priva di firma sia il bundle simulatore.
-Il workflow di pubblicazione li carica nelle release di anteprima, insieme alle
-varianti Android non firmate/debug e ai pacchetti desktop Linux, Windows e macOS.
+Ogni piattaforma ha il proprio workflow di pubblicazione: `Publish Android`,
+`Publish iOS` e `Publish Desktop`. Ogni esecuzione pubblica una sola versione della
+piattaforma selezionata. `Build All` avvia le tre build indipendenti.
 Gli aggiornamenti Android continuano a usare gli APK firmati ufficialmente.
 
 Verifica locale dell'app:

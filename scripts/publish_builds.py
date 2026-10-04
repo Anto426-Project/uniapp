@@ -58,8 +58,6 @@ def publish_signed_android(group, deploy_repo, deploy_directory, policy, source_
     command(sys.executable, ROOT / 'scripts/generate_github_release_metadata.py', '--metadata', metadata,
         '--update-manifest', incoming / 'update.json', '--source-repo', source_repo,
         '--output', incoming / 'release-notes.md', '--github-env-output', env_file)
-    with (incoming / 'release-notes.md').open('a') as handle:
-        handle.write('\nInclusi anche gli APK debug, firmati con una chiave di sviluppo.\n')
     command(sys.executable, ROOT / 'scripts/generate_deploy_readme.py', '--update-manifest', incoming / 'update.json',
         '--source-repo', source_repo, '--output', incoming / 'README.md')
     environment = os.environ.copy()
@@ -73,7 +71,9 @@ def publish_signed_android(group, deploy_repo, deploy_directory, policy, source_
     command('bash', ROOT / 'scripts/publish_android.sh', cwd=working, env=environment)
 
 
-def publish(plan, repository, deploy_directory, policy, source_repo, revision, run_id):
+def publish(plan, repository, deploy_directory, policy, source_repo, revision, run_id, platform=None):
+    if len(plan) != 1 or (platform and plan[0]['platform'] != platform):
+        raise ValueError('Publication requires exactly one release for the selected platform')
     for group in plan:
         remote = release_data(repository, group['tag'])
         missing = verify_existing_assets(repository, remote, group['assets']) if remote else group['assets']
@@ -90,24 +90,39 @@ def publish(plan, repository, deploy_directory, policy, source_repo, revision, r
         if missing:
             command('gh', 'release', 'upload', group['tag'], *missing, '--repo', repository)
         print(f'Published: https://github.com/{repository}/releases/tag/{quote(group["tag"], safe="+")}')
-    index = deploy_directory / 'release/builds.json'
-    records = json.loads(index.read_text()) if index.is_file() else []
-    for group in plan:
-        item = dict(tag=group['tag'], platform=group['platform'], signing=group['signing'], version=group['version'],
-                    sourceSha=revision, runId=run_id, url=f'https://github.com/{repository}/releases/tag/{quote(group["tag"], safe="+")}')
-        records = [old for old in records if old['tag'] != group['tag']] + [item]
-    index.parent.mkdir(exist_ok=True)
-    index.write_text(json.dumps(records, indent=2) + '\n')
-    paths = ['release/builds.json']
-    if (deploy_directory / 'docs').is_dir():
-        (deploy_directory / 'docs/builds.json').write_text(index.read_text())
-        paths.append('docs/builds.json')
-    command('git', 'add', '--', *paths, cwd=deploy_directory)
-    if subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=deploy_directory).returncode != 0:
-        command('git', 'config', 'user.name', 'github-actions[bot]', cwd=deploy_directory)
-        command('git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com', cwd=deploy_directory)
+    update_build_index(plan, deploy_directory, repository, revision, run_id)
+
+
+def update_build_index(plan, deploy_directory, repository, revision, run_id):
+    # Work only in the clean distribution checkout, preserving all other platforms.
+    if subprocess.run(['git', 'status', '--porcelain'], cwd=deploy_directory, text=True, capture_output=True, check=True).stdout:
+        raise ValueError('Distribution checkout must be clean before updating the release index')
+    command('git', 'config', 'user.name', 'github-actions[bot]', cwd=deploy_directory)
+    command('git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com', cwd=deploy_directory)
+    for attempt in range(5):
+        command('git', 'pull', '--rebase', 'origin', 'main', cwd=deploy_directory)
+        index = deploy_directory / 'release/builds.json'
+        records = json.loads(index.read_text()) if index.is_file() else []
+        for group in plan:
+            item = dict(tag=group['tag'], platform=group['platform'], signing=group['signing'], version=group['version'],
+                        sourceSha=revision, runId=run_id, url=f'https://github.com/{repository}/releases/tag/{quote(group["tag"], safe="+")}')
+            records = [old for old in records if old['tag'] != group['tag']] + [item]
+        index.parent.mkdir(exist_ok=True)
+        index.write_text(json.dumps(records, indent=2) + '\n')
+        paths = ['release/builds.json']
+        if (deploy_directory / 'docs').is_dir():
+            (deploy_directory / 'docs/builds.json').write_text(index.read_text())
+            paths.append('docs/builds.json')
+        command('git', 'add', '--', *paths, cwd=deploy_directory)
+        if subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=deploy_directory).returncode == 0:
+            return
         command('git', 'commit', '-m', f'chore: publish UniApp build {run_id}', cwd=deploy_directory)
-        command('git', 'push', 'origin', 'main', cwd=deploy_directory)
+        pushed = subprocess.run(['git', 'push', 'origin', 'main'], cwd=deploy_directory)
+        if pushed.returncode == 0:
+            return
+        # Discard only the index commit just created here, then merge the latest remote records.
+        command('git', 'reset', '--hard', 'HEAD~1', cwd=deploy_directory)
+    raise RuntimeError('Unable to update the release index after concurrent publication')
 
 
 def main():
@@ -119,9 +134,10 @@ def main():
     parser.add_argument('--source-repo', required=True)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--run-id', required=True)
+    parser.add_argument('--platform', choices=['android', 'ios', 'desktop'], required=True)
     args = parser.parse_args()
     publish(json.loads(args.plan.read_text()), args.repository, args.deploy_directory.resolve(), args.policy.resolve(),
-            args.source_repo, args.revision, args.run_id)
+            args.source_repo, args.revision, args.run_id, args.platform)
 
 
 if __name__ == '__main__':

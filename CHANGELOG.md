@@ -3,7 +3,7 @@
 - Launcher desktop JVM per Linux, Windows e macOS, con storage cifrato nel portachiavi nativo e importazione QR/barcode da immagine.
 - SDK desktop distribuiti come binari indipendenti con versioni esplicite, revisioni e checksum verificati.
 - Workflow desktop con test e pacchetti per le tre piattaforme.
-- Pubblicazione di tutte le varianti: desktop, APK Android release/debug e unsigned, IPA iOS unsigned e bundle simulatore. Gli aggiornamenti Android continuano a usare le release firmate ufficialmente.
+- Build e pubblicazione indipendenti per Android, iOS e PC; Build All avvia i workflow specifici. Una sola versione per piattaforma: Android release firmata quando la chiave è disponibile, altrimenti unsigned. Gli aggiornamenti Android continuano a usare le release firmate ufficialmente.
 
 ## [2.0.14] - 2026-09-29 (build set by CI)
 

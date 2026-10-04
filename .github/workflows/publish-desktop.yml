@@ -1,0 +1,26 @@
+name: Publish Desktop
+
+on:
+  workflow_run:
+    workflows: ['Build Desktop']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Completed desktop build run ID (empty for the most recent build)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
+    uses: ./.github/workflows/publish-build.yml
+    with:
+      platform: desktop
+      source_run_id: ${{ inputs.source_run_id || format('{0}', github.event.workflow_run.id || '') }}
+    secrets: inherit

@@ -3,7 +3,7 @@
 set -euo pipefail
 : "${DEPLOY_REPO:?}" "${DEPLOY_BRANCH:?}" "${RELEASE_TAG_NAME:?}" "${RELEASE_TITLE:?}" "${SOURCE_SHA:?}"
 release_assets=()
-for apk in incoming/release/*.apk incoming/debug/*.apk; do
+for apk in incoming/release/*.apk; do
   if [[ -f "$apk" ]]; then release_assets+=("$apk"); fi
 done
 ((${#release_assets[@]} > 0))
@@ -31,5 +31,11 @@ if ! git diff --cached --quiet; then
   git config user.name 'github-actions[bot]'
   git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
   git commit -m "chore: publish UniApp from ${SOURCE_SHA:0:7}"
-  git push origin "$DEPLOY_BRANCH"
+  # Other platforms may have updated their release index while Android was publishing.
+  pushed=false
+  for attempt in 1 2 3 4 5; do
+    if git push origin "$DEPLOY_BRANCH"; then pushed=true; break; fi
+    git pull --rebase origin "$DEPLOY_BRANCH"
+  done
+  [[ "$pushed" == true ]]
 fi

@@ -21,7 +21,7 @@ def android(output, signing):
     if len(versions) != 1:
         raise ValueError('Android release versions do not agree')
     version, build = versions.pop()
-    for variant in ('release', 'debug'):
+    for variant in ('release',):
         directory = ROOT / 'androidApp/build/outputs/apk' / variant
         apks = list(directory.glob('*.apk'))
         if not apks:

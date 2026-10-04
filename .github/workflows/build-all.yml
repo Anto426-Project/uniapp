@@ -1,0 +1,47 @@
+name: Build All
+
+on:
+  workflow_dispatch:
+    inputs:
+      desktop_os:
+        description: 'Desktop operating systems to build'
+        type: choice
+        default: all
+        options: [all, linux, windows, macos]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  start:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Android
+            workflow: build-android.yml
+          - platform: iOS
+            workflow: build-ios.yml
+          - platform: Desktop
+            workflow: build-desktop.yml
+    name: Start ${{ matrix.platform }}
+    steps:
+      - name: Start the platform workflow
+        uses: actions/github-script@v9.0.0
+        env:
+          PLATFORM_WORKFLOW: ${{ matrix.workflow }}
+          DESKTOP_OS: ${{ inputs.desktop_os }}
+        with:
+          script: |
+            const workflow = process.env.PLATFORM_WORKFLOW;
+            const inputs = workflow === 'build-desktop.yml' ? {desktop_os: process.env.DESKTOP_OS} : {};
+            await github.rest.actions.createWorkflowDispatch({
+              ...context.repo, workflow_id: workflow, ref: context.ref.replace('refs/heads/', ''), inputs
+            });
+            await core.summary.addHeading('Platform build started')
+              .addLink(workflow, `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/${workflow}`)
+              .addRaw('\n\nTests, compilation and publication continue in the independent platform workflow.\n')
+              .write();

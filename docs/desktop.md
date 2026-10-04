@@ -24,13 +24,12 @@ Per sviluppare gli SDK nei quattro checkout adiacenti è disponibile anche
 `python3 scripts/build_desktop_sdks.py`. Non vengono usati composite builds o
 risoluzioni `latest`. Il manifest registra versioni, revisioni e checksum.
 
-La compilazione automatica è in `.github/workflows/build-desktop.yml`, con
-pacchetti Linux, Windows e macOS. `publish-build.yml` pubblica tutti gli artefatti
-prodotti, anche non firmati, in `Anto426-Project/uniapp-upstream`. Include anche
-Android release firmata (quando la chiave è disponibile), release sempre non
-firmata, debug e iOS dispositivo/simulatore. Le varianti non firmate
-sono release di anteprima; gli APK debug usano una chiave di sviluppo e le IPA
-richiedono firma/provisioning prima dell'installazione su un dispositivo.
+La compilazione automatica è in `.github/workflows/build-desktop.yml`. L'input
+`desktop_os` sceglie Linux, Windows, macOS oppure tutti e tre. `Publish Desktop`
+pubblica un'unica versione PC con i pacchetti prodotti in
+`Anto426-Project/uniapp-upstream`. Android e iOS hanno workflow indipendenti;
+`Build All` li avvia insieme senza compilare o pubblicare un'altra copia.
+La [guida ai workflow](build-workflows.md) descrive gli avvii specifici.
 
 ## Pacchetti
 

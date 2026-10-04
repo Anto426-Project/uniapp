@@ -2,6 +2,12 @@ name: Build Desktop
 
 on:
   workflow_dispatch:
+    inputs:
+      desktop_os:
+        description: 'Desktop operating system to build'
+        type: choice
+        default: all
+        options: [all, linux, windows, macos]
 
 permissions:
   contents: read
@@ -11,21 +17,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  platforms:
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - id: select
+        uses: actions/github-script@v9.0.0
+        env:
+          DESKTOP_OS: ${{ inputs.desktop_os }}
+        with:
+          script: |
+            const choices = [
+              {runner: 'ubuntu-latest', platform: 'linux', package_task: 'packageDeb'},
+              {runner: 'windows-latest', platform: 'windows', package_task: 'packageMsi'},
+              {runner: 'macos-26', platform: 'macos', package_task: 'packageDmg'}
+            ];
+            const selected = process.env.DESKTOP_OS;
+            if (!['all', ...choices.map(item => item.platform)].includes(selected)) throw new Error('Unsupported desktop OS');
+            core.setOutput('matrix', JSON.stringify({include: choices.filter(item => selected === 'all' || item.platform === selected)}));
+  build:
+    needs: platforms
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - runner: ubuntu-latest
-            platform: linux
-            package_task: packageDeb
-          - runner: windows-latest
-            platform: windows
-            package_task: packageMsi
-          - runner: macos-26
-            platform: macos
-            package_task: packageDmg
+      matrix: ${{ fromJSON(needs.platforms.outputs.matrix) }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     defaults:
