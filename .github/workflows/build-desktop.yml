@@ -1,0 +1,81 @@
+name: Build Desktop
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux
+            package_task: packageDeb
+          - runner: windows-latest
+            platform: windows
+            package_task: packageMsi
+          - runner: macos-26
+            platform: macos
+            package_task: packageDmg
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN || github.token }}
+          persist-credentials: false
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4.0.1
+        with:
+          packages: 'platform-tools'
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: gradle/actions/setup-gradle@v6.3.0
+      - name: Resolve exact published mobile and desktop SDK binaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.SDK_READ_TOKEN || secrets.DEPLOY_TOKEN || github.token }}
+        run: python3 scripts/fetch_sdk_binaries.py --desktop
+      - name: Validate tooling and test the shared app on JVM
+        run: |
+          python3 scripts/validate_release.py
+          ./gradlew --no-daemon --max-workers=2 :composeApp:desktopTest
+      - name: Compile and package desktop
+        run: ./gradlew --no-daemon --max-workers=2 :desktopApp:createDistributable :desktopApp:${{ matrix.package_task }}
+      - name: Prepare verified build artifacts
+        env:
+          DESKTOP_OS: ${{ matrix.platform }}
+        run: python3 scripts/prepare_build_artifact.py desktop --output publish-input --os "$DESKTOP_OS"
+      - name: Store all desktop packages
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: desktop-build-${{ github.run_id }}-${{ matrix.platform }}
+          path: publish-input/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: desktop-tests-${{ github.run_id }}-${{ matrix.platform }}
+          path: |
+            composeApp/build/test-results/desktopTest/
+            composeApp/build/reports/tests/desktopTest/
+            desktopApp/build/compose/logs/
+          if-no-files-found: ignore
+          retention-days: 14

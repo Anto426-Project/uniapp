@@ -17,6 +17,11 @@ kotlin {
         }
     }
 
+    jvm("desktop") {
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_21) }
+    }
+    applyDefaultHierarchyTemplate()
+
     android {
         namespace = "com.anto426.uniapp.compose"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -54,6 +59,20 @@ kotlin {
     }
 
     sourceSets {
+        val mobileMain by creating { dependsOn(commonMain.get()) }
+        androidMain.get().dependsOn(mobileMain)
+        iosMain.get().dependsOn(mobileMain)
+        mobileMain.dependencies { implementation(libs.zscanner) }
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.zxing.core)
+                implementation(libs.zxing.javase)
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:${libs.versions.kotlinx.coroutines.get()}")
+
+            }
+        }
         androidMain.dependencies {
             implementation(libs.zxing.core)
             implementation(libs.zxing.cpp.android)
@@ -85,7 +104,6 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
-            implementation(libs.zscanner)
             implementation(libs.qrose)
             implementation(libs.qrose.oned)
         }
@@ -162,3 +180,19 @@ kotlin.sourceSets.commonMain { kotlin.srcDir(generateAppBuildMetadata) }
 tasks.withType<Test>().configureEach {
     jvmArgs("--add-opens=java.base/java.io=ALL-UNNAMED", "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
 }
+
+// Desktop provenance comes from separately compiled Maven releases, verified before bundling.
+val desktopMetadataSource = providers.exec {
+    commandLine("python3", rootProject.file("scripts/desktop_sdk_metadata.py").absolutePath)
+}.standardOutput.asText
+val generateDesktopBuildMetadata = tasks.register("generateDesktopBuildMetadata") {
+    val output = layout.buildDirectory.dir("generated/appInfo/desktopMain")
+    inputs.property("source", desktopMetadataSource)
+    outputs.dir(output)
+    doLast {
+        val target = output.get().file("com/anto426/uniapp/app/info/DesktopBuildMetadata.kt").asFile
+        target.parentFile.mkdirs()
+        target.writeText(inputs.properties["source"].toString())
+    }
+}
+kotlin.sourceSets.getByName("desktopMain").kotlin.srcDir(generateDesktopBuildMetadata)

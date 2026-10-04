@@ -17,8 +17,8 @@ def main() -> None:
                f"Versione **{release['latestVersion']}**, build **{release['latestVersionCode']}**.", "",
                "## Download Android", ""]
     content += [f"- [{abi}]({url})" for abi, url in release["downloadUrlsByAbi"].items()]
-    content += ["", "Gli APK e i relativi SHA-256 sono pubblicati nelle GitHub Releases. Su iOS la distribuzione agli utenti avviene tramite App Store.", "",
-                "## Note di rilascio", "", release.get("notes", ""), "", "## Contenuto del repository", "",
+    content += ["", "Gli APK e i relativi SHA-256 sono pubblicati nelle GitHub Releases. Le build desktop, iOS non firmate e Android debug/unsigned sono disponibili nella pagina di tutte le release. Le IPA non firmate richiedono firma/provisioning.", "",
+                "[Tutte le piattaforme e varianti](https://github.com/Anto426-Project/uniapp-upstream/releases)", "", "## Note di rilascio", "", release.get("notes", ""), "", "## Contenuto del repository", "",
                 "- `update.json`: un solo rilascio Android, con versioni, requisiti e download per architettura.",
                 "- `docs/`: sito statico di distribuzione, aggiornabile anche con correzioni indipendenti dagli APK.",
                 "- `release/`: metadati della build pubblicata.", "",

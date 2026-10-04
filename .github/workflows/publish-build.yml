@@ -1,14 +1,14 @@
-name: Publish Android Build
+name: Publish All Builds
 
 on:
   workflow_run:
-    workflows: [Build Android (Signed APK)]
+    workflows: [Build Android (APK), Build iOS (Kotlin Multiplatform), Build Desktop]
     types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: 'Successful Android build run ID (empty for the latest on main)'
+        description: 'Android, iOS or desktop build run ID (empty for the most recent completed build)'
         required: false
         type: string
 
@@ -22,44 +22,52 @@ concurrency:
 
 jobs:
   publish:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # A failed matrix may still contain successfully verified packages for other operating systems.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       DEPLOY_REPO: Anto426-Project/uniapp-upstream
-      DEPLOY_BRANCH: main
     steps:
-      - name: Resolve and validate source build
+      - name: Resolve a trusted completed build
         id: source
         uses: actions/github-script@v9.0.0
         env:
           REQUESTED_RUN_ID: ${{ inputs.source_run_id || github.event.workflow_run.id }}
         with:
           script: |
-            const repo = context.repo;
+            const allowed = {'build-android.yml': 'android', 'build-ios.yml': 'ios', 'build-desktop.yml': 'desktop'};
+            const workflows = {};
+            for (const [path, platform] of Object.entries(allowed)) {
+              const {data} = await github.rest.actions.getWorkflow({...context.repo, workflow_id: path});
+              workflows[data.id] = platform;
+            }
             let id = process.env.REQUESTED_RUN_ID;
             if (!id) {
-              const {data} = await github.rest.actions.listWorkflowRuns({
-                ...repo, workflow_id: 'build-android.yml', branch: 'main', status: 'success', per_page: 1
-              });
-              id = String(data.workflow_runs[0]?.id || '');
+              const {data} = await github.rest.actions.listWorkflowRunsForRepo({...context.repo, status: 'completed', per_page: 100});
+              id = String(data.workflow_runs.find(run => workflows[run.workflow_id] && run.head_branch === 'main' && run.event === 'workflow_dispatch' && ['success','failure'].includes(run.conclusion))?.id || '');
             }
-            if (!/^\d+$/.test(id)) throw new Error('A successful build run ID is required');
-            const {data: run} = await github.rest.actions.getWorkflowRun({...repo, run_id: Number(id)});
-            const {data: workflow} = await github.rest.actions.getWorkflow({...repo, workflow_id: 'build-android.yml'});
-            if (run.workflow_id !== workflow.id || run.conclusion !== 'success' || run.head_branch !== 'main' ||
-                run.head_repository?.full_name !== `${repo.owner}/${repo.repo}` ||
-                run.event !== 'workflow_dispatch') {
-              throw new Error('Only successful trusted main-branch Android builds can be published');
+            if (!/^\d+$/.test(id)) throw new Error('A completed build run ID is required');
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(id)});
+            const platform = workflows[run.workflow_id];
+            if (!platform || run.status !== 'completed' || !['success','failure'].includes(run.conclusion) ||
+                run.head_branch !== 'main' || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` || run.event !== 'workflow_dispatch') {
+              throw new Error('Only trusted main-branch Android/iOS/desktop builds can be published');
+            }
+            const {data} = await github.rest.actions.listWorkflowRunArtifacts({...context.repo, run_id: Number(id), per_page: 100});
+            const prefix = `${platform}-build-${id}`;
+            if (!data.artifacts.some(artifact => !artifact.expired && (artifact.name === prefix || artifact.name.startsWith(`${prefix}-`)))) {
+              throw new Error('The selected run has no completed build packages');
             }
             core.setOutput('run_id', id);
             core.setOutput('sha', run.head_sha);
-      - name: Checkout publishing tools from this workflow revision
+            core.setOutput('platform', platform);
+      - name: Checkout publishing tools
         uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - name: Checkout release policy from the exact built revision
+      - name: Checkout exact build release policy
         uses: actions/checkout@v7.0.1
         with:
           ref: ${{ steps.source.outputs.sha }}
@@ -67,51 +75,36 @@ jobs:
           sparse-checkout: update-config.json
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      - name: Download signed build
+      - name: Download every completed platform variant
         uses: actions/download-artifact@v8.0.1
         with:
-          name: android-signed-${{ steps.source.outputs.run_id }}
+          pattern: ${{ steps.source.outputs.platform }}-build-${{ steps.source.outputs.run_id }}*
           run-id: ${{ steps.source.outputs.run_id }}
           github-token: ${{ github.token }}
           path: incoming
-      - name: Validate artifact context
-        env:
-          SOURCE_SHA: ${{ steps.source.outputs.sha }}
-          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
-        run: |
-          python3 - <<'PY'
-          import json, os
-          from pathlib import Path
-          context = json.loads(Path('incoming/context.json').read_text())
-          expected = {'sourceSha': os.environ['SOURCE_SHA'], 'sourceRepository': os.environ['GITHUB_REPOSITORY'], 'runId': os.environ['SOURCE_RUN_ID']}
-          if context != expected:
-              raise SystemExit('Artifact context does not match the selected build')
-          PY
       - name: Checkout distribution repository
         uses: actions/checkout@v7.0.1
         with:
           repository: ${{ env.DEPLOY_REPO }}
-          ref: ${{ env.DEPLOY_BRANCH }}
+          ref: main
           token: ${{ secrets.DEPLOY_TOKEN }}
           path: deploy-repo
       - uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.12'
-      - name: Prepare manifest and release notes
+      - name: Verify source, variants and checksums
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
         run: |
-          set -euo pipefail
-          python3 scripts/generate_update_manifest.py --metadata incoming/release/output-metadata.json \
-            --manual-config build-source/update-config.json --existing deploy-repo/update.json \
-            --deploy-repo "$DEPLOY_REPO" --build-commit "$SOURCE_SHA" --output incoming/update.json
-          python3 scripts/generate_github_release_metadata.py --metadata incoming/release/output-metadata.json \
-            --update-manifest incoming/update.json --source-repo "$GITHUB_REPOSITORY" \
-            --output incoming/release-notes.md --github-env-output "$GITHUB_ENV"
-          python3 scripts/generate_deploy_readme.py --update-manifest incoming/update.json \
-            --source-repo "$GITHUB_REPOSITORY" --output incoming/README.md
-      - name: Publish release assets then update distribution
+          python3 scripts/collect_build_artifacts.py --incoming incoming --output publish-plan \
+            --repository "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID"
+      - name: Publish signed, unsigned and desktop packages
         env:
           GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
-        run: bash scripts/publish_android.sh
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          python3 scripts/publish_builds.py --plan publish-plan/plan.json --repository "$DEPLOY_REPO" \
+            --deploy-directory deploy-repo --policy build-source/update-config.json \
+            --source-repo "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID"

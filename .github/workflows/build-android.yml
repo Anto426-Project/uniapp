@@ -1,4 +1,4 @@
-name: Build Android (Signed APK)
+name: Build Android (APK)
 
 on:
   workflow_dispatch:
@@ -64,7 +64,20 @@ jobs:
             composeApp/build/test-results/
           retention-days: 14
           if-no-files-found: ignore
-      - name: Build and verify signed APKs
+      - name: Build unsigned release and debug APKs
+        run: |
+          set -euo pipefail
+          unset RELEASE_STORE_FILE RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD
+          ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease :androidApp:assembleDebug
+          python3 scripts/prepare_build_artifact.py android --output publish-input-unsigned --signing unsigned
+      - name: Store unsigned release and debug APKs
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-build-${{ github.run_id }}-unsigned
+          path: publish-input-unsigned/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Build officially signed release when the key is available
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           RELEASE_STORE_FILE: ${{ runner.temp }}/uniapp-release-${{ github.run_id }}.keystore
@@ -74,44 +87,25 @@ jobs:
         run: |
           set -euo pipefail
           trap 'rm -f "$RELEASE_STORE_FILE"' EXIT
-          for key in RELEASE_KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
-            test -n "${!key}" || { echo "Missing signing secret: $key"; exit 1; }
-          done
-          umask 077
-          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
+          if [[ -n "$RELEASE_KEYSTORE_BASE64" && -n "$RELEASE_STORE_PASSWORD" && -n "$RELEASE_KEY_ALIAS" && -n "$RELEASE_KEY_PASSWORD" ]]; then
+            umask 077
+            printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
+          else
+            echo 'Release signing key unavailable; unsigned and debug packages are already stored.'
+            exit 0
+          fi
           ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease
-          mkdir -p publish-input/release
-          cp androidApp/build/outputs/apk/release/*.apk publish-input/release/
-          cp androidApp/build/outputs/apk/release/output-metadata.json publish-input/release/
-          cp .sdk-binaries/resolved.properties publish-input/sdk-binaries.properties
-          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
-          test -n "$APK_SIGNER"
-          for apk in publish-input/release/*.apk; do
-            "$APK_SIGNER" verify --verbose "$apk"
-          done
-          python3 - <<'PY'
-          import json, os, sys
-          from pathlib import Path
-          sys.path.insert(0, 'scripts')
-          from release_metadata import read_apks, write_json
-          read_apks(Path('publish-input/release/output-metadata.json'))
-          write_json(Path('publish-input/context.json'), {
-              'sourceSha': os.environ['GITHUB_SHA'],
-              'sourceRepository': os.environ['GITHUB_REPOSITORY'],
-              'runId': os.environ['GITHUB_RUN_ID'],
-          })
-          PY
-      - name: Upload signed build
+          APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          for apk in androidApp/build/outputs/apk/release/*.apk; do "$APK_SIGNER" verify --verbose "$apk"; done
+          python3 scripts/prepare_build_artifact.py android --output publish-input-signed --signing release-key
+      - name: Store officially signed release and debug APKs
+        if: hashFiles('publish-input-signed/context.json') != ''
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: android-signed-${{ github.run_id }}
-          path: publish-input/
+          name: android-build-${{ github.run_id }}-signed
+          path: publish-input-signed/
           if-no-files-found: error
-          retention-days: 14
-          compression-level: 0
-      - name: Remove signing material
+          retention-days: 30
+      - name: Remove compiler temporary files
         if: always()
-        run: rm -f "${RUNNER_TEMP}/uniapp-release-${GITHUB_RUN_ID}.keystore"
-      - name: Remove build temporary files
-        if: always()
-        run: rm -rf -- "$RUNNER_TEMP/uniapp-build-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+        run: rm -rf -- "$RUNNER_TEMP/uniapp-build-${{ github.run_id }}-${{ github.run_attempt }}"

@@ -141,6 +141,19 @@ class SdkBinariesTest(unittest.TestCase):
                         sdk.validate_archive(path, spec, root / 'maven')
                     self.assertFalse((root / 'outside').exists())
 
+    def test_mobile_and_desktop_versions_are_selected_independently(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
+            root = Path(directory)
+            (root / 'scripts').mkdir()
+            (root / 'gradle').mkdir()
+            (root / 'scripts/sdk_binaries.json').write_text(json.dumps({'sdk': {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk'}}))
+            (root / 'gradle/libs.versions.toml').write_text(
+                '[versions]\nsdk = "1.0.7"\ndesktop-sdk = "1.0.7-desktop.1"\n[libraries]\n'
+                'sdk = {module = "com.example:sdk", version.ref = "sdk"}\n'
+                'desktop-sdk = {module = "com.example:sdk", version.ref = "desktop-sdk"}\n')
+            self.assertEqual('1.0.7', sdk.load_specs()['sdk']['version'])
+            self.assertEqual('1.0.7-desktop.1', sdk.load_specs(desktop=True)['sdk']['version'])
+
     def test_catalog_controls_versions_and_rejects_dynamic_selectors(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
             root = Path(directory)

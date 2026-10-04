@@ -54,6 +54,7 @@ root@anto426: ~/UniApp (main⚡)$ stack --list
 > platform:
   - Android (min SDK 29)
   - iOS (arm64, simulator arm64)
+  - Desktop JVM (Linux, Windows, macOS)
 
 > tools:
   - Gradle
@@ -113,3 +114,8 @@ docs/                       Documentazione del progetto
 ## Contributi e feedback
 
 Per segnalazioni, idee o problemi, consulta la [guida al feedback](./docs/feedback-gateway.md). Prima di aprire una segnalazione verifica che il problema sia riproducibile sull'ultima build disponibile.
+
+## Desktop
+
+La versione PC usa `desktopApp` e binari JVM degli SDK con versioni indipendenti.
+Vedi [compilazione, avvio e funzioni disponibili](docs/desktop.md).

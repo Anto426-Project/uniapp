@@ -43,6 +43,11 @@ liquid-monet-sdk = "2.0.32"
 unisdk = "1.0.23"
 secure-storage-sdk = "1.0.15"
 firebase-connector-sdk = "1.0.9"
+# Independent, explicitly pinned desktop SDK binaries built by build_desktop_sdks.py.
+desktop-liquid-monet-sdk = "2.0.32-desktop.1"
+desktop-unisdk = "1.0.23-desktop.1"
+desktop-secure-storage-sdk = "1.0.15-desktop.1"
+desktop-firebase-connector-sdk = "1.0.9-desktop.1"
 
 [libraries]
 # Kotlin & KotlinX
@@ -92,6 +97,7 @@ qrose-oned = { module = "io.github.alexzhirkevich:qrose-oned", version.ref = "qr
 
 # Testing
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+zxing-javase = { module = "com.google.zxing:javase", version.ref = "zxing" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 zxing-cpp-android = { module = "io.github.zxing-cpp:android", version.ref = "zxing-cpp" }
 
@@ -101,7 +107,13 @@ firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk", versio
 secure-storage-sdk = { module = "com.anto426:secure-storage-sdk", version.ref = "secure-storage-sdk" }
 unisdk = { module = "com.anto426:uni-sdk", version.ref = "unisdk" }
 
+desktop-liquid-monet-sdk = { module = "com.anto426.liquidmonet:sdk", version.ref = "desktop-liquid-monet-sdk" }
+desktop-unisdk = { module = "com.anto426:uni-sdk", version.ref = "desktop-unisdk" }
+desktop-secure-storage-sdk = { module = "com.anto426:secure-storage-sdk", version.ref = "desktop-secure-storage-sdk" }
+desktop-firebase-connector-sdk = { module = "com.anto426:firebase-connector-sdk", version.ref = "desktop-firebase-connector-sdk" }
+
 [plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidKotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

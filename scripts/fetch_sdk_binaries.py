@@ -19,12 +19,12 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_specs() -> dict:
+def load_specs(*, desktop: bool = False) -> dict:
     specs = json.loads((ROOT / 'scripts/sdk_binaries.json').read_text())
     catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
     for name, spec in specs.items():
-        declarations = [lib for lib in catalog['libraries'].values()
-                        if lib.get('module') == spec['coordinate']]
+        declarations = [lib for alias, lib in catalog['libraries'].items()
+                        if lib.get('module') == spec['coordinate'] and alias.startswith('desktop-') == desktop]
         if len(declarations) != 1:
             raise ValueError(f'{name}: declare exactly one dependency for {spec["coordinate"]} in gradle/libs.versions.toml')
         version = declarations[0]['version']
@@ -144,25 +144,43 @@ def validate_android_class_names(repository: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--desktop', action='store_true', help='Also download the exact published desktop SDK versions')
     parser.add_argument('--local', type=Path, action='append', default=[], help='Use locally validated SDK archives instead of GitHub releases')
     args = parser.parse_args()
     specs = load_specs()
+    desktop_specs = load_specs(desktop=True) if args.desktop else {}
     local = {}
     for path in args.local:
         with zipfile.ZipFile(path) as archive:
-            local[json.loads(archive.read('sdk-info.json'))['sourceRepository']] = path
+            info = json.loads(archive.read('sdk-info.json'))
+            local[(info['sourceRepository'], info['version'])] = path
     stage = Path(tempfile.mkdtemp(prefix='.sdk-binaries-stage-', dir=ROOT))
     try:
         properties = []
-        for name, spec in specs.items():
-            archive = local.get(spec['repository']) if args.local else resolve_release(name, spec)
+        desktop_manifest = {'modules': [], 'sha256': {}}
+        requests = [(False, name, spec) for name, spec in specs.items()] + [(True, name, spec) for name, spec in desktop_specs.items()]
+        for is_desktop, name, spec in requests:
+            archive = local.get((spec['repository'], spec['version'])) if args.local else resolve_release(name, spec)
             if archive is None:
                 raise ValueError(f'Missing local SDK archive: {name}')
             info = validate_archive(archive, spec, stage / 'maven')
-            properties += [f'{name}.version={info["version"]}', f'{name}.revision={info["sourceSha"]}', f'{name}.coordinate={info["coordinate"]}']
+            if is_desktop:
+                tree_sha = info.get('sourceTreeSha256', '')
+                if 'desktop' not in info.get('targets', []) or not re.fullmatch(r'[a-f0-9]{64}', tree_sha):
+                    raise ValueError(f'{name}: published desktop binaries lack source provenance')
+                desktop_manifest['modules'].append({'name': name, 'version': info['version'], 'revision': info['sourceSha'],
+                    'hasLocalChanges': False, 'sourceSha256': tree_sha})
+                desktop_manifest['sha256'].update({'maven/' + path: digest for path, digest in info['files'].items()})
+            else:
+                properties += [f'{name}.version={info["version"]}', f'{name}.revision={info["sourceSha"]}', f'{name}.coordinate={info["coordinate"]}']
             print(f'{name}: {info["version"]} ({info["sourceSha"][:12]})')
         validate_android_class_names(stage / 'maven')
         (stage / 'resolved.properties').write_text('\n'.join(properties) + '\n')
+        if args.desktop:
+            (stage / 'desktop-resolved.json').write_text(json.dumps(desktop_manifest, indent=2) + '\n')
+            from desktop_sdk_metadata import verify
+            catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
+            verify(stage, catalog['versions'], {name: spec['coordinate'] for name, spec in specs.items()})
         destination = ROOT / '.sdk-binaries'
         backup = ROOT / '.sdk-binaries-previous'
         if backup.exists():

@@ -20,7 +20,6 @@ jobs:
         shell: bash
     env:
       UNIAPP_APP_STORE_URL: ${{ vars.UNIAPP_APP_STORE_URL }}
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
     steps:
       - name: Checkout repository
@@ -105,15 +104,15 @@ jobs:
             zip -qry ../iosApp-unsigned.ipa Payload
           )
 
-      - name: Store unsigned archive for development
+      - name: Prepare unsigned device and simulator builds
+        run: python3 scripts/prepare_build_artifact.py ios --output publish-input --signing unsigned
+      - name: Store unsigned iOS builds for publication
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: ios-unsigned-${{ github.run_id }}
-          path: |
-            build/iosApp-unsigned.ipa
-            build/sdk-binaries.properties
+          name: ios-build-${{ github.run_id }}
+          path: publish-input/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
       - name: Upload build diagnostics
         if: always()

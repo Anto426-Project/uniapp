@@ -3,7 +3,7 @@
 set -euo pipefail
 : "${DEPLOY_REPO:?}" "${DEPLOY_BRANCH:?}" "${RELEASE_TAG_NAME:?}" "${RELEASE_TITLE:?}" "${SOURCE_SHA:?}"
 release_assets=()
-for apk in incoming/release/*.apk; do
+for apk in incoming/release/*.apk incoming/debug/*.apk; do
   if [[ -f "$apk" ]]; then release_assets+=("$apk"); fi
 done
 ((${#release_assets[@]} > 0))

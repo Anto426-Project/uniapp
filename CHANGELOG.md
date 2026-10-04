@@ -1,3 +1,10 @@
+## [2.0.14-desktop.1] - 2026-10-04
+
+- Launcher desktop JVM per Linux, Windows e macOS, con storage cifrato nel portachiavi nativo e importazione QR/barcode da immagine.
+- SDK desktop distribuiti come binari indipendenti con versioni esplicite, revisioni e checksum verificati.
+- Workflow desktop con test e pacchetti per le tre piattaforme.
+- Pubblicazione di tutte le varianti: desktop, APK Android release/debug e unsigned, IPA iOS unsigned e bundle simulatore. Gli aggiornamenti Android continuano a usare le release firmate ufficialmente.
+
 ## [2.0.14] - 2026-09-29 (build set by CI)
 
 - **Avvio e Sblocco**: il navigatore mostra il caricamento finché la sessione non è risolta e apre solo la destinazione consentita; la schermata di sblocco appare solo per gli account protetti, con password UniApp e pulsante per richiamare l'autenticazione del dispositivo senza prompt automatico. “Usa un altro account” apre il login.
