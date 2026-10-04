@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import unittest
@@ -86,6 +87,15 @@ class AllBuildPublicationTest(unittest.TestCase):
             wrong = dict(context, **{key: value})
             with self.assertRaisesRegex(ValueError, 'identity'):
                 collector.validate(wrong, directory, self.repository, self.revision, '123')
+
+    def test_single_artifact_extracted_directly_into_download_directory(self):
+        directory, _ = self.artifact('ios')
+        for path in directory.iterdir():
+            shutil.move(str(path), self.incoming / path.name)
+        directory.rmdir()
+        group, = self.collect()
+        self.assertEqual('ios-v2.0.14+1009-unsigned', group['tag'])
+        self.assertIn('UniApp-ios.zip', [Path(name).name for name in group['assets']])
 
     def test_tampered_or_unlisted_files_are_rejected(self):
         directory, context = self.artifact('ios')

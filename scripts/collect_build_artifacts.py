@@ -51,7 +51,9 @@ def release_tag(context):
 def collect(incoming, output, repository, revision, run_id):
     output.mkdir(parents=True, exist_ok=True)
     groups = {}
-    for manifest in sorted(incoming.glob('*/context.json')):
+    # download-artifact extracts a single match directly into the destination.
+    manifests = [incoming / 'context.json'] if (incoming / 'context.json').is_file() else sorted(incoming.glob('*/context.json'))
+    for manifest in manifests:
         context = validate(json.loads(manifest.read_text()), manifest.parent, repository, revision, run_id)
         tag = release_tag(context)
         group = groups.setdefault(tag, {'tag': tag, 'platform': context['platform'], 'signing': context['signing'],
