@@ -10,6 +10,7 @@ import unittest
 PROJECT = Path(__file__).resolve().parents[2] / 'iosApp/iosApp.xcodeproj/project.pbxproj'
 
 
+@unittest.skipIf(os.name == 'nt', 'The Xcode build phase requires a POSIX shell')
 class XcodeBuildPhaseTest(unittest.TestCase):
     def test_framework_build_handles_absent_and_enabled_ide_override(self):
         match = re.search(r'shellScript = ("(?:[^"\\]|\\.)*");', PROJECT.read_text())

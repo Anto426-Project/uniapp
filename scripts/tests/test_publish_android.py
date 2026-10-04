@@ -8,6 +8,7 @@ import unittest
 SCRIPT = Path(__file__).resolve().parents[1] / 'publish_android.sh'
 
 
+@unittest.skipIf(os.name == 'nt', 'The Android publisher runs on a POSIX runner')
 class PublishAndroidTest(unittest.TestCase):
     def test_publish_app_without_website_output_preserves_existing_site(self):
         with tempfile.TemporaryDirectory() as directory:
