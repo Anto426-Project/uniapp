@@ -3,7 +3,7 @@ name: Build and publish website
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: [Publish Android Build]
+    workflows: [Publish Android]
     types: [completed]
     branches: [main]
 
