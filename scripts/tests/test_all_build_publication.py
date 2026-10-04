@@ -68,6 +68,18 @@ class AllBuildPublicationTest(unittest.TestCase):
         self.assertEqual({'v2.0.14+1009', 'android-v2.0.14+1009-unsigned'}, {group['tag'] for group in groups})
         self.assertTrue(all(len(group['inputs']) == 1 for group in groups))
 
+    def test_desktop_guides_preserve_windows_and_unix_line_endings(self):
+        for operating_system in ['linux', 'windows']:
+            directory, context = self.artifact('desktop', operating_system=operating_system)
+            guide = b'UniApp PC\r\n' if operating_system == 'windows' else b'UniApp PC\n'
+            (directory / 'UniApp-PC.md').write_bytes(guide)
+            context['files']['UniApp-PC.md'] = hashlib.sha256(guide).hexdigest()
+            (directory / 'context.json').write_text(json.dumps(context))
+        group, = self.collect()
+        assets = {Path(name).name: Path(name) for name in group['assets']}
+        self.assertEqual(b'UniApp PC\r\n', assets['UniApp-PC-windows.md'].read_bytes())
+        self.assertEqual(b'UniApp PC\n', assets['UniApp-PC-linux.md'].read_bytes())
+
     def test_wrong_source_or_run_is_rejected(self):
         directory, context = self.artifact('ios')
         for key, value in [('sourceSha', 'b' * 40), ('runId', '124')]:

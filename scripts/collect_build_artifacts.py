@@ -67,10 +67,14 @@ def collect(incoming, output, repository, revision, run_id):
         for name, checksum in context['files'].items():
             if name.endswith('output-metadata.json'):
                 continue
-            target = directory / Path(name).name
+            asset_name = Path(name).name
+            if context['platform'] == 'desktop' and asset_name == 'UniApp-PC.md':
+                # Windows checkout may use CRLF; retain each verified guide byte-for-byte.
+                asset_name = f'UniApp-PC-{context["os"]}.md'
+            target = directory / asset_name
             if target.exists():
                 if hashlib.sha256(target.read_bytes()).hexdigest() != checksum:
-                    raise ValueError('Conflicting release asset names')
+                    raise ValueError(f'Conflicting release asset names: {asset_name}')
             else:
                 shutil.copy2(manifest.parent / name, target)
         shutil.copy2(manifest, directory / ('build-context-' + context.get('os', context['platform']) + '.json'))
@@ -87,7 +91,7 @@ def collect(incoming, output, repository, revision, run_id):
             f'Firma: {group["signing"]}.\n\n'
             + ('Gli APK debug usano una chiave di sviluppo. Gli APK release unsigned richiedono una firma prima dell’installazione.\n\n' if group['platform'] == 'android' else '')
             + ('IPA iOS non firmata: richiede firma/provisioning per l’installazione su un dispositivo. Incluso anche il bundle per simulatore.\n\n' if group['platform'] == 'ios' else '')
-            + ('Pacchetti desktop non firmati. Per le funzioni disponibili consultare UniApp-PC.md.\n\n' if group['platform'] == 'desktop' else '')
+            + ('Pacchetti desktop non firmati. Le guide UniApp-PC-linux.md, UniApp-PC-windows.md e UniApp-PC-macos.md descrivono le funzioni disponibili.\n\n' if group['platform'] == 'desktop' else '')
             + f'Sorgenti: https://github.com/{repository}/commit/{revision}\n\nBuild: https://github.com/{repository}/actions/runs/{run_id}\n')
         group['notes'] = str(notes.resolve())
     (output / 'plan.json').write_text(json.dumps(list(groups.values()), indent=2) + '\n')
