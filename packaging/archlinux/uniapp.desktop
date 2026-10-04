@@ -6,4 +6,4 @@ Exec=uniapp
 Icon=uniapp
 Terminal=false
 Categories=Education;
-StartupWMClass=com.anto426.uniapp.desktop.MainKt
+StartupWMClass=com-anto426-uniapp-desktop-MainKt
