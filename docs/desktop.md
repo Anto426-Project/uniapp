@@ -1,7 +1,7 @@
 # UniApp per PC
 
 UniApp dispone di un launcher Compose Desktop (`desktopApp`) e di un target JVM
-(`composeApp:desktop`) per Linux, Windows e macOS. La UI e i servizi universitari
+(`composeApp:desktop`) per Linux, incluso Arch Linux, Windows e macOS. La UI e i servizi universitari
 sono condivisi con Android/iOS. La finestra è ridimensionabile; Esc torna indietro.
 
 ## Compilazione
@@ -12,20 +12,24 @@ Usare JDK 21. Prima scaricare le release mobili già dichiarate nel catalogo:
 python3 scripts/fetch_sdk_binaries.py
 ```
 
-Gli SDK desktop sono pubblicati separatamente, con versioni esplicite nel catalogo.
-Per scaricare anche i loro binari verificati e avviare l'app:
+Gli SDK desktop vengono compilati localmente dai commit fissati in
+`scripts/desktop_sdk_sources.json`, con le versioni esplicite del catalogo.
+Per preparare tutte le dipendenze e avviare l'app:
 
 ```sh
 python3 scripts/fetch_sdk_binaries.py --desktop
 ./gradlew :desktopApp:run
 ```
 
+I sorgenti fissati vengono scaricati in `.sdk-sources`; i binari compilati restano
+in `.sdk-binaries` e non vengono pubblicati come release SDK o allegati all'app.
 Per sviluppare gli SDK nei quattro checkout adiacenti è disponibile anche
 `python3 scripts/build_desktop_sdks.py`. Non vengono usati composite builds o
 risoluzioni `latest`. Il manifest registra versioni, revisioni e checksum.
 
 La compilazione automatica è in `.github/workflows/build-desktop.yml`. L'input
-`desktop_os` sceglie Linux, Windows, macOS oppure tutti e tre. `Publish Desktop`
+`desktop_os` sceglie `linux` (Debian/Ubuntu), `archlinux`, `windows`, `macos` oppure
+`all` per tutti e quattro i pacchetti. `Publish Desktop`
 pubblica un'unica versione PC con i pacchetti prodotti in
 `Anto426-Project/uniapp-upstream`. Android e iOS hanno workflow indipendenti;
 `Build All` li avvia insieme senza compilare o pubblicare un'altra copia.
@@ -40,6 +44,27 @@ La [guida ai workflow](build-workflows.md) descrive gli avvii specifici.
 
 I pacchetti includono il runtime Java. Creare `.deb`/`.rpm` su Linux, `.msi` su
 Windows e `.dmg` su macOS; il packaging non è cross-platform.
+
+Su Arch Linux, dopo `createDistributable`:
+
+```sh
+python3 scripts/prepare_archlinux.py
+cd desktopApp/build/compose/binaries/main/archlinux
+makepkg --nodeps --noconfirm
+```
+
+Il workflow usa `makepkg` nell'immagine ufficiale Arch Linux `base-devel`.
+Il pacchetto x86_64 `.pkg.tar.zst` include Java, il comando `uniapp` e una voce nel
+menu applicazioni. Scaricare il pacchetto dalla release PC e installarlo con:
+
+```sh
+sudo pacman -U ./UniApp-2.0.14-desktop.1-archlinux.pkg.tar.zst
+uniapp
+```
+
+Le dipendenze di sistema vengono risolte da `pacman`; per il vault serve anche un
+servizio Secret Service/KWallet attivo nella sessione. Il pacchetto è distribuito
+nelle release UniApp; non è registrato su AUR.
 
 ## Funzioni di sistema
 

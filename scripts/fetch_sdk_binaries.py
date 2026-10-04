@@ -144,7 +144,7 @@ def validate_android_class_names(repository: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--desktop', action='store_true', help='Also download the exact published desktop SDK versions')
+    parser.add_argument('--desktop', action='store_true', help='Also compile desktop SDKs from their locked source revisions')
     parser.add_argument('--local', type=Path, action='append', default=[], help='Use locally validated SDK archives instead of GitHub releases')
     args = parser.parse_args()
     specs = load_specs()
@@ -158,7 +158,9 @@ def main() -> None:
     try:
         properties = []
         desktop_manifest = {'modules': [], 'sha256': {}}
-        requests = [(False, name, spec) for name, spec in specs.items()] + [(True, name, spec) for name, spec in desktop_specs.items()]
+        requests = [(False, name, spec) for name, spec in specs.items()]
+        if args.local:
+            requests += [(True, name, spec) for name, spec in desktop_specs.items()]
         for is_desktop, name, spec in requests:
             archive = local.get((spec['repository'], spec['version'])) if args.local else resolve_release(name, spec)
             if archive is None:
@@ -177,7 +179,11 @@ def main() -> None:
         validate_android_class_names(stage / 'maven')
         (stage / 'resolved.properties').write_text('\n'.join(properties) + '\n')
         if args.desktop:
-            (stage / 'desktop-resolved.json').write_text(json.dumps(desktop_manifest, indent=2) + '\n')
+            if args.local:
+                (stage / 'desktop-resolved.json').write_text(json.dumps(desktop_manifest, indent=2) + '\n')
+            else:
+                from resolve_desktop_sdks import build_pinned_sdks
+                build_pinned_sdks(stage, desktop_specs)
             from desktop_sdk_metadata import verify
             catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
             verify(stage, catalog['versions'], {name: spec['coordinate'] for name, spec in specs.items()})

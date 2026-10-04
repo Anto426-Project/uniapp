@@ -7,7 +7,7 @@ on:
         description: 'Desktop operating system to build'
         type: choice
         default: all
-        options: [all, linux, windows, macos]
+        options: [all, linux, archlinux, windows, macos]
 
 permissions:
   contents: read
@@ -31,6 +31,7 @@ jobs:
           script: |
             const choices = [
               {runner: 'ubuntu-latest', platform: 'linux', package_task: 'packageDeb'},
+              {runner: 'ubuntu-latest', platform: 'archlinux', package_task: 'createDistributable'},
               {runner: 'windows-latest', platform: 'windows', package_task: 'packageMsi'},
               {runner: 'macos-26', platform: 'macos', package_task: 'packageDmg'}
             ];
@@ -63,7 +64,7 @@ jobs:
         with:
           python-version: '3.12'
       - uses: gradle/actions/setup-gradle@v6.3.0
-      - name: Resolve exact published mobile and desktop SDK binaries
+      - name: Resolve mobile binaries and compile pinned desktop SDK sources locally
         env:
           GITHUB_TOKEN: ${{ secrets.SDK_READ_TOKEN || secrets.DEPLOY_TOKEN || github.token }}
         run: python3 scripts/fetch_sdk_binaries.py --desktop
@@ -73,6 +74,19 @@ jobs:
           ./gradlew --no-daemon --max-workers=2 :composeApp:desktopTest
       - name: Compile and package desktop
         run: ./gradlew --no-daemon --max-workers=2 :desktopApp:createDistributable :desktopApp:${{ matrix.package_task }}
+      - name: Package Arch Linux with makepkg
+        if: matrix.platform == 'archlinux'
+        run: |
+          python3 scripts/prepare_archlinux.py
+          docker run --rm \
+            --volume "$PWD/desktopApp/build/compose/binaries/main/archlinux:/package" \
+            archlinux:base-devel-20260927.0.600689 bash -euc '
+              useradd --uid "$(stat -c %u /package)" --create-home builder
+              cd /package
+              runuser -u builder -- makepkg --nodeps --noconfirm
+              pacman -Qip ./*.pkg.tar.zst
+              pacman -Qlp ./*.pkg.tar.zst
+            '
       - name: Prepare verified build artifacts
         env:
           DESKTOP_OS: ${{ matrix.platform }}

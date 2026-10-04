@@ -7,7 +7,7 @@ on:
         description: 'Desktop operating systems to build'
         type: choice
         default: all
-        options: [all, linux, windows, macos]
+        options: [all, linux, archlinux, windows, macos]
 
 permissions:
   contents: read

@@ -38,5 +38,6 @@ website/out/
 
 # Verified precompiled SDKs and temporary resolver output
 .sdk-binaries/
+.sdk-sources/
 .sdk-binaries-*/
 .sdk-downloads/

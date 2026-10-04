@@ -59,11 +59,22 @@ class AllBuildPublicationTest(unittest.TestCase):
         self.assertTrue((Path(group['notes']).parent / 'incoming/release/app-release.apk').is_file())
 
     def test_desktop_matrix_is_merged_into_one_release(self):
-        for operating_system in ['linux', 'windows', 'macos']:
+        for operating_system in ['linux', 'archlinux', 'windows', 'macos']:
             self.artifact('desktop', operating_system=operating_system)
         group, = self.collect()
-        self.assertEqual(3, len(group['inputs']))
-        self.assertEqual(3, sum(Path(name).suffix == '.zip' for name in group['assets']))
+        self.assertEqual(4, len(group['inputs']))
+        self.assertEqual(4, sum(Path(name).suffix == '.zip' for name in group['assets']))
+
+    def test_legacy_sdk_metadata_is_verified_but_not_attached_to_releases(self):
+        directory, context = self.artifact('desktop', operating_system='archlinux')
+        name = 'sdk-binaries-archlinux.json'
+        data = b'{"modules": []}'
+        (directory / name).write_bytes(data)
+        context['files'][name] = hashlib.sha256(data).hexdigest()
+        (directory / 'context.json').write_text(json.dumps(context))
+        group, = self.collect()
+        self.assertNotIn(name, [Path(asset).name for asset in group['assets']])
+        self.assertIn('build-context-archlinux.json', [Path(asset).name for asset in group['assets']])
 
     def test_legacy_signed_and_unsigned_android_publish_only_signed(self):
         self.artifact('android', 'release-key')

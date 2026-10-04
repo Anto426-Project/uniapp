@@ -14,10 +14,16 @@ piattaforme. Mantiene i contatori Android/iOS delle build specifiche.
 
 Ogni piattaforma pubblica una sola versione per esecuzione. Android non produce
 una seconda release debug o unsigned quando è disponibile quella firmata.
-Una release desktop può contenere i pacchetti Linux, Windows e macOS insieme.
+Una release desktop può contenere insieme i pacchetti Debian/Ubuntu, Arch Linux,
+Windows e macOS. Per compilare solo Arch scegliere `desktop_os: archlinux` in
+**Build Desktop**. Il file `.pkg.tar.zst` si installa con `pacman -U`.
 
-Gli SDK sono dipendenze già pubblicate nei propri repository: queste build li
-scaricano con versioni esplicite e non li compilano o ripubblicano.
+Le dipendenze mobili vengono scaricate dalle versioni esplicite già dichiarate.
+Gli SDK desktop vengono compilati da commit fissati in
+`scripts/desktop_sdk_sources.json`, con gli stessi numeri Maven del catalogo,
+senza pubblicare release SDK. I file `sdk-binaries*.json/.properties` non vengono
+allegati alle release UniApp. I checksum dei pacchetti e il contesto della build
+restano disponibili.
 
 I workflow `Publish Android`, `Publish iOS` e `Publish Desktop` si possono avviare
 anche manualmente indicando `source_run_id`. Se vuoto, selezionano l'ultima build

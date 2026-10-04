@@ -30,7 +30,6 @@ def android(output, signing):
         target.mkdir()
         for path in [*apks, directory / 'output-metadata.json']:
             shutil.copy2(path, target / path.name)
-    shutil.copy2(ROOT / '.sdk-binaries/resolved.properties', output / 'sdk-binaries.properties')
     return dict(platform='android', versionName=version, versionCode=build, signing=signing)
 
 
@@ -46,19 +45,18 @@ def ios(output):
         raise ValueError('Exactly one simulator app is required')
     subprocess.run(['zip', '-qry', str((output / f'UniApp-ios-{version}-{build}-simulator.zip').resolve()), simulators[0].name],
                    cwd=simulators[0].parent, check=True)
-    shutil.copy2(ROOT / '.sdk-binaries/resolved.properties', output / 'sdk-binaries.properties')
     return dict(platform='ios', versionName=version, versionCode=build, signing='unsigned')
 
 
 def desktop(output, operating_system):
     base = ROOT / 'desktopApp/build/compose/binaries/main'
     version = '2.0.14-desktop.1'
-    extension = {'linux': '.deb', 'windows': '.msi', 'macos': '.dmg'}[operating_system]
+    extension = {'linux': '.deb', 'archlinux': '.pkg.tar.zst', 'windows': '.msi', 'macos': '.dmg'}[operating_system]
     installers = list(base.rglob('*' + extension))
-    if not installers:
-        raise ValueError(f'Missing {operating_system} installer')
+    if len(installers) != 1:
+        raise ValueError(f'Exactly one {operating_system} installer is required; found {len(installers)}')
     for path in installers:
-        shutil.copy2(path, output / f'UniApp-{version}-{operating_system}{path.suffix}')
+        shutil.copy2(path, output / f'UniApp-{version}-{operating_system}{extension}')
     app = base / 'app'
     if not app.is_dir() or not any(app.iterdir()):
         raise ValueError('Missing standalone desktop distribution')
@@ -69,7 +67,6 @@ def desktop(output, operating_system):
         with tarfile.open(str(name) + '.tar.gz', 'w:gz') as archive:
             for path in sorted(app.iterdir()):
                 archive.add(path, arcname=path.name)
-    shutil.copy2(ROOT / '.sdk-binaries/desktop-resolved.json', output / f'sdk-binaries-{operating_system}.json')
     shutil.copy2(ROOT / 'docs/desktop.md', output / 'UniApp-PC.md')
     return dict(platform='desktop', os=operating_system, versionName=version, versionCode=None, signing='unsigned')
 
@@ -78,7 +75,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('platform', choices=['android', 'ios', 'desktop'])
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--os', choices=['linux', 'windows', 'macos'])
+    parser.add_argument('--os', choices=['linux', 'archlinux', 'windows', 'macos'])
     parser.add_argument('--signing', choices=['unsigned', 'release-key'], default='unsigned')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)

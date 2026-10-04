@@ -35,10 +35,11 @@ def source_digest(repo):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sdk-root", type=Path, default=ROOT.parent)
+    parser.add_argument("--output", type=Path, default=ROOT / ".sdk-binaries")
     args = parser.parse_args()
     versions = tomllib.loads((ROOT / "gradle/libs.versions.toml").read_text())["versions"]
-    destination = ROOT / ".sdk-binaries"
-    destination.mkdir(exist_ok=True)
+    destination = args.output.resolve()
+    destination.mkdir(parents=True, exist_ok=True)
     manifest = {"modules": [], "sha256": {}}
     for name, (alias, prefix) in SDKS.items():
         repo = args.sdk_root.resolve() / name
@@ -47,10 +48,11 @@ def main():
         version = versions[alias]
         revision = git(repo, "rev-parse", "HEAD")
         digest = source_digest(repo)
-        subprocess.run([str(repo / "gradlew"), "-p", str(repo),
+        launcher = repo / ("gradlew.bat" if os.name == "nt" else "gradlew")
+        subprocess.run([str(launcher), "-p", str(repo),
             f"{prefix}publishDesktopPublicationToStagingRepository",
             f"{prefix}publishKotlinMultiplatformPublicationToStagingRepository",
-            f"-PsdkVersion={version}", "--no-configuration-cache"], check=True)
+            f"-PsdkVersion={version}", "--no-configuration-cache", "--no-daemon", "--max-workers=2"], check=True)
         if digest != source_digest(repo):
             raise SystemExit(f"{name} sources changed during compilation; run again")
         staging = repo / "build/maven-repository"

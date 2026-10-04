@@ -1,7 +1,7 @@
 # Dipendenze e runner
 
 UniApp consuma esclusivamente binari Maven. Non usa composite build, sostituzioni
-con repository vicini o versioni `latest`. Ciascuno dei quattro SDK compila e
+con repository vicini o versioni `latest`. Per Android/iOS ciascuno dei quattro SDK compila e
 pubblica autonomamente Android AAR, metadati KMP/Maven e KLIB iOS device/simulator.
 
 ## Aggiornare uno SDK
@@ -17,6 +17,12 @@ da `scripts/sdk_binaries.json`, trova le versioni nel catalogo e scarica la Rele
 `v<versione>` esatta. Controlla identità, versione, checksum, percorsi dell'archivio
 e collisioni di classi Android. L'installazione sostituisce atomicamente il
 repository locale; un errore conserva l'installazione precedente.
+
+Per PC, `python3 scripts/fetch_sdk_binaries.py --desktop` scarica le dipendenze
+mobili e compila gli SDK desktop dai commit fissati in
+`scripts/desktop_sdk_sources.json`. Versioni e commit sono verificati prima della
+compilazione; Maven e manifest vengono preparati localmente, senza pubblicazioni
+SDK. Aggiornare insieme catalogo e lock quando si cambia una versione desktop.
 
 `.sdk-binaries/resolved.properties` registra la provenienza dei binari e alimenta
 `AppInfoProvider`. Non modifica le versioni Gradle. Se il catalogo cambia e i binari

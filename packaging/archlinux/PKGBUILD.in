@@ -1,0 +1,22 @@
+pkgname=uniapp
+pkgver=2.0.14.desktop.1
+pkgrel=@PKGREL@
+pkgdesc='UniApp per i servizi universitari'
+arch=('x86_64')
+url='https://github.com/Anto426-Project/uniapp'
+depends=('glibc' 'gcc-libs' 'zlib' 'libx11' 'libxext' 'libxi' 'libxrender'
+         'libxtst' 'libxrandr' 'libxcursor' 'fontconfig' 'freetype2' 'alsa-lib'
+         'libglvnd' 'dbus' 'libsecret')
+optdepends=('gnome-keyring: portachiavi Secret Service per conservare le chiavi del vault'
+            'kwallet: portachiavi per sessioni KDE')
+options=('!strip' '!debug')
+source=('UniApp.tar.gz' 'uniapp.desktop')
+sha256sums=('@APP_SHA256@' '@DESKTOP_SHA256@')
+
+package() {
+    install -dm755 "$pkgdir/opt/uniapp" "$pkgdir/usr/bin"
+    cp -a "$srcdir/UniApp/." "$pkgdir/opt/uniapp/"
+    ln -s /opt/uniapp/bin/UniApp "$pkgdir/usr/bin/uniapp"
+    install -Dm644 "$srcdir/uniapp.desktop" "$pkgdir/usr/share/applications/uniapp.desktop"
+    install -Dm644 "$srcdir/UniApp/lib/UniApp.png" "$pkgdir/usr/share/pixmaps/uniapp.png"
+}

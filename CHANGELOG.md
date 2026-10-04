@@ -1,8 +1,8 @@
 ## [2.0.14-desktop.1] - 2026-10-04
 
 - Launcher desktop JVM per Linux, Windows e macOS, con storage cifrato nel portachiavi nativo e importazione QR/barcode da immagine.
-- SDK desktop distribuiti come binari indipendenti con versioni esplicite, revisioni e checksum verificati.
-- Workflow desktop con test e pacchetti per le tre piattaforme.
+- SDK desktop compilati localmente da revisioni fissate, con versioni esplicite e checksum verificati; rimosse le release SDK desktop e gli allegati sdk-binaries dalle release dell'app.
+- Workflow desktop con test e pacchetti Debian/Ubuntu, Arch Linux (.pkg.tar.zst), Windows e macOS, selezionabili singolarmente.
 - Build e pubblicazione indipendenti per Android, iOS e PC; Build All avvia i workflow specifici. Una sola versione per piattaforma: Android release firmata quando la chiave è disponibile, altrimenti unsigned. Gli aggiornamenti Android continuano a usare le release firmate ufficialmente.
 
 ## [2.0.14] - 2026-09-29 (build set by CI)

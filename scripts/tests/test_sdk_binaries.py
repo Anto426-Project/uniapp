@@ -13,9 +13,22 @@ import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import fetch_sdk_binaries as sdk
+import resolve_desktop_sdks as desktop_sources
 
 
 class SdkBinariesTest(unittest.TestCase):
+    def test_desktop_source_lock_rejects_version_drift_before_cloning(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(desktop_sources, 'ROOT', Path(directory)), \
+                patch.object(desktop_sources.subprocess, 'run') as run:
+            root = Path(directory)
+            (root / 'scripts').mkdir()
+            (root / 'scripts/desktop_sdk_sources.json').write_text(json.dumps({
+                'sdk': {'version': '1.0.7-desktop.1', 'revision': 'a' * 40}}))
+            with self.assertRaisesRegex(ValueError, 'does not match the catalog version'):
+                desktop_sources.build_pinned_sdks(root / 'output', {
+                    'sdk': {'version': '1.0.8-desktop.1', 'repository': 'owner/sdk'}})
+            run.assert_not_called()
+
     def test_collision_does_not_replace_previously_installed_sdks(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
             root = Path(directory)

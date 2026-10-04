@@ -16,7 +16,7 @@ def validate(context, directory, repository, revision, run_id):
         raise ValueError('Unsupported artifact platform/signing classification')
     if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?', context.get('versionName', '')) or not re.fullmatch(r'\d+', str(context.get('runNumber', ''))):
         raise ValueError('Invalid artifact version/build number')
-    if context['platform'] == 'desktop' and context.get('os') not in ('linux', 'windows', 'macos'):
+    if context['platform'] == 'desktop' and context.get('os') not in ('linux', 'archlinux', 'windows', 'macos'):
         raise ValueError('Invalid desktop operating system')
     if context['platform'] != 'desktop' and not re.fullmatch(r'[1-9][0-9]*', str(context.get('versionCode', ''))):
         raise ValueError('Invalid artifact version code')
@@ -80,7 +80,8 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
             # Preserve the release/debug layout required by the production Android publisher.
             shutil.copytree(manifest.parent, directory / 'incoming', dirs_exist_ok=True)
         for name, checksum in context['files'].items():
-            if name.endswith('output-metadata.json') or (context['platform'] == 'android' and name.startswith('debug/')):
+            if (name.endswith('output-metadata.json') or Path(name).name.startswith('sdk-binaries') or
+                    (context['platform'] == 'android' and name.startswith('debug/'))):
                 continue
             asset_name = Path(name).name
             if context['platform'] == 'desktop' and asset_name == 'UniApp-PC.md':
@@ -108,7 +109,7 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
             f'Firma: {group["signing"]}.\n\n'
             + ('Gli APK release unsigned richiedono una firma prima dell’installazione.\n\n' if group['platform'] == 'android' and group['signing'] == 'unsigned' else '')
             + ('IPA iOS non firmata: richiede firma/provisioning per l’installazione su un dispositivo. Incluso anche il bundle per simulatore.\n\n' if group['platform'] == 'ios' else '')
-            + ('Pacchetti desktop non firmati. Le guide UniApp-PC-linux.md, UniApp-PC-windows.md e UniApp-PC-macos.md descrivono le funzioni disponibili.\n\n' if group['platform'] == 'desktop' else '')
+            + ('Pacchetti desktop non firmati. Le guide UniApp-PC-<sistema>.md allegate descrivono installazione e funzioni disponibili, incluso Arch Linux.\n\n' if group['platform'] == 'desktop' else '')
             + f'Sorgenti: https://github.com/{repository}/commit/{revision}\n\nBuild: https://github.com/{repository}/actions/runs/{run_id}\n')
         group['notes'] = str(notes.resolve())
     (output / 'plan.json').write_text(json.dumps(list(groups.values()), indent=2) + '\n')
