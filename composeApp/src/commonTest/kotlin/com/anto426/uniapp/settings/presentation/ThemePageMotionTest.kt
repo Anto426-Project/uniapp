@@ -15,7 +15,6 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -36,22 +35,18 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
     }
 
     @Test
-    fun disabledPreferenceSurvivesRestartAndKeepsEachSelectedPreset() = runTest {
+    fun legacyDisabledFlagCannotSilentlyDisableTheSelectedStyle() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
             val store = FakeUniLocalDataStore()
             for (transition in LiquidSwitcherTransition.entries.filter { it != LiquidSwitcherTransition.None }) {
-                val viewModel = ThemeViewModel(store)
-                advanceUntilIdle()
-                viewModel.selectPageTransition(transition)
-                viewModel.setPageMotionEnabled(false)
-                advanceUntilIdle()
+                store.write(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion, PageMotionPreferences(false, transition.name))
                 val restarted = ThemeViewModel(store)
                 advanceUntilIdle()
-                assertFalse(restarted.uiState.value.pageMotion.enabled)
+                assertTrue(restarted.uiState.value.pageMotion.enabled)
                 assertEquals(transition, UniMotion.selectedTransition(restarted.uiState.value.pageMotion))
-                assertEquals(LiquidSwitcherTransition.None, UniMotion.effectiveTransition(restarted.uiState.value.pageMotion))
-                restarted.setPageMotionEnabled(true)
+                assertEquals(transition, UniMotion.effectiveTransition(restarted.uiState.value.pageMotion))
+                restarted.selectPageTransition(transition)
                 advanceUntilIdle()
                 assertEquals(transition, UniMotion.effectiveTransition(restarted.uiState.value.pageMotion))
                 assertEquals(restarted.uiState.value.pageMotion, store.read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion))
@@ -62,21 +57,24 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
     }
 
     @Test
-    fun legacyNoneMigratesToSwitchOffWithAnAnimatedPreset() = runTest {
+    fun legacyNoneFallsBackWhileGlobalReducedMotionSurvivesRestart() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
             val store = FakeUniLocalDataStore()
             store.write(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion, PageMotionPreferences(true, "None"))
+            store.write(LocalDataScope.Application, UniAppDataKeys.ThemeReducedMotion, true)
             val viewModel = ThemeViewModel(store)
             advanceUntilIdle()
-            assertFalse(viewModel.uiState.value.pageMotion.enabled)
+            assertTrue(viewModel.uiState.value.pageMotion.enabled)
+            assertTrue(viewModel.uiState.value.reducedMotion)
             assertEquals(UniMotion.contentTransition, UniMotion.selectedTransition(viewModel.uiState.value.pageMotion))
-            viewModel.setPageMotionEnabled(true)
+            viewModel.selectPageTransition(UniMotion.contentTransition)
             advanceUntilIdle()
             assertTrue(viewModel.uiState.value.pageMotion.enabled)
             assertEquals(UniMotion.contentTransition, UniMotion.effectiveTransition(viewModel.uiState.value.pageMotion))
             viewModel.selectPageTransition(LiquidSwitcherTransition.None)
             assertTrue(viewModel.uiState.value.pageMotion.enabled)
+            assertTrue(viewModel.uiState.value.reducedMotion)
         } finally {
             Dispatchers.resetMain()
         }
@@ -92,11 +90,12 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
             advanceUntilIdle()
             assertEquals(UniMotion.contentTransition, UniMotion.effectiveTransition(viewModel.uiState.value.pageMotion))
             viewModel.selectPageTransition(LiquidSwitcherTransition.LiquidMorph)
-            viewModel.setPageMotionEnabled(false)
+            viewModel.setReducedMotion(true)
             viewModel.reset()
             advanceUntilIdle()
             assertEquals(PageMotionPreferences(), viewModel.uiState.value.pageMotion)
             assertEquals(PageMotionPreferences(), store.read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion))
+            assertEquals(false, store.read(LocalDataScope.Application, UniAppDataKeys.ThemeReducedMotion))
         } finally {
             Dispatchers.resetMain()
         }

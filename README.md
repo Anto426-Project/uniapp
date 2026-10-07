@@ -87,10 +87,9 @@ Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versio
 Il contenitore generale `AppNavigationHost` applica una sola transizione Liquid Monet alle
 pagine, alle sottopagine e al ritorno indietro. In Tema, la sezione unica
 "Sfondo, fisica e animazioni" raccoglie sfondo Liquid, movimento ridotto e preferenze
-di transizione. Si possono abilitare le animazioni
-e scegliere gli otto preset animati dell'SDK. La preferenza è salvata per l'intera app
-e conserva lo stile quando l'interruttore è spento; Dissolvenza orizzontale
-(`DirectionalHorizontal`) è il valore predefinito. L'interruttore disattiva le transizioni.
+di transizione. Si possono scegliere gli otto preset animati dell'SDK; la preferenza
+è salvata per l'intera app. Dissolvenza orizzontale (`DirectionalHorizontal`) è il valore
+predefinito. Il solo controllo globale "Riduci movimento" gestisce la disattivazione.
 `UniMotion` distribuisce la scelta ai contenitori condivisi;
 l'SDK gestisce temporizzazione e movimento ridotto. I cambi di sessione restano immediati
 perché invalidano la pagina precedente. Le schermate e le sezioni usano layout statici;

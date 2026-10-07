@@ -71,7 +71,6 @@ fun ThemeScreen(
     onThemeSelected: (Int) -> Unit,
     onBackgroundStyleSelected: (String) -> Unit,
     onReducedMotionChanged: (Boolean) -> Unit,
-    onPageMotionEnabledChanged: (Boolean) -> Unit,
     onPageTransitionSelected: (LiquidSwitcherTransition) -> Unit,
     onReset: () -> Unit,
     onCustomColorSelected: (Color) -> Unit = {},
@@ -220,7 +219,6 @@ fun ThemeScreen(
             uiState = uiState,
             onBackgroundStyleSelected = onBackgroundStyleSelected,
             onReducedMotionChanged = onReducedMotionChanged,
-            onEnabledChanged = onPageMotionEnabledChanged,
             onTransitionSelected = onPageTransitionSelected,
         )
 
@@ -252,7 +250,6 @@ private fun ThemeGraphicsPreferences(
     uiState: ThemeUiState,
     onBackgroundStyleSelected: (String) -> Unit,
     onReducedMotionChanged: (Boolean) -> Unit,
-    onEnabledChanged: (Boolean) -> Unit,
     onTransitionSelected: (LiquidSwitcherTransition) -> Unit,
 ) {
     val choices = UniMotion.options.map { option ->
@@ -277,16 +274,6 @@ private fun ThemeGraphicsPreferences(
                 onClick = { onReducedMotionChanged(!uiState.reducedMotion) },
                 trailingContent = {
                     LiquidSwitch(checked = uiState.reducedMotion, onCheckedChange = onReducedMotionChanged)
-                },
-            )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_theme_page_motion_enabled),
-                subtitle = stringResource(Res.string.ui_theme_page_motion_enabled_sub),
-                icon = LiquidIcons.Refresh,
-                onClick = { onEnabledChanged(!uiState.pageMotion.enabled) },
-                trailingContent = {
-                    LiquidSwitch(checked = uiState.pageMotion.enabled, onCheckedChange = onEnabledChanged)
                 },
             )
             LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))

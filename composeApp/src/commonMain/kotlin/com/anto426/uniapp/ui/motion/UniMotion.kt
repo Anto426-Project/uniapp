@@ -15,7 +15,7 @@ internal object UniMotion {
     })
         .map { transition ->
             val labels = when (transition) {
-                LiquidSwitcherTransition.None -> error("None is controlled by the animation switch")
+                LiquidSwitcherTransition.None -> error("None is not a selectable animation")
                 LiquidSwitcherTransition.Crossfade -> Res.string.ui_motion_crossfade to Res.string.ui_motion_crossfade_sub
                 LiquidSwitcherTransition.FadeThrough -> Res.string.ui_motion_fade_through to Res.string.ui_motion_fade_through_sub
                 LiquidSwitcherTransition.LiquidMorph -> Res.string.ui_motion_morph to Res.string.ui_motion_morph_sub
@@ -32,12 +32,12 @@ internal object UniMotion {
         options.firstOrNull { it.transition.name == preferences.transitionName }?.transition ?: contentTransition
 
     fun effectiveTransition(preferences: PageMotionPreferences): LiquidSwitcherTransition =
-        if (preferences.enabled) selectedTransition(preferences) else LiquidSwitcherTransition.None
+        selectedTransition(preferences)
 
     fun normalized(preferences: PageMotionPreferences): PageMotionPreferences {
         val transition = selectedTransition(preferences)
         return preferences.copy(
-            enabled = preferences.enabled && preferences.transitionName != LiquidSwitcherTransition.None.name,
+            enabled = true,
             transitionName = transition.name,
         )
     }

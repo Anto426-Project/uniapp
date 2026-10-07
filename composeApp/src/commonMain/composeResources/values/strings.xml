@@ -1309,8 +1309,6 @@
     <string name="ui_contact_internal_phone">Interno</string>
     <string name="ui_theme_page_motion_group">Animazioni tra pagine</string>
     <string name="ui_theme_page_motion_sub">La stessa animazione per pagine, sottopagine e ritorno indietro.</string>
-    <string name="ui_theme_page_motion_enabled">Abilita animazioni tra pagine</string>
-    <string name="ui_theme_page_motion_enabled_sub">Conserva lo stile scelto anche quando le animazioni sono disattivate.</string>
     <string name="ui_theme_page_motion_style">Stile animazione</string>
     <string name="ui_theme_page_motion_reduced_hint">Movimento ridotto attivo: le transizioni restano immediate.</string>
     <string name="ui_motion_crossfade">Dissolvenza</string>

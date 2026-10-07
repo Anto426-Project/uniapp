@@ -174,12 +174,6 @@ class ThemeViewModel(
         persistPreference(UniAppDataKeys.ThemeReducedMotion, reduced, showSuccess = false)
     }
 
-    fun setPageMotionEnabled(enabled: Boolean) {
-        val current = mutableUiState.value.pageMotion
-        val transition = UniMotion.selectedTransition(current)
-        updatePageMotion(PageMotionPreferences(enabled, transition.name))
-    }
-
     fun selectPageTransition(transition: LiquidSwitcherTransition) {
         if (transition == LiquidSwitcherTransition.None) return
         updatePageMotion(PageMotionPreferences(true, transition.name))

@@ -385,7 +385,6 @@ internal fun AppNavigationHost(
                             onThemeSelected = themeViewModel::selectTheme,
                             onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
                             onReducedMotionChanged = themeViewModel::setReducedMotion,
-                            onPageMotionEnabledChanged = themeViewModel::setPageMotionEnabled,
                             onPageTransitionSelected = themeViewModel::selectPageTransition,
                             onResetTheme = themeViewModel::reset,
                             onCustomColorSelected = themeViewModel::selectCustomColor,
