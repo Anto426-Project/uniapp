@@ -12,7 +12,7 @@ def validate(root=None):
         for path in directory.rglob('*') if directory.exists() else []:
             if path.suffix not in ('.kt', '.swift') or any(part.endswith('Test') for part in path.parts):
                 continue
-            code = re.sub(r'/\*.*?\*/|//[^\n]*', '', path.read_text(), flags=re.S)
+            code = re.sub(r'/\*.*?\*/|//[^\n]*', '', path.read_text(encoding='utf-8'), flags=re.S)
             relative = path.relative_to(root).as_posix()
             if re.search(r'^\s*import androidx\.compose\.animation', code, re.M):
                 errors.append(f'{relative}: Compose animation imports belong to the SDK')
