@@ -36,6 +36,11 @@ object UniAppDataKeys {
             serializer = Boolean.serializer(),
             defaultValue = false,
         )
+    val ThemePageMotion = LocalDataKey(
+        name = "theme.page-motion.v1",
+        serializer = com.anto426.uniapp.settings.model.PageMotionPreferences.serializer(),
+        defaultValue = com.anto426.uniapp.settings.model.PageMotionPreferences(),
+    )
     val ThemeCustomColor =
         LocalDataKey(
             name = "theme.custom-color",

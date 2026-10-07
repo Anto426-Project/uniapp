@@ -85,7 +85,7 @@ import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.components.state.AppLoadingState
-import com.anto426.uniapp.ui.motion.UniMotion
+import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import com.anto426.uniapp.ui.theme.UniTheme
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
@@ -385,6 +385,8 @@ internal fun AppNavigationHost(
                             onThemeSelected = themeViewModel::selectTheme,
                             onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
                             onReducedMotionChanged = themeViewModel::setReducedMotion,
+                            onPageMotionEnabledChanged = themeViewModel::setPageMotionEnabled,
+                            onPageTransitionSelected = themeViewModel::selectPageTransition,
                             onResetTheme = themeViewModel::reset,
                             onCustomColorSelected = themeViewModel::selectCustomColor,
                             languageUiState = languageUiState,
@@ -409,17 +411,24 @@ internal fun AppNavigationHost(
                                 }
                             }
                         }
-                    val pageTransition = rememberLiquidContentTransition<Scene<NavKey>>(
-                        transition = UniMotion.contentTransition,
-                        transitionFor = { from, to -> AppScreenTransitions.preset(from, to) },
+                    val selectedTransition = LocalUniContentTransition.current
+                    val forwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
+                        transition = selectedTransition,
+                        isForward = { from, to -> AppScreenTransitions.isForward(from, to, isPop = false) },
+                        transitionFor = { from, to -> AppScreenTransitions.preset(from, to, selectedTransition) },
+                    )
+                    val backwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
+                        transition = selectedTransition,
+                        isForward = { from, to -> AppScreenTransitions.isForward(from, to, isPop = true) },
+                        transitionFor = { from, to -> AppScreenTransitions.preset(from, to, selectedTransition) },
                     )
                     NavDisplay(
                         modifier = Modifier.fillMaxSize(),
                         entries = entries,
                         onBack = { navigator.goBack() },
-                        transitionSpec = pageTransition,
-                        popTransitionSpec = pageTransition,
-                        predictivePopTransitionSpec = { pageTransition(this) },
+                        transitionSpec = forwardTransition,
+                        popTransitionSpec = backwardTransition,
+                        predictivePopTransitionSpec = { backwardTransition(this) },
                     )
                 }
             }

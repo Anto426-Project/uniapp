@@ -16,11 +16,16 @@ import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.model.settings.ThemeOption
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.uniapp.settings.model.PageMotionPreferences
+import com.anto426.uniapp.ui.motion.UniMotion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 enum class AppThemeMode {
     System,
@@ -35,6 +40,7 @@ data class ThemeUiState(
     val backgroundStyles: List<String> = defaultBackgroundStyles,
     val selectedBackgroundStyle: String = defaultBackgroundStyles.first(),
     val reducedMotion: Boolean = false,
+    val pageMotion: PageMotionPreferences = PageMotionPreferences(),
     val customColor: Color? = null
 ) {
     companion object {
@@ -72,6 +78,8 @@ class ThemeViewModel(
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(ThemeUiState())
     val uiState: StateFlow<ThemeUiState> = mutableUiState.asStateFlow()
+    private val pageMotionWrites = Mutex()
+    private var pageMotionChanged = false
 
     init {
         viewModelScope.launch {
@@ -99,6 +107,10 @@ class ThemeViewModel(
                         ?: current.selectedBackgroundStyle,
                     reducedMotion = localDataStore
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemeReducedMotion),
+                    pageMotion = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion)
+                        .let(UniMotion::normalized)
+                        .let { if (pageMotionChanged) mutableUiState.value.pageMotion else it },
                 )
             } catch (error: CancellationException) {
                 throw error
@@ -162,8 +174,36 @@ class ThemeViewModel(
         persistPreference(UniAppDataKeys.ThemeReducedMotion, reduced, showSuccess = false)
     }
 
+    fun setPageMotionEnabled(enabled: Boolean) {
+        val current = mutableUiState.value.pageMotion
+        val selected = UniMotion.selectedTransition(current)
+        val transition = if (enabled && selected == LiquidSwitcherTransition.None) UniMotion.contentTransition else selected
+        updatePageMotion(PageMotionPreferences(enabled, transition.name))
+    }
+
+    fun selectPageTransition(transition: LiquidSwitcherTransition) {
+        updatePageMotion(PageMotionPreferences(transition != LiquidSwitcherTransition.None, transition.name))
+    }
+
+    private fun updatePageMotion(preferences: PageMotionPreferences) {
+        pageMotionChanged = true
+        mutableUiState.value = mutableUiState.value.copy(pageMotion = preferences)
+        viewModelScope.launch {
+            try {
+                pageMotionWrites.withLock {
+                    localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion, preferences)
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+            }
+        }
+    }
+
     fun reset() {
         val defaults = ThemeUiState()
+        updatePageMotion(defaults.pageMotion)
         mutableUiState.value = defaults
         viewModelScope.launch {
             try {

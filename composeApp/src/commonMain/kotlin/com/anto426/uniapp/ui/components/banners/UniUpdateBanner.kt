@@ -34,7 +34,7 @@ import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.cards.heroTextAccent
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
-import com.anto426.uniapp.ui.motion.UniMotion
+import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import kotlin.math.roundToInt
 
 internal val HeroBannerTextStyle = TextStyle(
@@ -110,7 +110,7 @@ private fun UpdateBannerFrontFace(
     LiquidAnimatedSwitcher(
         targetState = state,
         modifier = Modifier.fillMaxSize(),
-        transition = UniMotion.contentTransition,
+        transition = LocalUniContentTransition.current,
         label = "UpdateBannerContent",
     ) { currentState ->
         when (currentState) {

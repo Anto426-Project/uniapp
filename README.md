@@ -85,7 +85,10 @@ python3 scripts/fetch_sdk_binaries.py
 Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versions]` del catalogo e rieseguire `python3 scripts/fetch_sdk_binaries.py`. Per Liquid Monet l'alias è `liquid-monet-sdk` (`libs.liquid.monet.sdk` in Gradle). Il download fallisce se quella Release non esiste o contiene una versione diversa. Dopo un cambio di versione, Gradle segnala eventuali binari locali obsoleti e richiede di ripetere il download.
 
 Il contenitore generale `AppNavigationHost` applica una sola transizione Liquid Monet alle
-pagine, alle sottopagine e al ritorno indietro. `UniMotion` sceglie il preset `Crossfade`;
+pagine, alle sottopagine e al ritorno indietro. In Tema si possono abilitare le animazioni
+e scegliere tutti i nove preset dell'SDK, compreso il passaggio immediato. La preferenza
+è salvata per l'intera app e conserva lo stile quando l'interruttore è spento; `Crossfade`
+è il valore predefinito. `UniMotion` distribuisce la scelta ai contenitori condivisi;
 l'SDK gestisce temporizzazione e movimento ridotto. I cambi di sessione restano immediati
 perché invalidano la pagina precedente. Le schermate e le sezioni usano layout statici;
 gli indicatori e i controlli mantengono il movimento previsto dai componenti dell'SDK.

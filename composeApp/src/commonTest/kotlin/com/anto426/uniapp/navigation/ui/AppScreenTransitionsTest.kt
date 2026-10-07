@@ -59,4 +59,21 @@ class AppScreenTransitionsTest {
             override val content: @Composable () -> Unit = {}
         }
     }
+
+    @Test
+    fun everySelectedSdkPresetAppliesToRoutesAndSessionBoundariesStillStayImmediate() {
+        for (preset in LiquidSwitcherTransition.entries) {
+            assertEquals(preset, AppScreenTransitions.preset(scene(AppRoute.Home), scene(AppRoute.Theme), preset))
+            assertEquals(preset, AppScreenTransitions.preset(scene(AppRoute.Theme), scene(AppRoute.Home), preset))
+            assertEquals(LiquidSwitcherTransition.None, AppScreenTransitions.preset(scene(AppRoute.Home), scene(AppRoute.Login), preset))
+        }
+    }
+
+    @Test
+    fun directionFollowsTabOrderAndReversesForDetailPop() {
+        assertEquals(true, AppScreenTransitions.isForward(AppRoute.Home, AppRoute.Settings, isPop = false))
+        assertEquals(false, AppScreenTransitions.isForward(AppRoute.Settings, AppRoute.Home, isPop = false))
+        assertEquals(true, AppScreenTransitions.isForward(AppRoute.Settings, AppRoute.Theme, isPop = false))
+        assertEquals(false, AppScreenTransitions.isForward(AppRoute.Theme, AppRoute.Settings, isPop = true))
+    }
 }

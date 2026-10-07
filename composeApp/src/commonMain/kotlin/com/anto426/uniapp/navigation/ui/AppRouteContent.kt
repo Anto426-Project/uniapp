@@ -53,6 +53,7 @@ import com.anto426.uniapp.settings.presentation.LanguageUiState
 import com.anto426.uniapp.settings.presentation.SettingsViewModel
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
 import com.anto426.uniapp.transport.presentation.TransportCatalogViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
@@ -137,6 +138,8 @@ internal fun AppRouteContent(
     onThemeSelected: (Int) -> Unit,
     onBackgroundStyleSelected: (String) -> Unit,
     onReducedMotionChanged: (Boolean) -> Unit,
+    onPageMotionEnabledChanged: (Boolean) -> Unit,
+    onPageTransitionSelected: (LiquidSwitcherTransition) -> Unit,
     onResetTheme: () -> Unit,
     onCustomColorSelected: (Color) -> Unit = {},
     languageUiState: LanguageUiState,
@@ -434,6 +437,8 @@ internal fun AppRouteContent(
                 onThemeSelected = onThemeSelected,
                 onBackgroundStyleSelected = onBackgroundStyleSelected,
                 onReducedMotionChanged = onReducedMotionChanged,
+                onPageMotionEnabledChanged = onPageMotionEnabledChanged,
+                onPageTransitionSelected = onPageTransitionSelected,
                 onReset = onResetTheme,
                 onCustomColorSelected = onCustomColorSelected,
                 onNavigateToColorLab = { navigator.navigate(AppRoute.Colors) },

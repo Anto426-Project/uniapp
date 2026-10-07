@@ -34,6 +34,8 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
 import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceDropdown
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeaderSize
@@ -46,6 +48,7 @@ import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.layout.UniSection
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -68,6 +71,8 @@ fun ThemeScreen(
     onThemeSelected: (Int) -> Unit,
     onBackgroundStyleSelected: (String) -> Unit,
     onReducedMotionChanged: (Boolean) -> Unit,
+    onPageMotionEnabledChanged: (Boolean) -> Unit,
+    onPageTransitionSelected: (LiquidSwitcherTransition) -> Unit,
     onReset: () -> Unit,
     onCustomColorSelected: (Color) -> Unit = {},
     onNavigateToColorLab: () -> Unit = {}
@@ -92,6 +97,12 @@ fun ThemeScreen(
                 onModeSelected = onThemeModeSelected,
             )
         }
+
+        ThemePageMotionPreferences(
+            uiState = uiState,
+            onEnabledChanged = onPageMotionEnabledChanged,
+            onTransitionSelected = onPageTransitionSelected,
+        )
 
         // 2. Tavolozza Colori & Monet Seed (Racchiusi in un unico contenitore)
         UniSection {
@@ -254,6 +265,52 @@ fun ThemeScreen(
             variant = LiquidButtonVariant.Secondary,
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+private data class ThemeMotionChoice(
+    val transition: LiquidSwitcherTransition,
+    val title: String,
+    val description: String,
+)
+
+@Composable
+private fun ThemePageMotionPreferences(
+    uiState: ThemeUiState,
+    onEnabledChanged: (Boolean) -> Unit,
+    onTransitionSelected: (LiquidSwitcherTransition) -> Unit,
+) {
+    val choices = UniMotion.options.map { option ->
+        ThemeMotionChoice(option.transition, stringResource(option.title), stringResource(option.description))
+    }
+    val selected = choices.first { it.transition == UniMotion.selectedTransition(uiState.pageMotion) }
+    UniSection {
+        LiquidPreferenceGroup(
+            title = stringResource(Res.string.ui_theme_page_motion_group),
+            subtitle = stringResource(
+                if (uiState.reducedMotion) Res.string.ui_theme_page_motion_reduced_hint
+                else Res.string.ui_theme_page_motion_sub,
+            ),
+        ) {
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_theme_page_motion_enabled),
+                subtitle = stringResource(Res.string.ui_theme_page_motion_enabled_sub),
+                icon = LiquidIcons.Refresh,
+                onClick = { onEnabledChanged(!uiState.pageMotion.enabled) },
+                trailingContent = {
+                    LiquidSwitch(checked = uiState.pageMotion.enabled, onCheckedChange = onEnabledChanged)
+                },
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
+            LiquidPreferenceDropdown(
+                title = stringResource(Res.string.ui_theme_page_motion_style),
+                selectedItem = selected,
+                items = choices,
+                onItemSelected = { onTransitionSelected(it.transition) },
+                itemLabel = { it.title },
+                itemSubtitle = { it.description },
+            )
+        }
     }
 }
 

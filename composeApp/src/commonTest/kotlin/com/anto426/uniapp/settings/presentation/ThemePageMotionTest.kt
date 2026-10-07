@@ -1,0 +1,99 @@
+package com.anto426.uniapp.settings.presentation
+
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.uniapp.data.local.FakeUniLocalDataStore
+import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.data.local.UniAppDataKeys
+import com.anto426.uniapp.settings.model.PageMotionPreferences
+import com.anto426.uniapp.ui.motion.UniMotion
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.serialization.json.Json
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
+    @Test
+    fun pickerCoversEverySdkPresetAndPreferencesRoundTrip() {
+        assertEquals(LiquidSwitcherTransition.entries.toSet(), UniMotion.options.map { it.transition }.toSet())
+        assertEquals(LiquidSwitcherTransition.entries.size, UniMotion.options.size)
+        for (transition in LiquidSwitcherTransition.entries) {
+            val preference = PageMotionPreferences(transition != LiquidSwitcherTransition.None, transition.name)
+            assertEquals(preference, Json.decodeFromString(
+                PageMotionPreferences.serializer(), Json.encodeToString(PageMotionPreferences.serializer(), preference),
+            ))
+            assertEquals(transition, UniMotion.effectiveTransition(preference))
+        }
+    }
+
+    @Test
+    fun disabledPreferenceSurvivesRestartAndKeepsEachSelectedPreset() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val store = FakeUniLocalDataStore()
+            for (transition in LiquidSwitcherTransition.entries.filter { it != LiquidSwitcherTransition.None }) {
+                val viewModel = ThemeViewModel(store)
+                advanceUntilIdle()
+                viewModel.selectPageTransition(transition)
+                viewModel.setPageMotionEnabled(false)
+                advanceUntilIdle()
+                val restarted = ThemeViewModel(store)
+                advanceUntilIdle()
+                assertFalse(restarted.uiState.value.pageMotion.enabled)
+                assertEquals(transition, UniMotion.selectedTransition(restarted.uiState.value.pageMotion))
+                assertEquals(LiquidSwitcherTransition.None, UniMotion.effectiveTransition(restarted.uiState.value.pageMotion))
+                restarted.setPageMotionEnabled(true)
+                advanceUntilIdle()
+                assertEquals(transition, UniMotion.effectiveTransition(restarted.uiState.value.pageMotion))
+                assertEquals(restarted.uiState.value.pageMotion, store.read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion))
+            }
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun noneDisablesMotionAndSwitchCanEnableItAgain() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val viewModel = ThemeViewModel(FakeUniLocalDataStore())
+            advanceUntilIdle()
+            viewModel.selectPageTransition(LiquidSwitcherTransition.None)
+            advanceUntilIdle()
+            assertFalse(viewModel.uiState.value.pageMotion.enabled)
+            viewModel.setPageMotionEnabled(true)
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.pageMotion.enabled)
+            assertEquals(UniMotion.contentTransition, UniMotion.effectiveTransition(viewModel.uiState.value.pageMotion))
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun unknownStoredPresetFallsBackAndResetPersistsDefaults() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val store = FakeUniLocalDataStore()
+            store.write(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion, PageMotionPreferences(true, "unknown-preset"))
+            val viewModel = ThemeViewModel(store)
+            advanceUntilIdle()
+            assertEquals(UniMotion.contentTransition, UniMotion.effectiveTransition(viewModel.uiState.value.pageMotion))
+            viewModel.selectPageTransition(LiquidSwitcherTransition.LiquidMorph)
+            viewModel.setPageMotionEnabled(false)
+            viewModel.reset()
+            advanceUntilIdle()
+            assertEquals(PageMotionPreferences(), viewModel.uiState.value.pageMotion)
+            assertEquals(PageMotionPreferences(), store.read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion))
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+}
