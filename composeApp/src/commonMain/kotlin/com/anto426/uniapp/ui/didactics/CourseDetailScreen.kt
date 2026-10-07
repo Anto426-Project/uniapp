@@ -1,9 +1,6 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -282,20 +279,14 @@ fun CourseDetailScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        AnimatedContent(
-            targetState = selectedTab,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "courseDetailTabTransition",
-        ) { tabIndex ->
-            when (tabIndex) {
-                0 -> CourseProgramTab(course = course)
-                1 -> CourseProfessorTab(
-                    course = course,
-                    professorContact = professorContact,
-                    onContactClick = onContactClick,
-                )
-                else -> CourseDataTab(course = course)
-            }
+        when (selectedTab) {
+            0 -> CourseProgramTab(course = course)
+            1 -> CourseProfessorTab(
+                course = course,
+                professorContact = professorContact,
+                onContactClick = onContactClick,
+            )
+            else -> CourseDataTab(course = course)
         }
     }
 }

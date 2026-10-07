@@ -1,8 +1,8 @@
 ## [Unreleased]
 
-- Liquid Monet aggiornato alla versione 2.0.35; SDK desktop compilato dalla stessa revisione con versione 2.0.35-desktop.1.
-- Ingresso progressivo delle sezioni in Home, Servizi, Statistiche e Aspetto quando diventano visibili, mantenendo lo stato dei controlli e rispettando il movimento ridotto.
-- Transizione tra le schede delle Statistiche gestita dall'SDK, con dissolvenza sequenziale e temporizzazione adattiva.
+- Liquid Monet aggiornato alla versione 2.0.36; SDK desktop compilato dalla stessa revisione con versione 2.0.36-desktop.1.
+- Unica transizione dell'SDK nel contenitore generale per pagine, sottopagine e ritorno indietro; cambi di sessione immediati e movimento ridotto gestito dall'SDK.
+- Rimosse le animazioni locali e gli ingressi delle singole sezioni; l'indicatore di verifica aggiornamenti usa il componente dell'SDK. Aggiunto un controllo che impedisce nuovi preset o animazioni nelle schermate.
 - Allineata la dipendenza Material3 Android alla pubblicazione multiplatform usata dall'SDK.
 - Il download degli SDK verifica anche i documenti di licenza dichiarati nel manifest dei nuovi archivi, mantenendo i controlli sui checksum e sui file inattesi.
 

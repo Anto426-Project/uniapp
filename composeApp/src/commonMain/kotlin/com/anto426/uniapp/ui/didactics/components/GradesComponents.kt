@@ -2,11 +2,7 @@ package com.anto426.uniapp.ui.didactics.components
 
 
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -429,11 +425,7 @@ private fun SimulationExamCard(
             }
 
             // Expanded Controls when active
-            AnimatedVisibility(
-                visible = isIncluded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
+            if (isIncluded) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),

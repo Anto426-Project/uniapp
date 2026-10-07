@@ -1,6 +1,6 @@
 package com.anto426.uniapp.ui.settings
 
-import androidx.compose.animation.animateColorAsState
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,7 +45,7 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.components.layout.UniAnimatedSection
+import com.anto426.uniapp.ui.components.layout.UniSection
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -81,7 +81,7 @@ fun ThemeScreen(
 
     UniScreenColumn {
         // 1. Modalità aspetto con anteprime visive
-        UniAnimatedSection(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        UniSection(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_theme_mode_group),
                 size = LiquidSectionHeaderSize.Small,
@@ -94,7 +94,7 @@ fun ThemeScreen(
         }
 
         // 2. Tavolozza Colori & Monet Seed (Racchiusi in un unico contenitore)
-        UniAnimatedSection(order = 1) {
+        UniSection {
             LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_palette_group)) {
                 // Palette predefinite (Material You, Sapphire, Emerald, Sunset, Violet)
                 uiState.themes.forEachIndexed { index, theme ->
@@ -211,7 +211,7 @@ fun ThemeScreen(
         }
 
         // 3. Motore Grafico Sfondo Liquid
-        UniAnimatedSection(order = 2, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        UniSection(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_theme_engine_group),
                 size = LiquidSectionHeaderSize.Small,
@@ -224,7 +224,7 @@ fun ThemeScreen(
         }
 
         // 4. Fisica e Prestazioni
-        UniAnimatedSection(order = 3) {
+        UniSection {
             LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_haptics_group)) {
                 LiquidPreferenceItem(
                     title = stringResource(Res.string.ui_theme_reduced_motion_title),
@@ -307,10 +307,7 @@ private fun AppearanceMockupCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val animatedContainerColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
-        label = "appearanceContainer",
-    )
+    val animatedContainerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
 
     LiquidCard(
         onClick = onClick,

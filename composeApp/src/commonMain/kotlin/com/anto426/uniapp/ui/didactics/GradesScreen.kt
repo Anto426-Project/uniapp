@@ -1,9 +1,6 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -47,33 +44,27 @@ fun GradesScreen(
         )
 
         // 2. Tab Content
-        AnimatedContent(
-            targetState = uiState.selectedTab,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "gradesTabContent",
-        ) { currentTab ->
-            when (currentTab) {
-                0 -> SimulationTab(
-                    uiState = uiState,
-                    onToggleItem = onToggleSimulationItem,
-                    onGradeChange = onSimulatedGradeChanged,
-                    onCfuChange = onSimulatedCfuChanged,
-                    onAddCustomExam = onAddCustomExam,
-                    onRemoveCustomExam = onRemoveCustomExam,
-                    onSetAllGrades = onSetAllGrades,
-                    onApplyCurrentAverage = onApplyCurrentAverage,
-                    onResetSimulation = onResetSimulation,
-                )
-                1 -> GraduationTargetTab(
-                    uiState = uiState,
-                    onTargetDegreeChange = onTargetDegreeChanged,
-                    onThesisPointsChange = onThesisPointsChanged,
-                    onBonusPointsChange = onBonusPointsChanged,
-                )
-                else -> SimulationChartTab(
-                    uiState = uiState,
-                )
-            }
+        when (uiState.selectedTab) {
+            0 -> SimulationTab(
+                uiState = uiState,
+                onToggleItem = onToggleSimulationItem,
+                onGradeChange = onSimulatedGradeChanged,
+                onCfuChange = onSimulatedCfuChanged,
+                onAddCustomExam = onAddCustomExam,
+                onRemoveCustomExam = onRemoveCustomExam,
+                onSetAllGrades = onSetAllGrades,
+                onApplyCurrentAverage = onApplyCurrentAverage,
+                onResetSimulation = onResetSimulation,
+            )
+            1 -> GraduationTargetTab(
+                uiState = uiState,
+                onTargetDegreeChange = onTargetDegreeChanged,
+                onThesisPointsChange = onThesisPointsChanged,
+                onBonusPointsChange = onBonusPointsChanged,
+            )
+            else -> SimulationChartTab(
+                uiState = uiState,
+            )
         }
     }
 }

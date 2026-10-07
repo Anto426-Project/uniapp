@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import unittest
 from check_app_strings import validate
+from check_motion_ownership import validate as validate_motion
 
 
 def main() -> int:
@@ -17,7 +18,7 @@ def main() -> int:
         print('No release tests discovered', file=sys.stderr)
         return 1
     result = unittest.TextTestRunner(verbosity=2).run(tests)
-    errors = validate()
+    errors = validate() + validate_motion()
     for error in errors:
         print(error, file=sys.stderr)
     return 0 if result.wasSuccessful() and not errors else 1

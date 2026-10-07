@@ -7,7 +7,7 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.uniapp.services.presentation.ServicesUiState
 import com.anto426.uniapp.ui.components.items.ServiceRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.components.layout.UniAnimatedSection
+import com.anto426.uniapp.ui.components.layout.UniSection
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -19,7 +19,7 @@ fun ServicesScreen(
     UniScreenColumn {
         // 1. Student / Professor Core Services (displayed at top without redundant header)
         if (uiState.studentServices.isNotEmpty()) {
-            UniAnimatedSection(
+            UniSection(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 uiState.studentServices
@@ -29,7 +29,7 @@ fun ServicesScreen(
         }
 
         // 2. University Digital Portals
-        UniAnimatedSection(order = 1, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        UniSection(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_services_portals_title),
                 subtitle = stringResource(Res.string.ui_services_portals_sub),

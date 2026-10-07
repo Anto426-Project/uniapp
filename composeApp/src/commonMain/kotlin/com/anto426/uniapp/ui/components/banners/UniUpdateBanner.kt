@@ -1,6 +1,5 @@
 package com.anto426.uniapp.ui.components.banners
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -24,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidCircularProgressIndicator
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.liquidmonet.icons.LiquidIcons
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -36,6 +34,7 @@ import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.cards.heroTextAccent
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
+import com.anto426.uniapp.ui.motion.UniMotion
 import kotlin.math.roundToInt
 
 internal val HeroBannerTextStyle = TextStyle(
@@ -111,10 +110,7 @@ private fun UpdateBannerFrontFace(
     LiquidAnimatedSwitcher(
         targetState = state,
         modifier = Modifier.fillMaxSize(),
-        transition = LiquidSwitcherTransition.LiquidMorph,
-        isForward = { initialState, targetState ->
-            targetState.ordinal >= initialState.ordinal
-        },
+        transition = UniMotion.contentTransition,
         label = "UpdateBannerContent",
     ) { currentState ->
         when (currentState) {
@@ -346,14 +342,6 @@ private fun CheckingContent(
     subtitle: String,
     fontSize: Int,
 ) {
-    val transition = rememberInfiniteTransition(label = "updateCheckingTransition")
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 1400, easing = LinearEasing)),
-        label = "updateCheckingRotation",
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -377,17 +365,11 @@ private fun CheckingContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Canvas(modifier = Modifier.size(16.dp)) {
-                drawArc(
-                    brush = Brush.sweepGradient(
-                        listOf(Color.Transparent, accent.copy(alpha = 0.25f), accent),
-                    ),
-                    startAngle = rotation,
-                    sweepAngle = 280f,
-                    useCenter = false,
-                    style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round),
-                )
-            }
+            LiquidCircularProgressIndicator(
+                indicatorSize = 16.dp,
+                strokeWidth = 2.5.dp,
+                color = accent,
+            )
             Text(
                 text = stringResource(Res.string.ui_update_checking),
                 color = Color.White.copy(alpha = 0.90f),

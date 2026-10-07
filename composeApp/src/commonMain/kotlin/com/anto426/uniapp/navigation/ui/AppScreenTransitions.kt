@@ -1,167 +1,26 @@
 package com.anto426.uniapp.navigation.ui
 
-import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.scene.Scene
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.uniapp.navigation.model.AppRoute
-import com.anto426.uniapp.navigation.model.appTopLevelRoutes
+import com.anto426.uniapp.ui.motion.UniMotion
 
-/**
- * Screen transition policy refined for smooth, fluid motion without stutter.
- *
- * Uses:
- * - Fluid decelerated cubic-bezier curves (0.16, 1.0, 0.3, 1.0)
- * - Parallax partial offsets to prevent high-velocity snapping
- * - Balanced duration (380-420ms) for elegant and responsive page flow
- * - SizeTransform with clip=false to prevent bounding-box pop
- */
+/** Only route eligibility lives here; the SDK owns every animation transform and timing. */
 internal object AppScreenTransitions {
+    const val RouteMetadataKey = "com.anto426.uniapp.route"
 
-    private const val TAB_DURATION_MS = 380
-    private const val SCREEN_DURATION_MS = 400
-    private const val ONBOARDING_DURATION_MS = 500
+    fun preset(from: Scene<NavKey>, to: Scene<NavKey>): LiquidSwitcherTransition =
+        preset(from.route(), to.route())
 
-    /** Smooth natural deceleration curve */
-    private val SmoothEasing = CubicBezierEasing(0.16f, 1.0f, 0.3f, 1.0f)
+    private fun Scene<NavKey>.route(): AppRoute? =
+        entries.lastOrNull()?.metadata?.get(RouteMetadataKey) as? AppRoute
 
-    private enum class NavDirection {
-        Start,
-        End,
-    }
+    fun preset(from: AppRoute?, to: AppRoute?): LiquidSwitcherTransition =
+        if (crossesSessionBoundary(from, to)) LiquidSwitcherTransition.None else UniMotion.contentTransition
 
-    fun forward(
-        from: AppRoute? = null,
-        to: AppRoute? = null,
-    ): ContentTransform {
-        // Authentication changes invalidate the outgoing route immediately. Animating that
-        // empty entry exposes the dark scene background for part of the login transition.
-        if (crossesSessionBoundary(from, to)) {
-            return EnterTransition.None togetherWith ExitTransition.None
-        }
-
-        // 1. Onboarding / Auth transition
-        if (from == AppRoute.Bootstrap || from == AppRoute.Login) {
-            val enter = slideInHorizontally(
-                initialOffsetX = { (it * 0.35f).toInt() },
-                animationSpec = tween(ONBOARDING_DURATION_MS, easing = SmoothEasing),
-            ) + fadeIn(animationSpec = tween(ONBOARDING_DURATION_MS, easing = SmoothEasing))
-
-            val exit = slideOutHorizontally(
-                targetOffsetX = { -(it * 0.35f).toInt() },
-                animationSpec = tween(ONBOARDING_DURATION_MS, easing = SmoothEasing),
-            ) + fadeOut(animationSpec = tween(ONBOARDING_DURATION_MS, easing = SmoothEasing))
-
-            return enter togetherWith exit
-        }
-
-        // 2. Tab-to-Tab directional slide transition
-        val tabDirection = resolveDirection(from, to)
-        if (tabDirection != null) {
-            return slideInFrom(tabDirection) togetherWith slideOutTo(tabDirection)
-        }
-
-        // 3. Standard Forward Navigation (Push)
-        val enter = slideInHorizontally(
-            initialOffsetX = { (it * 0.18f).toInt() },
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + scaleIn(
-            initialScale = 0.95f,
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + fadeIn(animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing))
-
-        val exit = slideOutHorizontally(
-            targetOffsetX = { -(it * 0.12f).toInt() },
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + scaleOut(
-            targetScale = 0.97f,
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + fadeOut(animationSpec = tween(SCREEN_DURATION_MS - 50, easing = SmoothEasing))
-
-        return enter togetherWith exit
-    }
-
-    fun backward(
-        from: AppRoute? = null,
-        to: AppRoute? = null,
-    ): ContentTransform {
-        if (crossesSessionBoundary(from, to)) {
-            return EnterTransition.None togetherWith ExitTransition.None
-        }
-
-        // 1. Tab-to-Tab directional slide transition
-        val tabDirection = resolveDirection(from, to)
-        if (tabDirection != null) {
-            return slideInFrom(tabDirection) togetherWith slideOutTo(tabDirection)
-        }
-
-        // 2. Standard Backward Navigation (Pop)
-        val enter = slideInHorizontally(
-            initialOffsetX = { -(it * 0.12f).toInt() },
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + scaleIn(
-            initialScale = 0.97f,
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + fadeIn(animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing))
-
-        val exit = slideOutHorizontally(
-            targetOffsetX = { (it * 0.18f).toInt() },
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + scaleOut(
-            targetScale = 0.95f,
-            animationSpec = tween(SCREEN_DURATION_MS, easing = SmoothEasing),
-        ) + fadeOut(animationSpec = tween(SCREEN_DURATION_MS - 50, easing = SmoothEasing))
-
-        return enter togetherWith exit
-    }
-
-    fun predictiveBack(): ContentTransform = backward()
-
+    // Session changes invalidate the outgoing entry before an exit animation can finish.
     private fun crossesSessionBoundary(from: AppRoute?, to: AppRoute?): Boolean =
         from == AppRoute.Bootstrap || to == AppRoute.Bootstrap ||
             to == AppRoute.Login || (from == AppRoute.Login && to == AppRoute.Home)
-
-    private fun resolveDirection(from: AppRoute?, to: AppRoute?): NavDirection? {
-        if (from == null || to == null) return null
-        val fromIndex = appTopLevelRoutes.indexOf(from)
-        val toIndex = appTopLevelRoutes.indexOf(to)
-
-        if (fromIndex == -1 || toIndex == -1 || fromIndex == toIndex) return null
-
-        return if (toIndex > fromIndex) {
-            NavDirection.End
-        } else {
-            NavDirection.Start
-        }
-    }
-
-    private fun slideInFrom(direction: NavDirection): EnterTransition {
-        val sign = when (direction) {
-            NavDirection.Start -> -1
-            NavDirection.End -> 1
-        }
-        return slideInHorizontally(
-            initialOffsetX = { (it * 0.25f).toInt() * sign },
-            animationSpec = tween(TAB_DURATION_MS, easing = SmoothEasing),
-        ) + fadeIn(animationSpec = tween(TAB_DURATION_MS, easing = SmoothEasing))
-    }
-
-    private fun slideOutTo(direction: NavDirection): ExitTransition {
-        val sign = when (direction) {
-            NavDirection.Start -> -1
-            NavDirection.End -> 1
-        }
-        return slideOutHorizontally(
-            targetOffsetX = { -(it * 0.25f).toInt() * sign },
-            animationSpec = tween(TAB_DURATION_MS, easing = SmoothEasing),
-        ) + fadeOut(animationSpec = tween(TAB_DURATION_MS - 50, easing = SmoothEasing))
-    }
 }

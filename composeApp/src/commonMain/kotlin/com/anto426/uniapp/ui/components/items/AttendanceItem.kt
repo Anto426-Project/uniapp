@@ -1,10 +1,6 @@
 package com.anto426.uniapp.ui.components.items
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -147,11 +143,7 @@ fun AttendanceItem(data: AttendanceData) {
             )
 
             if (data.records.isNotEmpty()) {
-                AnimatedVisibility(
-                    visible = expanded,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically(),
-                ) {
+                if (expanded) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),

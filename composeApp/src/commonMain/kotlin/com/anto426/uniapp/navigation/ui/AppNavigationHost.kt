@@ -41,7 +41,9 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
+import com.anto426.liquidmonet.components.layout.animatedswitcher.rememberLiquidContentTransition
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.floatingactionbutton.LiquidFloatingActionButton
@@ -83,6 +85,7 @@ import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.components.state.AppLoadingState
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.anto426.uniapp.ui.theme.UniTheme
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
@@ -396,7 +399,7 @@ internal fun AppNavigationHost(
                     val entries =
                         navigationState.rememberDecoratedEntries { key ->
                             val entryRoute = key as AppRoute
-                            NavEntry(key = key) {
+                            NavEntry(key = key, metadata = mapOf(AppScreenTransitions.RouteMetadataKey to entryRoute)) {
                                 Box(Modifier.fillMaxSize().graphicsLayer(clip = false)) {
                                     if (navigator.canRender(entryRoute)) {
                                         currentRouteContent.value(entryRoute)
@@ -406,25 +409,17 @@ internal fun AppNavigationHost(
                                 }
                             }
                         }
+                    val pageTransition = rememberLiquidContentTransition<Scene<NavKey>>(
+                        transition = UniMotion.contentTransition,
+                        transitionFor = { from, to -> AppScreenTransitions.preset(from, to) },
+                    )
                     NavDisplay(
                         modifier = Modifier.fillMaxSize(),
                         entries = entries,
                         onBack = { navigator.goBack() },
-                        transitionSpec = {
-                            AppScreenTransitions.forward(
-                                from = initialState.key as? AppRoute,
-                                to = targetState.key as? AppRoute,
-                            )
-                        },
-                        popTransitionSpec = {
-                            AppScreenTransitions.backward(
-                                from = initialState.key as? AppRoute,
-                                to = targetState.key as? AppRoute,
-                            )
-                        },
-                        predictivePopTransitionSpec = {
-                            AppScreenTransitions.predictiveBack()
-                        },
+                        transitionSpec = pageTransition,
+                        popTransitionSpec = pageTransition,
+                        predictivePopTransitionSpec = { pageTransition(this) },
                     )
                 }
             }

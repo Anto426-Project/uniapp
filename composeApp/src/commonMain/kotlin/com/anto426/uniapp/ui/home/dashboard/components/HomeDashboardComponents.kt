@@ -1,13 +1,6 @@
 package com.anto426.uniapp.ui.home.dashboard.components
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,9 +17,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,8 +50,7 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.data.UniAppInitialData
@@ -63,6 +62,7 @@ import com.anto426.uniapp.ui.components.cards.UniHeroGlassLenses
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
+import kotlin.math.abs
 
 @Composable
 fun HomeAcademicProfileHeroCard(
@@ -441,6 +441,10 @@ fun HomeNewsSection(
 ) {
     val safeActiveIndex = activeNewsIndex.coerceIn(0, homeNews.lastIndex.coerceAtLeast(0))
     val currentNews = homeNews.getOrNull(safeActiveIndex)
+    val nextNews by rememberUpdatedState(onNextNews)
+    val previousNews by rememberUpdatedState(onPreviousNews)
+    val thresholdPx = with(LocalDensity.current) { 48.dp.toPx() }
+    val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
 
     Column(
         modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
@@ -468,19 +472,30 @@ fun HomeNewsSection(
                 title = stringResource(Res.string.ui_news_empty_title),
                 description = stringResource(Res.string.ui_news_empty_desc),
             )
-        } else LiquidAnimatedSwitcher(
-            targetState = safeActiveIndex,
-            transition = LiquidSwitcherTransition.LiquidMorph,
-            onSwipeForward = onNextNews,
-            onSwipeBackward = onPreviousNews,
-            modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-            label = "homeNewsSwitcher",
-        ) { index ->
-            val newsItem = homeNews.getOrNull(index) ?: currentNews
+        } else {
+            val newsItem = homeNews.getOrNull(safeActiveIndex) ?: currentNews
             UniNewsCard(
                 news = newsItem,
                 onClick = { onShowNews(newsItem) },
-                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false)
+                    .pointerInput(thresholdPx, isLtr) {
+                        var dragDistance = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { dragDistance = 0f },
+                            onDragCancel = { dragDistance = 0f },
+                            onDragEnd = {
+                                if (abs(dragDistance) >= thresholdPx) {
+                                    val forward = if (isLtr) dragDistance < 0f else dragDistance > 0f
+                                    if (forward) nextNews() else previousNews()
+                                }
+                                dragDistance = 0f
+                            },
+                            onHorizontalDrag = { change, amount ->
+                                change.consume()
+                                dragDistance += amount
+                            },
+                        )
+                    },
                 homeCard = true,
             )
         }
@@ -514,46 +529,25 @@ fun HomeQuickAccessSection(
                     variant = if (uiState.isCustomizing) LiquidButtonVariant.Tonal else LiquidButtonVariant.Glass,
                     size = LiquidButtonSize.Small,
                 ) {
-                    AnimatedContent(
-                        targetState = uiState.isCustomizing,
-                        transitionSpec = {
-                            (fadeIn() + scaleIn(initialScale = 0.85f)) togetherWith
-                            (fadeOut() + scaleOut(targetScale = 0.85f))
-                        },
-                        label = "customizeBtn",
-                    ) { customizing ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Icon(
-                                imageVector = if (customizing) LiquidIcons.Check else LiquidIcons.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                            )
-                            Text(
-                                text = if (customizing) stringResource(Res.string.ui_done) else stringResource(Res.string.ui_customize),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = if (uiState.isCustomizing) LiquidIcons.Check else LiquidIcons.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            text = if (uiState.isCustomizing) stringResource(Res.string.ui_done) else stringResource(Res.string.ui_customize),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
                     }
                 }
             },
         )
 
-        AnimatedContent(
-            targetState = uiState.isCustomizing,
-            transitionSpec = {
-                (fadeIn(animationSpec = tween(220)) + scaleIn(initialScale = 0.95f))
-                    .togetherWith(fadeOut(animationSpec = tween(180)) + scaleOut(targetScale = 0.95f))
-                    .using(SizeTransform(clip = false))
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(clip = false),
-            label = "quickAccessContent",
-        ) { isCustomizing ->
-            if (isCustomizing) {
+        if (uiState.isCustomizing) {
                 LiquidCard(
                     modifier = Modifier.graphicsLayer(clip = false),
                     shape = RoundedRectangle(24.dp),
@@ -648,7 +642,6 @@ fun HomeQuickAccessSection(
                             }
                             if (rowItems.size == 1) Spacer(Modifier.weight(1f))
                         }
-                    }
                 }
             }
         }

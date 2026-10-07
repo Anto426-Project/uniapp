@@ -1,15 +1,6 @@
 package com.anto426.uniapp.ui.transport
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.togetherWith
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -243,18 +234,12 @@ fun TransportBookingScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        AnimatedContent(
-                            targetState = currentMonthTitle,
-                            transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            label = "monthTitleAnim",
-                        ) { title ->
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface,
-                            )
-                        }
+                        Text(
+                            text = currentMonthTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.onSurface,
+                        )
 
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             LiquidIconButton(
@@ -323,20 +308,13 @@ fun TransportBookingScreen(
                                         val isSelected = cellDate in availableSelectedDates
                                         val isAllowed = isTransportBookingDateAllowed(cellDate, today) && !isBooked
 
-                                        val cellScale by animateFloatAsState(
-                                            targetValue = if (isSelected) 1.06f else 1f,
-                                            animationSpec = tween(150),
-                                            label = "cellScale",
-                                        )
+                                        val cellScale = if (isSelected) 1.06f else 1f
 
-                                        val cellContainerColor by animateColorAsState(
-                                            targetValue = when {
-                                                isSelected -> colorScheme.primary.copy(alpha = 0.18f)
-                                                isBooked -> colorScheme.outlineVariant.copy(alpha = 0.15f)
-                                                else -> Color.Transparent
-                                            },
-                                            label = "cellContainerColor",
-                                        )
+                                        val cellContainerColor = when {
+                                            isSelected -> colorScheme.primary.copy(alpha = 0.18f)
+                                            isBooked -> colorScheme.outlineVariant.copy(alpha = 0.15f)
+                                            else -> Color.Transparent
+                                        }
 
                                         Box(
                                             modifier = Modifier
@@ -392,11 +370,7 @@ fun TransportBookingScreen(
         }
 
         // 4. Riepilogo Selezione (Pass Digitale di Prenotazione)
-        AnimatedVisibility(
-            visible = uiState.selectedRoute.isNotBlank() && availableSelectedDates.isNotEmpty(),
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
+        if (uiState.selectedRoute.isNotBlank() && availableSelectedDates.isNotEmpty()) {
             val totalRides = availableSelectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
 
             LiquidCard(

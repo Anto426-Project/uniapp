@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import com.anto426.uniapp.home.presentation.HomeDashboardUiState
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.components.layout.UniAnimatedSection
+import com.anto426.uniapp.ui.components.layout.UniSection
 import com.anto426.uniapp.ui.home.dashboard.components.HomeNewsSection
 import com.anto426.uniapp.ui.home.dashboard.components.HomeQuickAccessSection
 import com.anto426.uniapp.ui.home.dashboard.components.HomeQuickIndicatorsRow
@@ -28,7 +28,7 @@ fun HomeScreen(
 ) {
     UniScreenColumn {
         // 1. Scheda Unificata Profilo Studente & Carriera Accademica
-        UniAnimatedSection {
+        UniSection {
             HomeAcademicProfileHeroCard(
                 uiState = uiState,
                 onOpenBadge = onOpenBadge,
@@ -37,7 +37,7 @@ fun HomeScreen(
         }
 
         // 2. Indicatori Rapidi - Appelli e Tasse
-        UniAnimatedSection(order = 1) {
+        UniSection {
             HomeQuickIndicatorsRow(
                 uiState = uiState,
                 onOpenExams = onOpenExams,
@@ -47,7 +47,7 @@ fun HomeScreen(
         }
 
         // 3. Notizie Ateneo / Dipartimento
-        UniAnimatedSection(order = 2) {
+        UniSection {
             HomeNewsSection(
                 homeNews = uiState.news,
                 activeNewsIndex = uiState.activeNewsIndex,
@@ -59,7 +59,7 @@ fun HomeScreen(
         }
 
         // 4. Accesso Rapido Personalizzabile
-        UniAnimatedSection(order = 3) {
+        UniSection {
             HomeQuickAccessSection(
                 uiState = uiState,
                 onToggleCustomization = onToggleCustomization,

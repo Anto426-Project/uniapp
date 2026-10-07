@@ -3,15 +3,7 @@ package com.anto426.uniapp.ui.components.cards
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -301,16 +293,7 @@ fun UniHeroFluidBackground(
     } else {
         scheme.inverseSurface
     }
-    val transition = rememberInfiniteTransition(label = "uniHeroBackground")
-    val movement = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 9000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "uniHeroDrift",
-    )
+    val movement = 0f
     val shader = remember {
         if (supportsUniAppRuntimeShader()) {
             try {
@@ -330,7 +313,7 @@ fun UniHeroFluidBackground(
         val shaderDrawn = shader?.let { runtimeShader ->
             try {
                 runtimeShader.setFloatUniform("resolution", size.width, size.height)
-                runtimeShader.setFloatUniform("time", movement.value * 6.28318f)
+                runtimeShader.setFloatUniform("time", movement * 6.28318f)
                 runtimeShader.setColorUniform("primaryColor", palette.cool)
                 runtimeShader.setColorUniform("secondaryColor", palette.violet)
                 runtimeShader.setColorUniform("tertiaryColor", palette.warm)
@@ -453,14 +436,7 @@ fun UniHeroGlassCard(
         }
     }
 
-    val rotation by animateFloatAsState(
-        targetValue = if (flipped) 180f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow,
-        ),
-        label = "heroCardFlipRotation",
-    )
+    val rotation = if (flipped) 180f else 0f
 
     val cardArtworkBackdrop = rememberLayerBackdrop()
 

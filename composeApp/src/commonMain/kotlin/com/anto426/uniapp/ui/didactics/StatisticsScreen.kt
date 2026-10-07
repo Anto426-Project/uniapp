@@ -27,8 +27,7 @@ import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+
 import com.anto426.liquidmonet.components.charts.barchart.LiquidBarChart
 import com.anto426.liquidmonet.components.charts.model.LiquidChartEntry
 import com.anto426.liquidmonet.components.charts.donutchart.LiquidDonutChart
@@ -43,7 +42,7 @@ import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.StatisticsUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.components.layout.UniAnimatedSection
+import com.anto426.uniapp.ui.components.layout.UniSection
 import com.kyant.shapes.Capsule
 
 @Composable
@@ -89,15 +88,11 @@ fun StatisticsScreen(
         // =========================================================================
         // 3. TAB DETAILED CONTENT SWITCHER
         // =========================================================================
-        LiquidAnimatedSwitcher(
-            targetState = uiState.selectedTabIndex,
-            transition = LiquidSwitcherTransition.FadeThrough,
-        ) { tabIndex ->
-            when (tabIndex) {
+        when (uiState.selectedTabIndex) {
                 0 -> {
                     // TAB 0: Evoluzione Voti & Medie
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        UniAnimatedSection(order = 0) {
+                        UniSection {
                             LiquidSectionHeader(
                                 title = stringResource(Res.string.ui_stats_evolution_title),
                                 subtitle = stringResource(Res.string.ui_stats_evolution_subtitle),
@@ -125,7 +120,7 @@ fun StatisticsScreen(
                             }
                         }
 
-                        UniAnimatedSection(order = 1) {
+                        UniSection {
                             // 2. Progresso Piano di Studi (Avanzamento subito dopo il grafico)
                             LiquidCard(
                                 shape = RoundedRectangle(22.dp),
@@ -156,7 +151,7 @@ fun StatisticsScreen(
                             }
                         }
 
-                        UniAnimatedSection(order = 2) {
+                        UniSection {
                             // 3. Riepilogo Performance Principali (Media Ponderata, Base Laurea, Esami)
                             LiquidCard(
                                 shape = RoundedRectangle(24.dp),
@@ -275,7 +270,7 @@ fun StatisticsScreen(
                         }
 
                         // 4. Grid Approfondimenti: Voto Più Alto & Trend
-                        UniAnimatedSection(order = 3) {
+                        UniSection {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -369,7 +364,7 @@ fun StatisticsScreen(
                 1 -> {
                     // TAB 1: Crediti CFU
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        UniAnimatedSection(order = 0) {
+                        UniSection {
                             LiquidSectionHeader(
                                 title = stringResource(Res.string.ui_stats_cfu_distribution_title),
                                 subtitle = stringResource(Res.string.ui_stats_cfu_distribution_sub),
@@ -398,7 +393,7 @@ fun StatisticsScreen(
                         }
 
                         // Summary Info Card
-                        UniAnimatedSection(order = 1) {
+                        UniSection {
                             LiquidCard(
                                 shape = RoundedRectangle(20.dp),
                                 contentPadding = 16.dp,
@@ -436,7 +431,7 @@ fun StatisticsScreen(
                 2 -> {
                     // TAB 2: Fasce di Voto
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        UniAnimatedSection(order = 0) {
+                        UniSection {
                             LiquidSectionHeader(
                                 title = stringResource(Res.string.ui_stats_grade_tiers_title),
                                 subtitle = stringResource(Res.string.ui_stats_grade_tiers_sub),
@@ -456,7 +451,7 @@ fun StatisticsScreen(
                         }
 
                         // Detailed Tier Breakdown Cards with visual percentage bar
-                        UniAnimatedSection(order = 1) {
+                        UniSection {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -526,7 +521,6 @@ fun StatisticsScreen(
                     }
                 }
             }
-        }
 
         Spacer(modifier = Modifier.height(32.dp))
     }
