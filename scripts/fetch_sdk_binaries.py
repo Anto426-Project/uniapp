@@ -74,8 +74,21 @@ def validate_archive(path: Path, expected: dict, target: Path) -> dict:
         if info['version'] != expected['version']:
             raise ValueError(f'SDK version mismatch: requested {expected["version"]}, archive contains {info["version"]}')
         files = info['files']
-        if set(names) != {'sdk-info.json', *('maven/' + name for name in files)}:
+        license_files = info.get('licenseFiles', {})
+        if not isinstance(license_files, dict):
+            raise ValueError('Invalid SDK license manifest')
+        if set(names) != {'sdk-info.json', *('maven/' + name for name in files), *license_files}:
             raise ValueError('SDK archive contents do not match its manifest')
+        # Legal documents remain in the verified cached archive. Maven publications, including
+        # the SDK's licenses classifier, are the only files installed into the Maven repository.
+        for name, checksum in license_files.items():
+            relative = PurePosixPath(name)
+            if (relative.is_absolute() or '..' in relative.parts or '\\' in name or '\x00' in name or
+                    relative.as_posix() != name or name.endswith('/') or
+                    not (name in ('LICENSE', 'NOTICE') or name.startswith('licenses/'))):
+                raise ValueError('Unsafe SDK license path')
+            if hashlib.sha256(archive.read(name)).hexdigest() != checksum:
+                raise ValueError('SDK license checksum mismatch')
         for name, checksum in files.items():
             relative = PurePosixPath(name)
             if relative.is_absolute() or '..' in relative.parts or '\\' in name or not relative.parts:

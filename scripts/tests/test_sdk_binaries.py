@@ -154,6 +154,36 @@ class SdkBinariesTest(unittest.TestCase):
                         sdk.validate_archive(path, spec, root / 'maven')
                     self.assertFalse((root / 'outside').exists())
 
+    def test_license_manifest_is_verified_without_allowing_unlisted_or_unsafe_entries(self):
+        spec = {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk', 'version': '1.0.1'}
+        for case in ('valid', 'bad-checksum', 'unlisted-file', 'unsafe-path', 'unexpected-path', 'aliased-path', 'invalid-manifest'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                pom_name = 'com/example/sdk/1.0.1/sdk-1.0.1.pom'
+                data = b'<project/>'
+                name = {'unsafe-path': 'licenses/../../outside', 'unexpected-path': 'script.py',
+                        'aliased-path': 'licenses//dependency.txt'}.get(case, 'LICENSE')
+                license_data = b'SDK license document'
+                license_files = {name: '0' * 64 if case == 'bad-checksum' else hashlib.sha256(license_data).hexdigest()}
+                info = {'sourceRepository': spec['repository'], 'coordinate': spec['coordinate'],
+                        'version': spec['version'], 'sourceSha': 'a' * 40,
+                        'files': {pom_name: hashlib.sha256(data).hexdigest()},
+                        'licenseFiles': [] if case == 'invalid-manifest' else license_files}
+                path = root / 'sdk.zip'
+                with zipfile.ZipFile(path, 'w') as archive:
+                    archive.writestr('sdk-info.json', json.dumps(info))
+                    archive.writestr('maven/' + pom_name, data)
+                    archive.writestr(name, license_data)
+                    if case == 'unlisted-file':
+                        archive.writestr('NOTICE', b'unlisted notice')
+                if case == 'valid':
+                    self.assertEqual(info, sdk.validate_archive(path, spec, root / 'maven'))
+                    self.assertEqual(data, (root / 'maven' / pom_name).read_bytes())
+                else:
+                    with self.assertRaises(ValueError):
+                        sdk.validate_archive(path, spec, root / 'maven')
+                    self.assertFalse((root / 'outside').exists())
+
     def test_mobile_and_desktop_versions_are_selected_independently(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
             root = Path(directory)

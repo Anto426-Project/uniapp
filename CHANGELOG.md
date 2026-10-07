@@ -4,6 +4,7 @@
 - Ingresso progressivo delle sezioni in Home, Servizi, Statistiche e Aspetto quando diventano visibili, mantenendo lo stato dei controlli e rispettando il movimento ridotto.
 - Transizione tra le schede delle Statistiche gestita dall'SDK, con dissolvenza sequenziale e temporizzazione adattiva.
 - Allineata la dipendenza Material3 Android alla pubblicazione multiplatform usata dall'SDK.
+- Il download degli SDK verifica anche i documenti di licenza dichiarati nel manifest dei nuovi archivi, mantenendo i controlli sui checksum e sui file inattesi.
 
 ## [2.0.14-desktop.1] - 2026-10-04
 
