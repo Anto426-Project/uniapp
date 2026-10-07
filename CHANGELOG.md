@@ -1,6 +1,6 @@
 ## [Unreleased]
 
-- In Tema, interruttore e selettore per gli otto preset animati dell'SDK, con Dissolvenza orizzontale predefinita; preferenze persistenti, stile conservato quando disattivato e verso coerente per navigazione e ritorno indietro.
+- In Tema, unica sezione per sfondo Liquid, fisica e animazioni tra pagine: interruttore e selettore per gli otto preset animati dell'SDK, con Dissolvenza orizzontale predefinita; preferenze persistenti, stile conservato quando disattivato e verso coerente per navigazione e ritorno indietro.
 - Liquid Monet aggiornato alla versione 2.0.36; SDK desktop compilato dalla stessa revisione con versione 2.0.36-desktop.1.
 - Unica transizione dell'SDK nel contenitore generale per pagine, sottopagine e ritorno indietro; cambi di sessione immediati e movimento ridotto gestito dall'SDK.
 - Rimosse le animazioni locali e gli ingressi delle singole sezioni; l'indicatore di verifica aggiornamenti usa il componente dell'SDK. Aggiunto un controllo che impedisce nuovi preset o animazioni nelle schermate.

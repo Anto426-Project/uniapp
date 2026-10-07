@@ -85,7 +85,9 @@ python3 scripts/fetch_sdk_binaries.py
 Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versions]` del catalogo e rieseguire `python3 scripts/fetch_sdk_binaries.py`. Per Liquid Monet l'alias è `liquid-monet-sdk` (`libs.liquid.monet.sdk` in Gradle). Il download fallisce se quella Release non esiste o contiene una versione diversa. Dopo un cambio di versione, Gradle segnala eventuali binari locali obsoleti e richiede di ripetere il download.
 
 Il contenitore generale `AppNavigationHost` applica una sola transizione Liquid Monet alle
-pagine, alle sottopagine e al ritorno indietro. In Tema si possono abilitare le animazioni
+pagine, alle sottopagine e al ritorno indietro. In Tema, la sezione unica
+"Sfondo, fisica e animazioni" raccoglie sfondo Liquid, movimento ridotto e preferenze
+di transizione. Si possono abilitare le animazioni
 e scegliere gli otto preset animati dell'SDK. La preferenza è salvata per l'intera app
 e conserva lo stile quando l'interruttore è spento; Dissolvenza orizzontale
 (`DirectionalHorizontal`) è il valore predefinito. L'interruttore disattiva le transizioni.

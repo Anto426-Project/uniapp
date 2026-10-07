@@ -98,12 +98,6 @@ fun ThemeScreen(
             )
         }
 
-        ThemePageMotionPreferences(
-            uiState = uiState,
-            onEnabledChanged = onPageMotionEnabledChanged,
-            onTransitionSelected = onPageTransitionSelected,
-        )
-
         // 2. Tavolozza Colori & Monet Seed (Racchiusi in un unico contenitore)
         UniSection {
             LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_palette_group)) {
@@ -221,35 +215,14 @@ fun ThemeScreen(
             }
         }
 
-        // 3. Motore Grafico Sfondo Liquid
-        UniSection(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_theme_engine_group),
-                size = LiquidSectionHeaderSize.Small,
-            )
-            LiquidBackgroundSelector(
-                selectedEffect = uiState.selectedBackgroundStyle.toBackgroundEffect(),
-                onEffectSelected = { onBackgroundStyleSelected(it.toStyleName()) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-
-        // 4. Fisica e Prestazioni
-        UniSection {
-            LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_haptics_group)) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_theme_reduced_motion_title),
-                    subtitle = stringResource(Res.string.ui_theme_reduced_motion_sub),
-                    icon = LiquidIcons.Refresh,
-                    trailingContent = {
-                        LiquidSwitch(
-                            checked = uiState.reducedMotion,
-                            onCheckedChange = onReducedMotionChanged,
-                        )
-                    },
-                )
-            }
-        }
+        // Sfondo Liquid, fisica e animazioni condividono un unico gruppo di preferenze.
+        ThemeGraphicsPreferences(
+            uiState = uiState,
+            onBackgroundStyleSelected = onBackgroundStyleSelected,
+            onReducedMotionChanged = onReducedMotionChanged,
+            onEnabledChanged = onPageMotionEnabledChanged,
+            onTransitionSelected = onPageTransitionSelected,
+        )
 
         // 5. Ripristino Valori Predefiniti
         LiquidButton(
@@ -275,8 +248,10 @@ private data class ThemeMotionChoice(
 )
 
 @Composable
-private fun ThemePageMotionPreferences(
+private fun ThemeGraphicsPreferences(
     uiState: ThemeUiState,
+    onBackgroundStyleSelected: (String) -> Unit,
+    onReducedMotionChanged: (Boolean) -> Unit,
     onEnabledChanged: (Boolean) -> Unit,
     onTransitionSelected: (LiquidSwitcherTransition) -> Unit,
 ) {
@@ -286,12 +261,25 @@ private fun ThemePageMotionPreferences(
     val selected = choices.first { it.transition == UniMotion.selectedTransition(uiState.pageMotion) }
     UniSection {
         LiquidPreferenceGroup(
-            title = stringResource(Res.string.ui_theme_page_motion_group),
-            subtitle = stringResource(
-                if (uiState.reducedMotion) Res.string.ui_theme_page_motion_reduced_hint
-                else Res.string.ui_theme_page_motion_sub,
-            ),
+            title = stringResource(Res.string.ui_theme_graphics_motion_group),
+            subtitle = stringResource(Res.string.ui_theme_graphics_motion_sub),
         ) {
+            LiquidBackgroundSelector(
+                selectedEffect = uiState.selectedBackgroundStyle.toBackgroundEffect(),
+                onEffectSelected = { onBackgroundStyleSelected(it.toStyleName()) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
+            LiquidPreferenceItem(
+                title = stringResource(Res.string.ui_theme_reduced_motion_title),
+                subtitle = stringResource(Res.string.ui_theme_reduced_motion_sub),
+                icon = LiquidIcons.Refresh,
+                onClick = { onReducedMotionChanged(!uiState.reducedMotion) },
+                trailingContent = {
+                    LiquidSwitch(checked = uiState.reducedMotion, onCheckedChange = onReducedMotionChanged)
+                },
+            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
             LiquidPreferenceItem(
                 title = stringResource(Res.string.ui_theme_page_motion_enabled),
                 subtitle = stringResource(Res.string.ui_theme_page_motion_enabled_sub),
@@ -310,6 +298,14 @@ private fun ThemePageMotionPreferences(
                 itemLabel = { it.title },
                 itemSubtitle = { it.description },
             )
+            if (uiState.reducedMotion) {
+                Text(
+                    text = stringResource(Res.string.ui_theme_page_motion_reduced_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                )
+            }
         }
     }
 }

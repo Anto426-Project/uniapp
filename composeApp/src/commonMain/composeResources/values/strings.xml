@@ -1329,4 +1329,6 @@
     <string name="ui_motion_slide_vertical_sub">La nuova pagina scorre dall’alto o dal basso.</string>
     <string name="ui_motion_depth">Profondità</string>
     <string name="ui_motion_depth_sub">Zoom e dissolvenza con verso opposto al ritorno.</string>
+    <string name="ui_theme_graphics_motion_group">Sfondo, fisica e animazioni</string>
+    <string name="ui_theme_graphics_motion_sub">Sfondo Liquid, movimento globale e transizioni tra pagine.</string>
 </resources>
