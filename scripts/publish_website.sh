@@ -6,7 +6,9 @@ test -s deploy-repo/update.json
 # Refresh the checkout before copying, so a newer app manifest is never rolled back.
 git -C deploy-repo pull --ff-only origin "$DEPLOY_BRANCH"
 mkdir -p deploy-repo/docs
-rsync -a --delete website/out/ deploy-repo/docs/
+# Keep the website publication independent from optional runner packages such as rsync.
+find deploy-repo/docs -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+cp -a website/out/. deploy-repo/docs/
 cp deploy-repo/update.json deploy-repo/docs/update.json
 if [[ -f deploy-repo/release/builds.json ]]; then
   cp deploy-repo/release/builds.json deploy-repo/docs/builds.json
