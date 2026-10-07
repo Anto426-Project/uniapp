@@ -58,7 +58,7 @@ Il pacchetto x86_64 `.pkg.tar.zst` include Java, il comando `uniapp` e una voce 
 menu applicazioni. Scaricare il pacchetto dalla release PC e installarlo con:
 
 ```sh
-sudo pacman -U ./UniApp-2.0.14-desktop.1-archlinux.pkg.tar.zst
+sudo pacman -U ./UniApp-2.0.15-desktop.1-archlinux.pkg.tar.zst
 uniapp
 ```
 

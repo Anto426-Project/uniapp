@@ -1,5 +1,5 @@
 pkgname=uniapp
-pkgver=2.0.14.desktop.1
+pkgver=2.0.15.desktop.1
 pkgrel=@PKGREL@
 pkgdesc='UniApp per i servizi universitari'
 arch=('x86_64')

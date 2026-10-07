@@ -1,3 +1,8 @@
+## [2.0.15] - 2026-10-07 (build set by CI)
+
+- Tema: selettore degli otto preset Liquid Monet, con Dissolvenza orizzontale predefinita; il controllo globale Riduci movimento gestisce la disattivazione.
+- Liquid Monet aggiornato alla versione 2.0.36; transizione unica nel contenitore generale e rimosse le animazioni locali delle schermate.
+
 ## [Unreleased]
 
 - In Tema, unica sezione per sfondo Liquid, fisica e animazioni tra pagine: selettore per gli otto preset animati dell'SDK, con Dissolvenza orizzontale predefinita; preferenze persistenti e verso coerente per navigazione e ritorno indietro. Il controllo globale Riduci movimento gestisce la disattivazione, senza un secondo interruttore per le pagine.
@@ -6,6 +11,11 @@
 - Rimosse le animazioni locali e gli ingressi delle singole sezioni; l'indicatore di verifica aggiornamenti usa il componente dell'SDK. Aggiunto un controllo che impedisce nuovi preset o animazioni nelle schermate.
 - Allineata la dipendenza Material3 Android alla pubblicazione multiplatform usata dall'SDK.
 - Il download degli SDK verifica anche i documenti di licenza dichiarati nel manifest dei nuovi archivi, mantenendo i controlli sui checksum e sui file inattesi.
+
+## [2.0.15-desktop.1] - 2026-10-07
+
+- Launcher desktop aggiornato alla versione 2.0.15, con gli stessi preset Liquid Monet e la stessa transizione condivisa dell'app mobile.
+- Pacchetti desktop Linux, Windows e macOS prodotti dalla build indipendente della piattaforma.
 
 ## [2.0.14-desktop.1] - 2026-10-04
 

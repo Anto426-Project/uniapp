@@ -11,7 +11,7 @@ import java.net.URI
 @Composable
 internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnvironment = remember {
     val info = AppInfo(
-        versionName = System.getProperty("uniapp.version", "2.0.14-desktop.1"),
+        versionName = System.getProperty("uniapp.version", "2.0.15-desktop.1"),
         isDebuggable = true, applicationId = "com.anto426.uniapp.desktop", platform = "desktop",
         osVersion = "${System.getProperty("os.name")} ${System.getProperty("os.version")}",
         deviceModel = System.getProperty("os.arch"), sourceRevision = AppBuildMetadata.sourceRevision,

@@ -15,7 +15,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.Msi, TargetFormat.Dmg)
             packageName = "UniApp"
-            packageVersion = "2.0.14"
+            packageVersion = "2.0.15"
             description = "UniApp per desktop"
             vendor = "Anto426"
             modules("java.net.http", "java.management", "jdk.management", "jdk.crypto.ec", "jdk.unsupported", "java.naming", "java.sql")

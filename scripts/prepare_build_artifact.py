@@ -50,7 +50,7 @@ def ios(output):
 
 def desktop(output, operating_system):
     base = ROOT / 'desktopApp/build/compose/binaries/main'
-    version = '2.0.14-desktop.1'
+    version = '2.0.15-desktop.1'
     extension = {'linux': '.deb', 'archlinux': '.pkg.tar.zst', 'windows': '.msi', 'macos': '.dmg'}[operating_system]
     installers = list(base.rglob('*' + extension))
     if len(installers) != 1:

@@ -8,7 +8,7 @@ PRODUCT_BUNDLE_IDENTIFIER=com.anto426.uniapp.UniApp
 PRODUCT_BUNDLE_IDENTIFIER[config=Debug]=com.anto426.uniapp.UniApp.debug
 
 CURRENT_PROJECT_VERSION=1000
-MARKETING_VERSION=2.0.14
+MARKETING_VERSION=2.0.15
 
 // Kotlin framework produced by the Xcode Gradle build phase.
 FRAMEWORK_SEARCH_PATHS = $(inherited) "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
