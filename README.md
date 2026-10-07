@@ -86,9 +86,10 @@ Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versio
 
 Il contenitore generale `AppNavigationHost` applica una sola transizione Liquid Monet alle
 pagine, alle sottopagine e al ritorno indietro. In Tema si possono abilitare le animazioni
-e scegliere tutti i nove preset dell'SDK, compreso il passaggio immediato. La preferenza
-è salvata per l'intera app e conserva lo stile quando l'interruttore è spento; `Crossfade`
-è il valore predefinito. `UniMotion` distribuisce la scelta ai contenitori condivisi;
+e scegliere gli otto preset animati dell'SDK. La preferenza è salvata per l'intera app
+e conserva lo stile quando l'interruttore è spento; Dissolvenza orizzontale
+(`DirectionalHorizontal`) è il valore predefinito. L'interruttore disattiva le transizioni.
+`UniMotion` distribuisce la scelta ai contenitori condivisi;
 l'SDK gestisce temporizzazione e movimento ridotto. I cambi di sessione restano immediati
 perché invalidano la pagina precedente. Le schermate e le sezioni usano layout statici;
 gli indicatori e i controlli mantengono il movimento previsto dai componenti dell'SDK.

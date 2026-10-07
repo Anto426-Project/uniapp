@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PageMotionPreferences(
     val enabled: Boolean = true,
-    val transitionName: String = "Crossfade",
+    val transitionName: String = "DirectionalHorizontal",
 )

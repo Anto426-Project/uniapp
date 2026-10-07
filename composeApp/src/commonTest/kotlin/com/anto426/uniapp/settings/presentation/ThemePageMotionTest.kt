@@ -21,11 +21,13 @@ import kotlin.test.assertTrue
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
-    fun pickerCoversEverySdkPresetAndPreferencesRoundTrip() {
-        assertEquals(LiquidSwitcherTransition.entries.toSet(), UniMotion.options.map { it.transition }.toSet())
-        assertEquals(LiquidSwitcherTransition.entries.size, UniMotion.options.size)
-        for (transition in LiquidSwitcherTransition.entries) {
-            val preference = PageMotionPreferences(transition != LiquidSwitcherTransition.None, transition.name)
+    fun pickerCoversEveryAnimatedSdkPresetAndDefaultsToHorizontalFade() {
+        val animated = LiquidSwitcherTransition.entries.filter { it != LiquidSwitcherTransition.None }
+        assertEquals(animated.toSet(), UniMotion.options.map { it.transition }.toSet())
+        assertEquals(animated.size, UniMotion.options.size)
+        assertEquals(LiquidSwitcherTransition.DirectionalHorizontal, UniMotion.effectiveTransition(PageMotionPreferences()))
+        for (transition in animated) {
+            val preference = PageMotionPreferences(true, transition.name)
             assertEquals(preference, Json.decodeFromString(
                 PageMotionPreferences.serializer(), Json.encodeToString(PageMotionPreferences.serializer(), preference),
             ))
@@ -60,18 +62,21 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
     }
 
     @Test
-    fun noneDisablesMotionAndSwitchCanEnableItAgain() = runTest {
+    fun legacyNoneMigratesToSwitchOffWithAnAnimatedPreset() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
-            val viewModel = ThemeViewModel(FakeUniLocalDataStore())
-            advanceUntilIdle()
-            viewModel.selectPageTransition(LiquidSwitcherTransition.None)
+            val store = FakeUniLocalDataStore()
+            store.write(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion, PageMotionPreferences(true, "None"))
+            val viewModel = ThemeViewModel(store)
             advanceUntilIdle()
             assertFalse(viewModel.uiState.value.pageMotion.enabled)
+            assertEquals(UniMotion.contentTransition, UniMotion.selectedTransition(viewModel.uiState.value.pageMotion))
             viewModel.setPageMotionEnabled(true)
             advanceUntilIdle()
             assertTrue(viewModel.uiState.value.pageMotion.enabled)
             assertEquals(UniMotion.contentTransition, UniMotion.effectiveTransition(viewModel.uiState.value.pageMotion))
+            viewModel.selectPageTransition(LiquidSwitcherTransition.None)
+            assertTrue(viewModel.uiState.value.pageMotion.enabled)
         } finally {
             Dispatchers.resetMain()
         }

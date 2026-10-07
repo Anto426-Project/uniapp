@@ -1313,15 +1313,13 @@
     <string name="ui_theme_page_motion_enabled_sub">Conserva lo stile scelto anche quando le animazioni sono disattivate.</string>
     <string name="ui_theme_page_motion_style">Stile animazione</string>
     <string name="ui_theme_page_motion_reduced_hint">Movimento ridotto attivo: le transizioni restano immediate.</string>
-    <string name="ui_motion_none">Nessuna</string>
-    <string name="ui_motion_none_sub">Passaggio immediato fra le pagine.</string>
     <string name="ui_motion_crossfade">Dissolvenza</string>
     <string name="ui_motion_crossfade_sub">Le pagine si sovrappongono con una dissolvenza morbida.</string>
     <string name="ui_motion_fade_through">Dissolvenza sequenziale</string>
     <string name="ui_motion_fade_through_sub">La pagina precedente sfuma prima della nuova.</string>
     <string name="ui_motion_morph">Morph liquido</string>
     <string name="ui_motion_morph_sub">Scala morbida e dissolvenza con movimento elastico.</string>
-    <string name="ui_motion_directional_horizontal">Direzionale orizzontale</string>
+    <string name="ui_motion_directional_horizontal">Dissolvenza orizzontale</string>
     <string name="ui_motion_directional_horizontal_sub">Scorrimento parziale con dissolvenza, seguendo la navigazione.</string>
     <string name="ui_motion_directional_vertical">Direzionale verticale</string>
     <string name="ui_motion_directional_vertical_sub">Movimento verticale leggero con dissolvenza.</string>

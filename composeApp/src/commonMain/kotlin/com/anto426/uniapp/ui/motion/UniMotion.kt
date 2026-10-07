@@ -8,12 +8,14 @@ import uniapp.composeapp.generated.resources.*
 
 /** One SDK preset for changing app content; the SDK owns timing and reduced motion. */
 internal object UniMotion {
-    val contentTransition = LiquidSwitcherTransition.Crossfade
+    val contentTransition = LiquidSwitcherTransition.DirectionalHorizontal
 
-    val options = (listOf(contentTransition) + LiquidSwitcherTransition.entries.filter { it != contentTransition })
+    val options = (listOf(contentTransition) + LiquidSwitcherTransition.entries.filter {
+        it != contentTransition && it != LiquidSwitcherTransition.None
+    })
         .map { transition ->
             val labels = when (transition) {
-                LiquidSwitcherTransition.None -> Res.string.ui_motion_none to Res.string.ui_motion_none_sub
+                LiquidSwitcherTransition.None -> error("None is controlled by the animation switch")
                 LiquidSwitcherTransition.Crossfade -> Res.string.ui_motion_crossfade to Res.string.ui_motion_crossfade_sub
                 LiquidSwitcherTransition.FadeThrough -> Res.string.ui_motion_fade_through to Res.string.ui_motion_fade_through_sub
                 LiquidSwitcherTransition.LiquidMorph -> Res.string.ui_motion_morph to Res.string.ui_motion_morph_sub
@@ -27,7 +29,7 @@ internal object UniMotion {
         }
 
     fun selectedTransition(preferences: PageMotionPreferences): LiquidSwitcherTransition =
-        LiquidSwitcherTransition.entries.firstOrNull { it.name == preferences.transitionName } ?: contentTransition
+        options.firstOrNull { it.transition.name == preferences.transitionName }?.transition ?: contentTransition
 
     fun effectiveTransition(preferences: PageMotionPreferences): LiquidSwitcherTransition =
         if (preferences.enabled) selectedTransition(preferences) else LiquidSwitcherTransition.None
@@ -35,7 +37,7 @@ internal object UniMotion {
     fun normalized(preferences: PageMotionPreferences): PageMotionPreferences {
         val transition = selectedTransition(preferences)
         return preferences.copy(
-            enabled = preferences.enabled && transition != LiquidSwitcherTransition.None,
+            enabled = preferences.enabled && preferences.transitionName != LiquidSwitcherTransition.None.name,
             transitionName = transition.name,
         )
     }
