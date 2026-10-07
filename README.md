@@ -84,6 +84,12 @@ python3 scripts/fetch_sdk_binaries.py
 
 Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versions]` del catalogo e rieseguire `python3 scripts/fetch_sdk_binaries.py`. Per Liquid Monet l'alias è `liquid-monet-sdk` (`libs.liquid.monet.sdk` in Gradle). Il download fallisce se quella Release non esiste o contiene una versione diversa. Dopo un cambio di versione, Gradle segnala eventuali binari locali obsoleti e richiede di ripetere il download.
 
+Le sezioni di Home, Servizi, Statistiche e Aspetto usano `LiquidSectionEntrance` tramite
+`UniAnimatedSection`: l'ingresso parte quando il contenuto raggiunge la zona visibile fra le barre,
+mantiene lo spazio e lo stato dei controlli e rispetta il movimento ridotto. Le schede delle
+Statistiche usano il preset `FadeThrough` di `LiquidAnimatedSwitcher`. Entrambi i componenti
+condividono la scena Liquid Glass già presente nell'app.
+
 La [guida alle build](docs/build-dependencies.md) descrive toolchain, runner, integrazione Xcode e verifiche degli SDK indipendenti.
 La [guida a badge e biglietti](docs/codes-and-tickets.md) descrive generazione artistica, lettura dei codici e conservazione degli originali.
 

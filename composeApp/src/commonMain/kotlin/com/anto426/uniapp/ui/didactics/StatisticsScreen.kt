@@ -1,9 +1,5 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.liquidmonet.components.charts.barchart.LiquidBarChart
 import com.anto426.liquidmonet.components.charts.model.LiquidChartEntry
 import com.anto426.liquidmonet.components.charts.donutchart.LiquidDonutChart
@@ -45,6 +43,7 @@ import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.StatisticsUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniAnimatedSection
 import com.kyant.shapes.Capsule
 
 @Composable
@@ -90,270 +89,277 @@ fun StatisticsScreen(
         // =========================================================================
         // 3. TAB DETAILED CONTENT SWITCHER
         // =========================================================================
-        AnimatedContent(
+        LiquidAnimatedSwitcher(
             targetState = uiState.selectedTabIndex,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "StatisticsTabAnimation",
+            transition = LiquidSwitcherTransition.FadeThrough,
         ) { tabIndex ->
             when (tabIndex) {
                 0 -> {
                     // TAB 0: Evoluzione Voti & Medie
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        LiquidSectionHeader(
-                            title = stringResource(Res.string.ui_stats_evolution_title),
-                            subtitle = stringResource(Res.string.ui_stats_evolution_subtitle),
-                        )
+                        UniAnimatedSection(order = 0) {
+                            LiquidSectionHeader(
+                                title = stringResource(Res.string.ui_stats_evolution_title),
+                                subtitle = stringResource(Res.string.ui_stats_evolution_subtitle),
+                            )
 
-                        // 1. Grafico Linee in primo piano
-                        LiquidCard(
-                            shape = RoundedRectangle(26.dp),
-                            contentPadding = 18.dp,
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                                LiquidLineChart(
-                                    entries = gradeEntries,
-                                    weightedAverageEntries = weightedAverageEntries,
-                                    arithmeticAverageEntries = arithmeticAverageEntries,
-                                    height = 210.dp,
-                                    minValue = uiState.gradeMin,
-                                    maxValue = uiState.gradeMax,
-                                    showLegend = true,
-                                    primarySeriesLabel = stringResource(Res.string.ui_stats_series_grade),
-                                    secondarySeriesLabel = stringResource(Res.string.ui_stats_series_weighted),
-                                    tertiarySeriesLabel = stringResource(Res.string.ui_stats_series_arithmetic),
-                                )
+                            // 1. Grafico Linee in primo piano
+                            LiquidCard(
+                                shape = RoundedRectangle(26.dp),
+                                contentPadding = 18.dp,
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                                    LiquidLineChart(
+                                        entries = gradeEntries,
+                                        weightedAverageEntries = weightedAverageEntries,
+                                        arithmeticAverageEntries = arithmeticAverageEntries,
+                                        height = 210.dp,
+                                        minValue = uiState.gradeMin,
+                                        maxValue = uiState.gradeMax,
+                                        showLegend = true,
+                                        primarySeriesLabel = stringResource(Res.string.ui_stats_series_grade),
+                                        secondarySeriesLabel = stringResource(Res.string.ui_stats_series_weighted),
+                                        tertiarySeriesLabel = stringResource(Res.string.ui_stats_series_arithmetic),
+                                    )
+                                }
                             }
                         }
 
-                        // 2. Progresso Piano di Studi (Avanzamento subito dopo il grafico)
-                        LiquidCard(
-                            shape = RoundedRectangle(22.dp),
-                            contentPadding = 16.dp,
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.ui_stats_study_plan_progress),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = colorScheme.onSurfaceVariant,
-                                    )
-                                    Text(
-                                        text = "${(uiState.careerProgress * 100).toInt()}% • ${uiState.totalCfu}/180 CFU",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colorScheme.primary,
+                        UniAnimatedSection(order = 1) {
+                            // 2. Progresso Piano di Studi (Avanzamento subito dopo il grafico)
+                            LiquidCard(
+                                shape = RoundedRectangle(22.dp),
+                                contentPadding = 16.dp,
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            text = stringResource(Res.string.ui_stats_study_plan_progress),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            text = "${(uiState.careerProgress * 100).toInt()}% • ${uiState.totalCfu}/180 CFU",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = colorScheme.primary,
+                                        )
+                                    }
+                                    LiquidLinearProgressIndicator(
+                                        progress = uiState.careerProgress,
                                     )
                                 }
-                                LiquidLinearProgressIndicator(
-                                    progress = uiState.careerProgress,
-                                )
                             }
                         }
 
-                        // 3. Riepilogo Performance Principali (Media Ponderata, Base Laurea, Esami)
-                        LiquidCard(
-                            shape = RoundedRectangle(24.dp),
-                            contentPadding = 18.dp,
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = stringResource(Res.string.ui_stats_weighted_average_header),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = colorScheme.primary,
-                                            letterSpacing = 0.6.sp,
-                                            fontSize = 10.sp,
-                                        )
-                                        Row(verticalAlignment = Alignment.Bottom) {
+                        UniAnimatedSection(order = 2) {
+                            // 3. Riepilogo Performance Principali (Media Ponderata, Base Laurea, Esami)
+                            LiquidCard(
+                                shape = RoundedRectangle(24.dp),
+                                contentPadding = 18.dp,
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Column {
                                             Text(
-                                                text = if (uiState.weightedAverage > 0f) uiState.weightedAverage.toString() else "—",
-                                                fontSize = 28.sp,
-                                                fontWeight = FontWeight.Black,
-                                                color = colorScheme.onSurface,
-                                            )
-                                            Text(
-                                                text = " / 30",
-                                                style = MaterialTheme.typography.bodyMedium,
+                                                text = stringResource(Res.string.ui_stats_weighted_average_header),
+                                                style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
-                                                color = colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(bottom = 3.dp),
+                                                color = colorScheme.primary,
+                                                letterSpacing = 0.6.sp,
+                                                fontSize = 10.sp,
                                             )
+                                            Row(verticalAlignment = Alignment.Bottom) {
+                                                Text(
+                                                    text = if (uiState.weightedAverage > 0f) uiState.weightedAverage.toString() else "—",
+                                                    fontSize = 28.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = colorScheme.onSurface,
+                                                )
+                                                Text(
+                                                    text = " / 30",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.padding(bottom = 3.dp),
+                                                )
+                                            }
+                                        }
+
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(
+                                                text = stringResource(Res.string.ui_stats_degree_projection_header),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = colorScheme.primary,
+                                                letterSpacing = 0.6.sp,
+                                                fontSize = 10.sp,
+                                            )
+                                            Row(verticalAlignment = Alignment.Bottom) {
+                                                Text(
+                                                    text = if (uiState.degreeBase > 0f) uiState.degreeBase.toString() else "—",
+                                                    fontSize = 28.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = colorScheme.onSurface,
+                                                )
+                                                Text(
+                                                    text = " / 110",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.padding(bottom = 3.dp),
+                                                )
+                                            }
                                         }
                                     }
 
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            text = stringResource(Res.string.ui_stats_degree_projection_header),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = colorScheme.primary,
-                                            letterSpacing = 0.6.sp,
-                                            fontSize = 10.sp,
-                                        )
-                                        Row(verticalAlignment = Alignment.Bottom) {
+                                    LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Column {
                                             Text(
-                                                text = if (uiState.degreeBase > 0f) uiState.degreeBase.toString() else "—",
-                                                fontSize = 28.sp,
-                                                fontWeight = FontWeight.Black,
+                                                text = stringResource(Res.string.ui_stats_arithmetic_average),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = colorScheme.onSurfaceVariant,
+                                            )
+                                            Text(
+                                                text = if (uiState.arithmeticAverage > 0f) uiState.arithmeticAverage.toString() else "—",
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Bold,
                                                 color = colorScheme.onSurface,
                                             )
+                                        }
+
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Text(
-                                                text = " / 110",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Bold,
+                                                text = stringResource(Res.string.ui_stats_weighting_spread),
+                                                style = MaterialTheme.typography.labelSmall,
                                                 color = colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(bottom = 3.dp),
+                                            )
+                                            Text(
+                                                text = if (uiState.weightingSpread >= 0f) "+${uiState.weightingSpread}" else "${uiState.weightingSpread}",
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = colorScheme.primary,
                                             )
                                         }
-                                    }
-                                }
 
-                                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = stringResource(Res.string.ui_stats_arithmetic_average),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            text = if (uiState.arithmeticAverage > 0f) uiState.arithmeticAverage.toString() else "—",
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = colorScheme.onSurface,
-                                        )
-                                    }
-
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = stringResource(Res.string.ui_stats_weighting_spread),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            text = if (uiState.weightingSpread >= 0f) "+${uiState.weightingSpread}" else "${uiState.weightingSpread}",
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = colorScheme.primary,
-                                        )
-                                    }
-
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            text = stringResource(Res.string.ui_stats_passed_exams),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            text = "${uiState.totalExams}",
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = colorScheme.onSurface,
-                                        )
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(
+                                                text = stringResource(Res.string.ui_stats_passed_exams),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = colorScheme.onSurfaceVariant,
+                                            )
+                                            Text(
+                                                text = "${uiState.totalExams}",
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = colorScheme.onSurface,
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
 
                         // 4. Grid Approfondimenti: Voto Più Alto & Trend
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            LiquidCard(
-                                shape = RoundedRectangle(22.dp),
-                                contentPadding = 14.dp,
-                                modifier = Modifier.weight(1f),
+                        UniAnimatedSection(order = 3) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    ) {
-                                        Icon(
-                                            imageVector = LiquidIcons.Star,
-                                            contentDescription = null,
-                                            tint = colorScheme.primary,
-                                            modifier = Modifier.size(15.dp),
+                                LiquidCard(
+                                    shape = RoundedRectangle(22.dp),
+                                    contentPadding = 14.dp,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        ) {
+                                            Icon(
+                                                imageVector = LiquidIcons.Star,
+                                                contentDescription = null,
+                                                tint = colorScheme.primary,
+                                                modifier = Modifier.size(15.dp),
+                                            )
+                                            Text(
+                                                text = stringResource(Res.string.ui_stats_highest_grade),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        Text(
+                                            text = uiState.highestGradeLabel,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = colorScheme.primary,
                                         )
                                         Text(
-                                            text = stringResource(Res.string.ui_stats_highest_grade),
+                                            text = uiState.highestGradeCourses.ifBlank { stringResource(Res.string.msg_nessun_esame) },
                                             fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
                                             color = colorScheme.onSurfaceVariant,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                     }
-                                    Text(
-                                        text = uiState.highestGradeLabel,
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = colorScheme.primary,
-                                    )
-                                    Text(
-                                        text = uiState.highestGradeCourses.ifBlank { stringResource(Res.string.msg_nessun_esame) },
-                                        fontSize = 11.sp,
-                                        color = colorScheme.onSurfaceVariant,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
                                 }
-                            }
 
-                            LiquidCard(
-                                shape = RoundedRectangle(22.dp),
-                                contentPadding = 14.dp,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    ) {
-                                        Icon(
-                                            imageVector = LiquidIcons.Analytics,
-                                            contentDescription = null,
-                                            tint = colorScheme.primary,
-                                            modifier = Modifier.size(15.dp),
+                                LiquidCard(
+                                    shape = RoundedRectangle(22.dp),
+                                    contentPadding = 14.dp,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        ) {
+                                            Icon(
+                                                imageVector = LiquidIcons.Analytics,
+                                                contentDescription = null,
+                                                tint = colorScheme.primary,
+                                                modifier = Modifier.size(15.dp),
+                                            )
+                                            Text(
+                                                text = stringResource(Res.string.ui_stats_recent_trend),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        Text(
+                                            text = if (uiState.recentTrend >= 0f) {
+                                                stringResource(Res.string.ui_stats_trend_points_positive, uiState.recentTrend)
+                                            } else {
+                                                stringResource(Res.string.ui_stats_trend_points_negative, uiState.recentTrend)
+                                            },
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = if (uiState.recentTrend >= 0f) colorScheme.primary else colorScheme.error,
                                         )
                                         Text(
-                                            text = stringResource(Res.string.ui_stats_recent_trend),
+                                            text = stringResource(Res.string.ui_stats_recent_trend_desc),
                                             fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
                                             color = colorScheme.onSurfaceVariant,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                     }
-                                    Text(
-                                        text = if (uiState.recentTrend >= 0f) {
-                                            stringResource(Res.string.ui_stats_trend_points_positive, uiState.recentTrend)
-                                        } else {
-                                            stringResource(Res.string.ui_stats_trend_points_negative, uiState.recentTrend)
-                                        },
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = if (uiState.recentTrend >= 0f) colorScheme.primary else colorScheme.error,
-                                    )
-                                    Text(
-                                        text = stringResource(Res.string.ui_stats_recent_trend_desc),
-                                        fontSize = 11.sp,
-                                        color = colorScheme.onSurfaceVariant,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
                                 }
                             }
                         }
@@ -363,61 +369,65 @@ fun StatisticsScreen(
                 1 -> {
                     // TAB 1: Crediti CFU
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        LiquidSectionHeader(
-                            title = stringResource(Res.string.ui_stats_cfu_distribution_title),
-                            subtitle = stringResource(Res.string.ui_stats_cfu_distribution_sub),
-                        )
+                        UniAnimatedSection(order = 0) {
+                            LiquidSectionHeader(
+                                title = stringResource(Res.string.ui_stats_cfu_distribution_title),
+                                subtitle = stringResource(Res.string.ui_stats_cfu_distribution_sub),
+                            )
 
-                        LiquidCard(
-                            shape = RoundedRectangle(26.dp),
-                            contentPadding = 20.dp,
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                val examSingular = stringResource(Res.string.ui_stats_exam_singular)
-                                val examsPlural = stringResource(Res.string.ui_stats_exams_plural)
-                                LiquidBarChart(
-                                    entries = cfuEntries,
-                                    height = 195.dp,
-                                    maxValue = uiState.cfuMax,
-                                    valueFormatter = { value ->
-                                        val count = value.toInt()
-                                        "$count ${if (count == 1) examSingular else examsPlural}"
-                                    },
-                                    valueSuffix = "",
-                                    detailDescription = stringResource(Res.string.ui_stats_cfu_bar_detail),
-                                )
+                            LiquidCard(
+                                shape = RoundedRectangle(26.dp),
+                                contentPadding = 20.dp,
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    val examSingular = stringResource(Res.string.ui_stats_exam_singular)
+                                    val examsPlural = stringResource(Res.string.ui_stats_exams_plural)
+                                    LiquidBarChart(
+                                        entries = cfuEntries,
+                                        height = 195.dp,
+                                        maxValue = uiState.cfuMax,
+                                        valueFormatter = { value ->
+                                            val count = value.toInt()
+                                            "$count ${if (count == 1) examSingular else examsPlural}"
+                                        },
+                                        valueSuffix = "",
+                                        detailDescription = stringResource(Res.string.ui_stats_cfu_bar_detail),
+                                    )
+                                }
                             }
                         }
 
                         // Summary Info Card
-                        LiquidCard(
-                            shape = RoundedRectangle(20.dp),
-                            contentPadding = 16.dp,
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
+                        UniAnimatedSection(order = 1) {
+                            LiquidCard(
+                                shape = RoundedRectangle(20.dp),
+                                contentPadding = 16.dp,
                             ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Text(
-                                        text = stringResource(Res.string.ui_stats_cfu_summary_title),
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colorScheme.onSurface,
-                                    )
-                                    Text(
-                                        text = stringResource(Res.string.ui_stats_cfu_summary_sub, uiState.totalCfu),
-                                        fontSize = 12.sp,
-                                        color = colorScheme.onSurfaceVariant,
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Text(
+                                            text = stringResource(Res.string.ui_stats_cfu_summary_title),
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = colorScheme.onSurface,
+                                        )
+                                        Text(
+                                            text = stringResource(Res.string.ui_stats_cfu_summary_sub, uiState.totalCfu),
+                                            fontSize = 12.sp,
+                                            color = colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+
+                                    LiquidBadge(
+                                        text = if (uiState.totalCfu >= 60) stringResource(Res.string.ui_status_in_order) else stringResource(Res.string.ui_status_in_progress),
+                                        containerColor = colorScheme.primaryContainer,
+                                        contentColor = colorScheme.primary,
                                     )
                                 }
-
-                                LiquidBadge(
-                                    text = if (uiState.totalCfu >= 60) stringResource(Res.string.ui_status_in_order) else stringResource(Res.string.ui_status_in_progress),
-                                    containerColor = colorScheme.primaryContainer,
-                                    contentColor = colorScheme.primary,
-                                )
                             }
                         }
                     }
@@ -426,84 +436,88 @@ fun StatisticsScreen(
                 2 -> {
                     // TAB 2: Fasce di Voto
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        LiquidSectionHeader(
-                            title = stringResource(Res.string.ui_stats_grade_tiers_title),
-                            subtitle = stringResource(Res.string.ui_stats_grade_tiers_sub),
-                        )
-
-                        LiquidCard(
-                            shape = RoundedRectangle(26.dp),
-                            contentPadding = 20.dp,
-                        ) {
-                            LiquidDonutChart(
-                                entries = donutEntries,
-                                size = 190.dp,
-                                centerLabel = stringResource(Res.string.ui_exams),
-                                centerValue = uiState.totalExams.toString(),
+                        UniAnimatedSection(order = 0) {
+                            LiquidSectionHeader(
+                                title = stringResource(Res.string.ui_stats_grade_tiers_title),
+                                subtitle = stringResource(Res.string.ui_stats_grade_tiers_sub),
                             )
+
+                            LiquidCard(
+                                shape = RoundedRectangle(26.dp),
+                                contentPadding = 20.dp,
+                            ) {
+                                LiquidDonutChart(
+                                    entries = donutEntries,
+                                    size = 190.dp,
+                                    centerLabel = stringResource(Res.string.ui_exams),
+                                    centerValue = uiState.totalExams.toString(),
+                                )
+                            }
                         }
 
                         // Detailed Tier Breakdown Cards with visual percentage bar
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            donutEntries.forEach { entry ->
-                                val tierRatio = if (uiState.totalExams > 0) entry.value / uiState.totalExams else 0f
-                                val tierPercentage = (tierRatio * 100).toInt()
-                                val tierColor = entry.color ?: colorScheme.primary
+                        UniAnimatedSection(order = 1) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                donutEntries.forEach { entry ->
+                                    val tierRatio = if (uiState.totalExams > 0) entry.value / uiState.totalExams else 0f
+                                    val tierPercentage = (tierRatio * 100).toInt()
+                                    val tierColor = entry.color ?: colorScheme.primary
 
-                                LiquidCard(
-                                    shape = RoundedRectangle(18.dp),
-                                    contentPadding = 14.dp,
-                                ) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
+                                    LiquidCard(
+                                        shape = RoundedRectangle(18.dp),
+                                        contentPadding = 14.dp,
+                                    ) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                             Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
                                             ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(12.dp)
-                                                        .clip(Capsule())
-                                                        .background(tierColor),
-                                                )
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(12.dp)
+                                                            .clip(Capsule())
+                                                            .background(tierColor),
+                                                    )
+                                                    Text(
+                                                        text = "Fascia ${entry.label}",
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = colorScheme.onSurface,
+                                                    )
+                                                }
+
                                                 Text(
-                                                    text = "Fascia ${entry.label}",
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = colorScheme.onSurface,
+                                                    text = "${entry.value.toInt()} esami • $tierPercentage%",
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = tierColor,
                                                 )
                                             }
 
-                                            Text(
-                                                text = "${entry.value.toInt()} esami • $tierPercentage%",
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = tierColor,
-                                            )
-                                        }
-
-                                        // Progress indicator for tier proportion
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(4.dp)
-                                                .clip(Capsule())
-                                                .background(colorScheme.onSurface.copy(alpha = 0.08f)),
-                                        ) {
+                                            // Progress indicator for tier proportion
                                             Box(
                                                 modifier = Modifier
-                                                    .fillMaxWidth(tierRatio.coerceIn(0f, 1f))
+                                                    .fillMaxWidth()
                                                     .height(4.dp)
                                                     .clip(Capsule())
-                                                    .background(tierColor),
-                                            )
+                                                    .background(colorScheme.onSurface.copy(alpha = 0.08f)),
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(tierRatio.coerceIn(0f, 1f))
+                                                        .height(4.dp)
+                                                        .clip(Capsule())
+                                                        .background(tierColor),
+                                                )
+                                            }
                                         }
                                     }
                                 }

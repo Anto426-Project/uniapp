@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.graphics)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.compose.material3)
+    // Use the SDK's Material3 publication so Android controls share the same ABI.
+    implementation(libs.compose.material3)
     implementation(libs.androidx.compose.preview)
 }

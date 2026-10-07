@@ -45,6 +45,7 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniAnimatedSection
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -80,7 +81,7 @@ fun ThemeScreen(
 
     UniScreenColumn {
         // 1. Modalità aspetto con anteprime visive
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        UniAnimatedSection(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_theme_mode_group),
                 size = LiquidSectionHeaderSize.Small,
@@ -93,122 +94,124 @@ fun ThemeScreen(
         }
 
         // 2. Tavolozza Colori & Monet Seed (Racchiusi in un unico contenitore)
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_palette_group)) {
-            // Palette predefinite (Material You, Sapphire, Emerald, Sunset, Violet)
-            uiState.themes.forEachIndexed { index, theme ->
-                if (theme.isCustom) return@forEachIndexed
+        UniAnimatedSection(order = 1) {
+            LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_palette_group)) {
+                // Palette predefinite (Material You, Sapphire, Emerald, Sunset, Violet)
+                uiState.themes.forEachIndexed { index, theme ->
+                    if (theme.isCustom) return@forEachIndexed
 
-                val isSelected = uiState.selectedThemeIndex == index
+                    val isSelected = uiState.selectedThemeIndex == index
+
+                    LiquidPreferenceItem(
+                        title = if (index == 0) stringResource(Res.string.ui_theme_material_you_title) else theme.name,
+                        subtitle = if (index == 0) stringResource(Res.string.ui_theme_material_you_sub) else theme.description,
+                        leadingContent = {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .then(
+                                        if (theme.color != null) {
+                                            Modifier.background(theme.color)
+                                        } else {
+                                            Modifier.background(
+                                                Brush.sweepGradient(
+                                                    listOf(
+                                                        Color(0xFF4285F4),
+                                                        Color(0xFF34A853),
+                                                        Color(0xFFFBBC05),
+                                                        Color(0xFFEA4335),
+                                                        Color(0xFF4285F4),
+                                                    )
+                                                )
+                                            )
+                                        }
+                                    )
+                                    .border(
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                        shape = CircleShape,
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = LiquidIcons.Check,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                }
+                            }
+                        },
+                        trailingContent = {
+                            LiquidRadioButton(
+                                selected = isSelected,
+                                onClick = { onThemeSelected(index) },
+                            )
+                        },
+                        onClick = { onThemeSelected(index) },
+                    )
+
+                    LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
+                }
+
+                // Ultima opzione: Laboratorio Colori Personalizzati (che rimanda alla schermata Laboratorio)
+                val isCustomActive = uiState.selectedThemeIndex == 5 || (uiState.themes.getOrNull(uiState.selectedThemeIndex)?.isCustom == true)
+                val customColor = uiState.customColor ?: Color(0xFF0B57D0)
 
                 LiquidPreferenceItem(
-                    title = if (index == 0) stringResource(Res.string.ui_theme_material_you_title) else theme.name,
-                    subtitle = if (index == 0) stringResource(Res.string.ui_theme_material_you_sub) else theme.description,
+                    title = stringResource(Res.string.ui_theme_palette_custom_lab),
+                    subtitle = if (isCustomActive) {
+                        "Personalizzato • ${customColor.toHexString()}"
+                    } else {
+                        stringResource(Res.string.ui_theme_palette_custom_lab_sub)
+                    },
                     leadingContent = {
                         Box(
                             modifier = Modifier
                                 .size(38.dp)
                                 .clip(CircleShape)
-                                .then(
-                                    if (theme.color != null) {
-                                        Modifier.background(theme.color)
-                                    } else {
-                                        Modifier.background(
-                                            Brush.sweepGradient(
-                                                listOf(
-                                                    Color(0xFF4285F4),
-                                                    Color(0xFF34A853),
-                                                    Color(0xFFFBBC05),
-                                                    Color(0xFFEA4335),
-                                                    Color(0xFF4285F4),
-                                                )
-                                            )
-                                        )
-                                    }
-                                )
+                                .background(customColor)
                                 .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    width = if (isCustomActive) 2.dp else 1.dp,
+                                    color = if (isCustomActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                                     shape = CircleShape,
                                 ),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (isSelected) {
+                            if (isCustomActive) {
                                 Icon(
                                     imageVector = LiquidIcons.Check,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(16.dp),
                                 )
+                            } else {
+                                Icon(
+                                    imageVector = LiquidIcons.Palette,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp),
+                                )
                             }
                         }
                     },
                     trailingContent = {
-                        LiquidRadioButton(
-                            selected = isSelected,
-                            onClick = { onThemeSelected(index) },
+                        Icon(
+                            imageVector = LiquidIcons.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp),
                         )
                     },
-                    onClick = { onThemeSelected(index) },
+                    onClick = onNavigateToColorLab,
                 )
-
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 14.dp))
             }
-
-            // Ultima opzione: Laboratorio Colori Personalizzati (che rimanda alla schermata Laboratorio)
-            val isCustomActive = uiState.selectedThemeIndex == 5 || (uiState.themes.getOrNull(uiState.selectedThemeIndex)?.isCustom == true)
-            val customColor = uiState.customColor ?: Color(0xFF0B57D0)
-
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_theme_palette_custom_lab),
-                subtitle = if (isCustomActive) {
-                    "Personalizzato • ${customColor.toHexString()}"
-                } else {
-                    stringResource(Res.string.ui_theme_palette_custom_lab_sub)
-                },
-                leadingContent = {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(customColor)
-                            .border(
-                                width = if (isCustomActive) 2.dp else 1.dp,
-                                color = if (isCustomActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                                shape = CircleShape,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (isCustomActive) {
-                            Icon(
-                                imageVector = LiquidIcons.Check,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        } else {
-                            Icon(
-                                imageVector = LiquidIcons.Palette,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
-                    }
-                },
-                trailingContent = {
-                    Icon(
-                        imageVector = LiquidIcons.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
-                    )
-                },
-                onClick = onNavigateToColorLab,
-            )
         }
 
         // 3. Motore Grafico Sfondo Liquid
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        UniAnimatedSection(order = 2, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_theme_engine_group),
                 size = LiquidSectionHeaderSize.Small,
@@ -221,18 +224,20 @@ fun ThemeScreen(
         }
 
         // 4. Fisica e Prestazioni
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_haptics_group)) {
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_theme_reduced_motion_title),
-                subtitle = stringResource(Res.string.ui_theme_reduced_motion_sub),
-                icon = LiquidIcons.Refresh,
-                trailingContent = {
-                    LiquidSwitch(
-                        checked = uiState.reducedMotion,
-                        onCheckedChange = onReducedMotionChanged,
-                    )
-                },
-            )
+        UniAnimatedSection(order = 3) {
+            LiquidPreferenceGroup(title = stringResource(Res.string.ui_theme_haptics_group)) {
+                LiquidPreferenceItem(
+                    title = stringResource(Res.string.ui_theme_reduced_motion_title),
+                    subtitle = stringResource(Res.string.ui_theme_reduced_motion_sub),
+                    icon = LiquidIcons.Refresh,
+                    trailingContent = {
+                        LiquidSwitch(
+                            checked = uiState.reducedMotion,
+                            onCheckedChange = onReducedMotionChanged,
+                        )
+                    },
+                )
+            }
         }
 
         // 5. Ripristino Valori Predefiniti

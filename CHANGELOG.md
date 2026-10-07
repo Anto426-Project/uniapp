@@ -1,3 +1,10 @@
+## [Unreleased]
+
+- Liquid Monet aggiornato alla versione 2.0.35; SDK desktop compilato dalla stessa revisione con versione 2.0.35-desktop.1.
+- Ingresso progressivo delle sezioni in Home, Servizi, Statistiche e Aspetto quando diventano visibili, mantenendo lo stato dei controlli e rispettando il movimento ridotto.
+- Transizione tra le schede delle Statistiche gestita dall'SDK, con dissolvenza sequenziale e temporizzazione adattiva.
+- Allineata la dipendenza Material3 Android alla pubblicazione multiplatform usata dall'SDK.
+
 ## [2.0.14-desktop.1] - 2026-10-04
 
 - Launcher desktop JVM per Linux, Windows e macOS, con storage cifrato nel portachiavi nativo e importazione QR/barcode da immagine.
