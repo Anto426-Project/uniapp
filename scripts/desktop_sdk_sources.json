@@ -1,6 +1,6 @@
 {
   "liquid-monet": {"version": "2.0.36-desktop.1", "revision": "454eafecf90198d3747a0161f9c6cba234a99e3d"},
-  "uni-sdk": {"version": "1.0.23-desktop.1", "revision": "188de5dba7f3d539b6f75aefbf5b49765ed16899"},
+  "uni-sdk": {"version": "1.0.25-desktop.1", "revision": "328c5141a84644b5ef3e63614792f0e06916963b"},
   "secure-storage-sdk": {"version": "1.0.15-desktop.1", "revision": "e666781fbbe99001d5938f8b3565f8e297379ce4"},
   "firebase-connector-sdk": {"version": "1.0.9-desktop.1", "revision": "40e96d13efb717ce7fc2aa5b3eca0692b01ad38d"}
 }

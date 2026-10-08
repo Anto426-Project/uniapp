@@ -4,5 +4,5 @@
   "minSupportedVersion": "2.0.3",
   "minSupportedVersionCode": 203,
   "mandatory": true,
-  "notes": "- Tema: selettore degli otto preset Liquid Monet, con Dissolvenza orizzontale predefinita; il controllo globale Riduci movimento gestisce la disattivazione.\n- Liquid Monet aggiornato alla versione 2.0.36; transizione unica nel contenitore generale e rimosse le animazioni locali delle schermate.\n- Banner: ripristinata la rotazione 3D delle card condivise tramite Liquid Monet, rispettando Riduci movimento.\n- Distribuzioni: build e deploy separati per Android, iOS, Windows, Linux (Debian/Ubuntu e Arch) e macOS, con download dedicati.\n- Errori UniSDK: testi gestiti dall’app tramite codici stabili e risorse localizzate."
+  "notes": "- UniSDK aggiornato alla versione 1.0.25, con messaggi di errore gestiti e localizzati dall’app.\n- Ripristinata la rotazione 3D delle card e del banner generico, rispettando Riduci movimento.\n- Download dedicati per Android, iOS, Windows, Linux (Debian/Ubuntu e Arch) e macOS.\n- In Tema, selettore degli otto preset Liquid Monet con Dissolvenza orizzontale predefinita e preferenze salvate.\n- Liquid Monet aggiornato alla versione 2.0.36: transizione unica tra pagine e ritorno indietro, senza animazioni locali delle schermate."
 }

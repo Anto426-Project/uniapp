@@ -40,12 +40,12 @@ robolectric = "4.17"
 
 # Published SDK versions. The binary downloader reads these exact versions.
 liquid-monet-sdk = "2.0.36"
-unisdk = "1.0.23"
+unisdk = "1.0.25"
 secure-storage-sdk = "1.0.15"
 firebase-connector-sdk = "1.0.9"
 # Independent, explicitly pinned desktop SDK binaries built by build_desktop_sdks.py.
 desktop-liquid-monet-sdk = "2.0.36-desktop.1"
-desktop-unisdk = "1.0.23-desktop.1"
+desktop-unisdk = "1.0.25-desktop.1"
 desktop-secure-storage-sdk = "1.0.15-desktop.1"
 desktop-firebase-connector-sdk = "1.0.9-desktop.1"
 

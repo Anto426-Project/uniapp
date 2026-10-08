@@ -1,16 +1,8 @@
-## [2.0.15] - 2026-10-07 (build set by CI)
+## [2.0.15] - 2026-10-08 (build set by CI)
 
-- Tema: selettore degli otto preset Liquid Monet, con Dissolvenza orizzontale predefinita; il controllo globale Riduci movimento gestisce la disattivazione.
-- Liquid Monet aggiornato alla versione 2.0.36; transizione unica nel contenitore generale e rimosse le animazioni locali delle schermate.
-
-## [Unreleased]
-
-- Messaggi degli errori UniSDK risolti nell’app tramite risorse localizzate, con fallback compatibili con i binari precedenti.
-
-- Ripristinata la rotazione 3D delle card hero e del banner generico con il motore di animazione condiviso Liquid Monet, rispettando la riduzione del movimento.
-
-- Deploy separati per Android, iOS, Windows, Linux e macOS; Linux comprende Debian/Ubuntu e Arch. Avvio esplicito dei publisher, pubblicazione solo di build riuscite e indice dei download per piattaforma sul sito.
-
+- UniSDK aggiornato alla release 1.0.25: 131 codici di errore stabili dichiarati in un unico file nell’SDK, con messaggi localizzati nell’app. La dipendenza mobile usa i binari pubblicati; il desktop compila la stessa revisione fissata come 1.0.25-desktop.1.
+- Ripristinata la rotazione 3D delle card hero e del banner generico tramite Liquid Monet, rispettando Riduci movimento.
+- Build e deploy separati per Android, iOS, Windows, Linux e macOS; Linux comprende Debian/Ubuntu e Arch. Avvio esplicito dei publisher, pubblicazione solo di build riuscite e indice dei download per piattaforma sul sito.
 - In Tema, unica sezione per sfondo Liquid, fisica e animazioni tra pagine: selettore per gli otto preset animati dell'SDK, con Dissolvenza orizzontale predefinita; preferenze persistenti e verso coerente per navigazione e ritorno indietro. Il controllo globale Riduci movimento gestisce la disattivazione, senza un secondo interruttore per le pagine.
 - Liquid Monet aggiornato alla versione 2.0.36; SDK desktop compilato dalla stessa revisione con versione 2.0.36-desktop.1.
 - Unica transizione dell'SDK nel contenitore generale per pagine, sottopagine e ritorno indietro; cambi di sessione immediati e movimento ridotto gestito dall'SDK.
