@@ -1,0 +1,17 @@
+name: Build macOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-desktop.yml
+    with:
+      platform: macos
+      desktop_os: macos
+    secrets: inherit

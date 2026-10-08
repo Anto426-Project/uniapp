@@ -128,7 +128,7 @@ class DidacticsDashboardViewModel(
             mutableUiState.update {
                 it.copy(
                     loadState = if (it.degreeName.isBlank()) FeatureLoadState.Error else FeatureLoadState.Content,
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_la_panoramica_didattica)),
+                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_la_panoramica_didattica) },
                 )
             }
         }

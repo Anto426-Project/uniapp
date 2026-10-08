@@ -1,31 +1,60 @@
-# Build per piattaforma
+# Build e deploy per piattaforma
 
-In GitHub Actions scegliere il workflow della piattaforma e premere **Run workflow** sul branch `main`:
+In GitHub Actions scegliere il workflow sul branch `main`:
 
-| Workflow | File prodotti | Pubblicazione automatica |
-| --- | --- | --- |
-| Build Android (APK) | Un APK release, firmato se la chiave è disponibile oppure non firmato | Publish Android |
-| Build iOS (Kotlin Multiplatform) | IPA non firmata e bundle simulatore della stessa versione | Publish iOS |
-| Build Desktop | Installer e archivio portabile per i sistemi scelti con `desktop_os` | Publish Desktop |
+| Build | Pacchetti | Publisher | Tag release |
+| --- | --- | --- | --- |
+| Build Android (APK) | Un APK release ARM64, firmato se la chiave è disponibile | Publish Android | `v<versione>+<versionCode>`; `android-v<versione>+<versionCode>-unsigned` senza firma |
+| Build iOS (Kotlin Multiplatform) | IPA non firmata e bundle simulatore | Publish iOS | `ios-v<versione>+<versionCode>-unsigned` |
+| Build Windows | Installer MSI e ZIP portabile | Publish Windows | `windows-v<versione>+<runNumber>` |
+| Build Linux | Pacchetti Debian/Ubuntu e Arch, archivi portabili | Publish Linux | `linux-v<versione>+<runNumber>` |
+| Build macOS | Installer DMG e archivio portabile | Publish macOS | `macos-v<versione>+<runNumber>` |
 
-**Build All** avvia questi tre workflow indipendenti. Il suo risultato indica
-l'avvio; compilazione e pubblicazione si seguono nelle esecuzioni delle singole
-piattaforme. Mantiene i contatori Android/iOS delle build specifiche.
+Windows e Linux hanno contatori, esecuzioni, release e download distinti. macOS
+conserva un flusso autonomo. Il workflow riutilizzabile `build-desktop.yml` contiene
+solo la compilazione condivisa; non è un punto di avvio manuale e non produce una
+release desktop aggregata.
 
-Ogni piattaforma pubblica una sola versione per esecuzione. Android non produce
-una seconda release debug o unsigned quando è disponibile quella firmata.
-Una release desktop può contenere insieme i pacchetti Debian/Ubuntu, Arch Linux,
-Windows e macOS. Per compilare solo Arch scegliere `desktop_os: archlinux` in
-**Build Desktop**. Il file `.pkg.tar.zst` si installa con `pacman -U`.
+**Build Linux** accetta `linux_package`: `all` (predefinito), `linux` per
+Debian/Ubuntu oppure `archlinux`. Se si richiedono entrambi, entrambi devono
+riuscire prima di avviare la pubblicazione. Il pacchetto Arch si installa con
+`pacman -U`.
 
-Le dipendenze mobili vengono scaricate dalle versioni esplicite già dichiarate.
-Gli SDK desktop vengono compilati da commit fissati in
-`scripts/desktop_sdk_sources.json`, con gli stessi numeri Maven del catalogo,
-senza pubblicare release SDK. I file `sdk-binaries*.json/.properties` non vengono
-allegati alle release UniApp. I checksum dei pacchetti e il contesto della build
-restano disponibili.
+**Build All** avvia le cinque build indipendenti, mantenendo i contatori
+Android/iOS esistenti. Il suo successo conferma soltanto gli avvii: i risultati
+di compilazione si seguono nei workflow Build, quelli di distribuzione nei
+workflow Publish.
 
-I workflow `Publish Android`, `Publish iOS` e `Publish Desktop` si possono avviare
-anche manualmente indicando `source_run_id`. Se vuoto, selezionano l'ultima build
-completata della propria piattaforma. Verificano origine e checksum prima della
-pubblicazione; non accettano build di un'altra piattaforma.
+## Passaggio dalla build alla pubblicazione
+
+Il job finale di ogni build avvia esplicitamente il proprio publisher con
+`workflow_dispatch` e l'esatto `source_run_id`. Il publisher attende la conclusione
+positiva della build e verifica repository, branch, workflow, revisione, varianti
+e checksum. Una build fallita o annullata non viene pubblicata. Non si dipende
+più da una catena di eventi `workflow_run`.
+
+Tutte le scritture su `uniapp-upstream`, incluso il sito, usano lo stesso gruppo
+di concurrency, `uniapp-distribution`, con `queue: max`: i deploy attendono il
+proprio turno senza cancellare altre piattaforme in coda.
+Gli asset già pubblicati devono avere gli stessi checksum: non vengono sostituiti
+con file diversi. Il manifest di aggiornamento Android continua ad accettare
+soltanto APK firmati e impedisce downgrade.
+
+Dopo ogni pubblicazione riuscita viene avviato il workflow del sito. I download
+Windows, Linux, iOS e macOS leggono `platforms.json`; ogni variante Linux conserva
+la propria versione quando si aggiorna soltanto Debian o soltanto Arch.
+`release/builds.json` conserva la cronologia; `release/platforms.json` contiene
+l'indice corrente. `docs/` contiene le copie servite dal sito.
+
+## Recuperare build già compilate
+
+I workflow Publish possono essere avviati manualmente con `source_run_id`.
+Se vuoto, selezionano l'ultima build riuscita del proprio workflow. Un ID esplicito
+del vecchio **Build Desktop** è accettato dai publisher Windows, Linux e macOS:
+ciascuno scarica solo i propri pacchetti e crea il proprio tag senza ricompilare.
+Le release desktop precedenti restano disponibili; nessun asset viene cancellato.
+Gli artefatti devono essere ancora disponibili e non scaduti.
+
+Le dipendenze mobili usano versioni esplicite; gli SDK desktop vengono compilati
+dai commit fissati in `scripts/desktop_sdk_sources.json`. Non vengono pubblicate
+release SDK né allegati `sdk-binaries*.json/.properties` alle release UniApp.

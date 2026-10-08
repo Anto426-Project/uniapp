@@ -60,7 +60,7 @@ class DeviceSessionsActionViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.update { it.copy(isConfirmationVisible = false, isDisconnecting = false) }
-                toastSink.error(error.userMessage(getString(Res.string.msg_impossibile_chiudere_le_altre_sessioni)))
+                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_chiudere_le_altre_sessioni) })
             }
         }
     }

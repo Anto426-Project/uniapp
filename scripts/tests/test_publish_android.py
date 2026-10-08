@@ -29,6 +29,8 @@ class PublishAndroidTest(unittest.TestCase):
             records = '[{"tag":"android"},{"tag":"ios"},{"tag":"desktop"}]\n'
             (deploy / 'release/builds.json').write_text(records)
             (deploy / 'docs/builds.json').write_text(records)
+            platforms = '{"schema":1,"platforms":{"windows":{"version":"2.0.15"}}}\n'
+            (deploy / 'release/platforms.json').write_text(platforms)
             run('git', 'add', '.', cwd=deploy)
             run('git', 'commit', '-m', 'Existing releases', cwd=deploy)
             run('git', 'push', 'origin', 'main', cwd=deploy)
@@ -37,6 +39,7 @@ class PublishAndroidTest(unittest.TestCase):
             run('bash', str(SCRIPT.parent / 'publish_website.sh'))
             self.assertEqual('new website', run('git', '--git-dir=' + str(remote), 'show', 'main:docs/index.html').stdout)
             self.assertEqual(records, run('git', '--git-dir=' + str(remote), 'show', 'main:docs/builds.json').stdout)
+            self.assertEqual(platforms, run('git', '--git-dir=' + str(remote), 'show', 'main:docs/platforms.json').stdout)
 
     def test_publish_app_without_website_output_preserves_existing_site(self):
         with tempfile.TemporaryDirectory() as directory:

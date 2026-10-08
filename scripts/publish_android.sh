@@ -9,7 +9,7 @@ done
 ((${#release_assets[@]} > 0))
 # Publish files before advertising their URLs. A failed upload leaves the current manifest intact.
 if gh release view "$RELEASE_TAG_NAME" --repo "$DEPLOY_REPO" >/dev/null 2>&1; then
-  gh release upload "$RELEASE_TAG_NAME" "${release_assets[@]}" --clobber --repo "$DEPLOY_REPO"
+  # Existing files were checked and missing files uploaded by publish_builds.py.
   gh release edit "$RELEASE_TAG_NAME" --repo "$DEPLOY_REPO" --title "$RELEASE_TITLE" \
     --notes-file incoming/release-notes.md --prerelease=false --latest
 else
@@ -26,7 +26,8 @@ cp incoming/context.json deploy-repo/release/context.json
 if [[ -d deploy-repo/docs ]]; then cp incoming/update.json deploy-repo/docs/update.json; fi
 touch deploy-repo/.nojekyll
 cd deploy-repo
-git add -A
+git add -- update.json README.md release/output-metadata.json release/context.json .nojekyll
+if [[ -d docs ]]; then git add -- docs/update.json; fi
 if ! git diff --cached --quiet; then
   git config user.name 'github-actions[bot]'
   git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

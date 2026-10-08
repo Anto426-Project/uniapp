@@ -1,20 +1,22 @@
-name: Build Desktop
+name: Build Desktop Packages
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      platform:
+        required: true
+        type: string
       desktop_os:
-        description: 'Desktop operating system to build'
-        type: choice
-        default: all
-        options: [all, linux, archlinux, windows, macos]
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: desktop-build-${{ github.ref }}
+  group: ${{ inputs.platform }}-build-${{ github.ref }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   platforms:
@@ -22,11 +24,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.select.outputs.matrix }}
+      variants: ${{ steps.select.outputs.variants }}
     steps:
       - id: select
         uses: actions/github-script@v9.0.0
         env:
           DESKTOP_OS: ${{ inputs.desktop_os }}
+          DISTRIBUTION_PLATFORM: ${{ inputs.platform }}
         with:
           script: |
             const choices = [
@@ -36,8 +40,12 @@ jobs:
               {runner: 'macos-26', platform: 'macos', package_task: 'packageDmg'}
             ];
             const selected = process.env.DESKTOP_OS;
+            const platform = process.env.DISTRIBUTION_PLATFORM;
+            const systems = {linux: ['linux', 'archlinux'], windows: ['windows'], macos: ['macos']}[platform];
+            if (!systems || (selected !== 'all' && !systems.includes(selected))) throw new Error('Unsupported platform/package combination');
             if (!['all', ...choices.map(item => item.platform)].includes(selected)) throw new Error('Unsupported desktop OS');
-            core.setOutput('matrix', JSON.stringify({include: choices.filter(item => selected === 'all' || item.platform === selected)}));
+            core.setOutput('variants', JSON.stringify(systems.filter(system => selected === 'all' || system === selected)));
+            core.setOutput('matrix', JSON.stringify({include: choices.filter(item => systems.includes(item.platform) && (selected === 'all' || item.platform === selected))}));
   build:
     needs: platforms
     strategy:
@@ -90,11 +98,12 @@ jobs:
       - name: Prepare verified build artifacts
         env:
           DESKTOP_OS: ${{ matrix.platform }}
+          REQUESTED_VARIANTS: ${{ needs.platforms.outputs.variants }}
         run: python3 scripts/prepare_build_artifact.py desktop --output publish-input --os "$DESKTOP_OS"
       - name: Store all desktop packages
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: desktop-build-${{ github.run_id }}-${{ matrix.platform }}
+          name: ${{ inputs.platform }}-build-${{ github.run_id }}-${{ matrix.platform }}
           path: publish-input/
           if-no-files-found: error
           retention-days: 30
@@ -109,3 +118,12 @@ jobs:
             desktopApp/build/compose/logs/
           if-no-files-found: ignore
           retention-days: 14
+
+  publish:
+    needs: build
+    permissions:
+      contents: read
+      actions: write
+    uses: ./.github/workflows/dispatch-publish.yml
+    with:
+      platform: ${{ inputs.platform }}

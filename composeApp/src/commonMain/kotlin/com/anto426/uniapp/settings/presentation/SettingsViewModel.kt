@@ -1,5 +1,7 @@
 package com.anto426.uniapp.settings.presentation
 
+import com.anto426.uniapp.presentation.userMessage
+
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -192,7 +194,7 @@ class SettingsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                toastSink.error(error.message ?: getString(Res.string.msg_impossibile_aggiornare_la_protezione_biometrica))
+                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_aggiornare_la_protezione_biometrica) })
             } finally {
                 update {
                     copy(

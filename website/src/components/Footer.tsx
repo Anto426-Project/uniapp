@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="https://github.com/Anto426-Project/UniappUpstream" target="_blank" rel="noopener noreferrer">
+                  <a href="https://github.com/Anto426-Project/uniapp-upstream" target="_blank" rel="noopener noreferrer">
                     <span>Repository Upstream</span>
                     <ExternalLink className="w-3 h-3 opacity-60" />
                   </a>

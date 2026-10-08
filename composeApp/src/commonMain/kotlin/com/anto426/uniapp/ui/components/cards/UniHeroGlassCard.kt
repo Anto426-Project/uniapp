@@ -44,6 +44,9 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.glass.LiquidGlass
 import com.anto426.liquidmonet.glass.LiquidGlassBackdropPolicy
+import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
+import com.anto426.liquidmonet.motion.LiquidMotion
+import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
 import com.anto426.uniapp.ui.components.banners.logUniAppShaderError
 import com.anto426.uniapp.ui.components.banners.supportsUniAppRuntimeShader
 import com.kyant.backdrop.Backdrop
@@ -436,7 +439,12 @@ fun UniHeroGlassCard(
         }
     }
 
-    val rotation = if (flipped) 180f else 0f
+    val performance = LocalLiquidGlassPerformance.current
+    val rotation by animateLiquidFloatAsState(
+        targetValue = if (flipped) 180f else 0f,
+        animationSpec = remember(performance) { LiquidMotion.spatialSpring<Float>(performance) },
+        label = "heroCardFlipRotation",
+    )
 
     val cardArtworkBackdrop = rememberLayerBackdrop()
 

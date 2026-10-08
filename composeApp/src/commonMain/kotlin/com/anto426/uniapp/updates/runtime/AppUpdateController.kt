@@ -1,5 +1,7 @@
 package com.anto426.uniapp.updates.runtime
 
+import com.anto426.uniapp.presentation.userMessage
+
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -67,7 +69,7 @@ internal class AppUpdateController(
         } catch (error: Throwable) {
             mutableState.value = previous.copy(
                 phase = if (previous.updateInfo?.isUpdateAvailable == true) AppUpdatePhase.Available else AppUpdatePhase.Failed,
-                message = error.message ?: getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti),
+                message = error.userMessage { getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti) },
             )
         } finally {
             operationLock.unlock()
@@ -108,7 +110,7 @@ internal class AppUpdateController(
             throw error
         } catch (error: Throwable) {
             mutableState.update { it.copy(phase = AppUpdatePhase.Available,
-                message = error.message ?: getString(Res.string.msg_impossibile_avviare_laggiornamento)) }
+                message = error.userMessage { getString(Res.string.msg_impossibile_avviare_laggiornamento) }) }
             return false
         } finally {
             operationLock.unlock()

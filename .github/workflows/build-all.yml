@@ -3,11 +3,11 @@ name: Build All
 on:
   workflow_dispatch:
     inputs:
-      desktop_os:
-        description: 'Desktop operating systems to build'
+      linux_package:
+        description: 'Linux packages to build'
         type: choice
         default: all
-        options: [all, linux, archlinux, windows, macos]
+        options: [all, linux, archlinux]
 
 permissions:
   contents: read
@@ -25,19 +25,23 @@ jobs:
             workflow: build-android.yml
           - platform: iOS
             workflow: build-ios.yml
-          - platform: Desktop
-            workflow: build-desktop.yml
+          - platform: Linux
+            workflow: build-linux.yml
+          - platform: Windows
+            workflow: build-windows.yml
+          - platform: macOS
+            workflow: build-macos.yml
     name: Start ${{ matrix.platform }}
     steps:
       - name: Start the platform workflow
         uses: actions/github-script@v9.0.0
         env:
           PLATFORM_WORKFLOW: ${{ matrix.workflow }}
-          DESKTOP_OS: ${{ inputs.desktop_os }}
+          LINUX_PACKAGE: ${{ inputs.linux_package }}
         with:
           script: |
             const workflow = process.env.PLATFORM_WORKFLOW;
-            const inputs = workflow === 'build-desktop.yml' ? {desktop_os: process.env.DESKTOP_OS} : {};
+            const inputs = workflow === 'build-linux.yml' ? {linux_package: process.env.LINUX_PACKAGE} : {};
             await github.rest.actions.createWorkflowDispatch({
               ...context.repo, workflow_id: workflow, ref: context.ref.replace('refs/heads/', ''), inputs
             });

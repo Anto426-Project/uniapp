@@ -80,7 +80,7 @@ class QuestionnaireDetailViewModel(
             mutableUiState.update {
                 it.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_questionario)),
+                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_questionario) },
                 )
             }
         }
@@ -169,7 +169,7 @@ class QuestionnaireDetailViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage(getString(Res.string.msg_impossibile_salvare_il_questionario))
+                val message = error.userMessage { getString(Res.string.msg_impossibile_salvare_il_questionario) }
                 mutableUiState.update { it.copy(isSubmitting = false) }
                 toastSink.error(message)
             }

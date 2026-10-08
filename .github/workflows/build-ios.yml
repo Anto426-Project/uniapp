@@ -125,3 +125,12 @@ jobs:
             build/sdk-binaries.properties
           if-no-files-found: ignore
           retention-days: 14
+
+  publish:
+    needs: build-ios
+    permissions:
+      contents: read
+      actions: write
+    uses: ./.github/workflows/dispatch-publish.yml
+    with:
+      platform: ios

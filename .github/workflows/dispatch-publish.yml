@@ -1,0 +1,34 @@
+name: Start Platform Publication
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start publication for this exact build
+        uses: actions/github-script@v9.0.0
+        env:
+          PLATFORM: ${{ inputs.platform }}
+        with:
+          script: |
+            const platform = process.env.PLATFORM;
+            if (!['android', 'ios', 'linux', 'windows', 'macos'].includes(platform)) throw new Error('Unsupported platform');
+            await github.rest.actions.createWorkflowDispatch({
+              ...context.repo, workflow_id: `publish-${platform}.yml`, ref: 'main',
+              inputs: {source_run_id: String(context.runId)}
+            });
+            await core.summary.addHeading('Publication started')
+              .addRaw(`Build ${context.runId}: ${platform}. Follow the Publish workflow for the final deployment result.\n`)
+              .addLink('Publication workflow', `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/publish-${platform}.yml`)
+              .write();

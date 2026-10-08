@@ -67,3 +67,27 @@ test('touch swipe selects a slide without opening the lightbox', async ({ page, 
   await expect(page.locator('.screenshot-carousel__position')).not.toHaveText('1 / 6');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+test('platform downloads retain independent versions and Linux packages', async ({ page }) => {
+  const release = (version: string, variants: Record<string, {version: string; downloads: {name: string; os: string; url: string; sha256: string}[]}>) => ({
+    version, tag: `v${version}`, url: `https://example.test/releases/${version}`, signing: 'unsigned', variants,
+  });
+  const variant = (os: string, version: string, name: string) => ({version, downloads: [{os, name, url: `https://example.test/${name}`, sha256: 'a'.repeat(64)}]});
+  await page.route('**/platforms.json', (route) => route.fulfill({json: {schema: 1, platforms: {
+    ios: release('2.0.14', {ios: variant('ios', '2.0.14', 'UniApp-ios.ipa')}),
+    windows: release('2.0.15-desktop.1', {windows: variant('windows', '2.0.15-desktop.1', 'UniApp-windows.msi')}),
+    linux: release('2.0.16-desktop.1', {linux: variant('linux', '2.0.16-desktop.1', 'UniApp-linux.deb'), archlinux: variant('archlinux', '2.0.15-desktop.1', 'UniApp-archlinux.pkg.tar.zst')}),
+  }}}));
+  await page.goto('./');
+  const windows = page.getByRole('article', {name: 'Download Windows', exact: true});
+  const linux = page.getByRole('article', {name: 'Download Linux', exact: true});
+  const ios = page.getByRole('article', {name: 'Download iOS', exact: true});
+  await expect(windows.getByText('Versione 2.0.15-desktop.1', {exact: true})).toBeVisible();
+  await expect(windows.getByRole('link', {name: 'Installer Windows (.msi)'})).toHaveAttribute('href', 'https://example.test/UniApp-windows.msi');
+  await expect(linux.getByRole('link', {name: 'Pacchetto Debian / Ubuntu (.deb)'})).toHaveAttribute('href', 'https://example.test/UniApp-linux.deb');
+  await expect(linux.getByRole('link', {name: 'Pacchetto Arch Linux (.pkg.tar.zst)'})).toHaveAttribute('href', 'https://example.test/UniApp-archlinux.pkg.tar.zst');
+  await expect(linux.getByText('Arch Linux · 2.0.15-desktop.1', {exact: true})).toBeVisible();
+  await expect(ios.getByRole('link', {name: 'IPA iOS', exact: true})).toHaveAttribute('href', 'https://example.test/UniApp-ios.ipa');
+  await expect(ios.getByText(/firma e provisioning/)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

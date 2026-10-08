@@ -18,5 +18,8 @@ internal fun FeatureLoadState.onRefreshFailure(): FeatureLoadState = when (this)
     else -> FeatureLoadState.Error
 }
 
-internal fun Throwable.userMessage(fallback: String): String =
-    message?.trim()?.takeIf(String::isNotEmpty) ?: fallback
+internal suspend fun Throwable.userMessage(fallback: String): String =
+    sdkFailureMessage(message, fallback)
+
+internal suspend fun Throwable.userMessage(fallback: suspend () -> String): String =
+    sdkFailureMessage(message, fallback)

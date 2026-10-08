@@ -134,5 +134,5 @@ Per segnalazioni, idee o problemi, consulta la [guida al feedback](./docs/feedba
 La versione PC usa `desktopApp` e binari JVM degli SDK con versioni indipendenti.
 Vedi [compilazione, avvio e funzioni disponibili](docs/desktop.md).
 
-Android, iOS e PC hanno [build e pubblicazioni indipendenti](docs/build-workflows.md).
+Android, iOS, Windows, Linux e macOS hanno [build e pubblicazioni indipendenti](docs/build-workflows.md).
 `Build All` avvia le build specifiche; ogni piattaforma pubblica una sola versione.

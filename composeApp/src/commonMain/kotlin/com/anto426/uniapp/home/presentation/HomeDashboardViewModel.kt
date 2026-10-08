@@ -49,7 +49,7 @@ class HomeDashboardViewModel(
     }
 
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, partial = true, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        val failure = snapshot.firstError?.userMessage(getString(Res.string.msg_impossibile_aggiornare_la_panoramica))
+        val failure = snapshot.firstError?.userMessage { getString(Res.string.msg_impossibile_aggiornare_la_panoramica) }
         val preparedNews = snapshot.value(UniAppDataRequests.News)?.let {
             sharedData.prepareNews(it, preparationDispatcher)
         }

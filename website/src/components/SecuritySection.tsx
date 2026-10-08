@@ -25,7 +25,7 @@ export const SecuritySection: React.FC = () => {
               Versioni pubblicate con metadati e impronte SHA-256 dei file.
             </p>
             <a
-              href="https://github.com/Anto426-Project/UniappUpstream/releases"
+              href="https://github.com/Anto426-Project/uniapp-upstream/releases"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-vt-report"

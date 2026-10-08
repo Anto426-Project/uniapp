@@ -4,11 +4,11 @@ on:
   workflow_call:
     inputs:
       platform:
-        description: 'One application platform: android, ios or desktop'
+        description: 'One application platform: android, ios, linux, windows or macos'
         required: true
         type: string
       source_run_id:
-        description: 'Platform build run ID (empty for the most recent completed build)'
+        description: 'Platform build run ID (empty for the most recent successful build)'
         required: false
         type: string
         default: ''
@@ -18,11 +18,12 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
 
 concurrency:
-  group: uniapp-distribution-${{ inputs.platform }}
+  group: uniapp-distribution
   cancel-in-progress: false
+  queue: max
 
 jobs:
   publish:
@@ -31,7 +32,14 @@ jobs:
     env:
       DEPLOY_REPO: Anto426-Project/uniapp-upstream
     steps:
-      - name: Resolve a trusted completed build
+      - name: Checkout publishing tools
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Test publication source selection
+        run: node --test scripts/tests/resolve_publish_source.test.cjs
+      - name: Resolve a trusted successful build
         id: source
         uses: actions/github-script@v9.0.0
         env:
@@ -39,39 +47,9 @@ jobs:
           REQUESTED_PLATFORM: ${{ inputs.platform }}
         with:
           script: |
-            const allowed = {'build-android.yml': 'android', 'build-ios.yml': 'ios', 'build-desktop.yml': 'desktop'};
-            const requestedPlatform = process.env.REQUESTED_PLATFORM;
-            if (!Object.values(allowed).includes(requestedPlatform)) throw new Error('Unsupported application platform');
-            const workflows = {};
-            for (const [path, platform] of Object.entries(allowed).filter(([, platform]) => platform === requestedPlatform)) {
-              const {data} = await github.rest.actions.getWorkflow({...context.repo, workflow_id: path});
-              workflows[data.id] = platform;
-            }
-            let id = process.env.REQUESTED_RUN_ID;
-            if (!id) {
-              const {data} = await github.rest.actions.listWorkflowRunsForRepo({...context.repo, status: 'completed', per_page: 100});
-              id = String(data.workflow_runs.find(run => workflows[run.workflow_id] && run.head_branch === 'main' && run.event === 'workflow_dispatch' && ['success','failure'].includes(run.conclusion))?.id || '');
-            }
-            if (!/^\d+$/.test(id)) throw new Error('A completed build run ID is required');
-            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(id)});
-            const platform = workflows[run.workflow_id];
-            if (!platform || run.status !== 'completed' || !['success','failure'].includes(run.conclusion) ||
-                run.head_branch !== 'main' || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` || run.event !== 'workflow_dispatch') {
-              throw new Error('Only a trusted main-branch build for the selected platform can be published');
-            }
-            const {data} = await github.rest.actions.listWorkflowRunArtifacts({...context.repo, run_id: Number(id), per_page: 100});
-            const prefix = `${platform}-build-${id}`;
-            if (!data.artifacts.some(artifact => !artifact.expired && (artifact.name === prefix || artifact.name.startsWith(`${prefix}-`)))) {
-              throw new Error('The selected run has no completed build packages');
-            }
-            core.setOutput('run_id', id);
-            core.setOutput('sha', run.head_sha);
-            core.setOutput('platform', platform);
-      - name: Checkout publishing tools
-        uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ github.workflow_sha }}
-          persist-credentials: false
+            const resolve = require('./scripts/resolve_publish_source.cjs');
+            await resolve({github, context, core, platform: process.env.REQUESTED_PLATFORM,
+              requestedRunId: process.env.REQUESTED_RUN_ID});
       - name: Checkout exact build release policy
         uses: actions/checkout@v7.0.1
         with:
@@ -83,7 +61,7 @@ jobs:
       - name: Download every completed platform variant
         uses: actions/download-artifact@v8.0.1
         with:
-          pattern: ${{ steps.source.outputs.platform }}-build-${{ steps.source.outputs.run_id }}*
+          artifact-ids: ${{ steps.source.outputs.artifact_ids }}
           run-id: ${{ steps.source.outputs.run_id }}
           github-token: ${{ github.token }}
           path: incoming
@@ -117,3 +95,11 @@ jobs:
             --deploy-directory deploy-repo --policy build-source/update-config.json \
             --source-repo "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID" \
             --platform "$SOURCE_PLATFORM"
+
+      - name: Refresh the distribution website after publication
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              ...context.repo, workflow_id: 'build-website.yml', ref: 'main'
+            });

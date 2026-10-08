@@ -99,3 +99,12 @@ jobs:
       - name: Remove compiler temporary files
         if: always()
         run: rm -rf -- "$RUNNER_TEMP/uniapp-build-${{ github.run_id }}-${{ github.run_attempt }}"
+
+  publish:
+    needs: build
+    permissions:
+      contents: read
+      actions: write
+    uses: ./.github/workflows/dispatch-publish.yml
+    with:
+      platform: android

@@ -13,6 +13,9 @@ cp deploy-repo/update.json deploy-repo/docs/update.json
 if [[ -f deploy-repo/release/builds.json ]]; then
   cp deploy-repo/release/builds.json deploy-repo/docs/builds.json
 fi
+if [[ -f deploy-repo/release/platforms.json ]]; then
+  cp deploy-repo/release/platforms.json deploy-repo/docs/platforms.json
+fi
 touch deploy-repo/docs/.nojekyll
 cd deploy-repo
 git add docs

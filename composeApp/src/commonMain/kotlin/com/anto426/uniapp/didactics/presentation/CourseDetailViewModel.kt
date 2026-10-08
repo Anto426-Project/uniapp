@@ -68,7 +68,7 @@ class CourseDetailViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = CourseDetailUiState(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_corso)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_corso) },
             )
         }
     }

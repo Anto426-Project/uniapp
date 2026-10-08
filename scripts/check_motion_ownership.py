@@ -18,7 +18,7 @@ def validate(root=None):
                 errors.append(f'{relative}: Compose animation imports belong to the SDK')
             if re.search(r'\b(?:tween|spring|keyframes|infiniteRepeatable|rememberInfiniteTransition|'
                          r'Animatable|MutableTransitionState|updateTransition|rememberTransition|'
-                         r'AnimatedContent|AnimatedVisibility|Crossfade|animate\w*AsState|'
+                         r'AnimatedContent|AnimatedVisibility|Crossfade|animate(?!Liquid(?:Float|Color|Dp)AsState\b)\w*AsState|'
                          r'fadeIn|fadeOut|scaleIn|scaleOut|slideIn\w*|slideOut\w*|'
                          r'expandVertically|shrinkVertically|withAnimation)\s*\(', code):
                 errors.append(f'{relative}: replace local animation construction with SDK motion')

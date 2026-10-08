@@ -1,0 +1,23 @@
+name: Build Linux
+
+on:
+  workflow_dispatch:
+    inputs:
+      linux_package:
+        description: 'Linux packages to build'
+        type: choice
+        default: all
+        options: [all, linux, archlinux]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-desktop.yml
+    with:
+      platform: linux
+      desktop_os: ${{ inputs.linux_package || 'all' }}
+    secrets: inherit

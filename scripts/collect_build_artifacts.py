@@ -7,18 +7,23 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 
+DESKTOP_SYSTEMS = {'linux': {'linux', 'archlinux'}, 'windows': {'windows'}, 'macos': {'macos'}}
+
 
 def validate(context, directory, repository, revision, run_id):
     if context.get('schema') != 1 or any(context.get(key) != expected for key, expected in
             [('sourceRepository', repository), ('sourceSha', revision), ('runId', run_id)]):
         raise ValueError('Artifact source/run identity does not match the selected build')
-    if context.get('platform') not in ('android', 'ios', 'desktop') or context.get('signing') not in ('unsigned', 'release-key'):
+    if context.get('platform') not in ('android', 'ios', 'desktop', *DESKTOP_SYSTEMS) or context.get('signing') not in ('unsigned', 'release-key'):
         raise ValueError('Unsupported artifact platform/signing classification')
     if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?', context.get('versionName', '')) or not re.fullmatch(r'\d+', str(context.get('runNumber', ''))):
         raise ValueError('Invalid artifact version/build number')
-    if context['platform'] == 'desktop' and context.get('os') not in ('linux', 'archlinux', 'windows', 'macos'):
+    desktop = context['platform'] in ('desktop', *DESKTOP_SYSTEMS)
+    if desktop and context.get('os') not in ('linux', 'archlinux', 'windows', 'macos'):
         raise ValueError('Invalid desktop operating system')
-    if context['platform'] != 'desktop' and not re.fullmatch(r'[1-9][0-9]*', str(context.get('versionCode', ''))):
+    if context['platform'] in DESKTOP_SYSTEMS and context['os'] not in DESKTOP_SYSTEMS[context['platform']]:
+        raise ValueError('Desktop package belongs to another platform')
+    if not desktop and not re.fullmatch(r'[1-9][0-9]*', str(context.get('versionCode', ''))):
         raise ValueError('Invalid artifact version code')
     if context['platform'] != 'android' and context['signing'] != 'unsigned':
         raise ValueError('Only the Android release pipeline may supply release-key signing')
@@ -43,8 +48,8 @@ def release_tag(context):
     version = context['versionName']
     if context['platform'] == 'android' and context['signing'] == 'release-key':
         return f'v{version}+{context["versionCode"]}'
-    if context['platform'] == 'desktop':
-        return f'desktop-v{version}+{context["runNumber"]}'
+    if context['platform'] in ('desktop', *DESKTOP_SYSTEMS):
+        return f'{context["platform"]}-v{version}+{context["runNumber"]}'
     return f'{context["platform"]}-v{version}+{context["versionCode"]}-unsigned'
 
 
@@ -55,9 +60,26 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
     manifests = [incoming / 'context.json'] if (incoming / 'context.json').is_file() else sorted(incoming.glob('*/context.json'))
     verified = [(manifest, validate(json.loads(manifest.read_text()), manifest.parent, repository, revision, run_id))
                 for manifest in manifests]
+    # Historical combined desktop runs can be recovered without rebuilding. The
+    # resolver downloads only the packages belonging to the requested OS family.
+    if platform in DESKTOP_SYSTEMS:
+        verified = [(manifest, dict(context, platform=platform) if context['platform'] == 'desktop'
+                     and context['os'] in DESKTOP_SYSTEMS[platform] else context)
+                    for manifest, context in verified]
     platforms = {context['platform'] for _, context in verified}
     if len(platforms) > 1 or (platform and platforms != {platform}):
         raise ValueError('Build artifacts must belong to the selected platform only')
+    versions = {(context['versionName'], context['runNumber']) for _, context in verified}
+    if len(versions) > 1:
+        raise ValueError('Build artifacts disagree on the version or build number')
+    if platforms and next(iter(platforms)) in DESKTOP_SYSTEMS:
+        family = next(iter(platforms))
+        variants = [context['os'] for _, context in verified]
+        if len(variants) != len(set(variants)):
+            raise ValueError('Duplicate desktop package variant')
+        requested = [set(context.get('requestedVariants', variants)) for _, context in verified]
+        if any(not value <= DESKTOP_SYSTEMS[family] or value != set(variants) for value in requested):
+            raise ValueError('Missing or unexpected requested desktop variants')
     if platforms == {'android'}:
         versions = {(context['versionName'], context['versionCode']) for _, context in verified}
         if len(versions) != 1:
@@ -70,7 +92,8 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
     for manifest, context in verified:
         tag = release_tag(context)
         group = groups.setdefault(tag, {'tag': tag, 'platform': context['platform'], 'signing': context['signing'],
-                                        'version': context['versionName'], 'inputs': [], 'assets': [], 'sourceSha': revision})
+                                        'version': context['versionName'], 'runNumber': context['runNumber'],
+                                        'inputs': [], 'assets': [], 'downloads': [], 'sourceSha': revision})
         if group['platform'] != context['platform'] or group['signing'] != context['signing']:
             raise ValueError('Conflicting release classifications')
         group['inputs'].append(str(manifest.parent.resolve()))
@@ -84,7 +107,7 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
                     (context['platform'] == 'android' and name.startswith('debug/'))):
                 continue
             asset_name = Path(name).name
-            if context['platform'] == 'desktop' and asset_name == 'UniApp-PC.md':
+            if context['platform'] in ('desktop', *DESKTOP_SYSTEMS) and asset_name == 'UniApp-PC.md':
                 # Windows checkout may use CRLF; retain each verified guide byte-for-byte.
                 asset_name = f'UniApp-PC-{context["os"]}.md'
             target = directory / asset_name
@@ -93,6 +116,8 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
                     raise ValueError(f'Conflicting release asset names: {asset_name}')
             else:
                 shutil.copy2(manifest.parent / name, target)
+            if asset_name.endswith(('.apk', '.ipa', '.zip', '.tar.gz', '.deb', '.msi', '.dmg', '.pkg.tar.zst')):
+                group['downloads'].append(dict(name=asset_name, sha256=checksum, os=context.get('os', context['platform'])))
         shutil.copy2(manifest, directory / ('build-context-' + context.get('os', context['platform']) + '.json'))
     if not groups:
         raise ValueError('The selected run has no verified build artifacts to publish')
@@ -109,7 +134,7 @@ def collect(incoming, output, repository, revision, run_id, platform=None):
             f'Firma: {group["signing"]}.\n\n'
             + ('Gli APK release unsigned richiedono una firma prima dell’installazione.\n\n' if group['platform'] == 'android' and group['signing'] == 'unsigned' else '')
             + ('IPA iOS non firmata: richiede firma/provisioning per l’installazione su un dispositivo. Incluso anche il bundle per simulatore.\n\n' if group['platform'] == 'ios' else '')
-            + ('Pacchetti desktop non firmati. Le guide UniApp-PC-<sistema>.md allegate descrivono installazione e funzioni disponibili, incluso Arch Linux.\n\n' if group['platform'] == 'desktop' else '')
+            + ('Pacchetti desktop non firmati. Le guide UniApp-PC-<sistema>.md allegate descrivono installazione e funzioni disponibili.\n\n' if group['platform'] in ('desktop', *DESKTOP_SYSTEMS) else '')
             + f'Sorgenti: https://github.com/{repository}/commit/{revision}\n\nBuild: https://github.com/{repository}/actions/runs/{run_id}\n')
         group['notes'] = str(notes.resolve())
     (output / 'plan.json').write_text(json.dumps(list(groups.values()), indent=2) + '\n')
@@ -123,7 +148,7 @@ def main():
     parser.add_argument('--repository', required=True)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--run-id', required=True)
-    parser.add_argument('--platform', choices=['android', 'ios', 'desktop'], required=True)
+    parser.add_argument('--platform', choices=['android', 'ios', *DESKTOP_SYSTEMS], required=True)
     args = parser.parse_args()
     collect(args.incoming, args.output, args.repository, args.revision, args.run_id, args.platform)
 

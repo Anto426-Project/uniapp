@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTheme, onThemeChange }) =
             className="brand-icon-img"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src =
-                'https://raw.githubusercontent.com/Anto426-Project/UniappUpstream/main/assets/uniapp-icon.webp';
+                'https://raw.githubusercontent.com/Anto426-Project/uniapp-upstream/main/assets/uniapp-icon.webp';
             }}
           />
           <span className="brand-name">UniApp</span>

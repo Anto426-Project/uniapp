@@ -59,7 +59,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Error else FeatureLoadState.Content,
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_presenze)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_presenze) },
             )
         }
 
@@ -108,7 +108,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     isRegistering = false,
-                    registrationErrorMessage = error.userMessage(getString(Res.string.msg_errore_durante_la_registrazione_della_presenza)),
+                    registrationErrorMessage = error.userMessage { getString(Res.string.msg_errore_durante_la_registrazione_della_presenza) },
                 )
             }
         }

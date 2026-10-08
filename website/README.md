@@ -37,3 +37,5 @@ Aprire `http://127.0.0.1:4173/uniapp-upstream/`. Il server locale serve solo l'e
 - `public/update.json` viene riempito dal workflow con il manifest della release verificata prima della build. Il repository sorgente mantiene un oggetto vuoto per evitare versioni o link di download inventati.
 
 Le build Android e iOS partono manualmente. Il workflow di pubblicazione può seguire una build Android manuale riuscita; verifica il sito prima di pubblicarne i file.
+
+- `public/platforms.json` contiene i download verificati per iOS, Windows, Linux e macOS. È aggiornato dal publisher e letto anche a runtime dal sito.

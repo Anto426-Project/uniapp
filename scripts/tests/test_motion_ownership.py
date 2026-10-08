@@ -46,3 +46,9 @@ class MotionOwnershipTest(unittest.TestCase):
     def test_shared_banner_cannot_bypass_raw_motion_checks(self):
         self.source('UniUpdateBanner.kt', 'import androidx.compose.animation.core.*\nrememberInfiniteTransition()\nLiquidAnimatedSwitcher(transition = LiquidSwitcherTransition.LiquidMorph)')
         self.assertEqual(3, len(validate(self.root)))
+
+    def test_sdk_scalar_bindings_are_allowed_but_raw_bindings_are_rejected(self):
+        self.source('Card.kt', 'animateLiquidFloatAsState()\nanimateLiquidColorAsState()\nanimateLiquidDpAsState()')
+        self.assertEqual([], validate(self.root))
+        self.source('Card.kt', 'animateFloatAsState()\nanimateCustomAsState()')
+        self.assertEqual(1, len(validate(self.root)))

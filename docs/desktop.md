@@ -27,13 +27,12 @@ Per sviluppare gli SDK nei quattro checkout adiacenti è disponibile anche
 `python3 scripts/build_desktop_sdks.py`. Non vengono usati composite builds o
 risoluzioni `latest`. Il manifest registra versioni, revisioni e checksum.
 
-La compilazione automatica è in `.github/workflows/build-desktop.yml`. L'input
-`desktop_os` sceglie `linux` (Debian/Ubuntu), `archlinux`, `windows`, `macos` oppure
-`all` per tutti e quattro i pacchetti. `Publish Desktop`
-pubblica un'unica versione PC con i pacchetti prodotti in
-`Anto426-Project/uniapp-upstream`. Android e iOS hanno workflow indipendenti;
-`Build All` li avvia insieme senza compilare o pubblicare un'altra copia.
-La [guida ai workflow](build-workflows.md) descrive gli avvii specifici.
+Le build automatiche sono **Build Windows**, **Build Linux** e **Build macOS**.
+Ciascuna pubblica una release indipendente in `Anto426-Project/uniapp-upstream`.
+Linux comprende Debian/Ubuntu e Arch: `linux_package` seleziona `all`, `linux` o
+`archlinux`. `build-desktop.yml` è il workflow riutilizzabile per la compilazione.
+Android e iOS mantengono flussi autonomi; `Build All` avvia tutte le piattaforme.
+La [guida ai workflow](build-workflows.md) descrive avvii e recupero degli artefatti.
 
 ## Pacchetti
 

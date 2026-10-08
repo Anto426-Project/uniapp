@@ -107,7 +107,7 @@ class StatisticsViewModel(private val dataSource: UniAppDataSource) : ViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_statistiche)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_statistiche) },
             )
         }
 

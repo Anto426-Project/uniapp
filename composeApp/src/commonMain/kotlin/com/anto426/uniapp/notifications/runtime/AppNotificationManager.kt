@@ -1,5 +1,7 @@
 package com.anto426.uniapp.notifications.runtime
 
+import com.anto426.uniapp.presentation.userMessage
+
 import com.anto426.firebase.PushNotificationConnector
 import com.anto426.firebase.RemotePushMessage
 import com.anto426.uniapp.notifications.model.AppNotificationState
@@ -125,15 +127,14 @@ internal class AppNotificationManager(
     private fun deleteToken() {
         scope.launch {
             tokenMutation.withLock {
-                if (!binding.value.enabled) connector.deleteToken().onFailure(::recordError)
+                if (!binding.value.enabled) connector.deleteToken().onFailure { recordError(it) }
             }
         }
     }
 
-    private fun recordError(error: Throwable) {
+    private suspend fun recordError(error: Throwable) {
         lastError.value =
-            error.message?.takeIf(String::isNotBlank)
-                ?: "Impossibile registrare il dispositivo per le notifiche."
+            error.userMessage("Impossibile registrare il dispositivo per le notifiche.")
     }
 }
 

@@ -2,10 +2,6 @@ name: Build and publish website
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Publish Android]
-    types: [completed]
-    branches: [main]
 
 permissions:
   contents: read
@@ -13,10 +9,11 @@ permissions:
 concurrency:
   group: uniapp-distribution
   cancel-in-progress: false
+  queue: max
 
 jobs:
   website:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -43,6 +40,9 @@ jobs:
         run: |
           set -euo pipefail
           cp deploy-repo/update.json website/public/update.json
+          if test -f deploy-repo/release/platforms.json; then
+            cp deploy-repo/release/platforms.json website/public/platforms.json
+          fi
           cd website
           npm ci
           npm run build

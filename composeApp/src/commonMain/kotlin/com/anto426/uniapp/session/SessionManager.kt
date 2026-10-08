@@ -1,5 +1,7 @@
 package com.anto426.uniapp.session
 
+import com.anto426.uniapp.presentation.userMessage
+
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -88,7 +90,7 @@ class SessionManager internal constructor(
                     throw error
                 } catch (error: Throwable) {
                     prepareNotificationOwner(null)
-                    AppSessionState.SignedOut(error.message ?: getString(Res.string.msg_impossibile_ripristinare_la_sessione_protetta))
+                    AppSessionState.SignedOut(error.userMessage { getString(Res.string.msg_impossibile_ripristinare_la_sessione_protetta) })
                 }
         }
     }
@@ -202,7 +204,7 @@ class SessionManager internal constructor(
                     throw error
                 } catch (error: Throwable) {
                     prepareNotificationOwner(null)
-                    AppSessionState.SignedOut(error.message ?: getString(Res.string.msg_accesso_non_riuscito))
+                    AppSessionState.SignedOut(error.userMessage { getString(Res.string.msg_accesso_non_riuscito) })
                 }
             prepareNotificationOwner((mutableState.value as? AppSessionState.Authenticated)?.account?.accountId)
         }

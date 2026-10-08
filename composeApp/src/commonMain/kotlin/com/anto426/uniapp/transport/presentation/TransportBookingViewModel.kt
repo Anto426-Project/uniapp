@@ -73,7 +73,7 @@ class TransportBookingViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_le_linee)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_linee) },
             )
         }
 
@@ -144,7 +144,7 @@ class TransportBookingViewModel(
                         getString(Res.string.ui_transport_booking_partial, completed, requests.size, existing, failed),
                     )
                     failed > 0 -> toastSink.error(
-                        firstFailure?.userMessage(getString(Res.string.msg_prenotazione_non_riuscita))
+                        firstFailure?.userMessage { getString(Res.string.msg_prenotazione_non_riuscita) }
                             ?: getString(Res.string.msg_prenotazione_non_riuscita),
                     )
                     completed > 0 -> toastSink.success(
@@ -156,7 +156,7 @@ class TransportBookingViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage(getString(Res.string.msg_prenotazione_non_riuscita))
+                val message = error.userMessage { getString(Res.string.msg_prenotazione_non_riuscita) }
                 mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
                 toastSink.error(message)
             }

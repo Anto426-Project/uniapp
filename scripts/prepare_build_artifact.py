@@ -68,7 +68,10 @@ def desktop(output, operating_system):
             for path in sorted(app.iterdir()):
                 archive.add(path, arcname=path.name)
     shutil.copy2(ROOT / 'docs/desktop.md', output / 'UniApp-PC.md')
-    return dict(platform='desktop', os=operating_system, versionName=version, versionCode=None, signing='unsigned')
+    platform = 'linux' if operating_system in ('linux', 'archlinux') else operating_system
+    variants = json.loads(os.environ.get('REQUESTED_VARIANTS', json.dumps([operating_system])))
+    return dict(platform=platform, os=operating_system, requestedVariants=variants,
+                versionName=version, versionCode=None, signing='unsigned')
 
 
 def main():

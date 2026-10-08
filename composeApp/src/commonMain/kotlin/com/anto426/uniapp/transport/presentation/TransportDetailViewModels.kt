@@ -81,7 +81,7 @@ class ReservationDetailViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_la_prenotazione)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_la_prenotazione) },
             )
         }
     
@@ -125,7 +125,7 @@ class ReservationDetailViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage(getString(Res.string.msg_impossibile_annullare_la_prenotazione))
+                val message = error.userMessage { getString(Res.string.msg_impossibile_annullare_la_prenotazione) }
                 mutableUiState.value = mutableUiState.value.copy(isDeleting = false)
                 toastSink.error(message)
             }
@@ -161,7 +161,7 @@ class TicketDetailViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_la_linea)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_la_linea) },
             )
         }
     

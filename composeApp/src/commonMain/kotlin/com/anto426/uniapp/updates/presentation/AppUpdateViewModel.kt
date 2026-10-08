@@ -1,5 +1,7 @@
 package com.anto426.uniapp.updates.presentation
 
+import com.anto426.uniapp.presentation.sdkFailureMessage
+
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -81,7 +83,7 @@ internal class AppUpdateViewModel(
                     else getString(Res.string.msg_e_disponibile_un_nuovo_aggiornamento),
                 )
                 AppUpdatePhase.Failed -> toastSink.error(
-                    state.message ?: getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti),
+                    sdkFailureMessage(state.message) { getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti) },
                 )
                 AppUpdatePhase.Idle,
                 AppUpdatePhase.Checking,
@@ -101,7 +103,7 @@ internal class AppUpdateViewModel(
                 toastSink.info("Aggiornamento avviato…")
             } else {
                 toastSink.error(
-                    controller.state.value.message ?: getString(Res.string.msg_impossibile_avviare_laggiornamento),
+                    sdkFailureMessage(controller.state.value.message) { getString(Res.string.msg_impossibile_avviare_laggiornamento) },
                 )
             }
         }

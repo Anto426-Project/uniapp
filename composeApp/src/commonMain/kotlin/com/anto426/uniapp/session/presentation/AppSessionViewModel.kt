@@ -1,5 +1,7 @@
 package com.anto426.uniapp.session.presentation
 
+import com.anto426.uniapp.presentation.userMessage
+
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -94,7 +96,7 @@ class AppSessionViewModel(
                     throw error
                 } catch (error: Throwable) {
                     mutableUnlockUiState.value =
-                        AppUnlockUiState(errorMessage = error.message ?: getString(Res.string.msg_impossibile_aprire_laccount))
+                        AppUnlockUiState(errorMessage = error.userMessage { getString(Res.string.msg_impossibile_aprire_laccount) })
                 } finally {
                     mutableUnlockUiState.update { it.copy(isAuthenticating = false) }
                 }

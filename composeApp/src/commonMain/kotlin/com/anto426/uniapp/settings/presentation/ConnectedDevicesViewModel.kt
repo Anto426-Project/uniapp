@@ -57,7 +57,7 @@ class ConnectedDevicesViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati) },
             )
         }
 
@@ -97,7 +97,7 @@ class ConnectedDevicesViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage(getString(Res.string.msg_impossibile_revocare_il_dispositivo))
+                val message = error.userMessage { getString(Res.string.msg_impossibile_revocare_il_dispositivo) }
                 mutableUiState.value = mutableUiState.value.copy(
                     isMutating = false,
                 )

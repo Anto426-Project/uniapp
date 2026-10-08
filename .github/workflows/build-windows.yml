@@ -1,0 +1,17 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-desktop.yml
+    with:
+      platform: windows
+      desktop_os: windows
+    secrets: inherit

@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+- Messaggi degli errori UniSDK risolti nell’app tramite risorse localizzate, con fallback compatibili con i binari precedenti.
+
+- Ripristinata la rotazione 3D delle card hero e del banner generico con il motore di animazione condiviso Liquid Monet, rispettando la riduzione del movimento.
+
+- Deploy separati per Android, iOS, Windows, Linux e macOS; Linux comprende Debian/Ubuntu e Arch. Avvio esplicito dei publisher, pubblicazione solo di build riuscite e indice dei download per piattaforma sul sito.
+
 - In Tema, unica sezione per sfondo Liquid, fisica e animazioni tra pagine: selettore per gli otto preset animati dell'SDK, con Dissolvenza orizzontale predefinita; preferenze persistenti e verso coerente per navigazione e ritorno indietro. Il controllo globale Riduci movimento gestisce la disattivazione, senza un secondo interruttore per le pagine.
 - Liquid Monet aggiornato alla versione 2.0.36; SDK desktop compilato dalla stessa revisione con versione 2.0.36-desktop.1.
 - Unica transizione dell'SDK nel contenitore generale per pagine, sottopagine e ritorno indietro; cambi di sessione immediati e movimento ridotto gestito dall'SDK.

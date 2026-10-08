@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 from urllib.parse import quote
+from release_metadata import asset_url
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -78,6 +79,8 @@ def publish(plan, repository, deploy_directory, policy, source_repo, revision, r
         remote = release_data(repository, group['tag'])
         missing = verify_existing_assets(repository, remote, group['assets']) if remote else group['assets']
         if group['platform'] == 'android' and group['signing'] == 'release-key':
+            if remote and missing:
+                command('gh', 'release', 'upload', group['tag'], *missing, '--repo', repository)
             publish_signed_android(group, repository, deploy_directory, policy, source_repo, revision)
             # The signed publisher already supplied release/debug APKs; upload other verified assets.
             remote = release_data(repository, group['tag'])
@@ -93,6 +96,26 @@ def publish(plan, repository, deploy_directory, policy, source_repo, revision, r
     update_build_index(plan, deploy_directory, repository, revision, run_id)
 
 
+def platform_index(records):
+    """Latest publication per platform, retaining Linux package variants independently."""
+    platforms = {}
+    for record in sorted(records, key=lambda item: int(item.get('runId', 0))):
+        platform = record.get('platform')
+        if platform not in ('android', 'ios', 'linux', 'windows', 'macos') or not record.get('downloads'):
+            continue
+        previous = platforms.get(platform, {})
+        variants = dict(previous.get('variants', {}))
+        for download in record['downloads']:
+            variant = download['os']
+            if variant not in variants or variants[variant].get('runId') != record['runId']:
+                variants[variant] = dict(version=record['version'], tag=record['tag'],
+                    runId=record['runId'], sourceSha=record['sourceSha'], downloads=[])
+            variants[variant]['downloads'].append(download)
+        platforms[platform] = {key: record[key] for key in ('tag', 'version', 'url', 'signing', 'runId', 'sourceSha')}
+        platforms[platform]['variants'] = variants
+    return dict(schema=1, platforms=platforms)
+
+
 def update_build_index(plan, deploy_directory, repository, revision, run_id):
     # Work only in the clean distribution checkout, preserving all other platforms.
     if subprocess.run(['git', 'status', '--porcelain'], cwd=deploy_directory, text=True, capture_output=True, check=True).stdout:
@@ -106,13 +129,18 @@ def update_build_index(plan, deploy_directory, repository, revision, run_id):
         for group in plan:
             item = dict(tag=group['tag'], platform=group['platform'], signing=group['signing'], version=group['version'],
                         sourceSha=revision, runId=run_id, url=f'https://github.com/{repository}/releases/tag/{quote(group["tag"], safe="+")}')
+            item['downloads'] = [dict(download, url=asset_url(repository, group['tag'], download['name']))
+                                 for download in group.get('downloads', [])]
             records = [old for old in records if old['tag'] != group['tag']] + [item]
         index.parent.mkdir(exist_ok=True)
         index.write_text(json.dumps(records, indent=2) + '\n')
-        paths = ['release/builds.json']
+        latest = deploy_directory / 'release/platforms.json'
+        latest.write_text(json.dumps(platform_index(records), indent=2) + '\n')
+        paths = ['release/builds.json', 'release/platforms.json']
         if (deploy_directory / 'docs').is_dir():
             (deploy_directory / 'docs/builds.json').write_text(index.read_text())
-            paths.append('docs/builds.json')
+            (deploy_directory / 'docs/platforms.json').write_text(latest.read_text())
+            paths.extend(['docs/builds.json', 'docs/platforms.json'])
         command('git', 'add', '--', *paths, cwd=deploy_directory)
         if subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=deploy_directory).returncode == 0:
             return
@@ -134,7 +162,7 @@ def main():
     parser.add_argument('--source-repo', required=True)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--run-id', required=True)
-    parser.add_argument('--platform', choices=['android', 'ios', 'desktop'], required=True)
+    parser.add_argument('--platform', choices=['android', 'ios', 'linux', 'windows', 'macos'], required=True)
     args = parser.parse_args()
     publish(json.loads(args.plan.read_text()), args.repository, args.deploy_directory.resolve(), args.policy.resolve(),
             args.source_repo, args.revision, args.run_id, args.platform)

@@ -75,8 +75,8 @@ framework dell'app usando gli SDK già scaricati. `Config.xcconfig` configura ri
 e collegamento di `ComposeApp`; il team di firma non cambia il bundle identifier.
 Il workflow conserva come file sia l'IPA priva di firma sia il bundle simulatore.
 Ogni piattaforma ha il proprio workflow di pubblicazione: `Publish Android`,
-`Publish iOS` e `Publish Desktop`. Ogni esecuzione pubblica una sola versione della
-piattaforma selezionata. `Build All` avvia le tre build indipendenti.
+`Publish iOS`, `Publish Windows`, `Publish Linux` e `Publish macOS`. Ogni esecuzione pubblica una sola versione della
+piattaforma selezionata. `Build All` avvia le cinque build indipendenti.
 Gli aggiornamenti Android continuano a usare gli APK firmati ufficialmente.
 
 Verifica locale dell'app:

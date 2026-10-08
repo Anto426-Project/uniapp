@@ -69,7 +69,7 @@ class AcademicIdentityViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_badge_studente)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_badge_studente) },
             )
         }
     }

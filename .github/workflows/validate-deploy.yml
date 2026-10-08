@@ -1,0 +1,61 @@
+name: Validate Deployment
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'website/**'
+      - 'docs/build-workflows.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-deploy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_BASE_PATH: /uniapp-upstream
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Verify release scripts and source selection
+        run: |
+          python3 scripts/validate_release.py
+          node --test scripts/tests/resolve_publish_source.test.cjs
+          bash -n scripts/publish_android.sh scripts/publish_website.sh
+      - name: Build the distribution site
+        working-directory: website
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+          npm run check:export
+      - name: Test mobile and desktop downloads
+        working-directory: website
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+      - name: Upload browser failure reports
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: deploy-validation-${{ github.run_id }}
+          path: website/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

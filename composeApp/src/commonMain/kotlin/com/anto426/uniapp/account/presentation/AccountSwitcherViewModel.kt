@@ -1,5 +1,7 @@
 package com.anto426.uniapp.account.presentation
 
+import com.anto426.uniapp.presentation.userMessage
+
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -78,7 +80,7 @@ class AccountSwitcherViewModel(
                 } catch (error: Throwable) {
                     mutableUiState.value.copy(
                         isLoading = false,
-                        errorMessage = error.message ?: getString(Res.string.msg_impossibile_caricare_gli_account),
+                        errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_gli_account) },
                     )
                 }
         }
@@ -130,10 +132,10 @@ class AccountSwitcherViewModel(
                 mutableUiState.update {
                     it.copy(
                         activatingAccountId = null,
-                        errorMessage = error.message ?: getString(Res.string.msg_impossibile_attivare_laccount_2),
+                        errorMessage = error.userMessage { getString(Res.string.msg_impossibile_attivare_laccount_2) },
                     )
                 }
-                toastSink.error(error.message ?: getString(Res.string.msg_impossibile_attivare_laccount))
+                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_attivare_laccount) })
             }
         }
     }
@@ -176,10 +178,10 @@ class AccountSwitcherViewModel(
             } catch (error: Throwable) {
                 mutableUiState.update {
                     it.copy(
-                        profileErrorMessage = error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo_2),
+                        profileErrorMessage = error.userMessage { getString(Res.string.msg_impossibile_attivare_il_profilo_2) },
                     )
                 }
-                toastSink.error(error.message ?: getString(Res.string.msg_impossibile_attivare_il_profilo))
+                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_attivare_il_profilo) })
             } finally {
                 mutableUiState.update { it.copy(activatingProfileId = null) }
             }

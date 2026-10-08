@@ -24,3 +24,23 @@ export interface ScreenshotItem {
   title: string;
   description: string;
 }
+
+export interface PlatformDownload {
+  name: string;
+  os: string;
+  url: string;
+  sha256: string;
+}
+
+export interface PlatformRelease {
+  version: string;
+  tag: string;
+  url: string;
+  signing: 'unsigned' | 'release-key';
+  variants: Record<string, { version: string; downloads: PlatformDownload[] }>;
+}
+
+export interface PlatformManifest {
+  schema: number;
+  platforms: Partial<Record<'android' | 'ios' | 'windows' | 'linux' | 'macos', PlatformRelease>>;
+}

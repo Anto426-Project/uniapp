@@ -88,7 +88,7 @@ class ExamsViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_gli_appelli)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_gli_appelli) },
             )
         }
 
@@ -118,7 +118,7 @@ class ExamsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage(getString(Res.string.msg_operazione_sull_appello_non_riuscita))
+                val message = error.userMessage { getString(Res.string.msg_operazione_sull_appello_non_riuscita) }
                 toastSink.error(message)
             } finally {
                 mutableUiState.value = mutableUiState.value.copy(mutatingExamId = null)

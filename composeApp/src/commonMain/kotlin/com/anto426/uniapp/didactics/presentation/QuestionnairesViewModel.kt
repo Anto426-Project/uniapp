@@ -66,7 +66,7 @@ class QuestionnairesViewModel(private val dataSource: UniAppDataSource) : ViewMo
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_questionari)),
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_questionari) },
             )
         }
 

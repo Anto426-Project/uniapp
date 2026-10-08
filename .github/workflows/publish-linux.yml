@@ -1,10 +1,10 @@
-name: Publish iOS
+name: Publish Linux
 
 on:
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: 'Successful ios build run ID (empty for the latest successful build)'
+        description: 'Successful linux build run ID (empty for the latest successful build)'
         required: false
         type: string
 
@@ -17,6 +17,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/publish-build.yml
     with:
-      platform: ios
+      platform: linux
       source_run_id: ${{ inputs.source_run_id }}
     secrets: inherit

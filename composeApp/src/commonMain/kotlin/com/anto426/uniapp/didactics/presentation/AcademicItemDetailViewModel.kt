@@ -68,7 +68,7 @@ class AcademicItemDetailViewModel(
             mutableUiState.value =
                 AcademicItemDetailUiState(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_il_dettaglio)),
+                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_dettaglio) },
                 )
         }
 

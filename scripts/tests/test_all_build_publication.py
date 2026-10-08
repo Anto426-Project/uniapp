@@ -65,6 +65,79 @@ class AllBuildPublicationTest(unittest.TestCase):
         self.assertEqual(4, len(group['inputs']))
         self.assertEqual(4, sum(Path(name).suffix == '.zip' for name in group['assets']))
 
+    def test_linux_variants_share_one_linux_release(self):
+        for variant in ('linux', 'archlinux'):
+            directory, context = self.artifact('linux', operating_system=variant)
+            context['requestedVariants'] = ['linux', 'archlinux']
+            (directory / 'context.json').write_text(json.dumps(context))
+        group, = collector.collect(self.incoming, self.root / 'plan', self.repository, self.revision, '123', 'linux')
+        self.assertEqual('linux-v2.0.14+9', group['tag'])
+        self.assertEqual({'linux', 'archlinux'}, {file['os'] for file in group['downloads']})
+
+    def test_legacy_windows_recovery_creates_a_windows_release(self):
+        self.artifact('desktop', operating_system='windows')
+        group, = collector.collect(self.incoming, self.root / 'plan', self.repository, self.revision, '123', 'windows')
+        self.assertEqual('windows-v2.0.14+9', group['tag'])
+        self.assertEqual('windows', group['platform'])
+
+    def test_linux_cannot_publish_a_missing_requested_variant(self):
+        directory, context = self.artifact('linux', operating_system='linux')
+        context['requestedVariants'] = ['linux', 'archlinux']
+        (directory / 'context.json').write_text(json.dumps(context))
+        with self.assertRaisesRegex(ValueError, 'requested desktop variants'):
+            self.collect()
+
+    def test_linux_and_windows_cannot_be_published_together(self):
+        self.artifact('linux', operating_system='linux')
+        self.artifact('windows', operating_system='windows')
+        with self.assertRaisesRegex(ValueError, 'selected platform'):
+            self.collect()
+
+    def test_desktop_package_cannot_claim_a_different_os_family(self):
+        directory, context = self.artifact('windows', operating_system='linux')
+        with self.assertRaisesRegex(ValueError, 'another platform'):
+            collector.validate(context, directory, self.repository, self.revision, '123')
+
+    def test_desktop_variants_must_agree_on_build_number(self):
+        self.artifact('linux', operating_system='linux')
+        directory, context = self.artifact('linux', operating_system='archlinux')
+        context['runNumber'] = '10'
+        (directory / 'context.json').write_text(json.dumps(context))
+        with self.assertRaisesRegex(ValueError, 'build number'):
+            self.collect()
+
+    def test_current_index_retains_other_linux_variant_and_rejects_older_results(self):
+        def record(run, os, version):
+            return dict(tag=f'linux-{run}', platform='linux', signing='unsigned', version=version,
+                sourceSha=self.revision, runId=str(run), url=f'https://example.test/{run}',
+                downloads=[dict(os=os, name=f'{os}.zip', sha256='a' * 64, url=f'https://example.test/{run}/{os}.zip')])
+        old = record(123, 'linux', '2.0.14')
+        arch = record(124, 'archlinux', '2.0.14')
+        new = record(125, 'linux', '2.0.15')
+        current = publisher.platform_index([new, arch, old])['platforms']['linux']
+        self.assertEqual('2.0.15', current['version'])
+        self.assertEqual('2.0.15', current['variants']['linux']['version'])
+        self.assertEqual('2.0.14', current['variants']['archlinux']['version'])
+        self.assertEqual('https://example.test/125/linux.zip', current['variants']['linux']['downloads'][0]['url'])
+
+    def test_immutable_asset_comparison_skips_existing_identical_files(self):
+        path = self.root / 'app.zip'
+        path.write_bytes(b'package')
+        release = {'assets': [dict(name='app.zip', id=1, digest='sha256:' + hashlib.sha256(b'package').hexdigest())]}
+        with patch.object(publisher.subprocess, 'run') as run:
+            self.assertEqual([], publisher.verify_existing_assets('owner/repo', release, [str(path)]))
+            run.assert_not_called()
+
+    def test_immutable_asset_comparison_rejects_changed_published_files(self):
+        path = self.root / 'app.zip'
+        path.write_bytes(b'new package')
+        release = {'assets': [dict(name='app.zip', id=1, digest='sha256:' + 'b' * 64)]}
+        def download(*args, **kwargs):
+            kwargs['stdout'].write(b'old package')
+        with patch.object(publisher.subprocess, 'run', side_effect=download):
+            with self.assertRaisesRegex(ValueError, 'immutable release asset differs'):
+                publisher.verify_existing_assets('owner/repo', release, [str(path)])
+
     def test_legacy_sdk_metadata_is_verified_but_not_attached_to_releases(self):
         directory, context = self.artifact('desktop', operating_system='archlinux')
         name = 'sdk-binaries-archlinux.json'

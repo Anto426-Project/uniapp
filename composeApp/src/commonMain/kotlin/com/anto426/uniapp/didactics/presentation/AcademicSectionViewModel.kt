@@ -77,7 +77,7 @@ class AcademicSectionViewModel(
             mutableUiState.update {
                 it.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage(getString(Res.string.msg_impossibile_caricare_i_dati_della_docenza)),
+                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_dati_della_docenza) },
                 )
             }
         }
