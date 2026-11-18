@@ -17,12 +17,13 @@ import com.anto426.uniapp.didactics.presentation.ExamsUiState
 import com.anto426.uniapp.ui.components.items.ExamSessionItem
 import com.anto426.uniapp.ui.components.items.ProfessorExamItem
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
-import com.anto426.unisdk.backend.model.ProfessorContentItem
+import com.anto426.unisdk.model.ProfessorContentItem
 
 @Composable
 fun ExamsScreen(
     uiState: ExamsUiState,
     onTabSelected: (Int) -> Unit,
+    showTabs: Boolean = true,
     onToggleBooking: (String) -> Unit,
     onProfessorExamClick: (ProfessorContentItem) -> Unit = {},
     onAddToCalendar: (String) -> Unit,
@@ -40,7 +41,7 @@ fun ExamsScreen(
         )
     )
     UniScreenLazyColumn {
-        if (!uiState.isProfessor) {
+        if (!uiState.isProfessor && showTabs) {
             item(key = "exam-tabs") {
                 LiquidTabBar(
                     items = studentTabs,

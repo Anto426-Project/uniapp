@@ -609,7 +609,7 @@
     <string name="nav_route_colors_subtitle">Sperimentazione palette</string>
     <string name="nav_route_taxes_title">Tasse</string>
     <string name="nav_route_taxes_subtitle">Gestione pagamenti e fatture</string>
-    <string name="nav_route_grades_title">Media e voti</string>
+    <string name="nav_route_grades_title">Statistiche e simulatore</string>
     <string name="nav_route_grades_subtitle">Calcolo media e simulazione</string>
     <string name="nav_route_statistics_title">Statistiche</string>
     <string name="nav_route_statistics_subtitle">Grafici e andamento carriera</string>
@@ -627,8 +627,8 @@
     <string name="nav_route_ticket_detail_subtitle">Info titolo di viaggio</string>
     <string name="nav_route_reservation_detail_default_title">Prenotazione</string>
     <string name="nav_route_reservation_detail_subtitle">Info posto a bordo</string>
-    <string name="nav_route_transcripts_title">Libretto</string>
-    <string name="nav_route_transcripts_subtitle">Voti e CFU registrati</string>
+    <string name="nav_route_transcripts_title">Carriera</string>
+    <string name="nav_route_transcripts_subtitle">Esami sostenuti e piano di studi</string>
     <string name="nav_route_exams_title">Appelli</string>
     <string name="nav_route_exams_student_subtitle">Prenotazione esami</string>
     <string name="nav_route_exams_professor_subtitle">Prenotazioni, commissioni e verbali</string>
@@ -1007,7 +1007,7 @@
     <string name="service_student_office_title">Segreteria</string>
     <string name="service_student_office_sub">Ticket e supporto</string>
     <string name="portal_student_esse3_title">Esse3</string>
-    <string name="portal_student_esse3_sub">Esami e carriera</string>
+    <string name="portal_student_esse3_sub">Portale ufficiale Esse3</string>
     <string name="portal_student_moodle_title">Moodle</string>
     <string name="portal_student_moodle_sub">Corsi e materiale</string>
     <string name="portal_student_web_title">Portale web</string>
@@ -1026,9 +1026,9 @@
     <string name="portal_prof_web_sub">Sito istituzionale</string>
     <string name="portal_prof_library_title">Biblioteca</string>
     <string name="portal_prof_library_sub">Cataloghi e servizi bibliotecari</string>
-    <string name="quick_action_libretto_title">Libretto</string>
+    <string name="quick_action_libretto_title">Carriera</string>
     <string name="quick_action_libretto_sub">Voti e CFU</string>
-    <string name="quick_action_statistiche_title">Statistiche</string>
+    <string name="quick_action_statistiche_title">Statistiche e simulatore</string>
     <string name="quick_action_statistiche_sub">Grafici e andamento</string>
     <string name="quick_action_media_title">Media</string>
     <string name="quick_action_media_sub">Simulazione</string>
@@ -1462,4 +1462,13 @@
     <string name="sdk_error_update_cineca_error">Errore aggiornamento Cineca</string>
     <string name="sdk_error_update_survey_proxy_error">Errore proxy questionari</string>
     <string name="sdk_error_username_missing">La sessione non è disponibile. Accedi nuovamente.</string>
+    <string name="ui_career_completed">Sostenuti</string>
+    <string name="ui_career_plan">Piano di studi</string>
+    <string name="ui_grades_real">Andamento</string>
+    <string name="ui_grades_projection">Proiezioni</string>
+    <string name="ui_grades_official">Dati della carriera</string>
+    <string name="ui_grades_real_description">Andamento dagli esami registrati, con ultimo valore allineato alla media ufficiale quando disponibile.</string>
+    <string name="ui_grades_projected_description">Proiezione dei soli esami attivati nel simulatore. Non modifica la carriera.</string>
+    <string name="ui_grades_recent_trend">Variazione recente della media</string>
+    <string name="ui_services_in_app_soon">In app presto</string>
 </resources>

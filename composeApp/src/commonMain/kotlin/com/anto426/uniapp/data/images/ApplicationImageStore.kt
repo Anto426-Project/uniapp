@@ -10,7 +10,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.Url
-import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readBuffer
 import kotlinx.io.readByteArray
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -71,7 +71,8 @@ internal class ApplicationImageStore(
                 val response = client.get(url) { this.url.parameters["s"] = "256" }
                 check(response.status.value in 200..299)
                 val channel = response.bodyAsChannel()
-                val bytes = try { channel.readRemaining(MAX_BYTES + 1).readByteArray() }
+                val bytes = try {
+                    channel.readBuffer(MAX_BYTES + 1).readByteArray() }
                     finally { channel.cancel(null) }
                 check(bytes.isNotEmpty() && bytes.size <= MAX_BYTES)
                 val record = CachedApplicationImage(url, nowMillis(), bytes)

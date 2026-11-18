@@ -18,24 +18,22 @@ import com.anto426.uniapp.model.services.TaxPaymentData
 import com.anto426.uniapp.model.settings.DeviceInfo
 import com.anto426.uniapp.model.settings.DeviceType
 import com.anto426.uniapp.model.transport.TransportReservation
-import com.anto426.uniapp.model.transport.TransportRoute
-import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.model.transport.TripDirection
-import com.anto426.unisdk.backend.model.AttendanceRecord
-import com.anto426.unisdk.backend.model.CareerData
-import com.anto426.unisdk.backend.model.ConnectedDeviceData
-import com.anto426.unisdk.backend.model.CourseSyllabusData
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.StudyPlanData
-import com.anto426.unisdk.backend.model.TaxesData
-import com.anto426.unisdk.backend.model.UniversityContact
-import com.anto426.unisdk.backend.model.UniversityNews
+import com.anto426.unisdk.model.AttendanceRecord
+import com.anto426.unisdk.model.Career
+import com.anto426.unisdk.model.ConnectedDevice
+import com.anto426.unisdk.model.CourseSyllabus
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.StudyPlan
+import com.anto426.unisdk.model.Taxes
+import com.anto426.unisdk.model.UniversityContact
+import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.displayFor
 import com.anto426.unisdk.transport.parseTransportTravelDate
 
-internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<ExamRecord> {
+internal fun Career.toExamRecords(studyPlan: StudyPlan? = null): List<ExamRecord> {
     val validExams = exams.filter { it.grade.isValidExamGrade() || (it.date.isNotBlank() && it.date != "-") }
     val courses = studyPlan?.courses.orEmpty()
     val yearsById = courses.mapNotNull { course ->
@@ -43,7 +41,7 @@ internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<Ex
         if (!id.isNullOrBlank()) id to course else null
     }.groupBy({ it.first }, { it.second })
     val yearsByName = courses.groupBy { it.title.trim().lowercase() }
-    fun uniqueYear(candidates: List<com.anto426.unisdk.backend.model.StudyPlanCourseData>?): Int? =
+    fun uniqueYear(candidates: List<com.anto426.unisdk.model.StudyPlanCourse>?): Int? =
         candidates.orEmpty().mapNotNull { it.year?.takeIf { year -> year > 0 } }.distinct().singleOrNull()
     return validExams.map { exam ->
         val examAdsceId = exam.adsceId?.trim()
@@ -66,13 +64,13 @@ internal fun CareerData.toExamRecords(studyPlan: StudyPlanData? = null): List<Ex
     }
 }
 
-internal fun CareerData.toGradeExams(): List<GradeExam> =
+internal fun Career.toGradeExams(): List<GradeExam> =
     exams.mapNotNull { exam ->
         val grade = exam.grade.numericGradeOrNull() ?: return@mapNotNull null
         GradeExam(exam.name, grade, exam.cfu ?: 0)
     }
 
-internal fun List<ExamRoundData>.toExamSessions(): List<ExamSession> =
+internal fun List<ExamRound>.toExamSessions(): List<ExamSession> =
     map { round ->
         val date = round.dateTime.substringBefore(' ').substringBefore('T')
         val time =
@@ -96,16 +94,16 @@ internal fun List<ExamRoundData>.toExamSessions(): List<ExamSession> =
             canBook = round.isBookable,
             isBooked = round.booked,
             id = round.stableUiId(),
-            isBookingFuture = round.bookingState == com.anto426.unisdk.backend.model.ExamRoundBookingState.FUTURE,
+            isBookingFuture = round.bookingState == com.anto426.unisdk.model.ExamRoundBookingState.FUTURE,
         )
     }
 
-internal fun List<ExamRoundData>.toSimulationPresets(): List<GradeSimulationPreset> =
-    filterNot(ExamRoundData::booked)
-        .distinctBy(ExamRoundData::courseName)
+internal fun List<ExamRound>.toSimulationPresets(): List<GradeSimulationPreset> =
+    filterNot(ExamRound::booked)
+        .distinctBy(ExamRound::courseName)
         .map { GradeSimulationPreset(it.courseName, cfu = 6, initialGrade = 24) }
 
-internal fun StudyPlanData.toStudyYears(career: CareerData? = null): List<StudyYear> {
+internal fun StudyPlan.toStudyYears(career: Career? = null): List<StudyYear> {
     val examsByAdsceId = career?.exams.orEmpty()
         .filter { !it.adsceId.isNullOrBlank() }
         .associateBy { it.adsceId!!.trim() }
@@ -141,9 +139,9 @@ internal fun StudyPlanData.toStudyYears(career: CareerData? = null): List<StudyY
         }
 }
 
-internal fun CourseSyllabusData.toStudyCourse(
-    studyPlanCourse: com.anto426.unisdk.backend.model.StudyPlanCourseData? = null,
-    careerExam: com.anto426.unisdk.backend.model.CareerExamData? = null,
+internal fun CourseSyllabus.toStudyCourse(
+    studyPlanCourse: com.anto426.unisdk.model.StudyPlanCourse? = null,
+    careerExam: com.anto426.unisdk.model.CareerExam? = null,
 ): StudyCourse {
     val effectiveCfu = studyPlanCourse?.cfu?.let { "$it CFU" }
         ?: cfu?.let { "$it CFU" }
@@ -176,7 +174,7 @@ internal fun CourseSyllabusData.toStudyCourse(
     )
 }
 
-internal fun TaxesData.toTaxPayments(): List<TaxPaymentData> =
+internal fun Taxes.toTaxPayments(): List<TaxPaymentData> =
     installments.map { installment ->
         TaxPaymentData(
             title = installment.title,
@@ -280,7 +278,7 @@ private fun String.newsDateSortKey(): Long {
         ?.plus(day.toLongOrNull() ?: 0L) ?: Long.MIN_VALUE
 }
 
-internal fun List<ConnectedDeviceData>.toDeviceInfo(): List<DeviceInfo> =
+internal fun List<ConnectedDevice>.toDeviceInfo(): List<DeviceInfo> =
     map { device ->
         DeviceInfo(
             name = listOfNotNull(device.manufacturer, device.model).joinToString(" ").ifBlank { "Dispositivo" },
@@ -317,28 +315,13 @@ internal fun TransportData.toReservations(): List<TransportReservation> =
         )
     }
 
-internal fun TransportData.toRoutes(): List<TransportRoute> =
-    availableRoutes.map { route -> TransportRoute(route.label, "Ogni 15 min", "In arrivo") }
-
-internal fun TransportData.toTickets(): List<TransportTicket> =
-    availableRoutes.mapIndexed { index, route ->
-        TransportTicket(
-            id = route.code,
-            title = route.label,
-            price = if (index % 2 == 0) "Gratuito" else "€ 1,50",
-            validity = "Valido per 90 min",
-            type = if (index % 2 == 0) "Navetta Studenti" else "Linea Urbana",
-            icon = LiquidIcons.Time,
-        )
-    }
-
-internal fun ExamRoundData.stableUiId(): String =
+internal fun ExamRound.stableUiId(): String =
     listOf(cdsId, adId, adsceId, appId, courseName, dateTime)
         .joinToString("|") { part -> part.orEmpty().trim().let { "${it.length}:$it" } }
 
 private fun String?.examBookingBoundaryLabel(): String {
     val value = this?.trim().orEmpty()
-    val parsed = com.anto426.unisdk.backend.model.parseExamRoundDateTimeOrNull(value) ?: return value
+    val parsed = com.anto426.unisdk.model.parseExamRoundDateTimeOrNull(value) ?: return value
     val date = parsed.date
     val label = "${date.day.toString().padStart(2, '0')}/${date.month.number.toString().padStart(2, '0')}/${date.year}"
     return if (Regex("""(?:T|\s)\d{1,2}:\d{2}""").containsMatchIn(value))

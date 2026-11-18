@@ -8,12 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toReservations
-import com.anto426.uniapp.data.toTickets
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.model.transport.TransportReservation
-import com.anto426.uniapp.model.transport.TransportTicket
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
@@ -131,41 +129,4 @@ class ReservationDetailViewModel(
             }
         }
     }
-}
-
-data class TicketDetailUiState(
-    val ticket: TransportTicket? = null,
-    val loadState: FeatureLoadState = FeatureLoadState.Loading,
-    val errorMessage: String? = null,
-)
-
-class TicketDetailViewModel(
-    private val ticketId: String,
-    private val dataSource: UniAppDataSource,
-) : ViewModel() {
-    private val mutableUiState = MutableStateFlow(TicketDetailUiState())
-    val uiState: StateFlow<TicketDetailUiState> = mutableUiState.asStateFlow()
-
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Transport)
-    private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        try {
-            val ticket = snapshot.require(UniAppDataRequests.Transport).toTickets().firstOrNull { it.id == ticketId }
-            mutableUiState.value = mutableUiState.value.copy(
-                ticket = ticket,
-                loadState = if (ticket == null) FeatureLoadState.Empty else FeatureLoadState.Content,
-            )
-            snapshot.throwIfFailed()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Throwable) {
-            mutableUiState.value = mutableUiState.value.copy(
-                loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_la_linea) },
-            )
-        }
-    
-    }
-
-    fun refresh(force: Boolean = false) { sharedData.refresh(dataRequests, force) }
 }

@@ -3,7 +3,7 @@ package com.anto426.uniapp.settings.presentation
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
-import com.anto426.unisdk.backend.model.ConnectedDeviceData
+import com.anto426.unisdk.model.ConnectedDevice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -50,13 +50,13 @@ class ConnectedDevicesViewModelTest {
         object : FakeUniAppDataSource() {
             override suspend fun loadConnectedDevices(forceRefresh: Boolean) =
                 listOf(
-                    ConnectedDeviceData(
+                    ConnectedDevice(
                         lastLogin = "adesso",
                         model = "OnePlus",
                         token = "current-token",
                         isCurrentDevice = true,
                     ),
-                    ConnectedDeviceData(
+                    ConnectedDevice(
                         lastLogin = "ieri",
                         model = "Browser",
                         token = "other-token",

@@ -10,8 +10,6 @@ import com.anto426.uniapp.model.legal.LegalSectionData
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.model.services.ServiceData
 import com.anto426.uniapp.model.settings.LanguageInfo
-import com.anto426.uniapp.model.updates.ChangelogItemData
-import com.anto426.uniapp.model.updates.ChangelogVersionData
 import uniapp.composeapp.generated.resources.*
 
 /**
@@ -25,6 +23,13 @@ object UniAppInitialData {
         ServiceData(titleRes = Res.string.service_student_taxes_title, subtitleRes = Res.string.service_student_taxes_sub, icon = LiquidIcons.CreditCard, id = "taxes"),
         ServiceData(titleRes = Res.string.service_student_contacts_title, subtitleRes = Res.string.service_student_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
         ServiceData(titleRes = Res.string.nav_route_news_title, subtitleRes = Res.string.nav_route_news_subtitle, icon = LiquidIcons.Notifications, id = "news"),
+        ServiceData(
+            titleRes = Res.string.portal_prof_library_title,
+            subtitleRes = Res.string.portal_prof_library_sub,
+            icon = LiquidIcons.MenuBook,
+            id = "library",
+            badgeLabelRes = Res.string.ui_services_in_app_soon,
+        ),
     )
 
     val universityPortals = listOf(
@@ -32,26 +37,29 @@ object UniAppInitialData {
         ServiceData(titleRes = Res.string.portal_student_moodle_title, subtitleRes = Res.string.portal_student_moodle_sub, icon = LiquidIcons.MenuBook, id = "moodle"),
         ServiceData(titleRes = Res.string.portal_student_web_title, subtitleRes = Res.string.portal_student_web_sub, icon = LiquidIcons.Home, id = "university-web"),
         ServiceData(titleRes = Res.string.service_student_office_title, subtitleRes = Res.string.service_student_office_sub, icon = LiquidIcons.Assignment, id = "student-office"),
-        ServiceData(titleRes = Res.string.portal_prof_library_title, subtitleRes = Res.string.portal_prof_library_sub, icon = LiquidIcons.MenuBook, id = "library"),
         ServiceData(titleRes = Res.string.portal_student_email_title, subtitleRes = Res.string.portal_student_email_sub, icon = LiquidIcons.Notifications, id = "email"),
     )
 
     val professorServices = listOf(
         ServiceData(titleRes = Res.string.service_prof_contacts_title, subtitleRes = Res.string.service_prof_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
-        ServiceData(titleRes = Res.string.service_prof_teachers_title, subtitleRes = Res.string.service_prof_teachers_sub, icon = LiquidIcons.AccountCircle, id = "professors"),
+        ServiceData(
+            titleRes = Res.string.portal_prof_library_title,
+            subtitleRes = Res.string.portal_prof_library_sub,
+            icon = LiquidIcons.MenuBook,
+            id = "library",
+            badgeLabelRes = Res.string.ui_services_in_app_soon,
+        ),
     )
 
     val professorPortals = listOf(
         ServiceData(titleRes = Res.string.portal_prof_esse3_title, subtitleRes = Res.string.portal_prof_esse3_sub, icon = LiquidIcons.MenuBook, id = "esse3"),
         ServiceData(titleRes = Res.string.portal_prof_moodle_title, subtitleRes = Res.string.portal_prof_moodle_sub, icon = LiquidIcons.MenuBook, id = "moodle"),
         ServiceData(titleRes = Res.string.portal_prof_web_title, subtitleRes = Res.string.portal_prof_web_sub, icon = LiquidIcons.Home, id = "university-web"),
-        ServiceData(titleRes = Res.string.portal_prof_library_title, subtitleRes = Res.string.portal_prof_library_sub, icon = LiquidIcons.MenuBook, id = "library"),
     )
 
     val allQuickActions = listOf(
         QuickActionItem("libretto", Res.string.quick_action_libretto_title, Res.string.quick_action_libretto_sub, LiquidIcons.MenuBook),
         QuickActionItem("statistiche", Res.string.quick_action_statistiche_title, Res.string.quick_action_statistiche_sub, LiquidIcons.Analytics),
-        QuickActionItem("media", Res.string.quick_action_media_title, Res.string.quick_action_media_sub, LiquidIcons.Analytics),
         QuickActionItem("appelli", Res.string.quick_action_appelli_title, Res.string.quick_action_appelli_sub, LiquidIcons.Calendar),
         QuickActionItem("didattica", Res.string.quick_action_didattica_title, Res.string.quick_action_didattica_sub, LiquidIcons.Assignment),
         QuickActionItem("trasporti", Res.string.quick_action_trasporti_title, Res.string.quick_action_trasporti_sub, LiquidIcons.Time),
@@ -70,18 +78,6 @@ object UniAppInitialData {
         QuickActionItem("verbali", Res.string.quick_action_prof_verbali_title, Res.string.quick_action_prof_verbali_sub, LiquidIcons.Edit),
         QuickActionItem("rubrica", Res.string.quick_action_prof_rubrica_title, Res.string.quick_action_prof_rubrica_sub, LiquidIcons.AccountCircle),
         QuickActionItem("notifiche", Res.string.nav_route_news_title, Res.string.nav_route_news_subtitle, LiquidIcons.Notifications),
-    )
-
-    val changelog = listOf(
-        ChangelogVersionData("v1.0.0", Res.string.changelog_v1_0_0_date, listOf(
-            ChangelogItemData("NEW", Color(0xFF4A90D9), Res.string.changelog_v1_0_0_item_1_title, Res.string.changelog_v1_0_0_item_1_desc),
-            ChangelogItemData("NEW", Color(0xFF4A90D9), Res.string.changelog_v1_0_0_item_2_title, Res.string.changelog_v1_0_0_item_2_desc),
-            ChangelogItemData("FIXED", Color(0xFF00C853), Res.string.changelog_v1_0_0_item_3_title, Res.string.changelog_v1_0_0_item_3_desc),
-        )),
-        ChangelogVersionData("v0.9.5", Res.string.changelog_v0_9_5_date, listOf(
-            ChangelogItemData("IMPROVED", Color(0xFFFFAB00), Res.string.changelog_v0_9_5_item_1_title, Res.string.changelog_v0_9_5_item_1_desc),
-            ChangelogItemData("FIXED", Color(0xFF00C853), Res.string.changelog_v0_9_5_item_2_title, Res.string.changelog_v0_9_5_item_2_desc),
-        )),
     )
 
     val appInfoSections = listOf(

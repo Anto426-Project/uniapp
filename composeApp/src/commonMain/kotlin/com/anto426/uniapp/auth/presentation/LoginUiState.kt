@@ -1,6 +1,6 @@
 package com.anto426.uniapp.auth.presentation
 
-import com.anto426.unisdk.backend.model.LoginCareerOption
+import com.anto426.unisdk.model.LoginCareerOption
 
 data class LoginUiState(
     val username: String = "",

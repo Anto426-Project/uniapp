@@ -67,9 +67,6 @@ sealed interface AppRoute : NavKey {
     data object Grades : AppRoute
 
     @Serializable
-    data object Statistics : AppRoute
-
-    @Serializable
     data object Contacts : AppRoute
 
     @Serializable
@@ -79,16 +76,7 @@ sealed interface AppRoute : NavKey {
     data object Transport : AppRoute
 
     @Serializable
-    data object TransportCatalog : AppRoute
-
-    @Serializable
     data object TransportBooking : AppRoute
-
-    @Serializable
-    data class TicketDetail(
-        val ticketId: String,
-        val title: String = "",
-    ) : AppRoute
 
     @Serializable
     data class ReservationDetail(
@@ -97,16 +85,10 @@ sealed interface AppRoute : NavKey {
     ) : AppRoute
 
     @Serializable
-    data object Transcripts : AppRoute
+    data class Transcripts(val initialTab: Int = 0) : AppRoute
 
     @Serializable
-    data object Exams : AppRoute
-
-    @Serializable
-    data object ExamsHistory : AppRoute
-
-    @Serializable
-    data object StudyPlan : AppRoute
+    data class Exams(val initialTab: Int = 0) : AppRoute
 
     @Serializable
     data class CourseDetail(val courseId: String) : AppRoute

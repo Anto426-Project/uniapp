@@ -13,6 +13,7 @@ internal val AppNavigationSavedStateConfiguration =
         serializersModule =
             SerializersModule {
                 polymorphic(NavKey::class) {
+                    defaultDeserializer { legacyAppRoute(it) }
                     subclass(AppRoute.Bootstrap::class, AppRoute.Bootstrap.serializer())
                     subclass(AppRoute.Login::class, AppRoute.Login.serializer())
                     subclass(AppRoute.Home::class, AppRoute.Home.serializer())
@@ -31,18 +32,13 @@ internal val AppNavigationSavedStateConfiguration =
                     subclass(AppRoute.Colors::class, AppRoute.Colors.serializer())
                     subclass(AppRoute.Taxes::class, AppRoute.Taxes.serializer())
                     subclass(AppRoute.Grades::class, AppRoute.Grades.serializer())
-                    subclass(AppRoute.Statistics::class, AppRoute.Statistics.serializer())
                     subclass(AppRoute.Contacts::class, AppRoute.Contacts.serializer())
                     subclass(AppRoute.ContactDetail::class, AppRoute.ContactDetail.serializer())
                     subclass(AppRoute.Transport::class, AppRoute.Transport.serializer())
-                    subclass(AppRoute.TransportCatalog::class, AppRoute.TransportCatalog.serializer())
                     subclass(AppRoute.TransportBooking::class, AppRoute.TransportBooking.serializer())
-                    subclass(AppRoute.TicketDetail::class, AppRoute.TicketDetail.serializer())
                     subclass(AppRoute.ReservationDetail::class, AppRoute.ReservationDetail.serializer())
                     subclass(AppRoute.Transcripts::class, AppRoute.Transcripts.serializer())
                     subclass(AppRoute.Exams::class, AppRoute.Exams.serializer())
-                    subclass(AppRoute.ExamsHistory::class, AppRoute.ExamsHistory.serializer())
-                    subclass(AppRoute.StudyPlan::class, AppRoute.StudyPlan.serializer())
                     subclass(AppRoute.CourseDetail::class, AppRoute.CourseDetail.serializer())
                     subclass(AppRoute.Questionnaires::class, AppRoute.Questionnaires.serializer())
                     subclass(AppRoute.Questionnaire::class, AppRoute.Questionnaire.serializer())

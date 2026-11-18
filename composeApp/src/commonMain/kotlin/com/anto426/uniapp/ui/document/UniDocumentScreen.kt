@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,8 +36,9 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.uniapp.model.legal.LegalSectionData
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.updates.presentation.ChangelogUiState
+import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.kyant.shapes.RoundedRectangle
 
 /**
  * Single unified document screen for textual reading experiences:
@@ -68,67 +68,69 @@ fun UniDocumentScreen(
         if (!title.isNullOrBlank()) {
             LiquidCard(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = 14.dp,
+                shape = RoundedRectangle(24.dp),
+                contentPadding = 18.dp,
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (headerIcon != null) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .background(
-                                    color = colorScheme.primary.copy(alpha = 0.12f),
-                                    shape = RoundedCornerShape(12.dp),
-                                ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = headerIcon,
-                                contentDescription = null,
-                                tint = colorScheme.primary,
-                                modifier = Modifier.size(20.dp),
-                            )
+                        if (headerIcon != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(
+                                        color = colorScheme.primary.copy(alpha = 0.14f),
+                                        shape = RoundedRectangle(13.dp),
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = headerIcon,
+                                    contentDescription = null,
+                                    tint = colorScheme.primary,
+                                    modifier = Modifier.size(21.dp),
+                                )
+                            }
                         }
-                    }
 
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        if (!headerBadge.isNullOrBlank()) {
-                            LiquidBadge(
-                                text = headerBadge,
-                                containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                                contentColor = colorScheme.primary,
-                            )
-                            Spacer(Modifier.height(2.dp))
-                        }
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurface,
-                            fontSize = 17.sp,
-                            lineHeight = 23.sp,
-                        )
-                        if (!subtitle.isNullOrBlank()) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            if (!headerBadge.isNullOrBlank()) {
+                                LiquidBadge(
+                                    text = headerBadge,
+                                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                                    contentColor = colorScheme.primary,
+                                )
+                                Spacer(Modifier.height(2.dp))
+                            }
                             Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colorScheme.onSurfaceVariant,
-                                lineHeight = 17.sp,
+                                text = title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onSurface,
+                                fontSize = 18.sp,
+                                lineHeight = 24.sp,
                             )
+                            if (!subtitle.isNullOrBlank()) {
+                                Text(
+                                    text = subtitle,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colorScheme.onSurfaceVariant,
+                                    lineHeight = 17.sp,
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedRectangle(24.dp),
             contentPadding = 20.dp,
         ) {
             RichMarkdownDocument(

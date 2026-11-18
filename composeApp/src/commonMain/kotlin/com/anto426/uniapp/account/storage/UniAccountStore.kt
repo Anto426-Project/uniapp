@@ -10,7 +10,7 @@ import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountRegistrySnapshot
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.model.UniAccountProfileSummary
-import com.anto426.unisdk.backend.model.BackendCareerType
+import com.anto426.unisdk.model.CareerType
 import com.anto426.uniapp.account.platform.generateAccountStorageIdentifier
 import com.anto426.unisdk.session.UniCredentials
 import com.anto426.unisdk.session.UniSessionTicket
@@ -461,7 +461,7 @@ private data class StoredAccount(
     val isGuest: Boolean,
     val activeProfileId: String? = null,
     val profiles: List<StoredAccountProfile> = emptyList(),
-    val activeProfileType: BackendCareerType = BackendCareerType.STUDENT,
+    val activeProfileType: CareerType = CareerType.STUDENT,
 ) {
     fun toSummary(): UniAccountSummary =
         UniAccountSummary(
@@ -492,7 +492,7 @@ private data class StoredAccountProfile(
     val dipId: String? = null,
     val departmentName: String? = null,
     val teacherId: String? = null,
-    val type: BackendCareerType = BackendCareerType.STUDENT,
+    val type: CareerType = CareerType.STUDENT,
 ) {
     fun toSummary(): UniAccountProfileSummary =
         UniAccountProfileSummary(

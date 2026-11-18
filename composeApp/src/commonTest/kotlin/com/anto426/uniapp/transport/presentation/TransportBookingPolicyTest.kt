@@ -9,7 +9,7 @@ import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportDirection
-import com.anto426.unisdk.transport.TransportRouteData
+import com.anto426.unisdk.transport.TransportRoute
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
@@ -96,7 +96,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             val resultMessage = CompletableDeferred<AppToastMessage>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
-                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRouteData("A01", "Campus A/R")),
+                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRoute("A01", "Campus A/R")),
                     bookings = emptyList(), totalCount = 0,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
@@ -135,7 +135,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             val calls = mutableListOf<TransportBookingRequest>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
-                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRouteData("A01", "Campus A/R")),
+                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRoute("A01", "Campus A/R")),
                     bookings = emptyList(), totalCount = 0,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
@@ -166,7 +166,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             val calls = mutableListOf<TransportBookingRequest>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
-                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRouteData("A01", "Campus A/R")),
+                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRoute("A01", "Campus A/R")),
                     bookings = listOf(TransportBooking("1", "1", "A01", "lun 28/09/2026", "Andata", false, "")),
                     totalCount = 1,
                 )
@@ -198,7 +198,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             val warning = CompletableDeferred<AppToastMessage>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
-                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRouteData("A01", "Campus A/R")),
+                    routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRoute("A01", "Campus A/R")),
                     bookings = emptyList(), totalCount = 0,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {

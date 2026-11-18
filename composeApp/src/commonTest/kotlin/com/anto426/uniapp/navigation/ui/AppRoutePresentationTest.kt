@@ -20,8 +20,8 @@ class AppRoutePresentationTest {
     }
 
     @Test
-    fun ticketDetailUsesTheSelectedTicketTitle() {
-        val route = AppRoute.TicketDetail(ticketId = "ticket-1", title = "Abbonamento mensile")
+    fun reservationDetailUsesTheSelectedTitle() {
+        val route = AppRoute.ReservationDetail(reservationId = "reservation-1", title = "Abbonamento mensile")
 
         assertEquals("Abbonamento mensile", route.presentation().titleString)
     }

@@ -55,7 +55,7 @@ import com.anto426.uniapp.transport.presentation.isTransportDateBooked
 import com.anto426.uniapp.transport.presentation.transportBookingWindow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.transport.TransportDirection
-import com.anto426.unisdk.transport.TransportRouteData
+import com.anto426.unisdk.transport.TransportRoute
 import com.anto426.unisdk.transport.displayFor
 import com.kyant.shapes.RoundedRectangle
 import kotlin.time.Clock
@@ -144,7 +144,7 @@ fun TransportBookingScreen(
             )
 
             if (uiState.selectedRoute.isNotBlank()) {
-                val route = TransportRouteData(code = "", label = uiState.selectedRoute)
+                val route = TransportRoute(code = "", label = uiState.selectedRoute)
                 val outbound = route.displayFor(TransportDirection.OUTBOUND)
                 val returning = route.displayFor(TransportDirection.RETURN)
 
@@ -421,7 +421,7 @@ fun TransportBookingScreen(
                     }
 
                     // Fermate e Tragitto
-                    val route = TransportRouteData(code = "", label = uiState.selectedRoute)
+                    val route = TransportRoute(code = "", label = uiState.selectedRoute)
                     val directions = if (selectedDirection == TransportDirection.ROUND_TRIP) {
                         listOf(TransportDirection.OUTBOUND, TransportDirection.RETURN)
                     } else listOf(selectedDirection)

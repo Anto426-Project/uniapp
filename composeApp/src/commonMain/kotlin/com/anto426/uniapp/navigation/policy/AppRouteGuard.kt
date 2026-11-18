@@ -60,10 +60,7 @@ private fun AppRoute.isStudentOnly(): Boolean =
     when (this) {
         AppRoute.Taxes,
         AppRoute.Grades,
-        AppRoute.Statistics,
-        AppRoute.Transcripts,
-        AppRoute.ExamsHistory,
-        AppRoute.StudyPlan,
+        is AppRoute.Transcripts,
         is AppRoute.CourseDetail,
         AppRoute.Questionnaires,
         is AppRoute.Questionnaire,

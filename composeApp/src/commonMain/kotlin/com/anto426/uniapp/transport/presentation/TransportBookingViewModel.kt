@@ -18,7 +18,7 @@ import com.anto426.uniapp.presentation.userMessage
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportDirection
-import com.anto426.unisdk.transport.TransportRouteData
+import com.anto426.unisdk.transport.TransportRoute
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +47,7 @@ class TransportBookingViewModel(
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(TransportBookingUiState())
     val uiState: StateFlow<TransportBookingUiState> = mutableUiState.asStateFlow()
-    private var routesByLabel: Map<String, TransportRouteData> = emptyMap()
+    private var routesByLabel: Map<String, TransportRoute> = emptyMap()
     private val confirmedBookings = mutableSetOf<TransportBookingRequest>()
 
     private val sharedData = dataSource.sharedData(viewModelScope)
@@ -57,11 +57,11 @@ class TransportBookingViewModel(
         try {
             val transport = snapshot.require(UniAppDataRequests.Transport)
             val routes = transport.availableRoutes
-            routesByLabel = routes.associateBy(TransportRouteData::label)
+            routesByLabel = routes.associateBy(TransportRoute::label)
             val selectedRoute = mutableUiState.value.selectedRoute.takeIf { it in routesByLabel }
                 ?: routes.firstOrNull()?.label.orEmpty()
             mutableUiState.value = mutableUiState.value.copy(
-                routes = routes.map(TransportRouteData::label),
+                routes = routes.map(TransportRoute::label),
                 selectedRoute = selectedRoute,
                 selectedRouteCode = routesByLabel[selectedRoute]?.code.orEmpty(),
                 bookedRequests = bookedTransportRequests(transport.bookings) + confirmedBookings,

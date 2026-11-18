@@ -33,7 +33,6 @@ import uniapp.composeapp.generated.resources.*
 @Composable
 internal fun CreatorCreditsScreen(
     state: ProjectInfoUiState,
-    onRefresh: () -> Unit,
     onOpenLink: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {

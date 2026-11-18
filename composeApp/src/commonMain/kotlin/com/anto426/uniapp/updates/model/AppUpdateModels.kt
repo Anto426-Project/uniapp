@@ -1,6 +1,6 @@
 package com.anto426.uniapp.updates.model
 
-import com.anto426.unisdk.backend.model.AppUpdateInfo
+import com.anto426.unisdk.model.AppUpdateInfo
 
 typealias InstalledAppBuild = com.anto426.unisdk.platform.AppInfo
 

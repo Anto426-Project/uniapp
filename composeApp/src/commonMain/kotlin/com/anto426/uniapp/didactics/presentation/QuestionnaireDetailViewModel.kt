@@ -15,10 +15,10 @@ import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.backend.model.SurveyAnswerBodyDto
-import com.anto426.unisdk.backend.model.SurveyFirstPageData
-import com.anto426.unisdk.backend.model.SurveySavePageDto
-import com.anto426.unisdk.backend.model.SurveySaveRequest
+import com.anto426.unisdk.model.SurveyAnswerSubmission
+import com.anto426.unisdk.model.SurveyForm
+import com.anto426.unisdk.model.SurveyPageSubmission
+import com.anto426.unisdk.model.SurveySaveRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 
 data class QuestionnaireDetailUiState(
     val title: String,
-    val survey: SurveyFirstPageData? = null,
+    val survey: SurveyForm? = null,
     val selectedAnswers: Map<String, Set<String>> = emptyMap(),
     val freeTextAnswers: Map<String, String> = emptyMap(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
@@ -143,13 +143,13 @@ class QuestionnaireDetailViewModel(
                         userCompId = userCompId,
                         questCompId = questCompId,
                         surveyPageDtos = survey.pages.map { page ->
-                            SurveySavePageDto(
+                            SurveyPageSubmission(
                                 pageId = page.pageId,
                                 ansBodyDto = page.questions.flatMap { question ->
                                     val selected = state.selectedAnswers[question.questionId].orEmpty()
                                     selected.map { answerId ->
                                         val isFreeText = question.answers.any { it.answerId == answerId && it.freeText }
-                                        SurveyAnswerBodyDto(
+                                        SurveyAnswerSubmission(
                                             questionId = question.questionId,
                                             answerId = answerId,
                                             answerBody = if (isFreeText) {

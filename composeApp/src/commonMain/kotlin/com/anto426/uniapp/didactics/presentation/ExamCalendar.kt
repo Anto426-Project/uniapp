@@ -1,15 +1,15 @@
 package com.anto426.uniapp.didactics.presentation
 
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.parseExamRoundDateOrNull
-import com.anto426.unisdk.backend.model.parseExamRoundDateTimeOrNull
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.parseExamRoundDateOrNull
+import com.anto426.unisdk.model.parseExamRoundDateTimeOrNull
 import io.ktor.http.URLBuilder
 import kotlinx.datetime.*
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 /** Opens an editable calendar draft; the student chooses whether to save it. */
-internal fun ExamRoundData.calendarUrlOrNull(): String? {
+internal fun ExamRound.calendarUrlOrNull(): String? {
     if (!booked) return null
     val date = parseExamRoundDateOrNull(dateTime) ?: return null
     fun LocalDate.compact() = toString().replace("-", "")

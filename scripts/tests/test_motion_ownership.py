@@ -31,6 +31,7 @@ class MotionOwnershipTest(unittest.TestCase):
         self.source('UniMotion.kt', 'val preset = LiquidSwitcherTransition.Crossfade')
         self.source('AppNavigationHost.kt', 'rememberLiquidContentTransition<Scene<NavKey>>(transition = UniMotion.contentTransition)')
         self.source('UniUpdateBanner.kt', 'LiquidAnimatedSwitcher(transition = UniMotion.contentTransition)')
+        self.source('UniContentHost.kt', 'LiquidAnimatedSwitcher(transition = LocalUniContentTransition.current)')
         self.source('AppScreenTransitions.kt', 'val preset = LiquidSwitcherTransition.None')
         self.source('Section.kt', 'LiquidCard() // fadeIn()\n/* tween(300) */')
         self.assertEqual([], validate(self.root))

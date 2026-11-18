@@ -2,7 +2,7 @@ package com.anto426.uniapp.updates.data
 
 import com.anto426.uniapp.updates.model.InstalledAppBuild
 import com.anto426.unisdk.backend.UniBackendService
-import com.anto426.unisdk.backend.model.AppUpdateInfo
+import com.anto426.unisdk.model.AppUpdateInfo
 
 internal fun interface AppUpdateSource {
     suspend fun load(installedBuild: InstalledAppBuild): AppUpdateInfo?

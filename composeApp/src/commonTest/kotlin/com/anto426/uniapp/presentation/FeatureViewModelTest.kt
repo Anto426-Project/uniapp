@@ -1,5 +1,7 @@
 package com.anto426.uniapp.presentation
 
+import com.anto426.uniapp.didactics.presentation.GradesViewModel
+
 import com.anto426.uniapp.account.model.UniAccountProfileSummary
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.FakeUniAppDataSource
@@ -12,7 +14,6 @@ import com.anto426.uniapp.didactics.presentation.ExamsViewModel
 import com.anto426.uniapp.didactics.presentation.buildExamHistory
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
 import com.anto426.uniapp.didactics.presentation.TranscriptsViewModel
-import com.anto426.uniapp.didactics.presentation.StatisticsViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicItemDetailViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicSection
@@ -22,23 +23,24 @@ import com.anto426.uniapp.model.didactics.PastExamStatus
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
-import com.anto426.unisdk.backend.model.CareerData
-import com.anto426.unisdk.backend.model.BackendCareerType
-import com.anto426.unisdk.backend.model.CareerExamData
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.SurveyCourseData
-import com.anto426.unisdk.backend.model.StudyPlanCourseData
-import com.anto426.unisdk.backend.model.StudyPlanData
-import com.anto426.unisdk.backend.model.StudentDetailsData
-import com.anto426.unisdk.backend.model.ProfessorContentItem
-import com.anto426.unisdk.backend.model.ProfessorDashboardData
-import com.anto426.unisdk.backend.model.SurveyAnswerOptionData
-import com.anto426.unisdk.backend.model.SurveyFirstPageData
-import com.anto426.unisdk.backend.model.SurveyPageData
-import com.anto426.unisdk.backend.model.SurveyQuestionData
-import com.anto426.unisdk.backend.model.SurveySaveRequest
-import com.anto426.unisdk.backend.model.TaxInstallmentData
-import com.anto426.unisdk.backend.model.TaxesData
+import com.anto426.unisdk.model.Career
+import com.anto426.unisdk.model.CareerType
+import com.anto426.unisdk.model.CareerExam
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.SurveyCourse
+import com.anto426.unisdk.model.StudyPlanCourse
+import com.anto426.unisdk.model.StudyPlan
+import com.anto426.unisdk.model.StudentDetails
+import com.anto426.unisdk.model.ProfessorContentItem
+import com.anto426.unisdk.model.ProfessorDashboard
+import com.anto426.unisdk.model.SurveyAnswerOption
+import com.anto426.unisdk.model.SurveyForm
+import com.anto426.unisdk.model.SurveyPage
+import com.anto426.unisdk.model.SurveyQuestion
+import com.anto426.unisdk.model.SurveySaveRequest
+import com.anto426.unisdk.model.TaxInstallment
+import com.anto426.unisdk.model.Taxes
+import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportData
 import kotlinx.coroutines.flow.first
@@ -59,11 +61,11 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun taxesArePartitionedFromRepositoryData() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean) = TaxesData(
+            override suspend fun loadTaxes(forceRefresh: Boolean) = Taxes(
                 dueAmount = "100",
                 installments = listOf(
-                    TaxInstallmentData("Da pagare", "100", "domani", false),
-                    TaxInstallmentData("Pagata", "20", "ieri", true),
+                    TaxInstallment("Da pagare", "100", "domani", false),
+                    TaxInstallment("Pagata", "20", "ieri", true),
                 ),
             )
         }
@@ -78,7 +80,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     fun didacticsDashboardUsesRemoteValuesWithoutJoiningCfuNumbers() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadStudentDetails(forceRefresh: Boolean) =
-                StudentDetailsData(
+                StudentDetails(
                     fullName = "Student",
                     matricola = "165432",
                     degreeName = "Ingegneria Informatica",
@@ -86,21 +88,21 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 )
 
             override suspend fun loadCareer(forceRefresh: Boolean) =
-                CareerData(
+                Career(
                     average = "28.2",
                     cfu = "120 / 180",
                     cfuTarget = 180,
                     year = "3° anno",
                     status = "Attiva",
                     exams = List(14) { index ->
-                        CareerExamData("Esame $index", "28", "01/01/2026", 6)
+                        CareerExam("Esame $index", "28", "01/01/2026", 6)
                     },
                 )
 
             override suspend fun loadStudyPlan(forceRefresh: Boolean) =
-                StudyPlanData(
+                StudyPlan(
                     List(20) { index ->
-                        StudyPlanCourseData(
+                        StudyPlanCourse(
                             title = "Attività $index",
                             cfu = 9,
                             year = (index / 7 + 1).coerceAtMost(3),
@@ -110,10 +112,10 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 )
 
             override suspend fun loadExamRounds(forceRefresh: Boolean) =
-                listOf(ExamRoundData("Analisi", "01/09/2026 09:00", "Aula 1", 20, open = true))
+                listOf(ExamRound("Analisi", "01/09/2026 09:00", "Aula 1", 20, open = true))
 
             override suspend fun loadSurveyCourses(forceRefresh: Boolean) =
-                listOf(SurveyCourseData("1", "Analisi", "tag", completed = false))
+                listOf(SurveyCourse("1", "Analisi", "tag", completed = false))
         }
         val viewModel = DidacticsDashboardViewModel(source)
         advanceUntilIdle()
@@ -150,8 +152,8 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     fun questionnaireProgressUsesRemoteCourseStatuses() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadSurveyCourses(forceRefresh: Boolean) = listOf(
-                SurveyCourseData("1", "Corso A", "tag-a", "A", completed = true),
-                SurveyCourseData("2", "Corso B", "tag-b", "B", completed = false),
+                SurveyCourse("1", "Corso A", "tag-a", "A", completed = true),
+                SurveyCourse("2", "Corso B", "tag-b", "B", completed = false),
             )
         }
         val viewModel = QuestionnairesViewModel(source)
@@ -165,10 +167,10 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     fun studyPlanKeepsYearsProvidedByTheAcademicBackend() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadStudyPlan(forceRefresh: Boolean) =
-                StudyPlanData(
+                StudyPlan(
                     listOf(
-                        StudyPlanCourseData("Analisi", cfu = 9, year = 1, completed = true),
-                        StudyPlanCourseData("Tirocinio", cfu = 6, year = 4),
+                        StudyPlanCourse("Analisi", cfu = 9, year = 1, completed = true),
+                        StudyPlanCourse("Tirocinio", cfu = 6, year = 4),
                     ),
                 )
         }
@@ -185,7 +187,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     fun transcriptsSelectsYearDirectlyWithoutAllOption() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadCareer(forceRefresh: Boolean) =
-                CareerData(
+                Career(
                     average = "28.0",
                     degreeBase = "102.0",
                     cfu = "18",
@@ -193,21 +195,21 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                     year = "2",
                     status = "Attivo",
                     exams = listOf(
-                        CareerExamData("Analisi", "30", "01/02/2025", 9, "A"),
-                        CareerExamData("Tirocinio", "IDONEO", "15/05/2025", 6, "T"),
-                        CareerExamData("Programmazione", "30 e lode", "20/06/2025", 9, "P"),
-                        CareerExamData("Seminario", "", "20/06/2025", 3, "S"),
-                        CareerExamData("Fisica", "28", "01/02/2026", 9, "B"),
+                        CareerExam("Analisi", "30", "01/02/2025", 9, "A"),
+                        CareerExam("Tirocinio", "IDONEO", "15/05/2025", 6, "T"),
+                        CareerExam("Programmazione", "30 e lode", "20/06/2025", 9, "P"),
+                        CareerExam("Seminario", "", "20/06/2025", 3, "S"),
+                        CareerExam("Fisica", "28", "01/02/2026", 9, "B"),
                     ),
                 )
 
             override suspend fun loadStudyPlan(forceRefresh: Boolean) =
-                StudyPlanData(
+                StudyPlan(
                     listOf(
-                        StudyPlanCourseData("Analisi", year = 1, adsceId = "A"),
-                        StudyPlanCourseData("Tirocinio", year = 1, adsceId = "T"),
-                        StudyPlanCourseData("Programmazione", year = 1, adsceId = "P"),
-                        StudyPlanCourseData("Fisica", year = 2, adsceId = "B"),
+                        StudyPlanCourse("Analisi", year = 1, adsceId = "A"),
+                        StudyPlanCourse("Tirocinio", year = 1, adsceId = "T"),
+                        StudyPlanCourse("Programmazione", year = 1, adsceId = "P"),
+                        StudyPlanCourse("Fisica", year = 2, adsceId = "B"),
                     ),
                 )
         }
@@ -232,20 +234,20 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         var savedRequest: SurveySaveRequest? = null
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadStudentDetails(forceRefresh: Boolean) =
-                StudentDetailsData(fullName = "Student", stuId = "student-1")
+                StudentDetails(fullName = "Student", stuId = "student-1")
 
             override suspend fun loadSurveyFirstPage(courseId: String, tagList: String) =
-                SurveyFirstPageData(
+                SurveyForm(
                     userCompId = "user-comp",
                     questCompId = "quest-comp",
                     pages = listOf(
-                        SurveyPageData(
+                        SurveyPage(
                             pageId = "page-1",
                             questions = listOf(
-                                SurveyQuestionData(
+                                SurveyQuestion(
                                     questionId = "question-1",
                                     questionText = "Valutazione",
-                                    answers = listOf(SurveyAnswerOptionData("answer-1", "Ottimo")),
+                                    answers = listOf(SurveyAnswerOption("answer-1", "Ottimo")),
                                 ),
                             ),
                         ),
@@ -298,7 +300,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun selectingStatisticsTabPreservesRemoteChartData() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadCareer(forceRefresh: Boolean) = CareerData(
+            override suspend fun loadCareer(forceRefresh: Boolean) = Career(
                 average = "28.5",
                 degreeBase = "104.5",
                 cfu = "18",
@@ -306,19 +308,19 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 year = "1",
                 status = "Attivo",
                 exams = listOf(
-                    CareerExamData("Analisi", "30", "01/02/2026", 9, "A"),
-                    CareerExamData("Fisica", "27", "01/03/2026", 9, "B"),
+                    CareerExam("Analisi", "30", "01/02/2026", 9, "A"),
+                    CareerExam("Fisica", "27", "01/03/2026", 9, "B"),
                 ),
             )
         }
-        val viewModel = StatisticsViewModel(source)
+        val viewModel = GradesViewModel(source)
         advanceUntilIdle()
-        val initial = viewModel.uiState.value.gradeEntries
+        val initial = viewModel.uiState.value.singleGradeEntries
 
         viewModel.selectTab(2)
 
-        assertEquals(2, viewModel.uiState.value.selectedTabIndex)
-        assertEquals(initial, viewModel.uiState.value.gradeEntries)
+        assertEquals(2, viewModel.uiState.value.selectedTab)
+        assertEquals(initial, viewModel.uiState.value.singleGradeEntries)
         assertEquals(listOf(2f), viewModel.uiState.value.cfuEntries.map { it.value })
         assertEquals(listOf("9 CFU"), viewModel.uiState.value.cfuEntries.map { it.label })
         assertTrue(viewModel.uiState.value.cfuMax >= 2f)
@@ -330,10 +332,10 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadExamRounds(forceRefresh: Boolean) =
                 listOf(
-                    ExamRoundData("Reti", "12/09/2026 09:00", "Aula 3", 10, open = true),
-                    ExamRoundData("Analisi", "04/09/2026 11:00", "Aula 1", 0, open = false, booked = true),
-                    ExamRoundData("Fisica", "06/09/2026 08:30", "Aula 2", 5, open = false, booked = true),
-                    ExamRoundData("Basi di dati", "07/09/2026 15:00", "Lab", 12, open = true),
+                    ExamRound("Reti", "12/09/2026 09:00", "Aula 3", 10, open = true),
+                    ExamRound("Analisi", "04/09/2026 11:00", "Aula 1", 0, open = false, booked = true),
+                    ExamRound("Fisica", "06/09/2026 08:30", "Aula 2", 5, open = false, booked = true),
+                    ExamRound("Basi di dati", "07/09/2026 15:00", "Lab", 12, open = true),
                 )
         }
         val viewModel = ExamsViewModel(source, today = { LocalDate(2026, 9, 5) })
@@ -354,7 +356,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 careerExams = emptyList(),
                 rounds =
                     listOf(
-                        ExamRoundData(
+                        ExamRound(
                             courseName = "Analisi",
                             dateTime = "04/09/2026 11:30",
                             room = "Aula Magna",
@@ -370,7 +372,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                             notes = "Portare un documento",
                             totalRegistrations = 93,
                         ),
-                        ExamRoundData(
+                        ExamRound(
                             courseName = "Fisica",
                             dateTime = "06/09/2026 09:00",
                             room = "Aula 2",
@@ -403,7 +405,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         val expectedBytes = byteArrayOf(1, 2, 3, 4)
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadStudentDetails(forceRefresh: Boolean) =
-                StudentDetailsData(
+                StudentDetails(
                     fullName = "Ada Lovelace",
                     matricola = "12345",
                     badgeQrValue = "001234|LOVELACE|ADA|Informatica",
@@ -430,7 +432,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun professorBadgeUsesTheActiveAccountProfileWithoutLoadingStudentData() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetailsData =
+            override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetails =
                 error("The professor badge must not request student details")
         }
         val account =
@@ -444,7 +446,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 photoUrl = null,
                 isGuest = false,
                 activeProfileId = "professor-1",
-                activeProfileType = BackendCareerType.PROFESSOR,
+                activeProfileType = CareerType.PROFESSOR,
                 profiles =
                     listOf(
                         UniAccountProfileSummary(
@@ -454,7 +456,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                             dipId = "DIP-12",
                             departmentName = "Dipartimento di Ingegneria",
                             teacherId = "DOC-42",
-                            type = BackendCareerType.PROFESSOR,
+                            type = CareerType.PROFESSOR,
                         ),
                     ),
             )
@@ -473,11 +475,11 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     @Test
     fun professorHomeUsesTheSharedDashboardWithProfessorMetrics() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetailsData =
+            override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetails =
                 error("Professor Home must not request student details")
 
             override suspend fun loadProfessorDashboard(forceRefresh: Boolean) =
-                ProfessorDashboardData(
+                ProfessorDashboard(
                     teachings = listOf(ProfessorContentItem("Analisi"), ProfessorContentItem("Fisica")),
                     examRounds =
                         listOf(
@@ -499,10 +501,36 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
     }
 
     @Test
+    fun homeNewsCarouselSelectsAndClampsIndices() = runViewModelTest {
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadUniversityNews(forceRefresh: Boolean) = listOf(
+                UniversityNews(id = "1", title = "Uno", summary = "S1", content = "C1", publishedAt = "2026-09-25", category = "Ateneo", sourceUrl = null),
+                UniversityNews(id = "2", title = "Due", summary = "S2", content = "C2", publishedAt = "2026-09-24", category = "Dipartimento", sourceUrl = null),
+                UniversityNews(id = "3", title = "Tre", summary = "S3", content = "C3", publishedAt = "2026-09-23", category = "Corso di studi", sourceUrl = null),
+            )
+        }
+
+        val viewModel = HomeDashboardViewModel(source, emptyList(), preparationDispatcher = Dispatchers.Main)
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.uiState.value.activeNewsIndex)
+        viewModel.selectNews(2)
+        assertEquals(2, viewModel.uiState.value.activeNewsIndex)
+        viewModel.selectNews(99)
+        assertEquals(2, viewModel.uiState.value.activeNewsIndex)
+        viewModel.selectNews(-4)
+        assertEquals(0, viewModel.uiState.value.activeNewsIndex)
+        viewModel.showPreviousNews()
+        assertEquals(2, viewModel.uiState.value.activeNewsIndex)
+        viewModel.showNextNews()
+        assertEquals(0, viewModel.uiState.value.activeNewsIndex)
+    }
+
+    @Test
     fun professorDidacticsAndExamsReuseRoleAwarePresentationModels() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadProfessorDashboard(forceRefresh: Boolean) =
-                ProfessorDashboardData(
+                ProfessorDashboard(
                     teachings = listOf(ProfessorContentItem("Analisi")),
                     examRounds =
                         listOf(
@@ -544,7 +572,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             )
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadProfessorDashboard(forceRefresh: Boolean) =
-                ProfessorDashboardData(theses = listOf(thesis), examRounds = listOf(exam))
+                ProfessorDashboard(theses = listOf(thesis), examRounds = listOf(exam))
         }
 
         val thesisDetail =
@@ -570,7 +598,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             photoUrl = null,
             isGuest = false,
             activeProfileId = "professor-1",
-            activeProfileType = BackendCareerType.PROFESSOR,
+            activeProfileType = CareerType.PROFESSOR,
             profiles =
                 listOf(
                     UniAccountProfileSummary(
@@ -580,7 +608,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                         dipId = "DIP-12",
                         departmentName = "Dipartimento di Ingegneria",
                         teacherId = "DOC-42",
-                        type = BackendCareerType.PROFESSOR,
+                        type = CareerType.PROFESSOR,
                     ),
                 ),
         )

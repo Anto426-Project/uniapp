@@ -32,8 +32,8 @@ import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.toAcademicDetailFields
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.backend.model.ProfessorContentItem
-import com.anto426.unisdk.backend.model.ProfessorExamBooking
+import com.anto426.unisdk.model.ProfessorContentItem
+import com.anto426.unisdk.model.ProfessorExamBooking
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 

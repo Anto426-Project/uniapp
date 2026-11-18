@@ -60,7 +60,7 @@ class DidacticsDashboardViewModel(
                 val profile =
                     professor.profiles.firstOrNull { it.profileId == professor.activeProfileId }
                         ?: professor.profiles.firstOrNull {
-                            it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR
+                            it.type == com.anto426.unisdk.model.CareerType.PROFESSOR
                         }
                 mutableUiState.value =
                     DidacticsDashboardUiState(
@@ -140,10 +140,10 @@ class DidacticsDashboardViewModel(
     }
 
     private data class DidacticsSnapshot(
-        val student: com.anto426.unisdk.backend.model.StudentDetailsData,
-        val career: com.anto426.unisdk.backend.model.CareerData,
-        val plan: com.anto426.unisdk.backend.model.StudyPlanData,
-        val rounds: List<com.anto426.unisdk.backend.model.ExamRoundData>,
-        val surveys: List<com.anto426.unisdk.backend.model.SurveyCourseData>,
+        val student: com.anto426.unisdk.model.StudentDetails,
+        val career: com.anto426.unisdk.model.Career,
+        val plan: com.anto426.unisdk.model.StudyPlan,
+        val rounds: List<com.anto426.unisdk.model.ExamRound>,
+        val surveys: List<com.anto426.unisdk.model.SurveyCourse>,
     )
 }

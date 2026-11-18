@@ -13,7 +13,7 @@ import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniAppDataKeys
 import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.session.model.AppSessionState
-import com.anto426.unisdk.backend.model.LoginCareerOption
+import com.anto426.unisdk.model.LoginCareerOption
 import com.anto426.unisdk.backend.UniBackendService
 import com.anto426.unisdk.session.AuthenticationResult
 import com.anto426.unisdk.session.SessionResumeResult

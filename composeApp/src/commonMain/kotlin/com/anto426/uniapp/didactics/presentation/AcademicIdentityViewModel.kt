@@ -91,7 +91,7 @@ class AcademicIdentityViewModel(
         val profile =
             professor.profiles.firstOrNull { it.profileId == professor.activeProfileId }
                 ?: professor.profiles.firstOrNull {
-                    it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR
+                    it.type == com.anto426.unisdk.model.CareerType.PROFESSOR
                 }
         mutableUiState.value =
             mutableUiState.value.copy(

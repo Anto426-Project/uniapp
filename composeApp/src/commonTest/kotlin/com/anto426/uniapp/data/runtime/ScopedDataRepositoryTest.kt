@@ -2,13 +2,13 @@ package com.anto426.uniapp.data.runtime
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.toNewsItems
-import com.anto426.unisdk.backend.model.UniversityNews
+import com.anto426.unisdk.model.UniversityNews
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.unisdk.backend.model.StudentDetailsData
-import com.anto426.unisdk.backend.model.TaxesData
+import com.anto426.unisdk.model.StudentDetails
+import com.anto426.unisdk.model.Taxes
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportBooking
@@ -46,7 +46,7 @@ class ScopedDataRepositoryTest {
         var now = 1_000L
         var calls = 0
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData { calls++; return TaxesData("$calls", emptyList()) }
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; return Taxes("$calls", emptyList()) }
         }
         val data = ScopedDataRepository(source, backgroundScope, nowMillis = { now })
         data.loadTaxes()
@@ -71,7 +71,7 @@ class ScopedDataRepositoryTest {
         var now = 1_000L
         var calls = 0
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData { calls++; error("offline") }
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; error("offline") }
         }
         val data = ScopedDataRepository(source, backgroundScope, nowMillis = { now })
         assertFailsWith<IllegalStateException> { data.loadTaxes() }
@@ -161,10 +161,10 @@ class ScopedDataRepositoryTest {
 
     @Test
     fun concurrentConsumersShareOneRequestAndCancellingOneKeepsTheProducer() = runTest {
-        val response = CompletableDeferred<TaxesData>()
+        val response = CompletableDeferred<Taxes>()
         var calls = 0
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData { calls++; return response.await() }
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; return response.await() }
         }
         val data = ScopedDataRepository(source, backgroundScope)
         val first = async { data.loadTaxes() }
@@ -172,7 +172,7 @@ class ScopedDataRepositoryTest {
         runCurrent()
         assertEquals(1, calls)
         first.cancel()
-        response.complete(TaxesData("42", emptyList()))
+        response.complete(Taxes("42", emptyList()))
         assertEquals("42", second.await().dueAmount)
         assertEquals("42", data.loadTaxes().dueAmount)
         assertEquals(1, calls)
@@ -185,10 +185,10 @@ class ScopedDataRepositoryTest {
         val forced = CompletableDeferred<Unit>()
         val calls = mutableListOf<Boolean>()
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData {
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes {
                 calls += forceRefresh
                 if (forceRefresh) forced.await() else initial.await()
-                return TaxesData(if (forceRefresh) "20" else "10", emptyList())
+                return Taxes(if (forceRefresh) "20" else "10", emptyList())
             }
         }
         val data = ScopedDataRepository(source, backgroundScope)
@@ -246,9 +246,9 @@ class ScopedDataRepositoryTest {
     fun refreshFailureKeepsTheLastValueAndReportsTheError() = runTest {
         var fail = false
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData {
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes {
                 if (fail) error("offline")
-                return TaxesData("42", emptyList())
+                return Taxes("42", emptyList())
             }
         }
         val data = ScopedDataRepository(source, backgroundScope)
@@ -270,9 +270,9 @@ class ScopedDataRepositoryTest {
     fun closeDropsAccountValuesAndRejectsAResponseThatIgnoresCancellation() = runTest {
         val response = CompletableDeferred<Unit>()
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData = withContext(NonCancellable) {
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes = withContext(NonCancellable) {
                 response.await()
-                TaxesData("private", emptyList())
+                Taxes("private", emptyList())
             }
         }
         val data = ScopedDataRepository(source, backgroundScope)
@@ -291,7 +291,7 @@ class ScopedDataRepositoryTest {
     @Test
     fun separateOwnersNeverShareTheSameDatasetValue() = runTest {
         fun source(amount: String) = object : FakeUniAppDataSource() {
-            override suspend fun loadTaxes(forceRefresh: Boolean) = TaxesData(amount, emptyList())
+            override suspend fun loadTaxes(forceRefresh: Boolean) = Taxes(amount, emptyList())
         }
         val first = ScopedDataRepository(source("A"), backgroundScope, generation = 1)
         val second = ScopedDataRepository(source("B"), backgroundScope, generation = 2)
@@ -332,8 +332,8 @@ class ScopedDataRepositoryTest {
         var calls = 0
         var amount = "42"
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadStudentDetails(forceRefresh: Boolean) = StudentDetailsData("Mario Rossi")
-            override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData { calls++; gate.await(); return TaxesData(amount, emptyList()) }
+            override suspend fun loadStudentDetails(forceRefresh: Boolean) = StudentDetails("Mario Rossi")
+            override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; gate.await(); return Taxes(amount, emptyList()) }
         }
         val data = ScopedDataRepository(source, backgroundScope)
         try {
@@ -361,7 +361,7 @@ class ScopedDataRepositoryTest {
         var photo = "first"
         var calls = 0
         val source = object : FakeUniAppDataSource() {
-            override suspend fun loadStudentDetails(forceRefresh: Boolean) = StudentDetailsData("Mario", photoUrl = photo)
+            override suspend fun loadStudentDetails(forceRefresh: Boolean) = StudentDetails("Mario", photoUrl = photo)
             override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray { calls++; return source.encodeToByteArray() }
         }
         val data = ScopedDataRepository(source, backgroundScope)

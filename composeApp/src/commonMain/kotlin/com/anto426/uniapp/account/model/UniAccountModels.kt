@@ -1,6 +1,6 @@
 package com.anto426.uniapp.account.model
 
-import com.anto426.unisdk.backend.model.BackendCareerType
+import com.anto426.unisdk.model.CareerType
 
 /** Credentials owned by UniApp. They are never included in the SDK session ticket. */
 class UniAccountCredentials(
@@ -29,10 +29,10 @@ data class UniAccountSummary(
     val isGuest: Boolean,
     val activeProfileId: String? = null,
     val profiles: List<UniAccountProfileSummary> = emptyList(),
-    val activeProfileType: BackendCareerType = BackendCareerType.STUDENT,
+    val activeProfileType: CareerType = CareerType.STUDENT,
 ) {
     val isProfessor: Boolean
-        get() = activeProfileType == BackendCareerType.PROFESSOR
+        get() = activeProfileType == CareerType.PROFESSOR
 }
 
 data class UniAccountProfileSummary(
@@ -47,7 +47,7 @@ data class UniAccountProfileSummary(
     val dipId: String? = null,
     val departmentName: String? = null,
     val teacherId: String? = null,
-    val type: BackendCareerType = BackendCareerType.STUDENT,
+    val type: CareerType = CareerType.STUDENT,
 )
 
 data class UniAccountRegistrySnapshot(

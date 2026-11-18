@@ -12,7 +12,7 @@ import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.model.AppSessionState
-import com.anto426.unisdk.backend.model.LoginCareerOption
+import com.anto426.unisdk.model.LoginCareerOption
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

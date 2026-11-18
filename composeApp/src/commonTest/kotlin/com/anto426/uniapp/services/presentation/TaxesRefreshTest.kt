@@ -2,7 +2,7 @@ package com.anto426.uniapp.services.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.unisdk.backend.model.TaxesData
+import com.anto426.unisdk.model.Taxes
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
@@ -24,13 +24,13 @@ class TaxesRefreshTest : com.anto426.uniapp.testing.ResourceTest() {
             val finishRefresh = CompletableDeferred<Unit>()
             val flags = mutableListOf<Boolean>()
             val source = object : FakeUniAppDataSource() {
-                override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData {
+                override suspend fun loadTaxes(forceRefresh: Boolean): Taxes {
                     flags += forceRefresh
                     if (forceRefresh) {
                         finishRefresh.await()
                         error("Network unavailable")
                     }
-                    return TaxesData("0", emptyList())
+                    return Taxes("0", emptyList())
                 }
             }
             val viewModel = TaxesViewModel(source)

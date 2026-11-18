@@ -8,7 +8,7 @@ import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.appTopLevelRoutes
 import com.anto426.uniapp.navigation.policy.AppRouteGuard
 import com.anto426.uniapp.session.model.AppSessionState
-import com.anto426.unisdk.backend.model.BackendCareerType
+import com.anto426.unisdk.model.CareerType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -29,9 +29,9 @@ class AppNavigatorTest {
     fun examOpenedFromHomeGoesDirectlyBackToHome() {
         val fixture = Fixture(activeRoot = AppRoute.Home)
 
-        fixture.navigator.navigate(AppRoute.Exams)
+        fixture.navigator.navigate(AppRoute.Exams())
 
-        assertEquals(listOf(AppRoute.Home, AppRoute.Exams), fixture.stack(AppRoute.Home))
+        assertEquals(listOf(AppRoute.Home, AppRoute.Exams()), fixture.stack(AppRoute.Home))
         assertEquals(AppRoute.Home, fixture.navigator.currentTopLevelRoute)
         assertEquals(true, fixture.navigator.goBack())
         assertEquals(AppRoute.Home, fixture.navigator.currentRoute)
@@ -112,12 +112,12 @@ class AppNavigatorTest {
     fun professorCannotOpenStudentOnlyDestinations() {
         val professorSession =
             AppSessionState.Authenticated(
-                authenticatedSession.account.copy(activeProfileType = BackendCareerType.PROFESSOR),
+                authenticatedSession.account.copy(activeProfileType = CareerType.PROFESSOR),
             )
         val guard = AppRouteGuard()
 
         assertEquals(AppRoute.Didactics, guard.resolve(AppRoute.Grades, professorSession))
-        assertEquals(AppRoute.Exams, guard.resolve(AppRoute.Exams, professorSession))
+        assertEquals(AppRoute.Exams(), guard.resolve(AppRoute.Exams(), professorSession))
         assertEquals(AppRoute.Badge, guard.resolve(AppRoute.Badge, professorSession))
         assertEquals(AppRoute.Teachings, guard.resolve(AppRoute.Teachings, professorSession))
         assertEquals(AppRoute.Home, guard.resolve(AppRoute.Home, professorSession))

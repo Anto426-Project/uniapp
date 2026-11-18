@@ -4,10 +4,10 @@ import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.toExamRecords
 import com.anto426.uniapp.data.toStudyYears
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.unisdk.backend.model.CareerData
-import com.anto426.unisdk.backend.model.CareerExamData
-import com.anto426.unisdk.backend.model.StudyPlanCourseData
-import com.anto426.unisdk.backend.model.StudyPlanData
+import com.anto426.unisdk.model.Career
+import com.anto426.unisdk.model.CareerExam
+import com.anto426.unisdk.model.StudyPlanCourse
+import com.anto426.unisdk.model.StudyPlan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -53,16 +53,16 @@ class AcademicYearsTest {
 
     @Test
     fun courseIdDeterminesYearEvenWhenExamIsPassedLateOrTitlesAreIdentical() {
-        val plan = StudyPlanData(
+        val plan = StudyPlan(
             listOf(
-                StudyPlanCourseData("Analisi", year = 1, adsceId = "A"),
-                StudyPlanCourseData("Analisi", year = 4, adsceId = "B"),
+                StudyPlanCourse("Analisi", year = 1, adsceId = "A"),
+                StudyPlanCourse("Analisi", year = 4, adsceId = "B"),
             ),
         )
         val records = career(
             listOf(
-                CareerExamData("Analisi", "30", "01/02/2026", 9, " A "),
-                CareerExamData("Analisi", "28", "01/02/2023", 9, "B"),
+                CareerExam("Analisi", "30", "01/02/2026", 9, " A "),
+                CareerExam("Analisi", "28", "01/02/2023", 9, "B"),
             ),
         ).toExamRecords(plan)
 
@@ -71,21 +71,21 @@ class AcademicYearsTest {
 
     @Test
     fun missingIdsUseOnlyUnambiguousNamesAndConflictingIdsStayUnknown() {
-        val plan = StudyPlanData(
+        val plan = StudyPlan(
             listOf(
-                StudyPlanCourseData(" Analisi ", year = 2),
-                StudyPlanCourseData("Fisica", year = 1),
-                StudyPlanCourseData("Fisica", year = 3),
-                StudyPlanCourseData("Chimica", year = 2, adsceId = "D"),
-                StudyPlanCourseData("Laboratorio", year = 4, adsceId = "D"),
+                StudyPlanCourse(" Analisi ", year = 2),
+                StudyPlanCourse("Fisica", year = 1),
+                StudyPlanCourse("Fisica", year = 3),
+                StudyPlanCourse("Chimica", year = 2, adsceId = "D"),
+                StudyPlanCourse("Laboratorio", year = 4, adsceId = "D"),
             ),
         )
         val records = career(
             listOf(
-                CareerExamData("ANALISI", "30", "01/02/2026"),
-                CareerExamData("Fisica", "28", "01/02/2026"),
-                CareerExamData("Chimica", "27", "01/02/2026", adsceId = "D"),
-                CareerExamData("Non presente", "26", "01/02/2026"),
+                CareerExam("ANALISI", "30", "01/02/2026"),
+                CareerExam("Fisica", "28", "01/02/2026"),
+                CareerExam("Chimica", "27", "01/02/2026", adsceId = "D"),
+                CareerExam("Non presente", "26", "01/02/2026"),
             ),
         ).toExamRecords(plan)
 
@@ -94,13 +94,13 @@ class AcademicYearsTest {
 
     @Test
     fun invalidOrMissingCourseYearsArePreservedInAnUnknownGroupAfterKnownYears() {
-        val plan = StudyPlanData(
+        val plan = StudyPlan(
             listOf(
-                StudyPlanCourseData("Senza anno"),
-                StudyPlanCourseData("Quinto", year = 5),
-                StudyPlanCourseData("Zero", year = 0),
-                StudyPlanCourseData("Secondo", year = 2),
-                StudyPlanCourseData("Negativo", year = -1),
+                StudyPlanCourse("Senza anno"),
+                StudyPlanCourse("Quinto", year = 5),
+                StudyPlanCourse("Zero", year = 0),
+                StudyPlanCourse("Secondo", year = 2),
+                StudyPlanCourse("Negativo", year = -1),
             ),
         )
         val years = plan.toStudyYears()
@@ -114,7 +114,7 @@ class AcademicYearsTest {
     fun unavailableStudyPlanKeepsTranscriptVisibleWithoutInventingYears() = runViewModelTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadCareer(forceRefresh: Boolean) = career()
-            override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlanData = error("Offline")
+            override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlan = error("Offline")
         }
         val transcripts = TranscriptsViewModel(source)
         advanceUntilIdle()
@@ -167,20 +167,20 @@ class AcademicYearsTest {
 
     @Test
     fun transcriptIncludesIdoneitaExamsAndNormalizesDisplayBadge() {
-        val plan = StudyPlanData(
+        val plan = StudyPlan(
             listOf(
-                StudyPlanCourseData("Inglese", year = 1, adsceId = "ENG"),
-                StudyPlanCourseData("Tirocinio", year = 3, adsceId = "TIR"),
-                StudyPlanCourseData("Informatica", year = 1, adsceId = "INF"),
-                StudyPlanCourseData("Laboratorio", year = 2, adsceId = "LAB"),
+                StudyPlanCourse("Inglese", year = 1, adsceId = "ENG"),
+                StudyPlanCourse("Tirocinio", year = 3, adsceId = "TIR"),
+                StudyPlanCourse("Informatica", year = 1, adsceId = "INF"),
+                StudyPlanCourse("Laboratorio", year = 2, adsceId = "LAB"),
             ),
         )
         val records = career(
             listOf(
-                CareerExamData("Inglese", "ID", "15/02/2024", 3, "ENG"),
-                CareerExamData("Tirocinio", "Idoneo", "10/05/2025", 6, "TIR"),
-                CareerExamData("Informatica", "Superato", "20/06/2024", 3, "INF"),
-                CareerExamData("Laboratorio", "-", "12/09/2024", 2, "LAB"),
+                CareerExam("Inglese", "ID", "15/02/2024", 3, "ENG"),
+                CareerExam("Tirocinio", "Idoneo", "10/05/2025", 6, "TIR"),
+                CareerExam("Informatica", "Superato", "20/06/2024", 3, "INF"),
+                CareerExam("Laboratorio", "-", "12/09/2024", 2, "LAB"),
             ),
         ).toExamRecords(plan)
 
@@ -191,15 +191,15 @@ class AcademicYearsTest {
 
     @Test
     fun studyPlanMarksIdoneitaExamsAsCompleted() {
-        val plan = StudyPlanData(
+        val plan = StudyPlan(
             listOf(
-                StudyPlanCourseData("Inglese", year = 1, adsceId = "ENG"),
-                StudyPlanCourseData("Fisica", year = 1, adsceId = "FIS"),
+                StudyPlanCourse("Inglese", year = 1, adsceId = "ENG"),
+                StudyPlanCourse("Fisica", year = 1, adsceId = "FIS"),
             ),
         )
         val careerData = career(
             listOf(
-                CareerExamData("Inglese", "ID", "15/02/2024", 3, "ENG"),
+                CareerExam("Inglese", "ID", "15/02/2024", 3, "ENG"),
             ),
         )
         val studyYears = plan.toStudyYears(careerData)
@@ -230,11 +230,11 @@ class AcademicYearsTest {
     }
 
     private companion object {
-        fun plan(years: List<Int>) = StudyPlanData(
-            years.map { StudyPlanCourseData("Esame $it", year = it, adsceId = "course-$it") },
+        fun plan(years: List<Int>) = StudyPlan(
+            years.map { StudyPlanCourse("Esame $it", year = it, adsceId = "course-$it") },
         )
 
-        fun career(exams: List<CareerExamData> = listOf(CareerExamData("Esame 2", "30", "01/02/2026", 9, "course-2"))) =
-            CareerData(average = "30", cfu = "9", year = "2", status = "Attivo", exams = exams)
+        fun career(exams: List<CareerExam> = listOf(CareerExam("Esame 2", "30", "01/02/2026", 9, "course-2"))) =
+            Career(average = "30", cfu = "9", year = "2", status = "Attivo", exams = exams)
     }
 }

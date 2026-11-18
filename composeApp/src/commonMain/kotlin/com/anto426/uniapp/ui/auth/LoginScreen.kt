@@ -48,7 +48,7 @@ import com.anto426.uniapp.auth.presentation.LoginUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.UniAccountCard
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.backend.model.LoginCareerOption
+import com.anto426.unisdk.model.LoginCareerOption
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 

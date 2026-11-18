@@ -2,7 +2,7 @@ package com.anto426.uniapp.data
 
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportData
-import com.anto426.unisdk.transport.TransportRouteData
+import com.anto426.unisdk.transport.TransportRoute
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -10,7 +10,7 @@ class TransportMappingTest {
     @Test fun reservationsUsePortalTicketFieldsAndChronologicalTravelDates() {
         val data = TransportData(
             routeLabel = "Campobasso/Pesche/A/R",
-            availableRoutes = listOf(TransportRouteData("A01", "Campobasso/Pesche/A/R")),
+            availableRoutes = listOf(TransportRoute("A01", "Campobasso/Pesche/A/R")),
             bookings = listOf(
                 booking("later", "T-002", "lun 28/09/2026 14:05", isReturn = true),
                 booking("earlier", "T-001", "dom 27/09/2026 08:30"),
@@ -33,7 +33,7 @@ class TransportMappingTest {
     @Test fun outboundIsShownBeforeReturnOnTheSameDayEvenWhenTheReturnTimeIsEarlier() {
         val data = TransportData(
             routeLabel = "Campobasso/Pesche/A/R",
-            availableRoutes = listOf(TransportRouteData("A01", "Campobasso/Pesche/A/R")),
+            availableRoutes = listOf(TransportRoute("A01", "Campobasso/Pesche/A/R")),
             bookings = listOf(
                 booking("back", "T-004", "28/09/2026 08:00", isReturn = true),
                 booking("out", "T-005", "28/09/2026 09:00"),

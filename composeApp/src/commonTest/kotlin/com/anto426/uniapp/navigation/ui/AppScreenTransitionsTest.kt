@@ -15,8 +15,8 @@ class AppScreenTransitionsTest {
     @Test
     fun tabsDetailsAndPublicPagesShareTheSameSdkPresetInBothDirections() {
         val pages = appTopLevelRoutes + listOf(
-            AppRoute.Theme, AppRoute.Statistics, AppRoute.Grades, AppRoute.CourseDetail("course"),
-            AppRoute.TransportBooking, AppRoute.TicketDetail("ticket"), AppRoute.ContactDetail("contact"),
+            AppRoute.Theme, AppRoute.Grades, AppRoute.Grades, AppRoute.CourseDetail("course"),
+            AppRoute.TransportBooking, AppRoute.ReservationDetail("ticket"), AppRoute.ContactDetail("contact"),
             AppRoute.Privacy, AppRoute.Updates,
         )
         for (page in pages) {

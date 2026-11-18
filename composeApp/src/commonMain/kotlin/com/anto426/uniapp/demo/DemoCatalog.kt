@@ -1,6 +1,6 @@
 package com.anto426.uniapp.demo
 
-import com.anto426.unisdk.backend.model.*
+import com.anto426.unisdk.model.*
 import com.anto426.unisdk.transport.TransportData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -14,10 +14,10 @@ import uniapp.composeapp.generated.resources.Res
 
 @Serializable
 internal data class DemoFixture(
-    val student: StudentDetailsData, val career: CareerData, val plan: StudyPlanData,
-    val exams: List<ExamRoundData>, val taxes: TaxesData, val devices: List<ConnectedDeviceData>,
+    val student: StudentDetails, val career: Career, val plan: StudyPlan,
+    val exams: List<ExamRound>, val taxes: Taxes, val devices: List<ConnectedDevice>,
     val attendance: List<AttendanceRecord>, val news: List<UniversityNews>, val contacts: List<UniversityContact>,
-    val transport: TransportData, val syllabuses: List<CourseSyllabusData>, val surveys: List<SurveyCourseData>,
+    val transport: TransportData, val syllabuses: List<CourseSyllabus>, val surveys: List<SurveyCourse>,
     val surveyQuestion: String, val surveyAnswers: List<String>,
 )
 

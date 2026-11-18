@@ -7,7 +7,7 @@ import com.anto426.uniapp.didactics.presentation.AcademicSection
 import com.anto426.uniapp.didactics.presentation.AcademicSectionUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.uniapp.ui.didactics.components.AcademicContentCard
-import com.anto426.unisdk.backend.model.ProfessorContentItem
+import com.anto426.unisdk.model.ProfessorContentItem
 
 @Composable
 fun AcademicSectionScreen(

@@ -19,14 +19,14 @@ import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
 import com.anto426.liquidmonet.components.selection.checkbox.LiquidCheckbox
 import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
-import com.anto426.unisdk.backend.model.SurveyQuestionData
+import com.anto426.unisdk.model.SurveyQuestion
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun SurveyQuestionCard(
     index: Int,
-    question: SurveyQuestionData,
+    question: SurveyQuestion,
     selectedAnswers: Set<String>,
     freeText: String,
     onAnswerSelected: (String, String, Boolean) -> Unit,

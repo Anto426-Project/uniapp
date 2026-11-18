@@ -11,7 +11,7 @@ import com.anto426.uniapp.data.profileCacheKey
 import com.anto426.unisdk.session.UniSessionTicket
 import com.anto426.unisdk.session.UniUserProfile
 import com.anto426.unisdk.session.UniCareerProfile
-import com.anto426.unisdk.backend.model.BackendCareerType
+import com.anto426.unisdk.model.CareerType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.runTest
@@ -80,7 +80,7 @@ class UniAccountStoreTest {
                 degreeName = "Docenza",
                 matricola = null,
                 activeProfileId = "professor-a",
-                activeProfileType = BackendCareerType.PROFESSOR,
+                activeProfileType = CareerType.PROFESSOR,
                 profiles =
                     listOf(
                         UniCareerProfile(
@@ -88,7 +88,7 @@ class UniAccountStoreTest {
                             displayName = "Professor same-user",
                             degreeName = "Docenza",
                             teacherId = "teacher-a",
-                            type = BackendCareerType.PROFESSOR,
+                            type = CareerType.PROFESSOR,
                         ),
                     ),
             )
@@ -110,7 +110,7 @@ class UniAccountStoreTest {
         assertEquals(firstAccount.accountId, secondAccount.accountId)
         assertEquals(1, accounts.size)
         assertEquals(setOf("career-a", "professor-a"), accounts.single().profiles.map { it.profileId }.toSet())
-        assertEquals(BackendCareerType.PROFESSOR, accounts.single().activeProfileType)
+        assertEquals(CareerType.PROFESSOR, accounts.single().activeProfileType)
     }
 
     @Test
@@ -136,7 +136,7 @@ class UniAccountStoreTest {
         val first = UniCareerProfile(
             profileId = "professor|123|dip-1", displayName = "Mario Rossi", degreeName = "Docenza",
             teacherId = "123", dipId = "dip-1", departmentName = "Scienze",
-            type = BackendCareerType.PROFESSOR,
+            type = CareerType.PROFESSOR,
         )
         val second = first.copy(profileId = "professor|123|dip-2", dipId = "dip-2", departmentName = "Medicina")
         val account = store.persistAuthenticatedAccount(
@@ -155,7 +155,7 @@ class UniAccountStoreTest {
             profileId = "professor|123|dip-1",
             displayName = "Mario Rossi", degreeName = "Docenza",
             teacherId = "123", dipId = "dip-1", departmentName = "Scienze",
-            type = BackendCareerType.PROFESSOR,
+            type = CareerType.PROFESSOR,
         )
         val credentials = UniAccountCredentials("mario", "secret")
         val saved = store.persistAuthenticatedAccount(

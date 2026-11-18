@@ -21,7 +21,7 @@ import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgr
 import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.uniapp.ui.didactics.components.SurveyQuestionCard
-import com.anto426.unisdk.backend.model.SurveyQuestionData
+import com.anto426.unisdk.model.SurveyQuestion
 
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

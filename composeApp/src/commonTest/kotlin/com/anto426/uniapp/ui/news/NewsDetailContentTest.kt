@@ -1,7 +1,7 @@
 package com.anto426.uniapp.ui.news
 
 import com.anto426.uniapp.data.toNewsItems
-import com.anto426.unisdk.backend.model.UniversityNews
+import com.anto426.unisdk.model.UniversityNews
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

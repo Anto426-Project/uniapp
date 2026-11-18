@@ -29,7 +29,7 @@ import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContai
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.ThesisData
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.backend.model.ProfessorContentItem
+import com.anto426.unisdk.model.ProfessorContentItem
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 

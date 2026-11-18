@@ -84,7 +84,7 @@ class HomeDashboardViewModel(
             }
             if (account?.isProfessor == true) {
                 val profile = account.profiles.firstOrNull { it.profileId == account.activeProfileId }
-                    ?: account.profiles.firstOrNull { it.type == com.anto426.unisdk.backend.model.BackendCareerType.PROFESSOR }
+                    ?: account.profiles.firstOrNull { it.type == com.anto426.unisdk.model.CareerType.PROFESSOR }
                 next = next.copy(isProfessor = true, profileName = account.displayName,
                     profileInitials = account.displayName.initials(), matricola = account.serverUserId,
                     departmentName = profile?.departmentName.orEmpty(), degreeName = profile?.departmentName.orEmpty())
@@ -141,6 +141,13 @@ class HomeDashboardViewModel(
                         else -> state.news.lastIndex
                     },
             )
+        }
+    }
+
+    fun selectNews(index: Int) {
+        mutableUiState.update { state ->
+            val clamped = if (state.news.isEmpty()) 0 else index.coerceIn(0, state.news.lastIndex)
+            if (clamped == state.activeNewsIndex) state else state.copy(activeNewsIndex = clamped)
         }
     }
 

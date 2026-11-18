@@ -1,6 +1,6 @@
 package com.anto426.uniapp.session
 
-import com.anto426.unisdk.backend.model.LoginCareerOption
+import com.anto426.unisdk.model.LoginCareerOption
 import com.anto426.unisdk.session.UniCareerProfile
 import com.anto426.unisdk.session.UniUserProfile
 import kotlin.test.Test

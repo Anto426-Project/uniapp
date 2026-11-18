@@ -1,7 +1,7 @@
 package com.anto426.uniapp.session.model
 
 import com.anto426.uniapp.account.model.UniAccountSummary
-import com.anto426.unisdk.backend.model.LoginCareerOption
+import com.anto426.unisdk.model.LoginCareerOption
 
 sealed interface AppSessionState {
     data object Initializing : AppSessionState

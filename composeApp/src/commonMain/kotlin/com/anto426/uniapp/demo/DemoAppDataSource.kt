@@ -2,7 +2,7 @@ package com.anto426.uniapp.demo
 
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppPortraitSharer
-import com.anto426.unisdk.backend.model.*
+import com.anto426.unisdk.model.*
 import com.anto426.unisdk.transport.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -16,25 +16,25 @@ internal class DemoAppDataSource(
     private val portraitSharer: (suspend (String, ByteArray) -> ByteArray)? = null,
 ) : UniAppDataSource, UniAppPortraitSharer {
     private val lock = Mutex()
-    private var rounds: List<ExamRoundData>? = null
+    private var rounds: List<ExamRound>? = null
     private var transport: TransportData? = null
-    private var surveys: List<SurveyCourseData>? = null
+    private var surveys: List<SurveyCourse>? = null
     private suspend fun feedback() = getString(Res.string.ui_demo_action)
     override suspend fun loadCareer(forceRefresh: Boolean) = DemoCatalog.load().career
-    override suspend fun loadProfessorDashboard(forceRefresh: Boolean) = ProfessorDashboardData()
+    override suspend fun loadProfessorDashboard(forceRefresh: Boolean) = ProfessorDashboard()
     override suspend fun loadStudyPlan(forceRefresh: Boolean) = DemoCatalog.load().plan
     override suspend fun loadExamRounds(forceRefresh: Boolean) = lock.withLock { rounds ?: DemoCatalog.load().exams }
     override suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean) = DemoCatalog.load().syllabuses.first { it.adsceId == adsceId }
-    override suspend fun bookExamRound(round: ExamRoundData): String {
+    override suspend fun bookExamRound(round: ExamRound): String {
         lock.withLock { rounds = (rounds ?: DemoCatalog.load().exams).map { if (it.appId == round.appId) it.copy(booked = true) else it } }
         return feedback()
     }
-    override suspend fun cancelExamRound(round: ExamRoundData): String {
+    override suspend fun cancelExamRound(round: ExamRound): String {
         lock.withLock { rounds = (rounds ?: DemoCatalog.load().exams).map { if (it.appId == round.appId) it.copy(booked = false) else it } }
         return feedback()
     }
     override suspend fun loadTaxes(forceRefresh: Boolean) = DemoCatalog.load().taxes
-    override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetailsData {
+    override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetails {
         val (name, avatar) = identity()
         return DemoCatalog.load().student.copy(fullName = name, photoUrl = avatar)
     }
@@ -48,11 +48,11 @@ internal class DemoAppDataSource(
     override suspend fun loadUniversityNews(forceRefresh: Boolean) = DemoCatalog.load().news
     override suspend fun loadUniversityContacts(forceRefresh: Boolean) = DemoCatalog.load().contacts
     override suspend fun loadSurveyCourses(forceRefresh: Boolean) = lock.withLock { surveys ?: DemoCatalog.load().surveys }
-    override suspend fun loadSurveyFirstPage(courseId: String, tagList: String): SurveyFirstPageData {
+    override suspend fun loadSurveyFirstPage(courseId: String, tagList: String): SurveyForm {
         val fixture = DemoCatalog.load()
-        return SurveyFirstPageData("demo-user", "demo-questionnaire", listOf(SurveyPageData("demo-page", listOf(
-            SurveyQuestionData("demo-question", fixture.surveyQuestion,
-                fixture.surveyAnswers.mapIndexed { i, text -> SurveyAnswerOptionData("demo-answer-$i", text) }, pageId = "demo-page")
+        return SurveyForm("demo-user", "demo-questionnaire", listOf(SurveyPage("demo-page", listOf(
+            SurveyQuestion("demo-question", fixture.surveyQuestion,
+                fixture.surveyAnswers.mapIndexed { i, text -> SurveyAnswerOption("demo-answer-$i", text) }, pageId = "demo-page")
         ))))
     }
     override suspend fun saveSurvey(courseId: String, request: SurveySaveRequest): String {

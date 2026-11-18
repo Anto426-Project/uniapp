@@ -73,7 +73,6 @@ fun ThemeScreen(
     onReducedMotionChanged: (Boolean) -> Unit,
     onPageTransitionSelected: (LiquidSwitcherTransition) -> Unit,
     onReset: () -> Unit,
-    onCustomColorSelected: (Color) -> Unit = {},
     onNavigateToColorLab: () -> Unit = {}
 ) {
     val activeAccentColor = when {

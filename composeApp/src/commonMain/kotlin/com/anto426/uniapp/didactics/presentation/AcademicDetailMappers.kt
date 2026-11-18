@@ -4,7 +4,7 @@ import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 import com.anto426.uniapp.model.didactics.ThesisData
-import com.anto426.unisdk.backend.model.ProfessorContentItem
+import com.anto426.unisdk.model.ProfessorContentItem
 
 fun extractThesisData(item: ProfessorContentItem): ThesisData {
     val fields =

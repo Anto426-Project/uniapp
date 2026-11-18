@@ -8,20 +8,20 @@ import com.anto426.unisdk.session.UniCredentials
 import com.anto426.unisdk.session.UniSession
 import com.anto426.unisdk.transport.TransportService
 import com.anto426.unisdk.transport.TransportSession
-import com.anto426.unisdk.backend.model.AttendanceRecord
-import com.anto426.unisdk.backend.model.CareerData
-import com.anto426.unisdk.backend.model.ConnectedDeviceData
-import com.anto426.unisdk.backend.model.CourseSyllabusData
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.StudyPlanData
-import com.anto426.unisdk.backend.model.SurveyCourseData
-import com.anto426.unisdk.backend.model.SurveyFirstPageData
-import com.anto426.unisdk.backend.model.SurveySaveRequest
-import com.anto426.unisdk.backend.model.StudentDetailsData
-import com.anto426.unisdk.backend.model.TaxesData
-import com.anto426.unisdk.backend.model.UniversityContact
-import com.anto426.unisdk.backend.model.UniversityNews
-import com.anto426.unisdk.backend.model.ProfessorDashboardData
+import com.anto426.unisdk.model.AttendanceRecord
+import com.anto426.unisdk.model.Career
+import com.anto426.unisdk.model.ConnectedDevice
+import com.anto426.unisdk.model.CourseSyllabus
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.StudyPlan
+import com.anto426.unisdk.model.SurveyCourse
+import com.anto426.unisdk.model.SurveyForm
+import com.anto426.unisdk.model.SurveySaveRequest
+import com.anto426.unisdk.model.StudentDetails
+import com.anto426.unisdk.model.Taxes
+import com.anto426.unisdk.model.UniversityContact
+import com.anto426.unisdk.model.UniversityNews
+import com.anto426.unisdk.model.ProfessorDashboard
 import com.anto426.unisdk.platform.currentEpochMillis
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBookingRequest
@@ -97,58 +97,58 @@ class PortalDataSource(
         return value
     }
 
-    override suspend fun loadCareer(forceRefresh: Boolean): CareerData =
-        cached("career-v2", UniAppCachePolicies.Career, CareerData.serializer(), forceRefresh) { context ->
+    override suspend fun loadCareer(forceRefresh: Boolean): Career =
+        cached("career-v2", UniAppCachePolicies.Career, Career.serializer(), forceRefresh) { context ->
             context.backend { session, credentials -> loadCareer(session, credentials) }
         }
 
-    override suspend fun loadProfessorDashboard(forceRefresh: Boolean): ProfessorDashboardData =
+    override suspend fun loadProfessorDashboard(forceRefresh: Boolean): ProfessorDashboard =
         cached(
             "professor-dashboard",
             UniAppCachePolicies.ProfessorDashboard,
-            ProfessorDashboardData.serializer(),
+            ProfessorDashboard.serializer(),
             forceRefresh,
         ) { context -> context.backend { session, credentials -> loadProfessorDashboard(session, credentials) } }
 
-    override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlanData =
-        cached("study-plan", UniAppCachePolicies.StudyPlan, StudyPlanData.serializer(), forceRefresh) { context ->
+    override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlan =
+        cached("study-plan", UniAppCachePolicies.StudyPlan, StudyPlan.serializer(), forceRefresh) { context ->
             context.backend { session, credentials -> loadStudyPlan(session, credentials) }
         }
 
-    override suspend fun loadExamRounds(forceRefresh: Boolean): List<ExamRoundData> =
-        cached("exam-rounds", UniAppCachePolicies.ExamRounds, ListSerializer(ExamRoundData.serializer()), forceRefresh) { context ->
+    override suspend fun loadExamRounds(forceRefresh: Boolean): List<ExamRound> =
+        cached("exam-rounds", UniAppCachePolicies.ExamRounds, ListSerializer(ExamRound.serializer()), forceRefresh) { context ->
             context.backend { session, credentials -> loadExamRounds(session, credentials) }
         }
 
-    override suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean): CourseSyllabusData =
+    override suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean): CourseSyllabus =
         cached(
             datasetCacheKey("course-syllabus", adsceId),
             UniAppCachePolicies.CourseSyllabus,
-            CourseSyllabusData.serializer(),
+            CourseSyllabus.serializer(),
             forceRefresh,
         ) { context -> context.backend { session, credentials -> loadCourseSyllabus(session, credentials, adsceId) } }
 
-    override suspend fun bookExamRound(round: ExamRoundData): String {
+    override suspend fun bookExamRound(round: ExamRound): String {
         val context = activeContext()
         return context.backend { session, credentials -> bookExamRound(session, credentials, round) }.also {
             invalidate(context.accountId, context.profileScopedKey("exam-rounds"))
         }
     }
 
-    override suspend fun cancelExamRound(round: ExamRoundData): String {
+    override suspend fun cancelExamRound(round: ExamRound): String {
         val context = activeContext()
         return context.backend { session, credentials -> cancelExamRound(session, credentials, round) }.also {
             invalidate(context.accountId, context.profileScopedKey("exam-rounds"))
         }
     }
 
-    override suspend fun loadTaxes(forceRefresh: Boolean): TaxesData =
-        cached("taxes", UniAppCachePolicies.Taxes, TaxesData.serializer(), forceRefresh) { context ->
+    override suspend fun loadTaxes(forceRefresh: Boolean): Taxes =
+        cached("taxes", UniAppCachePolicies.Taxes, Taxes.serializer(), forceRefresh) { context ->
             context.backend { session, credentials -> loadTaxes(session, credentials) }
         }
 
-    override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetailsData =
-        cached("student-details-v2", UniAppCachePolicies.StudentDetails, StudentDetailsData.serializer(), forceRefresh) { context ->
+    override suspend fun loadStudentDetails(forceRefresh: Boolean): StudentDetails =
+        cached("student-details-v2", UniAppCachePolicies.StudentDetails, StudentDetails.serializer(), forceRefresh) { context ->
             context.backend { session, credentials -> loadStudentDetails(session, credentials) }
         }
 
@@ -188,11 +188,11 @@ class PortalDataSource(
             }
         }
 
-    override suspend fun loadConnectedDevices(forceRefresh: Boolean): List<ConnectedDeviceData> =
+    override suspend fun loadConnectedDevices(forceRefresh: Boolean): List<ConnectedDevice> =
         cached(
             "connected-devices",
             UniAppCachePolicies.ConnectedDevices,
-            ListSerializer(ConnectedDeviceData.serializer()),
+            ListSerializer(ConnectedDevice.serializer()),
             forceRefresh,
         ) { context -> context.backend { session, credentials -> loadConnectedDevices(session, credentials) } }
 
@@ -253,15 +253,15 @@ class PortalDataSource(
             forceRefresh,
         ) { context -> context.backend { session, credentials -> loadUniversityContacts(session, credentials) } }
 
-    override suspend fun loadSurveyCourses(forceRefresh: Boolean): List<SurveyCourseData> =
+    override suspend fun loadSurveyCourses(forceRefresh: Boolean): List<SurveyCourse> =
         cached(
             "survey-courses",
             UniAppCachePolicies.SurveyCourses,
-            ListSerializer(SurveyCourseData.serializer()),
+            ListSerializer(SurveyCourse.serializer()),
             forceRefresh,
         ) { context -> context.backend { session, credentials -> loadSurveyCourses(session, credentials) } }
 
-    override suspend fun loadSurveyFirstPage(courseId: String, tagList: String): SurveyFirstPageData =
+    override suspend fun loadSurveyFirstPage(courseId: String, tagList: String): SurveyForm =
         activeContext().backend { session, credentials -> loadSurveyFirstPage(session, credentials, courseId, tagList) }
 
     override suspend fun saveSurvey(courseId: String, request: SurveySaveRequest): String {

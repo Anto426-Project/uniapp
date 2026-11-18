@@ -14,11 +14,11 @@ import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.backend.model.CareerExamData
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.isPastExamRound
-import com.anto426.unisdk.backend.model.parseExamRoundDateOrNull
-import com.anto426.unisdk.backend.model.parseExamRoundDateTimeOrNull
+import com.anto426.unisdk.model.CareerExam
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.isPastExamRound
+import com.anto426.unisdk.model.parseExamRoundDateOrNull
+import com.anto426.unisdk.model.parseExamRoundDateTimeOrNull
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,8 +74,8 @@ class ExamsHistoryViewModel(
 }
 
 internal fun buildExamHistory(
-    careerExams: List<CareerExamData>,
-    rounds: List<ExamRoundData>,
+    careerExams: List<CareerExam>,
+    rounds: List<ExamRound>,
     today: LocalDate,
 ): List<PastExam> {
     val history = linkedMapOf<String, PastExam>()
@@ -121,15 +121,7 @@ internal fun buildExamHistory(
                     code = exam.adsceId ?: bookedRound.code,
                 )
             } else {
-                PastExam(
-                    id = exam.adsceId ?: "$key|${exam.grade}",
-                    name = exam.name,
-                    date = exam.date,
-                    status = PastExamStatus.VERBALIZED,
-                    grade = exam.grade,
-                    cfu = exam.cfu,
-                    code = exam.adsceId,
-                )
+                return@forEach
             }
     }
 

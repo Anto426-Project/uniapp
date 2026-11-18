@@ -3,10 +3,22 @@ package com.anto426.uniapp.navigation.ui
 
 
 import androidx.compose.runtime.Composable
+import com.anto426.uniapp.ui.settings.AboutUniAppScreen
+import com.anto426.uniapp.ui.updates.ChangelogScreen
+import com.anto426.uniapp.updates.presentation.ChangelogViewModel
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
+import com.anto426.uniapp.ui.components.layout.UniTabbedScreen
+import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
+import com.anto426.uniapp.didactics.presentation.ExamsHistoryViewModel
+import com.anto426.uniapp.ui.didactics.StudyPlanScreen
+import com.anto426.uniapp.ui.didactics.ExamsHistoryScreen
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,13 +32,10 @@ import com.anto426.uniapp.auth.presentation.LoginViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsViewModel
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardViewModel
 import com.anto426.uniapp.didactics.presentation.CourseDetailViewModel
-import com.anto426.uniapp.didactics.presentation.ExamsHistoryViewModel
 import com.anto426.uniapp.didactics.presentation.GradesViewModel
 import com.anto426.uniapp.didactics.presentation.AttendanceViewModel
 import com.anto426.uniapp.didactics.presentation.QuestionnairesViewModel
 import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailViewModel
-import com.anto426.uniapp.didactics.presentation.StatisticsViewModel
-import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicSection
 import com.anto426.uniapp.didactics.presentation.AcademicSectionViewModel
@@ -55,11 +64,8 @@ import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
-import com.anto426.uniapp.transport.presentation.TransportCatalogViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
 import com.anto426.uniapp.transport.presentation.ReservationDetailViewModel
-import com.anto426.uniapp.transport.presentation.TicketDetailViewModel
-import com.anto426.uniapp.updates.presentation.ChangelogViewModel
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import com.anto426.uniapp.ui.account.AccountRemovalDialog
 import com.anto426.uniapp.ui.auth.LoginScreen
@@ -69,16 +75,13 @@ import com.anto426.uniapp.ui.components.state.FeatureStateContent
 import com.anto426.uniapp.ui.didactics.AttendanceScreen
 import com.anto426.uniapp.ui.didactics.CourseDetailScreen
 import com.anto426.uniapp.ui.didactics.DidacticsScreen
-import com.anto426.uniapp.ui.didactics.ExamsHistoryScreen
 import com.anto426.uniapp.ui.didactics.ExamsScreen
 import com.anto426.uniapp.ui.didactics.GradesScreen
 import com.anto426.uniapp.ui.didactics.QuestionnairesScreen
 import com.anto426.uniapp.ui.didactics.QuestionnaireDetailScreen
-import com.anto426.uniapp.ui.didactics.StatisticsScreen
 import com.anto426.uniapp.ui.didactics.AcademicIdentityScreen
 import com.anto426.uniapp.ui.didactics.AcademicSectionScreen
 import com.anto426.uniapp.ui.didactics.AcademicItemDetailScreen
-import com.anto426.uniapp.ui.didactics.StudyPlanScreen
 import com.anto426.uniapp.ui.didactics.TranscriptsScreen
 import com.anto426.uniapp.ui.home.dashboard.HomeScreen
 import com.anto426.uniapp.ui.legal.CookiesScreen
@@ -90,7 +93,6 @@ import com.anto426.uniapp.ui.services.ContactDetailScreen
 import com.anto426.uniapp.ui.services.ContactsScreen
 import com.anto426.uniapp.ui.services.ServicesScreen
 import com.anto426.uniapp.ui.services.TaxesScreen
-import com.anto426.uniapp.ui.settings.AboutUniAppScreen
 import com.anto426.uniapp.ui.settings.AppInfoScreen
 import com.anto426.uniapp.ui.settings.CreatorCreditsScreen
 import com.anto426.uniapp.ui.settings.ColorLabScreen
@@ -99,11 +101,8 @@ import com.anto426.uniapp.ui.settings.LanguageScreen
 import com.anto426.uniapp.ui.settings.SettingsScreen
 import com.anto426.uniapp.ui.settings.ThemeScreen
 import com.anto426.uniapp.ui.transport.ReservationDetailScreen
-import com.anto426.uniapp.ui.transport.TicketDetailScreen
 import com.anto426.uniapp.ui.transport.TransportBookingScreen
-import com.anto426.uniapp.ui.transport.TransportCatalogScreen
 import com.anto426.uniapp.ui.transport.TransportScreen
-import com.anto426.uniapp.ui.updates.ChangelogScreen
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -202,9 +201,9 @@ internal fun AppRouteContent(
             val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
             HomeScreen(
                 uiState = homeUiState,
-                onOpenStatistics = { navigator.navigate(AppRoute.Statistics) },
+                onOpenStatistics = { navigator.navigate(AppRoute.Grades) },
                 onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
-                onOpenExams = { navigator.navigate(AppRoute.Exams) },
+                onOpenExams = { navigator.navigate(AppRoute.Exams()) },
                 onOpenNews = { navigator.navigate(AppRoute.News) },
                 onOpenBadge = { navigator.navigate(AppRoute.Badge) },
                 onShowNews = { news ->
@@ -218,6 +217,8 @@ internal fun AppRouteContent(
                 },
                 onNextNews = homeViewModel::showNextNews,
                 onPreviousNews = homeViewModel::showPreviousNews,
+                onSelectNews = homeViewModel::selectNews,
+                onRefresh = { homeViewModel.refresh(force = true) },
                 onToggleCustomization = homeViewModel::toggleCustomization,
                 onFinishCustomization = homeViewModel::finishCustomization,
                 onToggleQuickAction = homeViewModel::toggleQuickAction,
@@ -243,14 +244,10 @@ internal fun AppRouteContent(
                     "news" -> navigator.navigate(AppRoute.News)
                     "transport" -> navigator.navigate(AppRoute.Transport)
                     "taxes" -> navigator.navigate(AppRoute.Taxes)
-                    "statistics" -> navigator.navigate(AppRoute.Statistics)
-                    "contacts", "professors" -> navigator.navigate(AppRoute.Contacts)
+                    "statistics" -> navigator.navigate(AppRoute.Grades)
+                    "contacts" -> navigator.navigate(AppRoute.Contacts)
                     "student-office" -> uriHandler.openUri("https://www3.unimol.it/servizi/segreteria_studenti")
-                    "esse3" -> if (isProfessor) {
-                        uriHandler.openUri("https://unimol.esse3.cineca.it")
-                    } else {
-                        navigator.navigate(AppRoute.Transcripts)
-                    }
+                    "esse3" -> uriHandler.openUri("https://unimol.esse3.cineca.it")
                     "moodle" -> uriHandler.openUri("https://learn.unimol.it")
                     "university-web" -> uriHandler.openUri("https://www.unimol.it")
                     "library" -> uriHandler.openUri("https://www.unimol.it/studente/servizi/biblioteche/")
@@ -273,13 +270,11 @@ internal fun AppRouteContent(
                     uiState = didacticsUiState,
                     onOpenTaxes = { navigator.navigate(AppRoute.Taxes) },
                     onOpenGrades = { navigator.navigate(AppRoute.Grades) },
-                    onOpenStatistics = { navigator.navigate(AppRoute.Statistics) },
-                    onOpenTranscripts = { navigator.navigate(AppRoute.Transcripts) },
-                    onOpenExams = { navigator.navigate(AppRoute.Exams) },
+                    onOpenTranscripts = { navigator.navigate(AppRoute.Transcripts()) },
+                    onOpenExams = { navigator.navigate(AppRoute.Exams()) },
                     onOpenQuestionnaires = { navigator.navigate(AppRoute.Questionnaires) },
                     onOpenBadge = { navigator.navigate(AppRoute.Badge) },
                     onOpenAttendance = { navigator.navigate(AppRoute.Attendance) },
-                    onOpenStudyPlan = { navigator.navigate(AppRoute.StudyPlan) },
                     onOpenTeachings = { navigator.navigate(AppRoute.Teachings) },
                     onOpenTheses = { navigator.navigate(AppRoute.Theses) },
                     onOpenReports = { navigator.navigate(AppRoute.Reports) },
@@ -395,23 +390,37 @@ internal fun AppRouteContent(
             )
         }
 
-        AppRoute.Transcripts,
-        -> {
-            val transcriptsViewModel = viewModel(key = viewModelKey) { TranscriptsViewModel(dataSource) }
-            val transcriptsUiState by transcriptsViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                transcriptsUiState.loadState,
-                transcriptsUiState.errorMessage,
-                onRetry = { transcriptsViewModel.refresh(force = true) },
-                emptyMessage = stringResource(Res.string.ui_state_empty_transcripts),
+        is AppRoute.Transcripts -> {
+            var selectedPane by rememberSaveable(route.initialTab) { mutableIntStateOf(route.initialTab.coerceIn(0, 1)) }
+            UniTabbedScreen(
+                tabs = listOf(
+                    LiquidNavigationItem(stringResource(Res.string.ui_career_completed)),
+                    LiquidNavigationItem(stringResource(Res.string.ui_career_plan)),
+                ),
+                selectedTab = selectedPane,
+                onTabSelected = { selectedPane = it },
             ) {
-                TranscriptsScreen(
-                    uiState = transcriptsUiState,
-                    onYearSelected = transcriptsViewModel::selectYear,
-                    onExamClick = { exam ->
-                        if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
-                    },
-                )
+                if (selectedPane == 0) {
+                    val model = viewModel(key = "$viewModelKey-completed") { TranscriptsViewModel(dataSource) }
+                    val state by model.uiState.collectAsStateWithLifecycle()
+                    FeatureStateContent(state.loadState, state.errorMessage,
+                        onRetry = { model.refresh(force = true) },
+                        emptyMessage = stringResource(Res.string.ui_state_empty_transcripts)) {
+                        TranscriptsScreen(state, model::selectYear) { exam ->
+                            if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
+                        }
+                    }
+                } else {
+                    val model = viewModel(key = "$viewModelKey-plan") { StudyPlanViewModel(dataSource) }
+                    val state by model.uiState.collectAsStateWithLifecycle()
+                    FeatureStateContent(state.loadState, state.errorMessage,
+                        onRetry = { model.refresh(force = true) },
+                        emptyMessage = stringResource(Res.string.ui_state_empty_study_plan)) {
+                        StudyPlanScreen(state, model::selectYear) { course ->
+                            if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id))
+                        }
+                    }
+                }
             }
         }
 
@@ -438,7 +447,6 @@ internal fun AppRouteContent(
                 onReducedMotionChanged = onReducedMotionChanged,
                 onPageTransitionSelected = onPageTransitionSelected,
                 onReset = onResetTheme,
-                onCustomColorSelected = onCustomColorSelected,
                 onNavigateToColorLab = { navigator.navigate(AppRoute.Colors) },
             )
         }
@@ -492,21 +500,6 @@ internal fun AppRouteContent(
                 )
             }
         }
-        AppRoute.Statistics -> {
-            val statisticsViewModel = viewModel(key = viewModelKey) { StatisticsViewModel(dataSource) }
-            val statisticsUiState by statisticsViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                statisticsUiState.loadState,
-                statisticsUiState.errorMessage,
-                onRetry = { statisticsViewModel.refresh(force = true) },
-            ) {
-                StatisticsScreen(
-                    uiState = statisticsUiState,
-                    onTabSelected = statisticsViewModel::selectTab,
-                )
-            }
-        }
-
         AppRoute.Contacts -> {
             val contactsViewModel = viewModel(key = viewModelKey) { ContactsViewModel(dataSource) }
             val contactsUiState by contactsViewModel.uiState.collectAsStateWithLifecycle()
@@ -563,28 +556,6 @@ internal fun AppRouteContent(
             }
         }
 
-        AppRoute.TransportCatalog -> {
-            val catalogViewModel = viewModel(key = viewModelKey) { TransportCatalogViewModel(dataSource) }
-            val catalogUiState by catalogViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                catalogUiState.loadState,
-                catalogUiState.errorMessage,
-                onRetry = { catalogViewModel.refresh(force = true) },
-            ) {
-                TransportCatalogScreen(
-                    uiState = catalogUiState,
-                    onTicketClick = { ticket ->
-                        navigator.navigate(
-                            AppRoute.TicketDetail(
-                                ticketId = ticket.id,
-                                title = ticket.title,
-                            ),
-                        )
-                    },
-                )
-            }
-        }
-
         AppRoute.TransportBooking -> {
             val bookingViewModel =
                 viewModel(key = viewModelKey) {
@@ -604,20 +575,6 @@ internal fun AppRouteContent(
                 )
             }
         }
-        is AppRoute.TicketDetail -> {
-            val detailViewModel = viewModel(key = viewModelKey) { TicketDetailViewModel(route.ticketId, dataSource) }
-            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                detailUiState.loadState,
-                detailUiState.errorMessage,
-                onRetry = { detailViewModel.refresh(force = true) },
-            ) {
-                detailUiState.ticket?.let { ticket ->
-                    TicketDetailScreen(ticket) { navigator.navigate(AppRoute.TransportBooking) }
-                }
-            }
-        }
-
         is AppRoute.ReservationDetail -> {
             val detailViewModel =
                 viewModel(key = viewModelKey) {
@@ -666,56 +623,40 @@ internal fun AppRouteContent(
             }
         }
 
-        AppRoute.Exams -> {
+        is AppRoute.Exams -> {
             val account = (sessionState as? AppSessionState.Authenticated)?.account
-            val examsViewModel = viewModel(key = viewModelKey) { ExamsViewModel(dataSource, toastSink, account = account) }
-            val examsUiState by examsViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                examsUiState.loadState,
-                examsUiState.errorMessage,
-                onRetry = { examsViewModel.refresh(force = true) },
-                emptyMessage = stringResource(Res.string.ui_state_empty_exams),
-            ) {
-                ExamsScreen(
-                    uiState = examsUiState,
-                    onTabSelected = examsViewModel::selectTab,
-                    onToggleBooking = examsViewModel::toggleBooking,
-                    onAddToCalendar = { examsViewModel.openCalendar(it, uriHandler::openUri) },
-                    onProfessorExamClick = { exam ->
-                        navigator.navigate(
-                            AppRoute.ProfessorExamDetail(
-                                itemKey = exam.academicItemKey(),
-                                title = exam.title,
-                            ),
+            val model = viewModel(key = viewModelKey) { ExamsViewModel(dataSource, toastSink, account = account, initialTab = route.initialTab) }
+            val state by model.uiState.collectAsStateWithLifecycle()
+            val content: @Composable () -> Unit = {
+                if (account?.isProfessor != true && state.selectedTab == 2) {
+                    val history = viewModel(key = "$viewModelKey-history") { ExamsHistoryViewModel(dataSource) }
+                    val historyState by history.uiState.collectAsStateWithLifecycle()
+                    FeatureStateContent(historyState.loadState, historyState.errorMessage,
+                        onRetry = { history.refresh(force = true) }) { ExamsHistoryScreen(historyState) }
+                } else {
+                    FeatureStateContent(state.loadState, state.errorMessage,
+                        onRetry = { model.refresh(force = true) },
+                        emptyMessage = stringResource(Res.string.ui_state_empty_exams)) {
+                        ExamsScreen(
+                            uiState = state,
+                            onTabSelected = model::selectTab,
+                            showTabs = false,
+                            onToggleBooking = model::toggleBooking,
+                            onProfessorExamClick = { item ->
+                                navigator.navigate(AppRoute.ProfessorExamDetail(item.academicItemKey(), item.title))
+                            },
+                            onAddToCalendar = { model.openCalendar(it, uriHandler::openUri) },
                         )
-                    },
-                )
+                    }
+                }
             }
-        }
-        AppRoute.ExamsHistory -> {
-            val historyViewModel = viewModel(key = viewModelKey) { ExamsHistoryViewModel(dataSource) }
-            val historyUiState by historyViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                historyUiState.loadState,
-                historyUiState.errorMessage,
-                onRetry = { historyViewModel.refresh(force = true) },
-            ) { ExamsHistoryScreen(historyUiState) }
-        }
-        AppRoute.StudyPlan -> {
-            val studyPlanViewModel = viewModel(key = viewModelKey) { StudyPlanViewModel(dataSource) }
-            val studyPlanUiState by studyPlanViewModel.uiState.collectAsStateWithLifecycle()
-            FeatureStateContent(
-                studyPlanUiState.loadState,
-                studyPlanUiState.errorMessage,
-                onRetry = { studyPlanViewModel.refresh(force = true) },
-                emptyMessage = stringResource(Res.string.ui_state_empty_study_plan),
-            ) {
-                StudyPlanScreen(
-                    uiState = studyPlanUiState,
-                    onYearSelected = studyPlanViewModel::selectYear,
-                    onCourseClick = { course -> if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id)) },
-                )
-            }
+            if (account?.isProfessor == true) content() else UniTabbedScreen(
+                tabs = listOf(
+                    LiquidNavigationItem(stringResource(Res.string.ui_bookable_exams)),
+                    LiquidNavigationItem(stringResource(Res.string.ui_booked_exams)),
+                    LiquidNavigationItem(stringResource(Res.string.msg_storico)),
+                ), selectedTab = state.selectedTab, onTabSelected = model::selectTab, content = content,
+            )
         }
 
         is AppRoute.CourseDetail -> {
@@ -927,7 +868,6 @@ internal fun AppRouteContent(
             val projectState by projectViewModel.uiState.collectAsStateWithLifecycle()
             CreatorCreditsScreen(
                 state = projectState,
-                onRefresh = { projectViewModel.refresh(force = true) },
                 onOpenLink = { url ->
                     val parsed = runCatching { io.ktor.http.Url(url) }.getOrNull()
                     if (parsed?.protocol?.name == "https") uriHandler.openUri(url)
@@ -1017,10 +957,10 @@ private fun InvalidDetailRoute(navigator: AppNavigator) {
 
 private fun AppNavigator.openHomeAction(actionId: String) {
     when (actionId) {
-        "libretto" -> navigate(AppRoute.Transcripts)
-        "statistiche" -> navigate(AppRoute.Statistics)
+        "libretto" -> navigate(AppRoute.Transcripts())
+        "statistiche" -> navigate(AppRoute.Grades)
         "media" -> navigate(AppRoute.Grades)
-        "appelli" -> navigate(AppRoute.Exams)
+        "appelli" -> navigate(AppRoute.Exams())
         "insegnamenti" -> navigate(AppRoute.Teachings)
         "tesi" -> navigate(AppRoute.Theses)
         "verbali" -> navigate(AppRoute.Reports)

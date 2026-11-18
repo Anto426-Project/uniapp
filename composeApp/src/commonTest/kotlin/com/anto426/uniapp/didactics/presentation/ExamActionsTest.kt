@@ -5,7 +5,7 @@ import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.stableUiId
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.testing.ResourceTest
-import com.anto426.unisdk.backend.model.ExamRoundData
+import com.anto426.unisdk.model.ExamRound
 import io.ktor.http.Url
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -20,7 +20,7 @@ import kotlin.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExamActionsTest : ResourceTest() {
     private fun round(date: String = "20/09/2026 09:30", booked: Boolean = true) =
-        ExamRoundData("Analisi & geometria", date, "Aula A & B", 20, true, booked,
+        ExamRound("Analisi & geometria", date, "Aula A & B", 20, true, booked,
             appId = "1", adId = "42", cdsId = "10", notes = "Portare il documento")
 
     @Test
@@ -50,11 +50,11 @@ class ExamActionsTest : ResourceTest() {
         try {
             val rounds = listOf(round(booked = false), round(booked = false).copy(adId = "43", courseName = "Fisica"))
             val finish = CompletableDeferred<Unit>()
-            val booked = mutableListOf<ExamRoundData>()
+            val booked = mutableListOf<ExamRound>()
             val messages = Channel<String>(Channel.UNLIMITED)
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadExamRounds(forceRefresh: Boolean) = rounds
-                override suspend fun bookExamRound(round: ExamRoundData): String {
+                override suspend fun bookExamRound(round: ExamRound): String {
                     booked += round
                     finish.await()
                     error("appello ancora non prenotabile")

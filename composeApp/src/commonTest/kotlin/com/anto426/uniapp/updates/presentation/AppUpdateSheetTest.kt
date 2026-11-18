@@ -6,7 +6,7 @@ import com.anto426.uniapp.updates.model.InstalledAppBuild
 import com.anto426.uniapp.updates.platform.PlatformUpdateLaunchResult
 import com.anto426.uniapp.updates.platform.PlatformUpdateLauncher
 import com.anto426.uniapp.updates.runtime.AppUpdateController
-import com.anto426.unisdk.backend.model.AppUpdateInfo
+import com.anto426.unisdk.model.AppUpdateInfo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

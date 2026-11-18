@@ -22,7 +22,7 @@ def validate(root=None):
                          r'fadeIn|fadeOut|scaleIn|scaleOut|slideIn\w*|slideOut\w*|'
                          r'expandVertically|shrinkVertically|withAnimation)\s*\(', code):
                 errors.append(f'{relative}: replace local animation construction with SDK motion')
-            if ('LiquidAnimatedSwitcher(' in code and path.name != 'UniUpdateBanner.kt') or (
+            if ('LiquidAnimatedSwitcher(' in code and path.name not in ('UniUpdateBanner.kt', 'UniContentHost.kt')) or (
                     'rememberLiquidContentTransition<' in code and path.name != 'AppNavigationHost.kt'):
                 errors.append(f'{relative}: changing content must use a shared content host')
             if re.search(r'\bLiquid(?:Section|Screen)Entrance\s*\(', code):

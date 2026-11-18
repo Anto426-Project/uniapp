@@ -89,7 +89,7 @@ import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import com.anto426.uniapp.ui.theme.UniTheme
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
-import com.anto426.unisdk.backend.model.BackendCareerType
+import com.anto426.unisdk.model.CareerType
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -581,29 +581,6 @@ private fun topBarActions(
                 ),
             )
 
-        AppRoute.Updates ->
-            listOf(
-                LiquidTopBarAction(
-                    icon = LiquidIcons.Refresh,
-                    label = stringResource(Res.string.ui_update_search),
-                    onClick = onRefreshUpdate,
-                ),
-
-            )
-
-        AppRoute.Exams ->
-            if (isProfessor) {
-                emptyList()
-            } else {
-            listOf(
-                LiquidTopBarAction(
-                    icon = LiquidIcons.Time,
-                    label = stringResource(Res.string.msg_storico),
-                    onClick = { navigator.navigate(AppRoute.ExamsHistory) },
-                ),
-            )
-            }
-
         AppRoute.Devices ->
             listOf(
                 LiquidTopBarAction(
@@ -625,7 +602,7 @@ private fun topBarActions(
                 label = stringResource(Res.string.ui_home_switch_career),
                 subItems = profiles.map { profile ->
                     val role = stringResource(
-                        if (profile.type == BackendCareerType.PROFESSOR) {
+                        if (profile.type == CareerType.PROFESSOR) {
                             Res.string.ui_professor_role
                         } else {
                             Res.string.ui_student_role

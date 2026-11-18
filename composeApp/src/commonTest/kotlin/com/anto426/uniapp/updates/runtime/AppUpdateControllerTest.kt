@@ -6,7 +6,7 @@ import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.InstalledAppBuild
 import com.anto426.uniapp.updates.platform.PlatformUpdateLauncher
 import com.anto426.uniapp.updates.platform.PlatformUpdateLaunchResult
-import com.anto426.unisdk.backend.model.AppUpdateInfo
+import com.anto426.unisdk.model.AppUpdateInfo
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

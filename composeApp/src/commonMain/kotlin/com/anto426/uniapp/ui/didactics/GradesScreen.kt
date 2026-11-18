@@ -12,6 +12,11 @@ import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.GraduationTargetTab
 import com.anto426.uniapp.ui.didactics.components.SimulationChartTab
 import com.anto426.uniapp.ui.didactics.components.SimulationTab
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import com.anto426.uniapp.model.didactics.toFixedTwoDecimals
 
 @Composable
 fun GradesScreen(
@@ -30,9 +35,10 @@ fun GradesScreen(
     onBonusPointsChanged: (Int) -> Unit = {},
 ) {
     val tabs = listOf(
+        LiquidNavigationItem(stringResource(Res.string.ui_grades_real), icon = LiquidIcons.Analytics),
         LiquidNavigationItem(stringResource(Res.string.ui_grades_tab_simula), icon = LiquidIcons.Edit),
         LiquidNavigationItem(stringResource(Res.string.ui_grades_tab_obiettivo), icon = LiquidIcons.MenuBook),
-        LiquidNavigationItem(stringResource(Res.string.ui_grades_tab_grafici), icon = LiquidIcons.Analytics),
+        LiquidNavigationItem(stringResource(Res.string.ui_grades_projection), icon = LiquidIcons.Analytics),
     )
 
     UniScreenColumn {
@@ -45,7 +51,7 @@ fun GradesScreen(
 
         // 2. Tab Content
         when (uiState.selectedTab) {
-            0 -> SimulationTab(
+            1 -> SimulationTab(
                 uiState = uiState,
                 onToggleItem = onToggleSimulationItem,
                 onGradeChange = onSimulatedGradeChanged,
@@ -56,15 +62,31 @@ fun GradesScreen(
                 onApplyCurrentAverage = onApplyCurrentAverage,
                 onResetSimulation = onResetSimulation,
             )
-            1 -> GraduationTargetTab(
+            2 -> GraduationTargetTab(
                 uiState = uiState,
                 onTargetDegreeChange = onTargetDegreeChanged,
                 onThesisPointsChange = onThesisPointsChanged,
                 onBonusPointsChange = onBonusPointsChanged,
             )
-            else -> SimulationChartTab(
-                uiState = uiState,
-            )
+            else -> {
+                val projected = uiState.selectedTab == 3
+                val chart = uiState.chartState(projected)
+                Text(
+                    text = stringResource(if (projected) Res.string.ui_grades_projected_description else Res.string.ui_grades_real_description),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                LiquidPreferenceGroup(title = stringResource(if (projected) Res.string.ui_grades_projected else Res.string.ui_grades_official)) {
+                    LiquidPreferenceItem(title = stringResource(Res.string.ui_weighted_average),
+                        subtitle = if (chart.currentAverage > 0) chart.currentAverage.toFixedTwoDecimals() else "—")
+                    LiquidPreferenceItem(title = stringResource(Res.string.ui_graduation_base),
+                        subtitle = if (chart.currentGraduationBase > 0) chart.currentGraduationBase.toFixedTwoDecimals() else "—")
+                    LiquidPreferenceItem(title = stringResource(Res.string.ui_stats_highest_grade),
+                        subtitle = chart.highestGradeCourses.ifBlank { "—" })
+                    LiquidPreferenceItem(title = stringResource(Res.string.ui_grades_recent_trend),
+                        subtitle = chart.recentTrend.toDouble().toFixedTwoDecimals())
+                }
+                SimulationChartTab(uiState = chart)
+            }
         }
     }
 }

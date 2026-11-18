@@ -18,10 +18,10 @@ import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.ProfessorContentItem
-import com.anto426.unisdk.backend.model.examDateTimeOrNull
-import com.anto426.unisdk.backend.model.isPastExamRound
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.ProfessorContentItem
+import com.anto426.unisdk.model.examDateTimeOrNull
+import com.anto426.unisdk.model.isPastExamRound
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -53,10 +53,14 @@ class ExamsViewModel(
     private val toastSink: AppToastSink = AppToastSink.None,
     private val today: () -> LocalDate = { Clock.System.todayIn(TimeZone.currentSystemDefault()) },
     private val account: UniAccountSummary? = null,
+    initialTab: Int = 0,
 ) : ViewModel() {
-    private val mutableUiState = MutableStateFlow(ExamsUiState())
+    private val mutableUiState = MutableStateFlow(ExamsUiState(
+        isProfessor = account?.isProfessor == true,
+        selectedTab = if (account?.isProfessor == true) 0 else initialTab.coerceIn(0, 2),
+    ))
     val uiState: StateFlow<ExamsUiState> = mutableUiState.asStateFlow()
-    private var roundsById: Map<String, ExamRoundData> = emptyMap()
+    private var roundsById: Map<String, ExamRound> = emptyMap()
 
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(if (account?.isProfessor == true) UniAppDataRequests.Professor else UniAppDataRequests.Exams)
@@ -77,7 +81,7 @@ class ExamsViewModel(
             val upcomingRounds = rounds
                 .filterNot { it.isPastExamRound(today()) }
                 .sortedWith(EXAM_ROUND_ASCENDING)
-            roundsById = upcomingRounds.associateBy(ExamRoundData::stableUiId)
+            roundsById = upcomingRounds.associateBy(ExamRound::stableUiId)
             mutableUiState.value = mutableUiState.value.copy(
                 exams = upcomingRounds.toExamSessions(),
                 loadState = if (upcomingRounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
@@ -100,7 +104,7 @@ class ExamsViewModel(
 
     fun selectTab(index: Int) {
         if (mutableUiState.value.isProfessor) return
-        mutableUiState.value = mutableUiState.value.copy(selectedTab = index.coerceIn(0, 1))
+        mutableUiState.value = mutableUiState.value.copy(selectedTab = index.coerceIn(0, 2))
     }
 
     fun toggleBooking(examId: String) {
@@ -140,7 +144,7 @@ class ExamsViewModel(
     }
 
     private companion object {
-        val EXAM_ROUND_ASCENDING = Comparator<ExamRoundData> { left, right ->
+        val EXAM_ROUND_ASCENDING = Comparator<ExamRound> { left, right ->
             val leftDate = left.examDateTimeOrNull()
             val rightDate = right.examDateTimeOrNull()
             when {

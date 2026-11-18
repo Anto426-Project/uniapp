@@ -2,12 +2,12 @@ package com.anto426.uniapp.data.runtime
 
 import com.anto426.uniapp.model.news.NewsFeed
 import com.anto426.uniapp.data.toNewsItems
-import com.anto426.unisdk.backend.model.UniversityNews
+import com.anto426.unisdk.model.UniversityNews
 import com.anto426.uniapp.data.PortalDataSource
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppPortraitSharer
-import com.anto426.unisdk.backend.model.ExamRoundData
-import com.anto426.unisdk.backend.model.SurveySaveRequest
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.SurveySaveRequest
 import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportData
 import kotlinx.coroutines.*
@@ -412,8 +412,8 @@ class ScopedDataRepository(
     override suspend fun loadSurveyCompilationStatus(adCod: String, forceRefresh: Boolean) = get(UniAppDataRequests.surveyStatus(adCod), forceRefresh)
     override suspend fun loadSurveyFirstPage(courseId: String, tagList: String) = get(UniAppDataRequests.surveyPage(courseId, tagList), false)
 
-    override suspend fun bookExamRound(round: ExamRoundData) = source.bookExamRound(round).also { invalidate(listOf(UniAppDataRequests.Exams)) }
-    override suspend fun cancelExamRound(round: ExamRoundData) = source.cancelExamRound(round).also { invalidate(listOf(UniAppDataRequests.Exams)) }
+    override suspend fun bookExamRound(round: ExamRound) = source.bookExamRound(round).also { invalidate(listOf(UniAppDataRequests.Exams)) }
+    override suspend fun cancelExamRound(round: ExamRound) = source.cancelExamRound(round).also { invalidate(listOf(UniAppDataRequests.Exams)) }
     override suspend fun disconnectDevice(targetToken: String) = source.disconnectDevice(targetToken).also { invalidate(listOf(UniAppDataRequests.Devices)) }
     override suspend fun disconnectAllOtherDevices() = source.disconnectAllOtherDevices().also { invalidate(listOf(UniAppDataRequests.Devices)) }
     override suspend fun registerAttendance(qrCode: String, deviceLatitude: Double?, deviceLongitude: Double?, deviceAccuracyMeters: Double?) =

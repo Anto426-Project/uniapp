@@ -16,16 +16,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
+import com.anto426.uniapp.ui.components.display.UniBentoStatTile
 import com.anto426.uniapp.ui.components.items.DidacticItem
 import com.anto426.uniapp.ui.components.items.DidacticRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -42,17 +42,18 @@ fun ProfessorDidacticsContent(
     onOpenNews: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val glassColors = LiquidGlassTheme.colors
     UniScreenColumn {
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
-            contentPadding = 20.dp,
+            contentPadding = 18.dp,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Header row with Role Badge
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -66,12 +67,12 @@ fun ProfessorDidacticsContent(
                             text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_professor_role) },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = colorScheme.onSurface,
                         )
                         Text(
                             text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_university) },
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = colorScheme.onSurfaceVariant,
                         )
                     }
 
@@ -79,34 +80,36 @@ fun ProfessorDidacticsContent(
 
                     LiquidBadge(
                         text = stringResource(Res.string.ui_professor_area_title),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
+                        contentColor = colorScheme.primary,
                     )
                 }
 
-                LiquidHorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
-                // Metric Badges row - perfectly distributed
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    ProfessorMetricTile(
+                    UniBentoStatTile(
                         label = stringResource(Res.string.ui_professor_teachings),
                         value = "${uiState.teachingCount}",
                         icon = LiquidIcons.MenuBook,
+                        accentColor = colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
-                    ProfessorMetricTile(
+                    UniBentoStatTile(
                         label = stringResource(Res.string.ui_exams),
                         value = "${uiState.openExamRounds}",
                         icon = LiquidIcons.Calendar,
+                        accentColor = colorScheme.tertiary,
                         modifier = Modifier.weight(1f),
                     )
-                    ProfessorMetricTile(
+                    UniBentoStatTile(
                         label = stringResource(Res.string.ui_professor_theses),
                         value = "${uiState.thesisCount}",
                         icon = LiquidIcons.Assignment,
+                        accentColor = colorScheme.secondary,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -120,7 +123,7 @@ fun ProfessorDidacticsContent(
 
         Column(
             modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             DidacticRow(
                 item1 = {
@@ -129,6 +132,7 @@ fun ProfessorDidacticsContent(
                         subtitle = stringResource(Res.string.ui_professor_teachings_subtitle),
                         icon = LiquidIcons.MenuBook,
                         badgeCount = uiState.teachingCount.takeIf { it > 0 },
+                        iconColor = colorScheme.primary,
                         onClick = onOpenTeachings,
                     )
                 },
@@ -138,6 +142,7 @@ fun ProfessorDidacticsContent(
                         subtitle = stringResource(Res.string.ui_professor_exam_rounds_subtitle),
                         icon = LiquidIcons.Calendar,
                         badgeCount = uiState.openExamRounds.takeIf { it > 0 },
+                        iconColor = colorScheme.tertiary,
                         onClick = onOpenExams,
                     )
                 },
@@ -149,6 +154,7 @@ fun ProfessorDidacticsContent(
                         subtitle = stringResource(Res.string.ui_professor_theses_subtitle),
                         icon = LiquidIcons.Assignment,
                         badgeCount = uiState.thesisCount.takeIf { it > 0 },
+                        iconColor = glassColors.warning,
                         onClick = onOpenTheses,
                     )
                 },
@@ -158,6 +164,7 @@ fun ProfessorDidacticsContent(
                         subtitle = stringResource(Res.string.ui_professor_reports_subtitle),
                         icon = LiquidIcons.Edit,
                         badgeCount = uiState.reportCount.takeIf { it > 0 },
+                        iconColor = colorScheme.secondary,
                         onClick = onOpenReports,
                     )
                 },
@@ -168,6 +175,7 @@ fun ProfessorDidacticsContent(
                         title = stringResource(Res.string.nav_route_news_title),
                         subtitle = stringResource(Res.string.nav_route_news_subtitle),
                         icon = LiquidIcons.Notifications,
+                        iconColor = colorScheme.primary,
                         onClick = onOpenNews,
                     )
                 },
@@ -176,50 +184,12 @@ fun ProfessorDidacticsContent(
                         title = stringResource(Res.string.ui_settings),
                         subtitle = stringResource(Res.string.ui_professor_settings_subtitle),
                         icon = LiquidIcons.Settings,
+                        iconColor = colorScheme.tertiary,
                         onClick = onOpenSettings,
                     )
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun ProfessorMetricTile(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = colorScheme.primary,
-                modifier = Modifier.size(14.dp),
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Black,
-            color = colorScheme.onSurface,
-        )
     }
 }
 

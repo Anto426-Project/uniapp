@@ -3,7 +3,7 @@ package com.anto426.uniapp.services.presentation
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.unisdk.backend.model.UniversityContact
+import com.anto426.unisdk.model.UniversityContact
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle

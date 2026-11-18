@@ -4,7 +4,7 @@ import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.toNewsItems
 import com.anto426.uniapp.data.runtime.ScopedDataRepository
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.unisdk.backend.model.UniversityNews
+import com.anto426.unisdk.model.UniversityNews
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
