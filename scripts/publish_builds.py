@@ -75,6 +75,8 @@ def publish_signed_android(group, deploy_repo, deploy_directory, policy, source_
 def publish(plan, repository, deploy_directory, policy, source_repo, revision, run_id, platform=None):
     if len(plan) != 1 or (platform and plan[0]['platform'] != platform):
         raise ValueError('Publication requires exactly one release for the selected platform')
+    if plan[0]['platform'] not in ('android', 'ios'):
+        raise ValueError('Unsupported application platform')
     for group in plan:
         remote = release_data(repository, group['tag'])
         missing = verify_existing_assets(repository, remote, group['assets']) if remote else group['assets']
@@ -97,11 +99,11 @@ def publish(plan, repository, deploy_directory, policy, source_repo, revision, r
 
 
 def platform_index(records):
-    """Latest publication per platform, retaining Linux package variants independently."""
+    """Latest Android and iOS publications from the retained release history."""
     platforms = {}
     for record in sorted(records, key=lambda item: int(item.get('runId', 0))):
         platform = record.get('platform')
-        if platform not in ('android', 'ios', 'linux', 'windows', 'macos') or not record.get('downloads'):
+        if platform not in ('android', 'ios') or not record.get('downloads'):
             continue
         previous = platforms.get(platform, {})
         variants = dict(previous.get('variants', {}))
@@ -162,7 +164,7 @@ def main():
     parser.add_argument('--source-repo', required=True)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--run-id', required=True)
-    parser.add_argument('--platform', choices=['android', 'ios', 'linux', 'windows', 'macos'], required=True)
+    parser.add_argument('--platform', choices=['android', 'ios'], required=True)
     args = parser.parse_args()
     publish(json.loads(args.plan.read_text()), args.repository, args.deploy_directory.resolve(), args.policy.resolve(),
             args.source_repo, args.revision, args.run_id, args.platform)

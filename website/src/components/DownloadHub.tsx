@@ -104,6 +104,7 @@ export const DownloadHub = () => {
 
   const releaseData = useRelease();
   const { platforms } = usePlatforms();
+  const iosRelease = platforms.ios;
 
   const version = releaseData?.latestVersion
     ? releaseData.latestVersion.startsWith('v')
@@ -142,7 +143,7 @@ export const DownloadHub = () => {
           <span className="section-tag">Download Libero &amp; Gratuito</span>
           <h2 className="section-title">Scarica UniApp per il tuo dispositivo</h2>
           <p className="section-description max-w-2xl mx-auto">
-            UniApp è gratuito e indipendente. Scegli Android, iOS, Windows o Linux: ogni piattaforma ha la propria versione e i propri pacchetti.
+            UniApp è gratuito e indipendente. Scegli Android o iOS: ogni piattaforma ha la propria versione e i propri pacchetti.
           </p>
         </div>
 
@@ -278,38 +279,32 @@ export const DownloadHub = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" aria-label="Download per piattaforma">
-          {([['ios', 'iOS'], ['windows', 'Windows'], ['linux', 'Linux'], ['macos', 'macOS']] as const).map(([platform, label]) => {
-            const release = platforms[platform];
-            return (
-              <article key={platform} className="release-console-card" aria-label={`Download ${label}`}>
-                <h3 className="text-xl font-semibold mb-3">{label}</h3>
-                <p className="mb-4 text-sm opacity-75">
-                  {release ? `Versione ${release.version}` : 'Nessun download disponibile.'}
-                  {platform === 'ios' && ' L’IPA richiede firma e provisioning; il bundle simulatore è separato.'}
-                  {platform === 'linux' && ' Pacchetti per Debian/Ubuntu e Arch Linux.'}
-                </p>
-                {release && Object.entries(release.variants).map(([variant, data]) => (
-                  <div key={variant} className="mb-4">
-                    <p className="text-sm mb-2">{variant === 'archlinux' ? 'Arch Linux' : variant === 'linux' ? 'Debian / Ubuntu' : label} · {data.version}</p>
-                    <ul className="space-y-2">
-                      {data.downloads.map((file) => (
-                        <li key={file.name}>
-                          <a className="console-link break-all" href={file.url}>
-                            <Download className="w-4 h-4 shrink-0" />
-                            <span>{file.name.endsWith('.msi') ? 'Installer Windows (.msi)' : file.name.endsWith('.deb') ? 'Pacchetto Debian / Ubuntu (.deb)' : file.name.endsWith('.pkg.tar.zst') ? 'Pacchetto Arch Linux (.pkg.tar.zst)' : file.name.endsWith('.dmg') ? 'Installer macOS (.dmg)' : file.name.endsWith('.ipa') ? 'IPA iOS' : platform === 'ios' ? 'Bundle simulatore' : 'Archivio portabile'}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-                <a className="console-link" href={release?.url || 'https://github.com/Anto426-Project/uniapp-upstream/releases'} target="_blank" rel="noopener noreferrer">
-                  Note e checksum su GitHub <ExternalLink className="w-3 h-3" />
-                </a>
-              </article>
-            );
-          })}
+        <div className="mt-8">
+          <article className="release-console-card" aria-label="Download iOS">
+            <h3 className="text-xl font-semibold mb-3">iOS</h3>
+            <p className="mb-4 text-sm opacity-75">
+              {iosRelease ? `Versione ${iosRelease.version}` : 'Nessun download disponibile.'}
+              {' L’IPA richiede firma e provisioning; il bundle simulatore è separato.'}
+            </p>
+            {iosRelease && Object.entries(iosRelease.variants).map(([variant, data]) => (
+              <div key={variant} className="mb-4">
+                <p className="text-sm mb-2">iOS · {data.version}</p>
+                <ul className="space-y-2">
+                  {data.downloads.map((file) => (
+                    <li key={file.name}>
+                      <a className="console-link break-all" href={file.url}>
+                        <Download className="w-4 h-4 shrink-0" />
+                        <span>{file.name.endsWith('.ipa') ? 'IPA iOS' : 'Bundle simulatore'}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <a className="console-link" href={iosRelease?.url || 'https://github.com/Anto426-Project/uniapp-upstream/releases'} target="_blank" rel="noopener noreferrer">
+              Note e checksum su GitHub <ExternalLink className="w-3 h-3" />
+            </a>
+          </article>
         </div>
       </div>
     </section>

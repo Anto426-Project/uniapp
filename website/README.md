@@ -38,4 +38,4 @@ Aprire `http://127.0.0.1:4173/uniapp-upstream/`. Il server locale serve solo l'e
 
 Le build Android e iOS partono manualmente. Il workflow di pubblicazione può seguire una build Android manuale riuscita; verifica il sito prima di pubblicarne i file.
 
-- `public/platforms.json` contiene i download verificati per iOS, Windows, Linux e macOS. È aggiornato dal publisher e letto anche a runtime dal sito.
+- `public/platforms.json` contiene i download verificati per iOS, con IPA e bundle simulatore separati. È aggiornato dal publisher e letto anche a runtime dal sito; i download Android restano nel manifest `update.json`.

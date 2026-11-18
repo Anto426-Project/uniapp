@@ -2,6 +2,7 @@
 """Download the exact SDK versions declared in Gradle and verify their Maven binaries."""
 from __future__ import annotations
 import argparse
+from functools import lru_cache
 import hashlib
 import io
 import json
@@ -9,6 +10,7 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
+import subprocess
 import tempfile
 import tomllib
 from urllib.error import HTTPError
@@ -19,12 +21,12 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_specs(*, desktop: bool = False) -> dict:
+def load_specs() -> dict:
     specs = json.loads((ROOT / 'scripts/sdk_binaries.json').read_text())
     catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
     for name, spec in specs.items():
-        declarations = [lib for alias, lib in catalog['libraries'].items()
-                        if lib.get('module') == spec['coordinate'] and alias.startswith('desktop-') == desktop]
+        declarations = [lib for lib in catalog['libraries'].values()
+                        if lib.get('module') == spec['coordinate']]
         if len(declarations) != 1:
             raise ValueError(f'{name}: declare exactly one dependency for {spec["coordinate"]} in gradle/libs.versions.toml')
         version = declarations[0]['version']
@@ -46,11 +48,44 @@ class GitHubRedirectHandler(HTTPRedirectHandler):
         return redirected
 
 
+def credential_output(command: list[str], *, input: str | None = None) -> str:
+    """Read a local credential helper without prompts or credential-bearing diagnostics."""
+    environment = os.environ.copy()
+    environment.update(GIT_TERMINAL_PROMPT='0', GCM_INTERACTIVE='Never', GIT_ASKPASS='', SSH_ASKPASS='')
+    try:
+        result = subprocess.run(command, input=input, stdin=subprocess.DEVNULL if input is None else None,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                                encoding='utf-8', errors='replace', cwd=ROOT, env=environment, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return ''
+    return result.stdout.strip() if result.returncode == 0 else ''
+
+
+@lru_cache(maxsize=1)
+def local_github_token() -> str:
+    """Reuse the local GitHub CLI login, then Git's configured credential helpers."""
+    token = credential_output(['gh', 'auth', 'token', '--hostname', 'github.com'])
+    if token:
+        return token
+    credentials = credential_output(['git', '-c', 'credential.interactive=false', 'credential', 'fill'],
+                                    input='protocol=https\nhost=github.com\n\n')
+    for line in credentials.splitlines():
+        key, separator, value = line.partition('=')
+        if key == 'password' and separator:
+            return value
+    return ''
+
+
+def github_token() -> str:
+    return os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN') or local_github_token()
+
+
 def download(url: str, *, api: bool = False) -> bytes:
     headers = {'User-Agent': 'UniApp-SDK-resolver', 'Accept': 'application/vnd.github+json' if api else 'application/octet-stream'}
-    token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
-    if urlsplit(url).scheme == 'https' and urlsplit(url).netloc == 'api.github.com' and token:
-        headers['Authorization'] = 'Bearer ' + token
+    if urlsplit(url).scheme == 'https' and urlsplit(url).netloc == 'api.github.com':
+        token = github_token()
+        if token:
+            headers['Authorization'] = 'Bearer ' + token
     with build_opener(GitHubRedirectHandler()).open(Request(url, headers=headers), timeout=120) as response:
         data = response.read(256 * 1024 * 1024 + 1)
     if len(data) > 256 * 1024 * 1024:
@@ -112,8 +147,9 @@ def resolve_release(name: str, spec: dict) -> Path:
         if error.code in (401, 403, 404):
             raise RuntimeError(
                 f"{name}: GitHub returned HTTP {error.code} for {spec['repository']}. "
-                f"Check that release v{spec['version']} exists and the SDK_READ_TOKEN or DEPLOY_TOKEN "
-                "used by this workflow has Contents: read access to every SDK repository. "
+                f"Check that release v{spec['version']} exists and your credentials have Contents: read access "
+                "to every SDK repository. Locally, use GITHUB_TOKEN/GH_TOKEN, gh auth login, or Git's "
+                "credential manager. In CI, configure SDK_READ_TOKEN or DEPLOY_TOKEN. "
                 "UniApp's GITHUB_TOKEN alone cannot read other private repositories."
             ) from None
         raise
@@ -157,11 +193,9 @@ def validate_android_class_names(repository: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--desktop', action='store_true', help='Also compile desktop SDKs from their locked source revisions')
     parser.add_argument('--local', type=Path, action='append', default=[], help='Use locally validated SDK archives instead of GitHub releases')
     args = parser.parse_args()
     specs = load_specs()
-    desktop_specs = load_specs(desktop=True) if args.desktop else {}
     local = {}
     for path in args.local:
         with zipfile.ZipFile(path) as archive:
@@ -170,36 +204,15 @@ def main() -> None:
     stage = Path(tempfile.mkdtemp(prefix='.sdk-binaries-stage-', dir=ROOT))
     try:
         properties = []
-        desktop_manifest = {'modules': [], 'sha256': {}}
-        requests = [(False, name, spec) for name, spec in specs.items()]
-        if args.local:
-            requests += [(True, name, spec) for name, spec in desktop_specs.items()]
-        for is_desktop, name, spec in requests:
+        for name, spec in specs.items():
             archive = local.get((spec['repository'], spec['version'])) if args.local else resolve_release(name, spec)
             if archive is None:
                 raise ValueError(f'Missing local SDK archive: {name}')
             info = validate_archive(archive, spec, stage / 'maven')
-            if is_desktop:
-                tree_sha = info.get('sourceTreeSha256', '')
-                if 'desktop' not in info.get('targets', []) or not re.fullmatch(r'[a-f0-9]{64}', tree_sha):
-                    raise ValueError(f'{name}: published desktop binaries lack source provenance')
-                desktop_manifest['modules'].append({'name': name, 'version': info['version'], 'revision': info['sourceSha'],
-                    'hasLocalChanges': False, 'sourceSha256': tree_sha})
-                desktop_manifest['sha256'].update({'maven/' + path: digest for path, digest in info['files'].items()})
-            else:
-                properties += [f'{name}.version={info["version"]}', f'{name}.revision={info["sourceSha"]}', f'{name}.coordinate={info["coordinate"]}']
+            properties += [f'{name}.version={info["version"]}', f'{name}.revision={info["sourceSha"]}', f'{name}.coordinate={info["coordinate"]}']
             print(f'{name}: {info["version"]} ({info["sourceSha"][:12]})')
         validate_android_class_names(stage / 'maven')
         (stage / 'resolved.properties').write_text('\n'.join(properties) + '\n')
-        if args.desktop:
-            if args.local:
-                (stage / 'desktop-resolved.json').write_text(json.dumps(desktop_manifest, indent=2) + '\n')
-            else:
-                from resolve_desktop_sdks import build_pinned_sdks
-                build_pinned_sdks(stage, desktop_specs)
-            from desktop_sdk_metadata import verify
-            catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
-            verify(stage, catalog['versions'], {name: spec['coordinate'] for name, spec in specs.items()})
         destination = ROOT / '.sdk-binaries'
         backup = ROOT / '.sdk-binaries-previous'
         if backup.exists():

@@ -23,7 +23,7 @@ jobs:
         with:
           script: |
             const platform = process.env.PLATFORM;
-            if (!['android', 'ios', 'linux', 'windows', 'macos'].includes(platform)) throw new Error('Unsupported platform');
+            if (!['android', 'ios'].includes(platform)) throw new Error('Unsupported platform');
             await github.rest.actions.createWorkflowDispatch({
               ...context.repo, workflow_id: `publish-${platform}.yml`, ref: 'main',
               inputs: {source_run_id: String(context.runId)}

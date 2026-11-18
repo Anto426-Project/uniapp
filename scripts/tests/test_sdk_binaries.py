@@ -3,6 +3,7 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,21 +14,71 @@ import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import fetch_sdk_binaries as sdk
-import resolve_desktop_sdks as desktop_sources
 
 
 class SdkBinariesTest(unittest.TestCase):
-    def test_desktop_source_lock_rejects_version_drift_before_cloning(self):
-        with tempfile.TemporaryDirectory() as directory, patch.object(desktop_sources, 'ROOT', Path(directory)), \
-                patch.object(desktop_sources.subprocess, 'run') as run:
-            root = Path(directory)
-            (root / 'scripts').mkdir()
-            (root / 'scripts/desktop_sdk_sources.json').write_text(json.dumps({
-                'sdk': {'version': '1.0.7-desktop.1', 'revision': 'a' * 40}}))
-            with self.assertRaisesRegex(ValueError, 'does not match the catalog version'):
-                desktop_sources.build_pinned_sdks(root / 'output', {
-                    'sdk': {'version': '1.0.8-desktop.1', 'repository': 'owner/sdk'}})
-            run.assert_not_called()
+    def setUp(self):
+        sdk.local_github_token.cache_clear()
+        self.addCleanup(sdk.local_github_token.cache_clear)
+
+    def test_environment_tokens_take_priority_over_local_credentials(self):
+        for environment, expected in [
+            ({'GITHUB_TOKEN': 'workflow-token', 'GH_TOKEN': 'cli-token'}, 'workflow-token'),
+            ({'GH_TOKEN': 'cli-token'}, 'cli-token'),
+        ]:
+            with self.subTest(environment=environment), patch.dict(os.environ, environment, clear=True), \
+                    patch.object(sdk, 'local_github_token') as local:
+                self.assertEqual(expected, sdk.github_token())
+                local.assert_not_called()
+
+    def test_local_github_cli_login_is_reused_and_cached(self):
+        with patch.dict(os.environ, {}, clear=True), patch.object(sdk.subprocess, 'run') as run:
+            run.return_value = subprocess.CompletedProcess([], 0, stdout='local-token\n')
+            self.assertEqual('local-token', sdk.github_token())
+            self.assertEqual('local-token', sdk.github_token())
+            run.assert_called_once()
+            self.assertEqual(['gh', 'auth', 'token', '--hostname', 'github.com'], run.call_args.args[0])
+            self.assertEqual(sdk.ROOT, run.call_args.kwargs['cwd'])
+            self.assertEqual(subprocess.PIPE, run.call_args.kwargs['stdout'])
+            self.assertEqual(subprocess.DEVNULL, run.call_args.kwargs['stderr'])
+            self.assertEqual(subprocess.DEVNULL, run.call_args.kwargs['stdin'])
+
+    def test_git_credentials_are_used_when_github_cli_is_unavailable(self):
+        for failure in (FileNotFoundError(), subprocess.TimeoutExpired(['gh'], 10),
+                        subprocess.CompletedProcess([], 1, stdout='ignored-secret'),
+                        subprocess.CompletedProcess([], 0, stdout='\n')):
+            with self.subTest(failure=type(failure).__name__), patch.dict(os.environ, {}, clear=True), \
+                    patch.object(sdk.subprocess, 'run') as run:
+                sdk.local_github_token.cache_clear()
+                run.side_effect = [failure, subprocess.CompletedProcess([], 0,
+                    stdout='protocol=https\nhost=github.com\nusername=local-user\npassword=git=token\n')]
+                self.assertEqual('git=token', sdk.github_token())
+                self.assertEqual(['git', '-c', 'credential.interactive=false', 'credential', 'fill'], run.call_args.args[0])
+                self.assertEqual('protocol=https\nhost=github.com\n\n', run.call_args.kwargs['input'])
+                environment = run.call_args.kwargs['env']
+                self.assertEqual('0', environment['GIT_TERMINAL_PROMPT'])
+                self.assertEqual('Never', environment['GCM_INTERACTIVE'])
+                self.assertEqual('', environment['GIT_ASKPASS'])
+                self.assertEqual('', environment['SSH_ASKPASS'])
+                self.assertEqual(10, run.call_args.kwargs['timeout'])
+
+    def test_unavailable_local_credentials_allow_anonymous_downloads(self):
+        for git_result in (FileNotFoundError(), OSError('helper failed'),
+                           subprocess.TimeoutExpired(['git'], 10),
+                           subprocess.CompletedProcess([], 1, stdout='password=ignored-secret'),
+                           subprocess.CompletedProcess([], 0, stdout='username=user\n')):
+            with self.subTest(result=type(git_result).__name__), patch.dict(os.environ, {}, clear=True), \
+                    patch.object(sdk.subprocess, 'run', side_effect=[FileNotFoundError(), git_result]):
+                sdk.local_github_token.cache_clear()
+                self.assertEqual('', sdk.github_token())
+
+    def test_external_downloads_do_not_read_local_credentials(self):
+        with patch.object(sdk, 'github_token') as token, patch.object(sdk, 'build_opener') as opener:
+            opener.return_value.open.return_value.__enter__.return_value.read.return_value = b'data'
+            for url in ('https://release-assets.githubusercontent.com/file.zip',
+                        'https://api.github.com.example.org/file.zip', 'http://api.github.com/file.zip'):
+                sdk.download(url)
+            token.assert_not_called()
 
     def test_collision_does_not_replace_previously_installed_sdks(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
@@ -183,19 +234,6 @@ class SdkBinariesTest(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         sdk.validate_archive(path, spec, root / 'maven')
                     self.assertFalse((root / 'outside').exists())
-
-    def test_mobile_and_desktop_versions_are_selected_independently(self):
-        with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
-            root = Path(directory)
-            (root / 'scripts').mkdir()
-            (root / 'gradle').mkdir()
-            (root / 'scripts/sdk_binaries.json').write_text(json.dumps({'sdk': {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk'}}))
-            (root / 'gradle/libs.versions.toml').write_text(
-                '[versions]\nsdk = "1.0.7"\ndesktop-sdk = "1.0.7-desktop.1"\n[libraries]\n'
-                'sdk = {module = "com.example:sdk", version.ref = "sdk"}\n'
-                'desktop-sdk = {module = "com.example:sdk", version.ref = "desktop-sdk"}\n')
-            self.assertEqual('1.0.7', sdk.load_specs()['sdk']['version'])
-            self.assertEqual('1.0.7-desktop.1', sdk.load_specs(desktop=True)['sdk']['version'])
 
     def test_catalog_controls_versions_and_rejects_dynamic_selectors(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):

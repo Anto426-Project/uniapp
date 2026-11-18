@@ -25,10 +25,10 @@ class AllBuildPublicationTest(unittest.TestCase):
         self.repository = 'owner/uniapp'
         self.revision = 'a' * 40
 
-    def artifact(self, platform, signing='unsigned', operating_system=None):
-        directory = self.incoming / (platform + '-' + (operating_system or signing))
+    def artifact(self, platform, signing='unsigned'):
+        directory = self.incoming / (platform + '-' + signing)
         directory.mkdir()
-        names = ['release/app-release.apk'] if platform == 'android' else [f'UniApp-{operating_system or platform}.zip']
+        names = ['release/app-release.apk'] if platform == 'android' else [f'UniApp-{platform}.zip']
         files = {}
         for name in names:
             path = directory / name
@@ -37,8 +37,6 @@ class AllBuildPublicationTest(unittest.TestCase):
             files[name] = hashlib.sha256(path.read_bytes()).hexdigest()
         context = dict(schema=1, sourceRepository=self.repository, sourceSha=self.revision, runId='123', runNumber='9',
                        platform=platform, versionName='2.0.14', versionCode=1009, signing=signing, files=files)
-        if operating_system:
-            context['os'] = operating_system
         (directory / 'context.json').write_text(json.dumps(context))
         return directory, context
 
@@ -58,68 +56,6 @@ class AllBuildPublicationTest(unittest.TestCase):
         self.assertEqual('v2.0.14+1009', group['tag'])
         self.assertTrue((Path(group['notes']).parent / 'incoming/release/app-release.apk').is_file())
 
-    def test_desktop_matrix_is_merged_into_one_release(self):
-        for operating_system in ['linux', 'archlinux', 'windows', 'macos']:
-            self.artifact('desktop', operating_system=operating_system)
-        group, = self.collect()
-        self.assertEqual(4, len(group['inputs']))
-        self.assertEqual(4, sum(Path(name).suffix == '.zip' for name in group['assets']))
-
-    def test_linux_variants_share_one_linux_release(self):
-        for variant in ('linux', 'archlinux'):
-            directory, context = self.artifact('linux', operating_system=variant)
-            context['requestedVariants'] = ['linux', 'archlinux']
-            (directory / 'context.json').write_text(json.dumps(context))
-        group, = collector.collect(self.incoming, self.root / 'plan', self.repository, self.revision, '123', 'linux')
-        self.assertEqual('linux-v2.0.14+9', group['tag'])
-        self.assertEqual({'linux', 'archlinux'}, {file['os'] for file in group['downloads']})
-
-    def test_legacy_windows_recovery_creates_a_windows_release(self):
-        self.artifact('desktop', operating_system='windows')
-        group, = collector.collect(self.incoming, self.root / 'plan', self.repository, self.revision, '123', 'windows')
-        self.assertEqual('windows-v2.0.14+9', group['tag'])
-        self.assertEqual('windows', group['platform'])
-
-    def test_linux_cannot_publish_a_missing_requested_variant(self):
-        directory, context = self.artifact('linux', operating_system='linux')
-        context['requestedVariants'] = ['linux', 'archlinux']
-        (directory / 'context.json').write_text(json.dumps(context))
-        with self.assertRaisesRegex(ValueError, 'requested desktop variants'):
-            self.collect()
-
-    def test_linux_and_windows_cannot_be_published_together(self):
-        self.artifact('linux', operating_system='linux')
-        self.artifact('windows', operating_system='windows')
-        with self.assertRaisesRegex(ValueError, 'selected platform'):
-            self.collect()
-
-    def test_desktop_package_cannot_claim_a_different_os_family(self):
-        directory, context = self.artifact('windows', operating_system='linux')
-        with self.assertRaisesRegex(ValueError, 'another platform'):
-            collector.validate(context, directory, self.repository, self.revision, '123')
-
-    def test_desktop_variants_must_agree_on_build_number(self):
-        self.artifact('linux', operating_system='linux')
-        directory, context = self.artifact('linux', operating_system='archlinux')
-        context['runNumber'] = '10'
-        (directory / 'context.json').write_text(json.dumps(context))
-        with self.assertRaisesRegex(ValueError, 'build number'):
-            self.collect()
-
-    def test_current_index_retains_other_linux_variant_and_rejects_older_results(self):
-        def record(run, os, version):
-            return dict(tag=f'linux-{run}', platform='linux', signing='unsigned', version=version,
-                sourceSha=self.revision, runId=str(run), url=f'https://example.test/{run}',
-                downloads=[dict(os=os, name=f'{os}.zip', sha256='a' * 64, url=f'https://example.test/{run}/{os}.zip')])
-        old = record(123, 'linux', '2.0.14')
-        arch = record(124, 'archlinux', '2.0.14')
-        new = record(125, 'linux', '2.0.15')
-        current = publisher.platform_index([new, arch, old])['platforms']['linux']
-        self.assertEqual('2.0.15', current['version'])
-        self.assertEqual('2.0.15', current['variants']['linux']['version'])
-        self.assertEqual('2.0.14', current['variants']['archlinux']['version'])
-        self.assertEqual('https://example.test/125/linux.zip', current['variants']['linux']['downloads'][0]['url'])
-
     def test_immutable_asset_comparison_skips_existing_identical_files(self):
         path = self.root / 'app.zip'
         path.write_bytes(b'package')
@@ -127,6 +63,34 @@ class AllBuildPublicationTest(unittest.TestCase):
         with patch.object(publisher.subprocess, 'run') as run:
             self.assertEqual([], publisher.verify_existing_assets('owner/repo', release, [str(path)]))
             run.assert_not_called()
+
+    def test_removed_platforms_cannot_be_collected_or_published(self):
+        for platform in ('desktop', 'linux', 'archlinux', 'windows', 'macos'):
+            with self.subTest(platform=platform):
+                directory, context = self.artifact(platform)
+                with self.assertRaisesRegex(ValueError, 'Unsupported artifact platform'):
+                    collector.validate(context, directory, self.repository, self.revision, '123')
+                with patch.object(publisher, 'release_data') as remote:
+                    with self.assertRaisesRegex(ValueError, 'Unsupported application platform'):
+                        publisher.publish([{'platform': platform}], 'owner/deploy', self.root,
+                            self.root / 'policy', self.repository, self.revision, '123')
+                    remote.assert_not_called()
+
+    def test_current_index_exposes_only_latest_mobile_downloads(self):
+        def record(platform, run, version):
+            return dict(tag=f'{platform}-{run}', platform=platform, signing='unsigned', version=version,
+                sourceSha=self.revision, runId=str(run), url=f'https://example.test/{run}',
+                downloads=[dict(os=platform, name=f'{platform}.zip', sha256='a' * 64,
+                    url=f'https://example.test/{run}/{platform}.zip')])
+        records = [record('android', 123, '2.0.14'), record('android', 125, '2.0.15'),
+                   record('ios', 124, '2.0.14')]
+        records += [record(platform, 126, '2.0.15') for platform in ('desktop', 'linux', 'windows', 'macos')]
+        current = publisher.platform_index(records)['platforms']
+        self.assertEqual({'android', 'ios'}, set(current))
+        self.assertEqual('2.0.15', current['android']['version'])
+        self.assertEqual('2.0.14', current['ios']['version'])
+        self.assertEqual('https://example.test/125/android.zip',
+                         current['android']['variants']['android']['downloads'][0]['url'])
 
     def test_immutable_asset_comparison_rejects_changed_published_files(self):
         path = self.root / 'app.zip'
@@ -139,15 +103,15 @@ class AllBuildPublicationTest(unittest.TestCase):
                 publisher.verify_existing_assets('owner/repo', release, [str(path)])
 
     def test_legacy_sdk_metadata_is_verified_but_not_attached_to_releases(self):
-        directory, context = self.artifact('desktop', operating_system='archlinux')
-        name = 'sdk-binaries-archlinux.json'
+        directory, context = self.artifact('ios')
+        name = 'sdk-binaries.json'
         data = b'{"modules": []}'
         (directory / name).write_bytes(data)
         context['files'][name] = hashlib.sha256(data).hexdigest()
         (directory / 'context.json').write_text(json.dumps(context))
         group, = self.collect()
         self.assertNotIn(name, [Path(asset).name for asset in group['assets']])
-        self.assertIn('build-context-archlinux.json', [Path(asset).name for asset in group['assets']])
+        self.assertIn('build-context-ios.json', [Path(asset).name for asset in group['assets']])
 
     def test_legacy_signed_and_unsigned_android_publish_only_signed(self):
         self.artifact('android', 'release-key')
@@ -194,18 +158,6 @@ class AllBuildPublicationTest(unittest.TestCase):
         self.assertEqual(1009, context['versionCode'])
         self.assertTrue((output / 'release/app-release.apk').is_file())
         self.assertFalse((output / 'debug').exists())
-
-    def test_desktop_guides_preserve_windows_and_unix_line_endings(self):
-        for operating_system in ['linux', 'windows']:
-            directory, context = self.artifact('desktop', operating_system=operating_system)
-            guide = b'UniApp PC\r\n' if operating_system == 'windows' else b'UniApp PC\n'
-            (directory / 'UniApp-PC.md').write_bytes(guide)
-            context['files']['UniApp-PC.md'] = hashlib.sha256(guide).hexdigest()
-            (directory / 'context.json').write_text(json.dumps(context))
-        group, = self.collect()
-        assets = {Path(name).name: Path(name) for name in group['assets']}
-        self.assertEqual(b'UniApp PC\r\n', assets['UniApp-PC-windows.md'].read_bytes())
-        self.assertEqual(b'UniApp PC\n', assets['UniApp-PC-linux.md'].read_bytes())
 
     def test_wrong_source_or_run_is_rejected(self):
         directory, context = self.artifact('ios')

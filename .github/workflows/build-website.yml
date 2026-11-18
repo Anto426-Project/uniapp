@@ -47,7 +47,7 @@ jobs:
           npm ci
           npm run build
           npm run check:export
-      - name: Verify desktop and mobile interactions
+      - name: Verify website interactions
         working-directory: website
         run: |
           npx playwright install --with-deps chromium

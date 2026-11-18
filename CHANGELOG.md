@@ -1,3 +1,9 @@
+## [Unreleased]
+
+- Rimossi launcher, target, SDK e pacchetti desktop; build, pubblicazioni e download supportano Android e iOS.
+- Il download degli SDK riutilizza anche le credenziali locali di GitHub CLI e Git, dopo i token nelle variabili d'ambiente.
+- Allineati i quattro SDK al catalogo UniApp: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21 e le rispettive dipendenze condivise.
+
 ## [2.0.15] - 2026-10-08 (build set by CI)
 
 - UniSDK aggiornato alla release 1.0.25: 131 codici di errore stabili dichiarati in un unico file nell’SDK, con messaggi localizzati nell’app. La dipendenza mobile usa i binari pubblicati; il desktop compila la stessa revisione fissata come 1.0.25-desktop.1.

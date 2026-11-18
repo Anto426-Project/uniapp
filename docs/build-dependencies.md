@@ -18,47 +18,55 @@ da `scripts/sdk_binaries.json`, trova le versioni nel catalogo e scarica la Rele
 e collisioni di classi Android. L'installazione sostituisce atomicamente il
 repository locale; un errore conserva l'installazione precedente.
 
-Per PC, `python3 scripts/fetch_sdk_binaries.py --desktop` scarica le dipendenze
-mobili e compila gli SDK desktop dai commit fissati in
-`scripts/desktop_sdk_sources.json`. Versioni e commit sono verificati prima della
-compilazione; Maven e manifest vengono preparati localmente, senza pubblicazioni
-SDK. Aggiornare insieme catalogo e lock quando si cambia una versione desktop.
-
 `.sdk-binaries/resolved.properties` registra la provenienza dei binari e alimenta
 `AppInfoProvider`. Non modifica le versioni Gradle. Se il catalogo cambia e i binari
 installati non corrispondono, Gradle richiede un nuovo download.
 
-Servono Python 3.11+, JDK 21 e `GITHUB_TOKEN`/`GH_TOKEN` con accesso in lettura agli
-SDK privati. I runner usano `SDK_READ_TOKEN`, con fallback a `DEPLOY_TOKEN`.
+Servono Python 3.11+, JDK 21 e credenziali con accesso in lettura agli SDK privati.
+Per i test locali si usa Temurin 21, come nei runner CI.
+Per i download il resolver cerca, nell'ordine:
+
+1. `GITHUB_TOKEN`, poi `GH_TOKEN` nelle variabili d'ambiente.
+2. Il token del login locale di GitHub CLI, tramite
+   `gh auth token --hostname github.com`.
+3. Gli helper Git già configurati per `https://github.com`, tramite
+   `git credential fill` senza richieste interattive.
+
+Chi ha già configurato `gh auth login` o Git Credential Manager può quindi
+eseguire il resolver senza copiare un token nel progetto. Il resolver conserva
+le credenziali recuperate in memoria e non le scrive nei file o nei log.
+L'autorizzazione HTTP viene inviata soltanto all'API HTTPS di GitHub e rimossa
+quando un download viene reindirizzato a un altro host.
+
+I runner usano `SDK_READ_TOKEN`, con fallback a `DEPLOY_TOKEN`.
 
 ## Toolchain
 
 | Componente | Versione |
 | --- | --- |
-| Gradle | 9.7.1, distribuzione verificata con SHA-256 |
-| Kotlin / Compose compiler | 2.4.20 |
-| AGP | 9.4.0 |
+| Gradle | 9.9.1, distribuzione verificata con [SHA-256 ufficiale](https://gradle.org/release-checksums/) |
+| Kotlin / Compose compiler | 2.4.21 |
+| AGP | 9.5.1 |
 | JDK / bytecode JVM | 21 |
 | Android compile / target | API 37 |
-| Compose Multiplatform | 1.12.0 |
+| Compose Multiplatform | 1.12.2 |
 | Compose Android | 1.12.1 |
 | Material 3 Multiplatform | 1.12.0-alpha03 |
-| Material 3 Android | 1.5.0-alpha28 |
-| Ktor | 3.5.2 |
-| Coroutines / Serialization / Datetime | 1.11.0 / 1.11.0 / 0.8.0 |
+| Material 3 Android | 1.5.0-rc01 |
+| Ktor | 3.6.1 |
+| Coroutines / Serialization / Datetime | 1.11.0 / 1.13.0 / 0.8.0 |
 
-Material 3 resta sul ramo che espone le API Expressive già usate. La nuova alpha
-1.13 richiede anche il ramo Compose 1.13 alpha, quindi non viene introdotta insieme
-all'aggiornamento della toolchain stabile. I cataloghi degli SDK restano autonomi.
+Le versioni della tabella e delle dipendenze condivise dagli SDK sono allineate al
+[catalogo UniApp](../gradle/libs.versions.toml), riferimento dell'aggiornamento del
+18 novembre 2026. Le dipendenze specifiche di ciascun SDK restano definite nel
+proprio catalogo.
+
+Per la distribuzione Gradle 9.9.1, lo SHA-256
+`d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228`
+è stato verificato nella [pagina ufficiale dei checksum](https://gradle.org/release-checksums/)
+e nel [checksum della distribuzione binaria](https://services.gradle.org/distributions/gradle-9.9.1-bin.zip.sha256).
 I nomi dei moduli Kotlin Android sono espliciti: evitano `:` nei percorsi
-`META-INF/*.kotlin_module` degli AAR con Kotlin 2.4.20.
-
-Riferimenti verificati il 13 settembre 2026:
-[Kotlin 2.4.20](https://kotlinlang.org/docs/whatsnew2420.html),
-[AGP 9.4](https://developer.android.com/build/releases/agp-9-4-0-release-notes),
-[compatibilità Compose](https://kotlinlang.org/docs/multiplatform/compose-compatibility-and-versioning.html).
-Le versioni delle librerie sono state confrontate con i metadati di Maven Central
-e Google Maven; le versioni delle Actions con le Release dei rispettivi repository.
+`META-INF/*.kotlin_module` degli AAR.
 
 ## Android e iOS
 
@@ -74,9 +82,9 @@ nel repository. La fase Xcode `embedAndSignAppleFrameworkForXcode` compila il so
 framework dell'app usando gli SDK già scaricati. `Config.xcconfig` configura ricerca
 e collegamento di `ComposeApp`; il team di firma non cambia il bundle identifier.
 Il workflow conserva come file sia l'IPA priva di firma sia il bundle simulatore.
-Ogni piattaforma ha il proprio workflow di pubblicazione: `Publish Android`,
-`Publish iOS`, `Publish Windows`, `Publish Linux` e `Publish macOS`. Ogni esecuzione pubblica una sola versione della
-piattaforma selezionata. `Build All` avvia le cinque build indipendenti.
+Ogni piattaforma ha il proprio workflow di pubblicazione: `Publish Android` e
+`Publish iOS`. Ogni esecuzione pubblica una sola versione della piattaforma
+selezionata. `Build All` avvia le due build indipendenti.
 Gli aggiornamenti Android continuano a usare gli APK firmati ufficialmente.
 
 Verifica locale dell'app:

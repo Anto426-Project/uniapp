@@ -46,7 +46,7 @@ jobs:
           npm run lint
           npm run build
           npm run check:export
-      - name: Test mobile and desktop downloads
+      - name: Test mobile downloads
         working-directory: website
         run: |
           npx playwright install --with-deps chromium

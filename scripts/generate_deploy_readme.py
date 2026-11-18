@@ -17,12 +17,12 @@ def main() -> None:
                f"Versione **{release['latestVersion']}**, build **{release['latestVersionCode']}**.", "",
                "## Download Android", ""]
     content += [f"- [{abi}]({url})" for abi, url in release["downloadUrlsByAbi"].items()]
-    content += ["", "Android, iOS, Windows, Linux e macOS hanno pubblicazioni indipendenti nelle GitHub Releases. Linux comprende Debian/Ubuntu e Arch Linux. Le IPA non firmate richiedono firma/provisioning.", "",
-                "[Tutte le piattaforme e varianti](https://github.com/Anto426-Project/uniapp-upstream/releases)", "", "## Note di rilascio", "", release.get("notes", ""), "", "## Contenuto del repository", "",
+    content += ["", "Android e iOS hanno pubblicazioni indipendenti nelle GitHub Releases. Le IPA non firmate richiedono firma/provisioning.", "",
+                "[Release Android e iOS](https://github.com/Anto426-Project/uniapp-upstream/releases)", "", "## Note di rilascio", "", release.get("notes", ""), "", "## Contenuto del repository", "",
                 "- `update.json`: un solo rilascio Android, con versioni, requisiti e download per architettura.",
                 "- `docs/`: sito statico di distribuzione, aggiornabile anche con correzioni indipendenti dagli APK.",
                 "- `release/`: metadati della build pubblicata.", "",
-                "- `release/platforms.json`: ultimi download verificati per piattaforma e variante Linux.", "",
+                "- `release/platforms.json`: ultimi download verificati Android e iOS.", "",
                 f"[Codice e segnalazioni](https://github.com/{args.source_repo})", ""]
     args.output.write_text("\n".join(content), encoding="utf-8")
 

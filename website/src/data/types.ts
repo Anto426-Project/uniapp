@@ -42,5 +42,5 @@ export interface PlatformRelease {
 
 export interface PlatformManifest {
   schema: number;
-  platforms: Partial<Record<'android' | 'ios' | 'windows' | 'linux' | 'macos', PlatformRelease>>;
+  platforms: Partial<Record<'android' | 'ios', PlatformRelease>>;
 }

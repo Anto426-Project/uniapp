@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       platform:
-        description: 'One application platform: android, ios, linux, windows or macos'
+        description: 'One application platform: android or ios'
         required: true
         type: string
       source_run_id:
@@ -58,7 +58,7 @@ jobs:
           sparse-checkout: update-config.json
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      - name: Download every completed platform variant
+      - name: Download the completed mobile build
         uses: actions/download-artifact@v8.0.1
         with:
           artifact-ids: ${{ steps.source.outputs.artifact_ids }}

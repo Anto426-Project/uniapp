@@ -54,7 +54,6 @@ root@anto426: ~/UniApp (main⚡)$ stack --list
 > platform:
   - Android (min SDK 29)
   - iOS (arm64, simulator arm64)
-  - Desktop JVM (Linux, Windows, macOS)
 
 > tools:
   - Gradle
@@ -75,7 +74,7 @@ Gli SDK vivono in repository separati. I loro workflow pubblicano le dipendenze 
 
 UniApp usa esclusivamente SDK precompilati, come normali dipendenze Maven con versione esplicita in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). Ogni SDK ha un repository, una build e una versione indipendenti. Il resolver scarica la Release `v<versione>` dichiarata nel catalogo, verifica gli hash e prepara `.sdk-binaries/maven`; non seleziona mai `latest` e non include i sorgenti dei repository vicini. `.sdk-binaries/resolved.properties` registra le versioni e revisioni effettivamente installate, senza sovrascrivere il catalogo.
 
-Per preparare un checkout, con Python 3.11 o successivo, JDK 21 e un `GITHUB_TOKEN` o `GH_TOKEN` che possa leggere i repository privati degli SDK:
+Per preparare un checkout servono Python 3.11 o successivo, JDK 21 e credenziali che possano leggere i repository privati degli SDK. Il downloader cerca prima `GITHUB_TOKEN`, poi `GH_TOKEN`, quindi il login locale di GitHub CLI (`gh auth token --hostname github.com`) e infine gli helper Git (`git credential fill`, senza richieste interattive). È sufficiente avere già configurato `gh auth login` oppure Git Credential Manager; non occorre copiare il token nel progetto. Le credenziali recuperate non vengono scritte nei file o stampate nei log.
 
 ```sh
 python3 scripts/fetch_sdk_binaries.py
@@ -129,10 +128,5 @@ docs/                       Documentazione del progetto
 
 Per segnalazioni, idee o problemi, consulta la [guida al feedback](./docs/feedback-gateway.md). Prima di aprire una segnalazione verifica che il problema sia riproducibile sull'ultima build disponibile.
 
-## Desktop
-
-La versione PC usa `desktopApp` e binari JVM degli SDK con versioni indipendenti.
-Vedi [compilazione, avvio e funzioni disponibili](docs/desktop.md).
-
-Android, iOS, Windows, Linux e macOS hanno [build e pubblicazioni indipendenti](docs/build-workflows.md).
+Android e iOS hanno [build e pubblicazioni indipendenti](docs/build-workflows.md).
 `Build All` avvia le build specifiche; ogni piattaforma pubblica una sola versione.

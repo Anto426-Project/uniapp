@@ -1,9 +1,7 @@
 // Resolve only successful builds from the repository's main branch.
 const workflows = {
-  android: 'build-android.yml', ios: 'build-ios.yml', linux: 'build-linux.yml',
-  windows: 'build-windows.yml', macos: 'build-macos.yml',
+  android: 'build-android.yml', ios: 'build-ios.yml',
 };
-const systems = {linux: ['linux', 'archlinux'], windows: ['windows'], macos: ['macos']};
 
 module.exports = async function resolve({github, context, core, platform, requestedRunId,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))}) {
@@ -19,8 +17,7 @@ module.exports = async function resolve({github, context, core, platform, reques
   if (!/^\d+$/.test(id)) throw new Error('A successful build run ID is required');
   let {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(id)});
   const {data: workflow} = await github.rest.actions.getWorkflow({...context.repo, workflow_id: run.workflow_id});
-  const legacy = Boolean(systems[platform]) && workflow.path === '.github/workflows/build-desktop.yml';
-  if ((!legacy && workflow.path !== `.github/workflows/${workflows[platform]}`) ||
+  if (workflow.path !== `.github/workflows/${workflows[platform]}` ||
       run.head_branch !== 'main' || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` ||
       run.event !== 'workflow_dispatch') {
     throw new Error('Only a trusted main-branch build for the selected platform can be published');
@@ -36,9 +33,8 @@ module.exports = async function resolve({github, context, core, platform, reques
   }
   const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts,
     {...context.repo, run_id: Number(id), per_page: 100});
-  const prefix = `${legacy ? 'desktop' : platform}-build-${id}`;
-  const names = systems[platform] ? systems[platform].map((os) => `${prefix}-${os}`) : [prefix];
-  const selected = artifacts.filter((artifact) => names.includes(artifact.name));
+  const name = `${platform}-build-${id}`;
+  const selected = artifacts.filter((artifact) => artifact.name === name);
   if (!selected.length || selected.some((artifact) => artifact.expired)) {
     throw new Error('The selected run has missing or expired build packages');
   }
