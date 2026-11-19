@@ -21,7 +21,11 @@ kotlin {
 
     android {
         namespace = "com.anto426.uniapp.compose"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        compileSdk {
+            version = release(libs.versions.android.compileSdk.get().toInt()) {
+                minorApiLevel = libs.versions.android.compileSdkMinor.get().toInt()
+            }
+        }
         minSdk = libs.versions.android.minSdk.get().toInt()
 
         androidResources {
@@ -65,6 +69,7 @@ kotlin {
             implementation(libs.zxing.cpp.android)
             implementation(libs.coil.gif)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.compose.material3)
             implementation(libs.androidx.core.ktx)
             implementation(libs.ktor.client.okhttp)
         }

@@ -109,6 +109,33 @@ class AppNavigatorTest {
     }
 
     @Test
+    fun libraryDestinationsRedirectToServicesForStudentsAndProfessors() {
+        val guard = AppRouteGuard()
+        val professor = AppSessionState.Authenticated(
+            authenticatedSession.account.copy(activeProfileType = CareerType.PROFESSOR),
+        )
+
+        for (route in listOf(AppRoute.Library(), AppRoute.LibraryBookDetail("book"), AppRoute.LibraryBooking)) {
+            assertEquals(AppRoute.Services, guard.resolve(route, authenticatedSession))
+            assertEquals(AppRoute.Services, guard.resolve(route, professor))
+            assertEquals(AppRoute.Login, guard.resolve(route, AppSessionState.SignedOut()))
+        }
+    }
+
+    @Test
+    fun restoredLibraryDestinationReturnsToTheServicesRoot() {
+        val fixture = Fixture(activeRoot = AppRoute.Services)
+        fixture.navigator.reconcile()
+        fixture.navigator.selectTopLevel(AppRoute.Services)
+        fixture.restore(AppRoute.Services, AppRoute.Library(), AppRoute.LibraryBookDetail("book"))
+
+        assertEquals(false, fixture.navigator.canRender(fixture.navigator.currentRoute))
+        assertEquals(AppRoute.Services, fixture.navigator.reconcile())
+        assertEquals(AppRoute.Services, fixture.navigator.currentRoute)
+        assertEquals(listOf(AppRoute.Services), fixture.stack(AppRoute.Services))
+    }
+
+    @Test
     fun professorCannotOpenStudentOnlyDestinations() {
         val professorSession =
             AppSessionState.Authenticated(
@@ -172,6 +199,10 @@ class AppNavigatorTest {
             )
 
         fun stack(route: AppRoute): List<NavKey> = stacks.getValue(route).toList()
+
+        fun restore(root: AppRoute, vararg routes: AppRoute) {
+            stacks.getValue(root).addAll(routes.toList())
+        }
     }
 
     private companion object {

@@ -144,6 +144,11 @@ class AppNavigator internal constructor(
             when {
                 route.isTopLevel -> {
                     if (clearAuthenticatedState) resetAuthenticatedStacks()
+                    val destinationStack = topLevelBackStacks.getValue(route)
+                    val restoredRoute = destinationStack.lastOrNull() as? AppRoute
+                    if (restoredRoute != null && !canRender(restoredRoute)) {
+                        resetStack(destinationStack, route)
+                    }
                     activeRootState.value = route
                 }
 

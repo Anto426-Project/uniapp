@@ -5,7 +5,11 @@ plugins {
 
 android {
     namespace = "com.anto426.uniapp.android"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk {
+        version = release(libs.versions.android.compileSdk.get().toInt()) {
+            minorApiLevel = libs.versions.android.compileSdkMinor.get().toInt()
+        }
+    }
 
     defaultConfig {
         applicationId = "com.anto426.uniapp"
@@ -17,7 +21,7 @@ android {
         val code = providers.environmentVariable("VERSION_CODE").orNull?.toLong() ?: (base + run)
         require(run >= 0 && code in 1..2_100_000_000L) { "Invalid Android build versionCode" }
         versionCode = code.toInt()
-        versionName = "2.0.15"
+        versionName = "2.0.16"
         manifestPlaceholders["appLabel"] = "UniApp"
         ndk {
             abiFilters += "arm64-v8a"

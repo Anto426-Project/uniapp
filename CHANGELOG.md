@@ -1,12 +1,13 @@
-## [Unreleased]
+## [2.0.16] - 2026-11-19 (build set by CI)
 
-- **Biblioteca**: aggiunta la sezione completa con ricerca nel catalogo OPAC e argomenti rapidi, dettaglio libro con metadati strutturati (`Inventario`, `Collocazione`, `Note`) e copie richiedibili, gestione prestiti/richieste e flusso guidato in 3 passaggi per prenotare sale studio e postazioni tramite `UniSDK` (`2.0.33`) e modalità demo.
-- **Lingue e localizzazione**: aggiunta la traduzione completa dell'interfaccia in 10 lingue (`it`, `en`, `fr`, `es`, `de`, `pt`, `nl`, `pl`, `zh`, `ja`) con selezione dedicata nelle impostazioni e fallback persistente della lingua salvata.
-- **Interfaccia, Liquid Monet e Didattica**: aggiornato Liquid Monet a `2.0.45`, integrati i componenti adattivi su Home, Didattica, Esami, Voti, Tasse, Trasporti, Rubrica, Impostazioni, Tema, Aggiornamenti e Changelog, corretto il contorno delle tessere di accesso rapido nella Home e migliorato il calcolo della simulazione CFU/voti e media di carriera.
-- **Build e verifica Android**: aggiunta la verifica dell'allineamento a 16 KB per le librerie native Android.
-- Rimossi launcher, target, SDK e pacchetti desktop; build, pubblicazioni e download supportano Android e iOS.
-- Il download degli SDK riutilizza anche le credenziali locali di GitHub CLI e Git, dopo i token nelle variabili d'ambiente.
-- Allineati i quattro SDK al catalogo UniApp: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21 e le rispettive dipendenze condivise.
+- Interfaccia disponibile in dieci lingue, selezionabili dalle Impostazioni. La lingua scelta viene salvata e ripristinata all’avvio.
+- Riviste Home e Didattica. Il contorno delle tessere di accesso rapido resta visibile e le pagine di Libretto, Piano di studi e Statistiche condividono i componenti dell’app. Corretti i calcoli del simulatore di voti e CFU e della media di carriera.
+- Aggiornato Liquid Monet. Le card con azioni rispondono al trascinamento in tutte le direzioni, anche quando sono grandi. I controlli interni rispondono in modo indipendente e i selettori a schede restano fermi con l’indicatore visibile durante il cambio.
+- Ridisegnati gli sfondi Aurora, Mesh, Orbital e Radiant. Le tinte selezionate restano visibili anche nel tema chiaro. Le card con rotazione 3D usano i gesti condivisi di Liquid Monet e rispettano Riduci movimento.
+- Aggiornamenti, Changelog, Informazioni app e Progetto sono accessibili da voci dedicate.
+- Sospeso temporaneamente l’accesso alla Biblioteca, compresi catalogo, dettaglio libri, prestiti e prenotazioni.
+- Rimossi i target desktop dell’app e degli SDK. Su Android la build verifica l’allineamento a 16 KB delle librerie native.
+- Allineate le dipendenze pubblicate a Liquid Monet 2.0.46, UniSDK 2.0.34, Secure Storage SDK 1.0.17 e Firebase Connector SDK 1.0.11. Aggiornati Jetpack Compose a 1.13.0 e Material 3 per Android alla versione stabile 1.5.0. La compilazione Android usa l’SDK 37.1. Il download degli SDK supporta le credenziali locali di GitHub CLI e Git.
 
 ## [2.0.15] - 2026-10-08 (build set by CI)
 

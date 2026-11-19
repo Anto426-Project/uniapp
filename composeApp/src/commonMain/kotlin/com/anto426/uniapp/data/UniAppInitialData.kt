@@ -5,6 +5,7 @@ import org.jetbrains.compose.resources.getString
 import androidx.compose.ui.graphics.Color
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.library.LibraryAccessEnabled
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.legal.LegalSectionData
 import com.anto426.uniapp.model.news.NewsItem
@@ -18,17 +19,19 @@ import uniapp.composeapp.generated.resources.*
 object UniAppInitialData {
     val fallbackNews = emptyList<NewsItem>()
 
-    val studentServices = listOf(
+    private val libraryService = ServiceData(
+        titleRes = Res.string.portal_prof_library_title,
+        subtitleRes = Res.string.portal_prof_library_sub,
+        icon = LiquidIcons.MenuBook,
+        id = "library",
+    ).takeIf { LibraryAccessEnabled }
+
+    val studentServices = listOfNotNull(
         ServiceData(titleRes = Res.string.service_student_transport_title, subtitleRes = Res.string.service_student_transport_sub, icon = LiquidIcons.Time, id = "transport"),
         ServiceData(titleRes = Res.string.service_student_taxes_title, subtitleRes = Res.string.service_student_taxes_sub, icon = LiquidIcons.CreditCard, id = "taxes"),
         ServiceData(titleRes = Res.string.service_student_contacts_title, subtitleRes = Res.string.service_student_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
         ServiceData(titleRes = Res.string.nav_route_news_title, subtitleRes = Res.string.nav_route_news_subtitle, icon = LiquidIcons.Notifications, id = "news"),
-        ServiceData(
-            titleRes = Res.string.portal_prof_library_title,
-            subtitleRes = Res.string.portal_prof_library_sub,
-            icon = LiquidIcons.MenuBook,
-            id = "library",
-        ),
+        libraryService,
     )
 
     val universityPortals = listOf(
@@ -39,14 +42,9 @@ object UniAppInitialData {
         ServiceData(titleRes = Res.string.portal_student_email_title, subtitleRes = Res.string.portal_student_email_sub, icon = LiquidIcons.Notifications, id = "email"),
     )
 
-    val professorServices = listOf(
+    val professorServices = listOfNotNull(
         ServiceData(titleRes = Res.string.service_prof_contacts_title, subtitleRes = Res.string.service_prof_contacts_sub, icon = LiquidIcons.AccountCircle, id = "contacts"),
-        ServiceData(
-            titleRes = Res.string.portal_prof_library_title,
-            subtitleRes = Res.string.portal_prof_library_sub,
-            icon = LiquidIcons.MenuBook,
-            id = "library",
-        ),
+        libraryService,
     )
 
     val professorPortals = listOf(

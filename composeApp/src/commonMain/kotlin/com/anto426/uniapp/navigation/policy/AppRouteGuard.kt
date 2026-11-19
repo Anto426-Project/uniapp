@@ -1,5 +1,6 @@
 package com.anto426.uniapp.navigation.policy
 
+import com.anto426.uniapp.library.LibraryAccessEnabled
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.AppRouteRequirement
 import com.anto426.uniapp.navigation.model.requirement
@@ -19,6 +20,7 @@ class AppRouteGuard {
 
             is AppSessionState.Authenticated ->
                 when {
+                    !LibraryAccessEnabled && requested.isLibraryRoute() -> AppRoute.Services
                     requested is AppRoute.NewsDetail &&
                         (requested.accountId != sessionState.account.accountId ||
                             requested.profileId != sessionState.account.activeProfileId) -> AppRoute.Home
@@ -55,6 +57,16 @@ class AppRouteGuard {
         sessionState: AppSessionState,
     ): Boolean = resolve(route, sessionState) == route
 }
+
+private fun AppRoute.isLibraryRoute(): Boolean =
+    when (this) {
+        is AppRoute.Library,
+        is AppRoute.LibraryBookDetail,
+        AppRoute.LibraryBooking,
+        -> true
+
+        else -> false
+    }
 
 private fun AppRoute.isStudentOnly(): Boolean =
     when (this) {

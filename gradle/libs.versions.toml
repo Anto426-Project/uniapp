@@ -7,6 +7,7 @@ composeMultiplatform-material3 = "1.12.0-alpha03"
 
 # Android SDK
 android-compileSdk = "37"
+android-compileSdkMinor = "1"
 android-minSdk = "29"
 android-targetSdk = "37"
 
@@ -19,8 +20,8 @@ lifecycle = "2.11.0"
 navigation3 = "1.2.0"
 
 # Compose & Material (AndroidX)
-compose = "1.12.1"
-material3 = "1.5.0-rc01"
+compose = "1.13.0"
+material3 = "1.5.0"
 
 # KotlinX
 kotlinx-coroutines = "1.11.0"
@@ -39,8 +40,8 @@ zxing-cpp = "3.1.1"
 robolectric = "4.18.1"
 
 # Published SDK versions. The binary downloader reads these exact versions.
-liquid-monet-sdk = "2.0.45"
-unisdk = "2.0.33"
+liquid-monet-sdk = "2.0.46"
+unisdk = "2.0.34"
 secure-storage-sdk = "1.0.17"
 firebase-connector-sdk = "1.0.11"
 

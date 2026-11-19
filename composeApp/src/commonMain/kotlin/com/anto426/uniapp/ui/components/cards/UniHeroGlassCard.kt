@@ -5,7 +5,6 @@ import uniapp.composeapp.generated.resources.*
 
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,7 +36,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -506,7 +504,8 @@ fun UniHeroGlassCard(
         shape = shape,
         contentPadding = 0.dp,
         colors = LiquidCardDefaults.colors(containerColor = Color.Transparent),
-        onClick = if (longPressCard == null) tapCard else null,
+        onClick = tapCard,
+        onLongClick = longPressCard,
     ) {
         MaterialTheme(colorScheme = heroColorScheme) {
             CompositionLocalProvider(
@@ -517,19 +516,7 @@ fun UniHeroGlassCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = height)
-                        .clip(shape)
-                        .then(
-                            if (longPressCard != null) {
-                                Modifier.pointerInput(flipTrigger, flipped, tapCard, longPressCard) {
-                                    detectTapGestures(
-                                        onTap = { tapCard?.invoke() },
-                                        onLongPress = { longPressCard.invoke() },
-                                    )
-                                }
-                            } else {
-                                Modifier
-                            }
-                        ),
+                        .clip(shape),
                     propagateMinConstraints = true,
                 ) {
             if (backgroundContent != null) {
