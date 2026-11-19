@@ -1,4 +1,4 @@
-## [2.0.16] - 2026-11-19 (build set by CI)
+## [2.0.20] - 2026-11-19 (build set by CI)
 
 - Interfaccia disponibile in dieci lingue, selezionabili dalle Impostazioni. La lingua scelta viene salvata e ripristinata all’avvio.
 - Riviste Home e Didattica. Il contorno delle tessere di accesso rapido resta visibile e le pagine di Libretto, Piano di studi e Statistiche condividono i componenti dell’app. Corretti i calcoli del simulatore di voti e CFU e della media di carriera.
