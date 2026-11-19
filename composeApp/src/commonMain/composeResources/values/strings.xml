@@ -418,6 +418,7 @@
     <string name="ui_revoke_access">Revoca accesso</string>
     <string name="ui_revoke">Revoca</string>
     <string name="ui_revoke_question">Sei sicuro di voler disconnettere %1$s? Dovrai effettuare nuovamente l'accesso su quel dispositivo.</string>
+    <string name="ui_devices_security_note">Le sessioni attive mantengono collegato il tuo account universitario su ogni dispositivo. Se non riconosci un accesso, chiudi le altre sessioni dal pulsante in alto.</string>
     <string name="ui_push_notifications">Notifiche push</string>
     <string name="ui_academic_alerts">Avvisi accademici e scadenze</string>
     <string name="ui_biometric_security">Sicurezza biometrica</string>
@@ -960,6 +961,7 @@
     <string name="ui_theme_pause_sleep_title">Pausa animazioni a schermo spento</string>
     <string name="ui_theme_pause_sleep_sub">Arresta l'engine grafico a schermo inattivo per preservare la batteria</string>
     <string name="ui_theme_reset_button">Ripristina valori predefiniti Liquid Monet</string>
+    <string name="ui_theme_reset_short">Ripristina tema predefinito</string>
 
     <!-- Questionnaires & Info App -->
     <string name="ui_questionnaires_empty_title">Nessun questionario disponibile</string>
@@ -1471,4 +1473,5 @@
     <string name="ui_grades_projected_description">Proiezione dei soli esami attivati nel simulatore. Non modifica la carriera.</string>
     <string name="ui_grades_recent_trend">Variazione recente della media</string>
     <string name="ui_services_in_app_soon">In app presto</string>
+    <string name="ui_home_no_open_rounds">Nessun appello aperto</string>
 </resources>

@@ -107,9 +107,7 @@ fun TaxesScreen(uiState: TaxesUiState) {
                     LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         UniBentoStatTile(
@@ -118,7 +116,7 @@ fun TaxesScreen(uiState: TaxesUiState) {
                             icon = LiquidIcons.Time,
                             accentColor = if (hasPending) colorScheme.error else colorScheme.primary,
                             valueColor = if (hasPending) colorScheme.error else colorScheme.onSurface,
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            modifier = Modifier.weight(1f),
                         )
                         UniBentoStatTile(
                             label = stringResource(Res.string.ui_paid_section),
@@ -126,7 +124,7 @@ fun TaxesScreen(uiState: TaxesUiState) {
                             icon = LiquidIcons.Check,
                             accentColor = glassColors.success,
                             valueColor = colorScheme.onSurface,
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }

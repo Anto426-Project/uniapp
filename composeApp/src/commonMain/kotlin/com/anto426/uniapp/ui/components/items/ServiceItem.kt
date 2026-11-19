@@ -1,7 +1,9 @@
 package com.anto426.uniapp.ui.components.items
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -40,11 +42,11 @@ fun ServiceItem(
     val colorScheme = MaterialTheme.colorScheme
     val statusBadge = data.badgeLabel
     LiquidCard(
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
         modifier = modifier
             .semantics(mergeDescendants = true) {}
             .graphicsLayer(clip = false),
         shape = RoundedRectangle(20.dp),
-        contentPadding = 13.dp,
         onClick = onClick,
     ) {
         Column(
@@ -92,12 +94,13 @@ fun ServiceWideItem(
     val colorScheme = MaterialTheme.colorScheme
     val statusBadge = data.badgeLabel
     LiquidCard(
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {}
             .graphicsLayer(clip = false),
         shape = RoundedRectangle(20.dp),
-        contentPadding = 13.dp,
+        border = if (!statusBadge.isNullOrBlank()) BorderStroke(1.dp, accentColor.copy(alpha = 0.28f)) else null,
         onClick = onClick,
     ) {
         Row(
@@ -111,6 +114,7 @@ fun ServiceWideItem(
             ServiceTileLabels(
                 title = data.title,
                 subtitle = data.subtitle,
+                subtitleMaxLines = 2,
                 modifier = Modifier.weight(1f),
             )
             if (!statusBadge.isNullOrBlank()) {
@@ -154,6 +158,7 @@ private fun ServiceTileLabels(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
+    subtitleMaxLines: Int = 1,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     Column(
@@ -174,7 +179,7 @@ private fun ServiceTileLabels(
             style = MaterialTheme.typography.labelSmall,
             color = colorScheme.onSurfaceVariant,
             lineHeight = 14.sp,
-            maxLines = 1,
+            maxLines = subtitleMaxLines,
             overflow = TextOverflow.Ellipsis,
         )
     }

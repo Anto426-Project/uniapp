@@ -7,9 +7,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.updates.UpdateState
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -24,9 +25,14 @@ internal fun UpdateState.packageVerificationStatus(): PackageVerificationStatus 
 
 /** Reflects the Android updater's real download, validation and install phases. */
 @Composable
-internal fun UpdatePackageVerificationItem(state: UpdateState) {
+internal fun UpdatePackageVerificationItem(
+    state: UpdateState,
+    showDivider: Boolean = true,
+) {
     val status = state.packageVerificationStatus()
-    LiquidPreferenceItem(
+    val colorScheme = MaterialTheme.colorScheme
+    val glassColors = LiquidGlassTheme.colors
+    UniInsetRow(
         title = stringResource(Res.string.ui_update_verification_title),
         subtitle = when (status) {
             PackageVerificationStatus.Pending -> stringResource(Res.string.ui_update_verification_pending)
@@ -35,17 +41,19 @@ internal fun UpdatePackageVerificationItem(state: UpdateState) {
             PackageVerificationStatus.Passed -> stringResource(Res.string.ui_update_verification_passed)
         },
         icon = LiquidIcons.Lock,
+        iconTint = if (status == PackageVerificationStatus.Passed) glassColors.success else colorScheme.tertiary,
+        showDivider = showDivider,
         trailingContent = {
             when (status) {
                 PackageVerificationStatus.Checking -> CircularProgressIndicator(
                     modifier = Modifier.size(18.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = colorScheme.primary,
                 )
                 PackageVerificationStatus.Passed -> Icon(
                     imageVector = LiquidIcons.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = glassColors.success,
                     modifier = Modifier.size(18.dp),
                 )
                 else -> Unit

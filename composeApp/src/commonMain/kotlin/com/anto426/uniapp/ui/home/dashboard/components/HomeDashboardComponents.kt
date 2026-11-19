@@ -1,9 +1,9 @@
 package com.anto426.uniapp.ui.home.dashboard.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +44,7 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
@@ -55,6 +56,7 @@ import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
+import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.items.UniNewsCard
 import com.kyant.shapes.Capsule
@@ -146,17 +148,24 @@ fun HomeSummarySection(
     }
 
     LiquidCard(
+        contentPadding = PaddingValues(0.dp),
         modifier = modifier.fillMaxWidth(),
         shape = RoundedRectangle(24.dp),
-        contentPadding = 0.dp,
+        onClick = if (uiState.isProfessor) onOpenBadge else onOpenStatistics,
+        clipContent = true,
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // Identità cliccabile per aprire il Badge (niente bottone Badge separato)
+            // Header and career body keep independent Liquid actions and press motion.
+            LiquidCard(
+                contentPadding = 0.dp,
+                colors = LiquidCardDefaults.colors(containerColor = Color.Transparent),
+                shape = RoundedRectangle(24.dp),
+                onClick = onOpenBadge,
+            ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .defaultMinSize(minHeight = 48.dp)
-                    .clickable(role = Role.Button, onClick = onOpenBadge)
                     .semantics(mergeDescendants = true) {}
                     .padding(horizontal = 18.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -222,6 +231,8 @@ fun HomeSummarySection(
                 }
             }
 
+            }
+
             LiquidHorizontalDivider(
                 modifier = Modifier.padding(horizontal = 18.dp),
                 color = colorScheme.onSurface.copy(alpha = 0.08f),
@@ -231,8 +242,6 @@ fun HomeSummarySection(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(role = Role.Button, onClick = onOpenBadge)
-                        .semantics(mergeDescendants = true) {}
                         .padding(horizontal = 18.dp, vertical = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -298,8 +307,6 @@ fun HomeSummarySection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(role = Role.Button, onClick = onOpenStatistics)
-                        .semantics(mergeDescendants = true) {}
                         .padding(horizontal = 18.dp, vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -453,6 +460,16 @@ fun HomeSpotlightRow(
             uiState.dueAmount.any { it in '1'..'9' }
         )
 
+    val formattedExamSub = remember(uiState.nextExamLabel, uiState.isProfessor) {
+        if (uiState.isProfessor) "" else formatSpotlightSubtitle(uiState.nextExamLabel)
+    }
+    val formattedTaxAmount = remember(uiState.dueAmount, uiState.isProfessor) {
+        if (uiState.isProfessor) "${uiState.thesisCount}" else formatCompactCurrency(uiState.dueAmount)
+    }
+    val formattedTaxSub = remember(uiState.nextTaxLabel, uiState.isProfessor) {
+        if (uiState.isProfessor) "" else formatTaxDeadlineSubtitle(uiState.nextTaxLabel)
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -465,7 +482,7 @@ fun HomeSpotlightRow(
             subtitle = if (uiState.isProfessor) {
                 stringResource(Res.string.ui_professor_rounds_filtered)
             } else {
-                uiState.nextExamLabel.ifBlank { stringResource(Res.string.msg_nessun_appello_disponibile) }
+                formattedExamSub.ifBlank { stringResource(Res.string.ui_home_no_open_rounds) }
             },
             icon = LiquidIcons.Calendar,
             accentColor = colorScheme.primary,
@@ -478,11 +495,11 @@ fun HomeSpotlightRow(
                 if (uiState.isProfessor) Res.string.ui_professor_theses
                 else Res.string.ui_taxes,
             ),
-            value = if (uiState.isProfessor) "${uiState.thesisCount}" else uiState.dueAmount,
+            value = formattedTaxAmount,
             subtitle = if (uiState.isProfessor) {
                 stringResource(Res.string.ui_professor_theses_subtitle)
             } else {
-                uiState.nextTaxLabel.ifBlank { stringResource(Res.string.ui_home_no_due_taxes) }
+                formattedTaxSub.ifBlank { stringResource(Res.string.ui_home_no_due_taxes) }
             },
             icon = when {
                 uiState.isProfessor -> LiquidIcons.Assignment
@@ -491,6 +508,7 @@ fun HomeSpotlightRow(
             },
             accentColor = if (hasDueTaxes) glassColors.warning else glassColors.success,
             valueColor = if (hasDueTaxes) glassColors.warning else colorScheme.onSurface,
+            border = if (hasDueTaxes) BorderStroke(1.dp, glassColors.warning.copy(alpha = 0.35f)) else null,
             onClick = if (uiState.isProfessor) onOpenTheses else onOpenTaxes,
             modifier = Modifier.weight(1f),
         )
@@ -505,22 +523,24 @@ private fun AppleHomeWidgetTile(
     icon: ImageVector,
     accentColor: Color,
     valueColor: Color = MaterialTheme.colorScheme.onSurface,
+    border: BorderStroke? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     LiquidCard(
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
         modifier = modifier
             .graphicsLayer(clip = false)
             .semantics(mergeDescendants = true) {},
         shape = RoundedRectangle(20.dp),
-        contentPadding = 14.dp,
+        border = border,
         onClick = onClick,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = 96.dp),
+                .defaultMinSize(minHeight = 82.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
@@ -561,27 +581,55 @@ private fun AppleHomeWidgetTile(
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = value,
-                    style = if (value.length > 6) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     color = valueColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
         }
     }
+}
+
+private fun formatCompactCurrency(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty() || trimmed == "—") return trimmed
+    return if (trimmed.startsWith("EUR ", ignoreCase = true)) {
+        "€ ${trimmed.drop(4).trim()}"
+    } else {
+        trimmed
+    }
+}
+
+private fun formatTaxDeadlineSubtitle(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty()) return ""
+    val parts = trimmed.split("•").map(String::trim).filter(String::isNotBlank)
+    return when {
+        parts.size >= 2 -> "Scadenza ${parts.last()}"
+        else -> trimmed
+    }
+}
+
+private fun formatSpotlightSubtitle(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty()) return ""
+    val parts = trimmed.split("•").map(String::trim).filter(String::isNotBlank)
+    return if (parts.size >= 2) "${parts.first()} • ${parts.last()}" else trimmed
 }
 
 /**
@@ -610,12 +658,7 @@ fun HomeNewsSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = 48.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    role = Role.Button,
-                    onClick = onOpenNews,
-                )
+                .clickable(role = Role.Button, onClick = onOpenNews)
                 .semantics(mergeDescendants = true) {}
                 .padding(horizontal = 18.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -760,47 +803,21 @@ fun HomeQuickAccessGroup(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                        .clip(Capsule())
-                        .clickable(
-                            role = Role.Button,
-                            onClick = if (isCustomizing) onFinishCustomization else onToggleCustomization,
-                        ),
-                    contentAlignment = Alignment.CenterEnd,
+                LiquidButton(
+                    onClick = if (isCustomizing) onFinishCustomization else onToggleCustomization,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
+                    minimumHeight = 48.dp,
+                    shape = Capsule(),
+                    containerColor = if (isCustomizing) colorScheme.primary else Color.Transparent,
+                    contentColor = if (isCustomizing) colorScheme.onPrimary else colorScheme.primary,
+                    border = null,
                 ) {
-                    if (isCustomizing) {
-                        Row(
-                            modifier = Modifier
-                                .clip(Capsule())
-                                .background(colorScheme.primary)
-                                .padding(horizontal = 14.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                imageVector = LiquidIcons.Check,
-                                contentDescription = null,
-                                tint = colorScheme.onPrimary,
-                                modifier = Modifier.size(14.dp),
-                            )
-                            Text(
-                                text = stringResource(Res.string.ui_done),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onPrimary,
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = stringResource(Res.string.ui_customize),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                        )
-                    }
+                    if (isCustomizing) Icon(LiquidIcons.Check, null, Modifier.size(14.dp))
+                    Text(
+                        text = stringResource(if (isCustomizing) Res.string.ui_done else Res.string.ui_customize),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
             }
         }
@@ -873,16 +890,14 @@ private fun QuickAccessBentoTile(
     val colorScheme = MaterialTheme.colorScheme
     val tileShape = RoundedRectangle(18.dp)
     val isActive = !editing || selected
+    val tileBorder = when {
+        editing && selected -> BorderStroke(1.2.dp, colorScheme.primary.copy(alpha = 0.6f))
+        editing && !selected -> BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.45f))
+        else -> null
+    }
     val tileModifier = modifier
         .semantics(mergeDescendants = true) {
             if (editing) this.selected = selected
-        }
-        .let { base ->
-            when {
-                editing && selected -> base.border(1.2.dp, colorScheme.primary.copy(alpha = 0.6f), tileShape)
-                editing && !selected -> base.border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.45f), tileShape)
-                else -> base
-            }
         }
         .graphicsLayer(
             clip = false,
@@ -890,9 +905,10 @@ private fun QuickAccessBentoTile(
         )
 
     LiquidCard(
+        contentPadding = PaddingValues(11.dp),
         modifier = tileModifier,
         shape = tileShape,
-        contentPadding = 11.dp,
+        border = tileBorder,
         onClick = onClick,
     ) {
         Row(
@@ -965,18 +981,6 @@ private fun QuickAccessBentoTile(
                     )
                 }
             }
-        }
-    }
-}
-
-private fun formatSmartDisplayName(raw: String): String {
-    val trimmed = raw.trim()
-    if (trimmed.isEmpty()) return trimmed
-    val letters = trimmed.filter { it.isLetter() }
-    if (letters.isEmpty() || letters.any { it.isLowerCase() }) return trimmed
-    return trimmed.split(Regex("\\s+")).joinToString(" ") { word ->
-        word.lowercase().replaceFirstChar { ch ->
-            if (ch.isLowerCase()) ch.titlecase() else ch.toString()
         }
     }
 }

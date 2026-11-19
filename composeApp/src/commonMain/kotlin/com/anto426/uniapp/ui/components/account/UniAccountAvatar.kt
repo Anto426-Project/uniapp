@@ -78,3 +78,16 @@ fun UniAccountAvatar(
             },
     )
 }
+
+/** Normalizes all-caps portal names (e.g. "ANTONIO MANOCCHIO") into readable title case. */
+fun formatSmartDisplayName(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty()) return trimmed
+    val letters = trimmed.filter { it.isLetter() }
+    if (letters.isEmpty() || letters.any { it.isLowerCase() }) return trimmed
+    return trimmed.split(Regex("\\s+")).joinToString(" ") { word ->
+        word.lowercase().replaceFirstChar { ch ->
+            if (ch.isLowerCase()) ch.titlecase() else ch.toString()
+        }
+    }
+}

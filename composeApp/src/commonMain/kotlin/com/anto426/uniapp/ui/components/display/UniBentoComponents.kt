@@ -3,7 +3,6 @@ package com.anto426.uniapp.ui.components.display
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,6 +37,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
@@ -148,10 +147,9 @@ fun UniBentoStatTile(
     Column(
         modifier = modifier
             .clip(shape)
-            .background(colorScheme.surfaceContainerHigh.copy(alpha = 0.55f))
             .border(
                 width = 1.dp,
-                color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+                color = colorScheme.onSurface.copy(alpha = 0.08f),
                 shape = shape,
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -239,7 +237,8 @@ fun UniInsetGroup(
                 .fillMaxWidth()
                 .graphicsLayer(clip = false),
             shape = RoundedRectangle(cornerRadius),
-            contentPadding = 0.dp,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+            clipContent = true,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -265,77 +264,78 @@ fun UniInsetRow(
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 52.dp)
-                .then(
-                    if (onClick != null) {
-                        Modifier.clickable(role = Role.Button, onClick = onClick)
-                    } else {
-                        Modifier
-                    },
-                )
-                .semantics(mergeDescendants = true) {}
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.liquidIconContainer(
-                    containerSize = 32.dp,
-                    iconSize = 17.dp,
-                    containerColor = iconTint.copy(alpha = 0.14f),
-                    shape = RoundedRectangle(9.dp),
-                ),
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
+    LiquidCard(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = 0.dp,
+        shape = RoundedRectangle(12.dp),
+        colors = LiquidCardDefaults.colors(containerColor = Color.Transparent),
+        onClick = onClick,
+    ) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 52.dp)
+                    .semantics(mergeDescendants = true) {}
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 32.dp,
+                        iconSize = 17.dp,
+                        containerColor = iconTint.copy(alpha = 0.14f),
+                        shape = RoundedRectangle(9.dp),
+                    ),
                 )
-                if (!subtitle.isNullOrBlank()) {
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
                     Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.5.sp,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 2,
+                        text = title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                    )
+                    if (!subtitle.isNullOrBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.5.sp,
+                            color = colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+
+                if (trailingContent != null) {
+                    trailingContent()
+                } else if (onClick != null) {
+                    Icon(
+                        imageVector = LiquidIcons.ChevronRight,
+                        contentDescription = null,
+                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
 
-            if (trailingContent != null) {
-                trailingContent()
-            } else if (onClick != null) {
-                Icon(
-                    imageVector = LiquidIcons.ChevronRight,
-                    contentDescription = null,
-                    tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
-                    modifier = Modifier.size(16.dp),
+            if (showDivider) {
+                LiquidHorizontalDivider(
+                    modifier = Modifier.padding(start = 60.dp, end = 16.dp),
+                    color = colorScheme.onSurface.copy(alpha = 0.08f),
                 )
             }
-        }
-
-        if (showDivider) {
-            LiquidHorizontalDivider(
-                modifier = Modifier.padding(start = 60.dp, end = 16.dp),
-                color = colorScheme.onSurface.copy(alpha = 0.08f),
-            )
         }
     }
 }

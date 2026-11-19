@@ -68,9 +68,14 @@ class ConnectedDevicesViewModel(
     }
 
     fun requestRevocation(device: DeviceInfo) {
-        if (!device.isCurrent && !device.revocationToken.isNullOrBlank() && device in mutableUiState.value.devices) {
-            mutableUiState.value = mutableUiState.value.copy(devicePendingRevocation = device)
+        if (device.isCurrent || device !in mutableUiState.value.devices) return
+        if (device.revocationToken.isNullOrBlank()) {
+            viewModelScope.launch {
+                toastSink.warning(getString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile))
+            }
+            return
         }
+        mutableUiState.value = mutableUiState.value.copy(devicePendingRevocation = device)
     }
 
     fun dismissRevocation() {

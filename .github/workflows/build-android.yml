@@ -84,6 +84,7 @@ jobs:
             unset RELEASE_STORE_FILE RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD
           fi
           ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease
+          python3 scripts/android_page_sizes.py androidApp/build/outputs/apk/release/*.apk
           if [[ "$signing" == release-key ]]; then
             APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
             for apk in androidApp/build/outputs/apk/release/*.apk; do "$APK_SIGNER" verify --verbose "$apk"; done

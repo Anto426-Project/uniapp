@@ -140,31 +140,18 @@ fun NewsDetailScreen(
 
                     if (distinctSummary) {
                         val calloutShape = RoundedRectangle(16.dp)
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(IntrinsicSize.Min)
                                 .clip(calloutShape)
-                                .background(colorScheme.surfaceContainerHigh.copy(alpha = 0.55f))
                                 .border(
                                     width = 1.dp,
-                                    color = colorScheme.outlineVariant.copy(alpha = 0.24f),
+                                    color = colorScheme.onSurface.copy(alpha = 0.09f),
                                     shape = calloutShape,
                                 )
                                 .padding(14.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(3.dp)
-                                    .fillMaxHeight()
-                                    .clip(Capsule())
-                                    .background(categoryColor),
-                            )
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
                                 Text(
                                     text = summaryHeading.uppercase(),
                                     style = MaterialTheme.typography.labelSmall,
@@ -180,7 +167,6 @@ fun NewsDetailScreen(
                                     fontSize = 14.sp,
                                     lineHeight = 20.sp,
                                 )
-                            }
                         }
                     }
                 }

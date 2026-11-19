@@ -19,14 +19,17 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.project.presentation.ProjectInfoUiState
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniRemoteAvatar
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.platform.ProjectInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.clickable
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -175,10 +178,9 @@ internal fun CreatorCreditsScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                                     shape = RoundedCornerShape(14.dp),
                                 )
                                 .padding(vertical = 12.dp, horizontal = 8.dp),
@@ -213,33 +215,76 @@ internal fun CreatorCreditsScreen(
         }
 
         // 2. Crediti e Riconoscimenti alle Persone (Contributori GitHub & Collaboratori)
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_credits_acknowledgements)) {
+        UniInsetGroup(title = stringResource(Res.string.ui_credits_acknowledgements)) {
             Text(
                 text = stringResource(Res.string.ui_credits_explanation),
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 18.sp,
             )
 
-            contributors.forEachIndexed { index, person ->
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-                val name = person.login ?: person.name ?: stringResource(Res.string.ui_project_unlinked_contributor)
-                LiquidPreferenceItem(
-                    title = name,
-                    subtitle = stringResource(Res.string.ui_project_contributions, person.contributions) +
-                        if (person.type == "Bot") " · Bot automatizzato" else " · Contributore",
-                    leadingContent = { UniRemoteAvatar(person.avatarUrl, name, size = 38.dp) },
-                    onClick = person.url?.let { link -> { onOpenLink(link) } },
+            contributors.forEach { person ->
+                LiquidHorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                 )
+                val name = person.login ?: person.name ?: stringResource(Res.string.ui_project_unlinked_contributor)
+                val link = person.url
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 52.dp)
+                        .then(
+                            if (link != null) {
+                                Modifier.clickable(role = Role.Button) { onOpenLink(link) }
+                            } else Modifier,
+                        )
+                        .semantics(mergeDescendants = true) {}
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    UniRemoteAvatar(person.avatarUrl, name, size = 36.dp)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                    ) {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = stringResource(Res.string.ui_project_contributions, person.contributions) +
+                                if (person.type == "Bot") " · Bot automatizzato" else " · Contributore",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (link != null) {
+                        Icon(
+                            imageVector = LiquidIcons.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
             }
 
             if (contributors.isEmpty()) {
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-                LiquidPreferenceItem(
+                LiquidHorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                )
+                UniInsetRow(
                     title = stringResource(Res.string.msg_contributori_della_community),
                     subtitle = stringResource(Res.string.ui_credits_no_other_contributors),
                     icon = LiquidIcons.AccountCircle,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    showDivider = false,
                 )
             }
         }

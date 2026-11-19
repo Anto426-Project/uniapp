@@ -4,7 +4,20 @@ import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppCachePolicies
 import com.anto426.uniapp.data.UniAppCachePolicy
 import com.anto426.uniapp.data.datasetCacheKey
-import com.anto426.unisdk.model.*
+import com.anto426.unisdk.model.AttendanceRecord
+import com.anto426.unisdk.model.Career as SdkCareer
+import com.anto426.unisdk.model.ConnectedDevice
+import com.anto426.unisdk.model.CourseSyllabus
+import com.anto426.unisdk.model.ExamRound
+import com.anto426.unisdk.model.ProfessorDashboard
+import com.anto426.unisdk.model.StudentDetails
+import com.anto426.unisdk.model.StudyPlan as SdkStudyPlan
+import com.anto426.unisdk.model.StudyPlanCourse
+import com.anto426.unisdk.model.SurveyCourse
+import com.anto426.unisdk.model.SurveyForm
+import com.anto426.unisdk.model.Taxes as SdkTaxes
+import com.anto426.unisdk.model.UniversityContact
+import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.transport.TransportData
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
@@ -20,12 +33,12 @@ class UniAppDataRequest<T : Any> internal constructor(
 )
 
 object UniAppDataRequests {
-    val Career = UniAppDataRequest("career", "career-v2", com.anto426.unisdk.model.Career.serializer(), UniAppCachePolicies.Career, UniAppDataSource::loadCareer)
-    val Professor = UniAppDataRequest("professor", "professor-dashboard", ProfessorDashboard.serializer(), UniAppCachePolicies.ProfessorDashboard, UniAppDataSource::loadProfessorDashboard)
-    val StudyPlan = UniAppDataRequest("study-plan", "study-plan", com.anto426.unisdk.model.StudyPlan.serializer(), UniAppCachePolicies.StudyPlan, UniAppDataSource::loadStudyPlan)
-    val Exams = UniAppDataRequest("exam-rounds", "exam-rounds", ListSerializer(ExamRound.serializer()), UniAppCachePolicies.ExamRounds, UniAppDataSource::loadExamRounds)
-    val Taxes = UniAppDataRequest("taxes", "taxes", com.anto426.unisdk.model.Taxes.serializer(), UniAppCachePolicies.Taxes, UniAppDataSource::loadTaxes)
-    val Student = UniAppDataRequest("student", "student-details-v2", StudentDetails.serializer(), UniAppCachePolicies.StudentDetails, UniAppDataSource::loadStudentDetails)
+    val Career: UniAppDataRequest<SdkCareer> = UniAppDataRequest("career", "career-v2", SdkCareer.serializer(), UniAppCachePolicies.Career, UniAppDataSource::loadCareer)
+    val Professor: UniAppDataRequest<ProfessorDashboard> = UniAppDataRequest("professor", "professor-dashboard", ProfessorDashboard.serializer(), UniAppCachePolicies.ProfessorDashboard, UniAppDataSource::loadProfessorDashboard)
+    val StudyPlan: UniAppDataRequest<SdkStudyPlan> = UniAppDataRequest("study-plan", "study-plan", SdkStudyPlan.serializer(), UniAppCachePolicies.StudyPlan, UniAppDataSource::loadStudyPlan)
+    val Exams: UniAppDataRequest<List<ExamRound>> = UniAppDataRequest("exam-rounds", "exam-rounds", ListSerializer(ExamRound.serializer()), UniAppCachePolicies.ExamRounds, UniAppDataSource::loadExamRounds)
+    val Taxes: UniAppDataRequest<SdkTaxes> = UniAppDataRequest("taxes", "taxes", SdkTaxes.serializer(), UniAppCachePolicies.Taxes, UniAppDataSource::loadTaxes)
+    val Student: UniAppDataRequest<StudentDetails> = UniAppDataRequest("student", "student-details-v2", StudentDetails.serializer(), UniAppCachePolicies.StudentDetails, UniAppDataSource::loadStudentDetails)
     val Devices = UniAppDataRequest("devices", "connected-devices", ListSerializer(ConnectedDevice.serializer()), UniAppCachePolicies.ConnectedDevices, UniAppDataSource::loadConnectedDevices)
     val Attendance = UniAppDataRequest("attendance", "attendance", ListSerializer(AttendanceRecord.serializer()), UniAppCachePolicies.Attendance, UniAppDataSource::loadAttendanceHistory)
     val News = UniAppDataRequest("news", "university-news", ListSerializer(UniversityNews.serializer()), UniAppCachePolicies.News, UniAppDataSource::loadUniversityNews)

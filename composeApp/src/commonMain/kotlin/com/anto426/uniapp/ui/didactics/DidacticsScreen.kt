@@ -1,16 +1,15 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,20 +17,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
-import com.anto426.uniapp.ui.components.display.UniBentoStatTile
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
@@ -76,14 +74,13 @@ fun DidacticsScreen(
     }
 
     UniScreenColumn {
-        // 1. Academic Degree Bento Hero Card (compatto, zero IntrinsicSize.Min)
+        // 1. Academic Degree Summary Card (Liquid-Monet 2.0.39: card -> Statistiche, badge -> Carriera)
         LiquidCard(
+            contentPadding = PaddingValues(18.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics(mergeDescendants = true) {}
                 .graphicsLayer(clip = false),
             shape = RoundedRectangle(24.dp),
-            contentPadding = 18.dp,
             onClick = onOpenGrades,
         ) {
             Column(
@@ -118,50 +115,67 @@ fun DidacticsScreen(
 
                     Spacer(Modifier.width(8.dp))
 
-                    LiquidBadge(
-                        text = if (uiState.plannedActivities > 0) {
-                            stringResource(Res.string.ui_didactics_activities_badge, uiState.completedExams, uiState.plannedActivities)
-                        } else {
-                            stringResource(Res.string.ui_didactics_exams_badge, uiState.completedExams)
-                        },
-                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
-                        contentColor = colorScheme.primary,
-                    )
+                    LiquidCard(
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
+                        shape = Capsule(),
+                        fillWidth = false,
+                        colors = LiquidCardDefaults.colors(
+                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
+                            contentColor = colorScheme.primary,
+                        ),
+                        onClick = onOpenTranscripts,
+                    ) {
+                        Text(
+                            text = if (uiState.plannedActivities > 0) {
+                                stringResource(Res.string.ui_didactics_activities_badge, uiState.completedExams, uiState.plannedActivities)
+                            } else {
+                                stringResource(Res.string.ui_didactics_exams_badge, uiState.completedExams)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                    }
                 }
 
                 LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        UniBentoStatTile(
-                            label = stringResource(Res.string.ui_weighted_average),
-                            value = uiState.average,
-                            icon = LiquidIcons.Analytics,
-                            accentColor = colorScheme.primary,
-                            valueColor = colorScheme.primary,
-                            modifier = Modifier.fillMaxWidth(),
+                        Text(
+                            text = stringResource(Res.string.ui_weighted_average),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = colorScheme.onSurfaceVariant,
                         )
-
-                        val yearsShape = RoundedRectangle(16.dp)
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(yearsShape)
-                                .background(colorScheme.surfaceContainerHigh.copy(alpha = 0.55f))
-                                .border(
-                                    width = 1.dp,
-                                    color = colorScheme.outlineVariant.copy(alpha = 0.25f),
-                                    shape = yearsShape,
-                                )
-                                .padding(horizontal = 12.dp, vertical = 9.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                text = uiState.average,
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-1).sp,
+                                color = colorScheme.onSurface,
+                                maxLines = 1,
+                            )
+                            Text(
+                                text = "/ 30",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 5.dp),
+                            )
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             (1..uiState.totalYears.coerceIn(1, 4)).forEach { year ->
@@ -170,41 +184,31 @@ fun DidacticsScreen(
                         }
                     }
 
-                    val cfuTileShape = RoundedRectangle(18.dp)
                     Column(
-                        modifier = Modifier
-                            .width(114.dp)
-                            .defaultMinSize(minHeight = 122.dp)
-                            .clip(cfuTileShape)
-                            .background(colorScheme.surfaceContainerHigh.copy(alpha = 0.55f))
-                            .border(
-                                width = 1.dp,
-                                color = colorScheme.outlineVariant.copy(alpha = 0.25f),
-                                shape = cfuTileShape,
-                            )
-                            .padding(horizontal = 10.dp, vertical = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         UniCircularProgressRing(
                             progress = uiState.progress,
                             centerText = "${(uiState.progress * 100).toInt()}%",
                             subtitleText = "CFU",
-                            size = 70.dp,
-                            strokeWidth = 6.5.dp,
+                            size = 68.dp,
+                            strokeWidth = 6.dp,
                             primaryColor = colorScheme.primary,
                             secondaryColor = colorScheme.tertiary,
                         )
                         Text(
-                            text = "${uiState.acquiredCfu} / ${uiState.targetCfu.takeIf { it > 0 } ?: "—"} CFU",
+                            text = "${uiState.acquiredCfu}/${uiState.targetCfu.takeIf { it > 0 } ?: "—"} CFU",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
+
+                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

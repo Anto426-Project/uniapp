@@ -1,7 +1,7 @@
 package com.anto426.uniapp.ui.components.account
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,22 +50,18 @@ fun UniAccountCard(
 
     val colorScheme = MaterialTheme.colorScheme
 
-    val cardModifier = if (isActive) {
-        modifier
-            .fillMaxWidth()
-            .border(
-                width = 1.5.dp,
-                color = colorScheme.primary.copy(alpha = 0.45f),
-                shape = RoundedRectangle(20.dp),
-            )
+    val cardBorder = if (isActive) {
+        BorderStroke(1.5.dp, colorScheme.primary.copy(alpha = 0.45f))
     } else {
-        modifier.fillMaxWidth()
+        null
     }
 
     LiquidCard(
-        modifier = cardModifier,
-        onClick = if (isActive || isSwitching) null else onSelect,
-        contentPadding = 14.dp,
+        contentPadding = PaddingValues(14.dp),
+        modifier = modifier.fillMaxWidth(),
+        onClick = onSelect,
+        enabled = !isActive && !isSwitching,
+        border = cardBorder,
         shape = RoundedRectangle(20.dp),
         colors = if (isActive) {
             LiquidCardDefaults.colors(

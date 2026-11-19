@@ -1,18 +1,18 @@
 package com.anto426.uniapp.ui.settings
 
-
-
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import com.kyant.shapes.RoundedRectangle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,28 +25,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
-import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
-import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.components.feedback.sheet.LiquidSheet
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.UniAccountCard
+import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
+import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.settings.presentation.SettingsUiState
 import com.anto426.uniapp.settings.presentation.AppPasswordSetupError
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
@@ -79,6 +84,8 @@ fun SettingsScreen(
     onRequestSignOut: () -> Unit,
     onDismissSignOut: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val glassColors = LiquidGlassTheme.colors
     var isAccountSheetVisible by remember { mutableStateOf(false) }
     var requestedAccountId by remember { mutableStateOf<String?>(null) }
 
@@ -99,20 +106,40 @@ fun SettingsScreen(
 
     val appInfo by AppInfoProvider.info.collectAsState()
     val realVersion = installedVersion.ifBlank { appInfo.versionName.ifBlank { "2.0" } }
-    val effectiveUpdateSubtitle = updateSubtitle ?: "Versione $realVersion"
+    val hasUpdateAvailable = !updateSubtitle.isNullOrBlank()
+    val effectiveUpdateSubtitle = "Versione $realVersion"
 
     UniScreenColumn {
-        // 0. Active Account Card
+        // 0. Active Account Hero Card (pieno spazio al nome completo + cambio account rapido)
         activeAccount?.let { account ->
             val initials = account.displayName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
-
-            val identity = com.anto426.uniapp.ui.components.account.accountDisplayIdentity(
-                account.displayName, initials, accountUiState.profileImages[account.accountId],
+            val identity = accountDisplayIdentity(
+                account.displayName,
+                initials,
+                accountUiState.profileImages[account.accountId],
             )
+            val displayName = remember(identity.name) {
+                formatSmartDisplayName(identity.name).ifBlank { identity.name }
+            }
+            val degreeLabel = account.degreeName.ifBlank {
+                if (account.isProfessor) {
+                    stringResource(Res.string.ui_professor_role)
+                } else {
+                    stringResource(Res.string.ui_degree_label)
+                }
+            }
+            val matricolaLabel = account.matricola?.takeIf { it.isNotBlank() }?.let {
+                stringResource(Res.string.ui_matricola_prefix, it)
+            }
+            val accountMeta = listOfNotNull(degreeLabel, matricolaLabel).joinToString(" • ")
 
             LiquidCard(
-                shape = RoundedRectangle(26.dp),
-                contentPadding = 18.dp,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {}
+                    .graphicsLayer(clip = false),
+                shape = RoundedRectangle(24.dp),
                 onClick = { isAccountSheetVisible = true },
             ) {
                 Row(
@@ -123,8 +150,16 @@ fun SettingsScreen(
                     UniAccountAvatar(
                         imageData = identity.photo,
                         initials = if (identity.initials.isNotBlank()) identity.initials else stringResource(Res.string.msg_un),
-                        size = 50.dp,
+                        size = 48.dp,
                         contentDescription = stringResource(Res.string.ui_profile_picture),
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .border(
+                                width = 1.5.dp,
+                                color = colorScheme.primary.copy(alpha = 0.40f),
+                                shape = CircleShape,
+                            )
+                            .padding(2.dp),
                     )
 
                     Column(
@@ -132,61 +167,73 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(
-                            text = identity.name.ifBlank { stringResource(Res.string.ui_student_name_fallback) },
+                            text = displayName.ifBlank { stringResource(Res.string.ui_student_name_fallback) },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = colorScheme.onSurface,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-
                         Text(
-                            text = account.degreeName.ifBlank { stringResource(Res.string.ui_degree_label) },
+                            text = accountMeta,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = colorScheme.onSurfaceVariant,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-
-                        account.matricola?.takeIf { it.isNotBlank() }?.let { matricola ->
-                            Text(
-                                text = stringResource(Res.string.ui_matricola_prefix, matricola),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
                     }
 
-                    LiquidButton(
-                        text = stringResource(Res.string.ui_switch_account),
-                        onClick = { isAccountSheetVisible = true },
-                        variant = LiquidButtonVariant.Tonal,
-                        size = LiquidButtonSize.Small,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        if (accountUiState.accounts.size > 1) {
+                            LiquidBadge(
+                                text = "${accountUiState.accounts.size}",
+                                containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
+                                contentColor = colorScheme.primary,
+                            )
+                        }
+                        Icon(
+                            imageVector = LiquidIcons.SwitchAccount,
+                            contentDescription = stringResource(Res.string.ui_switch_account),
+                            tint = colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Icon(
+                            imageVector = LiquidIcons.ChevronRight,
+                            contentDescription = null,
+                            tint = colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
                 }
             }
         }
 
-        // 1. Sicurezza e Accesso
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_security)) {
-            LiquidPreferenceItem(
+        // 1. Sicurezza e accesso
+        UniInsetGroup(title = stringResource(Res.string.ui_security)) {
+            UniInsetRow(
                 title = stringResource(Res.string.ui_connected_devices),
                 subtitle = stringResource(Res.string.ui_active_sessions),
                 icon = LiquidIcons.Lock,
+                iconTint = colorScheme.primary,
                 onClick = onOpenDevices,
+                showDivider = true,
             )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            LiquidPreferenceItem(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_biometric_security),
-                subtitle =
-                    when {
-                        uiState.isBiometricAuthenticating -> stringResource(Res.string.ui_biometric_authenticating)
-                        uiState.biometricAvailability == BiometricAvailability.NotEnrolled ->
-                            stringResource(Res.string.ui_biometric_not_enrolled)
-                        uiState.biometricAvailability == BiometricAvailability.Unavailable ->
-                            stringResource(Res.string.ui_biometric_unavailable)
-                        else -> stringResource(Res.string.ui_biometric_unlock)
-                    },
+                subtitle = when {
+                    uiState.isBiometricAuthenticating -> stringResource(Res.string.ui_biometric_authenticating)
+                    uiState.biometricAvailability == BiometricAvailability.NotEnrolled ->
+                        stringResource(Res.string.ui_biometric_not_enrolled)
+                    uiState.biometricAvailability == BiometricAvailability.Unavailable ->
+                        stringResource(Res.string.ui_biometric_unavailable)
+                    else -> stringResource(Res.string.ui_biometric_unlock)
+                },
                 icon = LiquidIcons.Check,
+                iconTint = colorScheme.tertiary,
+                showDivider = false,
                 trailingContent = {
                     key(uiState.biometricEnabled, uiState.isPasswordSetupVisible, uiState.isBiometricAuthenticating) {
                         LiquidSwitch(
@@ -197,80 +244,145 @@ fun SettingsScreen(
                                     !uiState.isBiometricAuthenticating,
                         )
                     }
-                }
+                },
             )
         }
 
-        // 2. Aspetto e Personalizzazione
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_appearance)) {
-            LiquidPreferenceItem(
+        // 2. Aspetto e personalizzazione
+        UniInsetGroup(title = stringResource(Res.string.ui_appearance)) {
+            UniInsetRow(
                 title = stringResource(Res.string.ui_theme_colors),
                 subtitle = stringResource(Res.string.ui_theme_subtitle),
                 icon = LiquidIcons.Palette,
+                iconTint = colorScheme.secondary,
                 onClick = onOpenTheme,
+                showDivider = true,
             )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            LiquidPreferenceItem(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_push_notifications),
                 subtitle = stringResource(Res.string.ui_academic_alerts),
                 icon = LiquidIcons.Notifications,
+                iconTint = glassColors.warning,
+                showDivider = true,
                 trailingContent = {
                     LiquidSwitch(
                         checked = uiState.notificationsEnabled,
                         onCheckedChange = onNotificationsEnabledChange,
                     )
-                }
+                },
             )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            LiquidPreferenceItem(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_language_title),
                 subtitle = stringResource(Res.string.ui_language_current),
                 icon = LiquidIcons.Info,
+                iconTint = colorScheme.primary,
                 onClick = onOpenLanguage,
+                showDivider = false,
             )
         }
 
-        // 3. Sistema e Informazioni
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_system_and_info)) {
-            LiquidPreferenceItem(
+        // 3. Sistema e informazioni
+        UniInsetGroup(title = stringResource(Res.string.ui_system_and_info)) {
+            UniInsetRow(
                 title = stringResource(Res.string.ui_updates),
                 subtitle = effectiveUpdateSubtitle,
                 icon = LiquidIcons.Refresh,
+                iconTint = if (hasUpdateAvailable) glassColors.warning else colorScheme.tertiary,
                 onClick = onOpenUpdates,
+                showDivider = true,
+                trailingContent = if (hasUpdateAvailable) {
+                    {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            LiquidBadge(
+                                text = "Nuovo",
+                                containerColor = glassColors.warning.copy(alpha = 0.18f),
+                                contentColor = glassColors.warning,
+                            )
+                            Icon(
+                                imageVector = LiquidIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                } else null,
             )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            LiquidPreferenceItem(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_app_information),
                 subtitle = stringResource(Res.string.ui_app_information_subtitle),
                 icon = LiquidIcons.Info,
+                iconTint = colorScheme.primary,
                 onClick = onOpenInfo,
+                showDivider = false,
             )
         }
 
         // 4. Partecipa al progetto
-        LiquidPreferenceGroup(title = "Partecipa al progetto") {
-            LiquidPreferenceItem(
+        UniInsetGroup(title = "Partecipa al progetto") {
+            UniInsetRow(
                 title = stringResource(Res.string.msg_diventa_un_collaboratore),
                 subtitle = stringResource(Res.string.msg_invia_una_pull_request_con_correzioni_traduzioni_o),
                 icon = LiquidIcons.Star,
+                iconTint = glassColors.warning,
                 onClick = onOpenContribute,
+                showDivider = true,
             )
-            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            LiquidPreferenceItem(
+            UniInsetRow(
                 title = "Segnala idee o anomalie",
                 subtitle = stringResource(Res.string.msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una),
                 icon = LiquidIcons.Feedback,
+                iconTint = colorScheme.tertiary,
                 onClick = onOpenReportBug,
+                showDivider = false,
             )
         }
 
-        // 5. Sessione
-        LiquidPreferenceGroup(title = stringResource(Res.string.ui_session_title)) {
-            LiquidPreferenceItem(
-                title = stringResource(Res.string.ui_sign_out),
-                icon = LiquidIcons.Close,
-                onClick = onRequestSignOut,
-            )
+        // 5. Sessione (azione distruttiva ben separata)
+        LiquidCard(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 52.dp)
+                .semantics(mergeDescendants = true) {}
+                .graphicsLayer(clip = false),
+            shape = RoundedRectangle(20.dp),
+            border = BorderStroke(1.dp, colorScheme.error.copy(alpha = 0.25f)),
+            onClick = onRequestSignOut,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = LiquidIcons.Close,
+                    contentDescription = null,
+                    tint = colorScheme.error,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 32.dp,
+                        iconSize = 17.dp,
+                        containerColor = colorScheme.error.copy(alpha = 0.14f),
+                        shape = RoundedRectangle(9.dp),
+                    ),
+                )
+                Text(
+                    text = stringResource(Res.string.ui_sign_out),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorScheme.error,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = LiquidIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = colorScheme.error.copy(alpha = 0.55f),
+                    modifier = Modifier.size(16.dp),
+                )
+            }
         }
     }
 
