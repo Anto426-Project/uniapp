@@ -32,6 +32,7 @@ import com.anto426.uniapp.ui.components.layout.UniContentHost
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.LayerOutsets
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -760,6 +761,7 @@ fun HomeQuickAccessGroup(
     val isCustomizing = uiState.isCustomizing
     val selectedCount = uiState.selectedActionIds.size
     val displayActions = if (isCustomizing) allActions else visibleActions
+    val horizontalPadding = 18.dp
 
     Column(
         modifier = modifier
@@ -768,7 +770,7 @@ fun HomeQuickAccessGroup(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -825,6 +827,7 @@ fun HomeQuickAccessGroup(
         if (displayActions.isNotEmpty()) {
             UniContentHost(
                 targetState = isCustomizing,
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopStart,
                 label = "QuickAccessModeTransition",
             ) { editing ->
@@ -833,6 +836,7 @@ fun HomeQuickAccessGroup(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding)
                         .graphicsLayer(clip = false),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
@@ -899,10 +903,11 @@ private fun QuickAccessBentoTile(
         .semantics(mergeDescendants = true) {
             if (editing) this.selected = selected
         }
-        .graphicsLayer(
-            clip = false,
-            alpha = if (isActive) 1f else 0.62f,
-        )
+        .graphicsLayer {
+            alpha = if (isActive) 1f else 0.62f
+            // Dimmed tiles need room for their press and drag to draw outside the layout.
+            outsets = if (alpha < 1f) LayerOutsets(40.dp) else LayerOutsets.Zero
+        }
 
     LiquidCard(
         contentPadding = PaddingValues(11.dp),

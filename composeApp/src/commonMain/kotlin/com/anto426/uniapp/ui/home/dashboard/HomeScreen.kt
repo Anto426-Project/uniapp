@@ -88,7 +88,6 @@ fun HomeScreen(
                 onFinishCustomization = onFinishCustomization,
                 onToggleQuickAction = onToggleQuickAction,
                 onQuickActionClick = onQuickActionClick,
-                modifier = Modifier.padding(horizontal = 18.dp),
             )
         }
 
