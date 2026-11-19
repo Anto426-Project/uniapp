@@ -30,6 +30,7 @@ import com.anto426.unisdk.transport.TransportService
 import com.anto426.unisdk.transport.TransportSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import com.anto426.uniapp.security.password.verifyAppPassword
@@ -516,7 +517,14 @@ class SessionManager internal constructor(
     ): T {
         val active = activeContextFor(accountId, profileId)
         val value = accountStore.withCredentials(accountId) { credentials ->
-            backend.block(active.session, credentials)
+            try {
+                backend.block(active.session, credentials)
+            } catch (error: UniSdkException) {
+                if (error.rejectsPrimarySession() && isConfirmedInactive(active, credentials)) {
+                    forgetInactiveSession(active)
+                }
+                throw error
+            }
         }
         ensureActiveContext(active)
         return value
@@ -526,15 +534,43 @@ class SessionManager internal constructor(
         accountId: String,
         profileId: String?,
         block: suspend TransportService.(TransportSession) -> T,
-    ): T {
-        val active = activeContextFor(accountId, profileId)
-        val value = accountStore.withCredentials(accountId) { credentials ->
-            val transport = backend.openTransportSession(active.session, credentials)
-            try { backend.block(transport) }
-            finally { backend.closeTransportSession(transport) }
+    ): T = callAuthenticated(accountId, profileId) { session, credentials ->
+        val transport = openTransportSession(session, credentials)
+        try {
+            block(transport)
+        } finally {
+            closeTransportSession(transport)
         }
-        ensureActiveContext(active)
-        return value
+    }
+
+    private suspend fun isConfirmedInactive(active: ActiveSessionContext, credentials: UniCredentials): Boolean =
+        try {
+            !backend.isSessionValid(active.session, credentials)
+        } catch (error: UniSdkException) {
+            error.rejectsPrimarySession()
+        }
+
+    private suspend fun forgetInactiveSession(expected: ActiveSessionContext) = withContext(NonCancellable) {
+        lock.withLock {
+            if (activeSession !== expected) return@withLock
+            val account = expected.account
+            try {
+                accountStore.clearSessionTicket(account.accountId)
+            } finally {
+                // A request from the previous account can finish while its switcher is awaiting unlock.
+                mutableState.value = when (val state = mutableState.value) {
+                    is AppSessionState.Authenticated -> reauthenticationState(account)
+                    is AppSessionState.UnlockRequired ->
+                        state.copy(fallbackAccount = state.fallbackAccount?.takeUnless { it.accountId == account.accountId })
+                    else -> state
+                }
+                try {
+                    closeActiveSessionLocked(account.accountId)
+                } finally {
+                    prepareNotificationOwner(null)
+                }
+            }
+        }
     }
 
     internal suspend fun <T> withLibraryGuestSession(
@@ -661,6 +697,16 @@ private data class LibrarySessionContext(
     val profileId: String?,
     val session: LibrarySession,
 )
+
+private fun UniSdkException.rejectsPrimarySession(): Boolean =
+    when (errorCode) {
+        UniSdkErrorCode.SESSION_INVALID,
+        UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN,
+        UniSdkErrorCode.PASSWORD_INVALID,
+        -> true
+
+        else -> false
+    }
 
 internal fun UniUserProfile.matchesSelectedCareer(selected: LoginCareerOption?): Boolean =
     selected == null || activeProfileId == selected.profileId

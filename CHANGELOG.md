@@ -10,7 +10,7 @@
 - Riorganizzate le Impostazioni a partire dalla scheda dell’account attivo. Riviste le schermate Dispositivi connessi, Informazioni app, Progetto, Aggiornamenti e Changelog.
 - Interfaccia in dieci lingue selezionabili dalle Impostazioni. L’app ricorda la lingua scelta.
 - Corretta la gestione di risposte incomplete del portale nel caricamento della carriera e del piano di studi. Corretti il rilevamento dello stato dei questionari e la gestione degli errori nella prenotazione e nell’annullamento degli appelli.
-- Corretta la verifica della sessione per ridurre le disconnessioni ripetute. L’efficacia della correzione è ancora in verifica nell’uso quotidiano.
+- Quando il portale conferma che una sessione è inattiva, UniApp la rimuove e chiede di accedere di nuovo. Le correzioni per ridurre le disconnessioni ripetute restano in verifica nell’uso quotidiano.
 - La nuova sezione Biblioteca è temporaneamente disattivata.
 - Migliorata la compatibilità con i dispositivi Android che usano pagine di memoria da 16 KB. Le nuove versioni di UniApp sono destinate ad Android e iOS.
 

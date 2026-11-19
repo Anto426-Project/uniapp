@@ -473,7 +473,7 @@ class UniAccountStoreTest {
         )
 }
 
-private class MemorySecureStorageFactory : SecureStorageFactory {
+internal class MemorySecureStorageFactory : SecureStorageFactory {
     private val storages = mutableMapOf<String, MemorySecureStorage>()
 
     override fun open(scope: String): SecureStorage = storages.getOrPut(scope, ::MemorySecureStorage)
