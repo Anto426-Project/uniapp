@@ -4,6 +4,7 @@
 - Dal **Libretto** passi dagli esami sostenuti al Piano di studi con un tocco. **Appelli** riunisce le prenotazioni e lo Storico. In **Voti** trovi anche Statistiche e puoi passare dall’andamento reale della carriera alle proiezioni degli esami che scegli di simulare.
 - In **Trasporti** puoi filtrare le prenotazioni per andata e ritorno e aprirle in un dettaglio rinnovato. Sono state rimosse le pagine del catalogo e del titolo di viaggio. In **Rubrica** la ricerca parte da tutti i contatti e puoi restringerla alla categoria che ti interessa.
 - **Il tema si adatta al tuo stile.** Aurora, Mesh, Orbital e Radiant sono stati ridisegnati. Nell’anteprima puoi provare la tua tinta, anche in modalità chiara, e regolare l’intensità del vetro e il movimento dello sfondo. Le card interattive seguono il trascinamento in ogni direzione e l’indicatore delle schede resta visibile durante il cambio.
+- Corretto il crash all’apertura di **Tema** su Android. I cursori di personalizzazione funzionano con Material 3 Expressive.
 - Rinnovate le pagine di **Informazioni app**, **Progetto**, **Aggiornamenti** e **Changelog**. Ognuna ha il proprio spazio, dalle informazioni sulla versione alle novità dell’ultimo aggiornamento.
 - **Dieci lingue** tra cui scegliere nelle Impostazioni. UniApp ricorda la tua scelta al prossimo avvio.
 - Quando una **sessione** è confermata inattiva, UniApp la dimentica e ti chiede di accedere di nuovo. Le correzioni per le disconnessioni ripetute sono ancora in verifica nell’uso quotidiano.

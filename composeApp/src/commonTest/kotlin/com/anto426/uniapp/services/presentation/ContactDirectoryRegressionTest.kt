@@ -5,6 +5,7 @@ import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.model.UniversityContact
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -29,7 +30,7 @@ class ContactDirectoryRegressionTest : com.anto426.uniapp.testing.ResourceTest()
                 city = "Pesche",
             )
             val viewModel = ContactsViewModel(source(target, contact(id = "other", city = "Pesche")))
-            advanceUntilIdle()
+            viewModel.uiState.first { it.loadState == FeatureLoadState.Content || it.errorMessage != null }
 
             for (query in listOf("987654", "ESEMPIO 17", "delle Scienze")) {
                 viewModel.updateSearchQuery(query)
@@ -53,7 +54,7 @@ class ContactDirectoryRegressionTest : com.anto426.uniapp.testing.ResourceTest()
                 contact(id = "unknown", city = null),
                 contact(id = "blank", city = "   "),
             ))
-            advanceUntilIdle()
+            viewModel.uiState.first { it.loadState == FeatureLoadState.Content || it.errorMessage != null }
 
             val categories = viewModel.uiState.value.categories
             assertEquals(2, categories.size)
