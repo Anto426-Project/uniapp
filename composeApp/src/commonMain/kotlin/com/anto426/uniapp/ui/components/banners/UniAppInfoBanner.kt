@@ -7,6 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,47 +42,70 @@ fun UniAppInfoBanner(
         onClick = onClick,
         palette = palette,
         frontContent = {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                    .fillMaxWidth()
+                    .heightIn(min = height)
+                    .padding(horizontal = 20.dp, vertical = 22.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // Parte superiore: Versione hero con alone ottico, titolo e ateneo
                 Column(
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp),
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    VersionText(version = version, fontSize = heroFontSize)
-                    Spacer(Modifier.height(4.dp))
+                    VersionText(
+                        version = version,
+                        fontSize = heroFontSize,
+                        maxHeight = height * 0.40f,
+                    )
                     Text(
                         text = title,
                         color = Color.White,
                         style = HeroBannerTextStyle,
                         fontSize = 24.sp,
+                        lineHeight = 28.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.5).sp,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     Text(
                         text = subtitle,
                         color = Color.White.copy(alpha = 0.94f),
                         style = HeroBannerTextStyle,
                         fontSize = 14.sp,
+                        lineHeight = 19.sp,
                         fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
 
                 // Parte inferiore: Dettagli build/versione installata
                 if (buildInfo != null) {
+                    Spacer(Modifier.height(12.dp))
                     Text(
                         text = buildInfo,
-                        color = Color.White.copy(alpha = 0.65f),
+                        color = Color.White.copy(alpha = 0.72f),
                         fontSize = 12.sp,
+                        lineHeight = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.align(Alignment.BottomCenter),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
+                } else {
+                    Spacer(Modifier.height(4.dp))
                 }
             }
         },

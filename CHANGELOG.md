@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+- **Biblioteca**: aggiunta la sezione completa con ricerca nel catalogo OPAC e argomenti rapidi, dettaglio libro con metadati strutturati (`Inventario`, `Collocazione`, `Note`) e copie richiedibili, gestione prestiti/richieste e flusso guidato in 3 passaggi per prenotare sale studio e postazioni tramite `UniSDK` (`2.0.33`) e modalità demo.
+- **Lingue e localizzazione**: aggiunta la traduzione completa dell'interfaccia in 10 lingue (`it`, `en`, `fr`, `es`, `de`, `pt`, `nl`, `pl`, `zh`, `ja`) con selezione dedicata nelle impostazioni e fallback persistente della lingua salvata.
+- **Interfaccia, Liquid Monet e Didattica**: aggiornato Liquid Monet a `2.0.45`, integrati i componenti adattivi su Home, Didattica, Esami, Voti, Tasse, Trasporti, Rubrica, Impostazioni, Tema, Aggiornamenti e Changelog, corretto il contorno delle tessere di accesso rapido nella Home e migliorato il calcolo della simulazione CFU/voti e media di carriera.
+- **Build e verifica Android**: aggiunta la verifica dell'allineamento a 16 KB per le librerie native Android.
 - Rimossi launcher, target, SDK e pacchetti desktop; build, pubblicazioni e download supportano Android e iOS.
 - Il download degli SDK riutilizza anche le credenziali locali di GitHub CLI e Git, dopo i token nelle variabili d'ambiente.
 - Allineati i quattro SDK al catalogo UniApp: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21 e le rispettive dipendenze condivise.

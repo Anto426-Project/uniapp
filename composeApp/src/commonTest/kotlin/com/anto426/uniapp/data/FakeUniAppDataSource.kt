@@ -1,5 +1,6 @@
 package com.anto426.uniapp.data
 
+import com.anto426.uniapp.library.model.*
 import com.anto426.unisdk.model.*
 import com.anto426.unisdk.transport.*
 
@@ -36,4 +37,28 @@ open class FakeUniAppDataSource : UniAppDataSource {
     override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData("", bookings = emptyList(), totalCount = 0)
     override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult = TransportActionResult.Completed
     override suspend fun deleteTransportBooking(bookingId: String) = TransportActionResult.Completed
+    override suspend fun searchLibraryBooks(query: String, page: Int) = LibraryCatalogPage(query, emptyList(), page, 0)
+    override suspend fun loadLibraryBook(id: String) = LibraryBookDetail(id, id)
+    override suspend fun prepareLibraryBookRequest(bookId: String, actionId: String) = LibraryBookLoanDraft("draft", "OK")
+    override suspend fun confirmLibraryBookRequest(draftId: String) = LibraryLoanSubmissionResult("OK")
+    override suspend fun loadLibraryMovements(forceRefresh: Boolean) = emptyList<LibraryMovementItem>()
+    override suspend fun cancelLibraryMovement(movementToken: String) = Unit
+    override suspend fun renewLibraryMovement(movementToken: String) = "OK"
+    override suspend fun loadLibraryBookingOverview() = LibraryBookingOverview("ctx", emptyList(), emptyList())
+    override suspend fun loadLibraryResourceSelection(contextId: String, typeId: String) = LibrarySpaceSelection(emptyList(), emptyList())
+    override suspend fun loadLibraryResourcesForOwner(ownerId: String) = emptyList<LibraryBookingOption>()
+    override suspend fun loadLibraryCalendar(
+        contextId: String,
+        resourceId: String,
+        fromDate: kotlinx.datetime.LocalDate?,
+        toDate: kotlinx.datetime.LocalDate?,
+    ) = LibrarySpaceCalendar("cal", resourceId)
+    override suspend fun loadLibraryCalendarPage(calendarId: String, page: Int) = LibrarySpaceCalendar("cal", "", page = page)
+    override suspend fun bookLibrarySpace(
+        calendarId: String,
+        slotIds: List<String>,
+        note: String,
+        deviceAddresses: Map<String, String>,
+    ) = LibrarySpaceBookingOutcome(true, 1)
+    override suspend fun cancelLibrarySpaceBooking(bookingToken: String) = Unit
 }

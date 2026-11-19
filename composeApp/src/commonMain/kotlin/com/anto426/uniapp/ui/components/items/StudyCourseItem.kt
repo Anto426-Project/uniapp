@@ -1,52 +1,46 @@
 package com.anto426.uniapp.ui.components.items
 
-import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
-
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
+import com.kyant.shapes.RoundedRectangle
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun StudyCourseItem(
     course: StudyCourse,
-    onClick: () -> Unit = {}
+    showDivider: Boolean = false,
+    onClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val hasDetails = course.id.isNotBlank()
 
     val statusIcon = when (course.status) {
         CourseStatus.COMPLETED -> LiquidIcons.Check
         CourseStatus.ACTIVE -> LiquidIcons.PlayArrow
         CourseStatus.PLANNED -> LiquidIcons.Calendar
-    }
-
-    val iconContainerColor = when (course.status) {
-        CourseStatus.COMPLETED -> colorScheme.primary.copy(alpha = 0.12f)
-        CourseStatus.ACTIVE -> colorScheme.secondary.copy(alpha = 0.12f)
-        CourseStatus.PLANNED -> colorScheme.primary.copy(alpha = 0.08f)
     }
 
     val iconTint = when (course.status) {
@@ -55,64 +49,71 @@ fun StudyCourseItem(
         CourseStatus.PLANNED -> colorScheme.onSurfaceVariant
     }
 
-    LiquidCard(
-        shape = RoundedRectangle(20.dp),
-        contentPadding = 16.dp,
-        onClick = onClick,
-    ) {
+    val badgeText = when (course.status) {
+        CourseStatus.COMPLETED -> course.grade?.takeIf { it.isNotBlank() }
+            ?: stringResource(Res.string.ui_status_completed)
+        CourseStatus.ACTIVE -> stringResource(Res.string.ui_status_active)
+        CourseStatus.PLANNED -> stringResource(Res.string.ui_status_planned)
+    }
+
+    val metadata = listOfNotNull(
+        course.cfu.takeIf { it.isNotBlank() },
+        course.semester.takeIf { it.isNotBlank() },
+        course.professor.takeIf { it.isNotBlank() },
+    ).joinToString(" • ")
+
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = statusIcon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 40.dp,
-                        iconSize = 20.dp,
-                        containerColor = iconContainerColor,
-                        shape = RoundedRectangle(12.dp),
-                    ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 60.dp)
+                .then(
+                    if (hasDetails) Modifier.clickable(role = Role.Button, onClick = onClick)
+                    else Modifier
                 )
+                .padding(horizontal = 16.dp, vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Icon(
+                imageVector = statusIcon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.liquidIconContainer(
+                    containerSize = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = iconTint.copy(alpha = 0.13f),
+                    shape = RoundedRectangle(12.dp),
+                ),
+            )
 
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    text = course.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (metadata.isNotBlank()) {
                     Text(
-                        text = course.name,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleSmall,
-                        letterSpacing = (-0.2).sp
-                    )
-                    Text(
-                        text = buildString {
-                            if (course.semester.isNotBlank()) append("${course.semester} • ")
-                            append(course.cfu)
-                            if (course.professor.isNotBlank()) append(" • ${course.professor}")
-                        },
-                        color = colorScheme.onSurfaceVariant,
+                        text = metadata,
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = 12.sp
+                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Box(contentAlignment = Alignment.Center) {
-                val badgeText = when (course.status) {
-                    CourseStatus.COMPLETED -> course.grade?.takeIf { it.isNotBlank() }
-                        ?: stringResource(Res.string.ui_status_completed)
-                    CourseStatus.ACTIVE -> stringResource(Res.string.ui_status_active)
-                    CourseStatus.PLANNED -> stringResource(Res.string.ui_status_planned)
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 LiquidBadge(
                     text = badgeText,
                     containerColor = when (course.status) {
@@ -125,12 +126,23 @@ fun StudyCourseItem(
                         CourseStatus.ACTIVE -> colorScheme.onSecondaryContainer
                         CourseStatus.PLANNED -> colorScheme.onSurfaceVariant
                     },
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = 1.02f
-                        scaleY = 1.02f
-                    }
                 )
+                if (hasDetails) {
+                    Icon(
+                        imageVector = LiquidIcons.ChevronRight,
+                        contentDescription = null,
+                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
             }
+        }
+
+        if (showDivider) {
+            LiquidHorizontalDivider(
+                modifier = Modifier.padding(start = 70.dp, end = 16.dp),
+                color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+            )
         }
     }
 }

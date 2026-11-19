@@ -63,7 +63,7 @@ class LanguageViewModel(
         viewModelScope.launch {
             try {
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.LanguageCode, code)
-                toastSink.success("Lingua aggiornata.")
+                toastSink.success(getString(Res.string.ui_language_updated))
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {

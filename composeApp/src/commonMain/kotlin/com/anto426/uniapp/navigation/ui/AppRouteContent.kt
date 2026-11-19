@@ -13,12 +13,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
-import com.anto426.uniapp.ui.components.layout.UniTabbedScreen
+import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsHistoryViewModel
-import com.anto426.uniapp.ui.didactics.StudyPlanScreen
-import com.anto426.uniapp.ui.didactics.ExamsHistoryScreen
+import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.didactics.ExamBookableFilter
+import com.anto426.uniapp.ui.didactics.ExamHistoryFilter
+import com.anto426.uniapp.ui.didactics.StudyPlanContent
+import com.anto426.uniapp.ui.didactics.TranscriptsContent
+import com.anto426.uniapp.ui.didactics.examsHistoryContentItems
+import com.anto426.uniapp.ui.didactics.studentExamsContentItems
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +53,9 @@ import com.anto426.uniapp.didactics.presentation.AcademicItemDetailViewModel
 import com.anto426.uniapp.didactics.presentation.academicItemKey
 import com.anto426.uniapp.didactics.presentation.TranscriptsViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
+import com.anto426.uniapp.library.presentation.LibraryBookDetailViewModel
+import com.anto426.uniapp.library.presentation.LibrarySpaceBookingViewModel
+import com.anto426.uniapp.library.presentation.LibraryViewModel
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.runtime.AppNavigator
 import com.anto426.uniapp.notifications.runtime.AppNotificationController
@@ -63,6 +76,7 @@ import com.anto426.uniapp.settings.presentation.SettingsViewModel
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
 import com.anto426.uniapp.transport.presentation.ReservationDetailViewModel
@@ -82,8 +96,10 @@ import com.anto426.uniapp.ui.didactics.QuestionnaireDetailScreen
 import com.anto426.uniapp.ui.didactics.AcademicIdentityScreen
 import com.anto426.uniapp.ui.didactics.AcademicSectionScreen
 import com.anto426.uniapp.ui.didactics.AcademicItemDetailScreen
-import com.anto426.uniapp.ui.didactics.TranscriptsScreen
 import com.anto426.uniapp.ui.home.dashboard.HomeScreen
+import com.anto426.uniapp.ui.library.LibraryBookDetailScreen
+import com.anto426.uniapp.ui.library.LibraryScreen
+import com.anto426.uniapp.ui.library.LibrarySpaceBookingScreen
 import com.anto426.uniapp.ui.legal.CookiesScreen
 import com.anto426.uniapp.ui.legal.PrivacyScreen
 import com.anto426.uniapp.ui.legal.TermsScreen
@@ -138,6 +154,11 @@ internal fun AppRouteContent(
     onBackgroundStyleSelected: (String) -> Unit,
     onReducedMotionChanged: (Boolean) -> Unit,
     onPageTransitionSelected: (LiquidSwitcherTransition) -> Unit,
+    onLiquidIntensityChanged: (Float) -> Unit = {},
+    onGlassQualitySelected: (LiquidGlassQualityTier?) -> Unit = {},
+    onBackgroundIntensityChanged: (Float) -> Unit = {},
+    onBackgroundSpeedChanged: (Float) -> Unit = {},
+    onBackgroundVignetteChanged: (Boolean) -> Unit = {},
     onResetTheme: () -> Unit,
     onCustomColorSelected: (Color) -> Unit = {},
     languageUiState: LanguageUiState,
@@ -250,7 +271,7 @@ internal fun AppRouteContent(
                     "esse3" -> uriHandler.openUri("https://unimol.esse3.cineca.it")
                     "moodle" -> uriHandler.openUri("https://learn.unimol.it")
                     "university-web" -> uriHandler.openUri("https://www.unimol.it")
-                    "library" -> uriHandler.openUri("https://www.unimol.it/studente/servizi/biblioteche/")
+                    "library" -> navigator.navigate(AppRoute.Library())
                     "email" -> uriHandler.openUri("https://outlook.office.com/mail/")
                 }
             }
@@ -392,33 +413,53 @@ internal fun AppRouteContent(
 
         is AppRoute.Transcripts -> {
             var selectedPane by rememberSaveable(route.initialTab) { mutableIntStateOf(route.initialTab.coerceIn(0, 1)) }
-            UniTabbedScreen(
-                tabs = listOf(
-                    LiquidNavigationItem(stringResource(Res.string.ui_career_completed)),
-                    LiquidNavigationItem(stringResource(Res.string.ui_career_plan)),
-                ),
-                selectedTab = selectedPane,
-                onTabSelected = { selectedPane = it },
-            ) {
+            val tabs = listOf(
+                LiquidNavigationItem(stringResource(Res.string.ui_career_completed)),
+                LiquidNavigationItem(stringResource(Res.string.ui_career_plan)),
+            )
+            UniScreenColumn {
+                LiquidTabBar(
+                    items = tabs,
+                    selectedIndex = selectedPane,
+                    onTabSelected = { selectedPane = it },
+                )
                 if (selectedPane == 0) {
                     val model = viewModel(key = "$viewModelKey-completed") { TranscriptsViewModel(dataSource) }
                     val state by model.uiState.collectAsStateWithLifecycle()
-                    FeatureStateContent(state.loadState, state.errorMessage,
+                    FeatureStateContent(
+                        state = state.loadState,
+                        errorMessage = state.errorMessage,
                         onRetry = { model.refresh(force = true) },
-                        emptyMessage = stringResource(Res.string.ui_state_empty_transcripts)) {
-                        TranscriptsScreen(state, model::selectYear) { exam ->
-                            if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
-                        }
+                        emptyMessage = stringResource(Res.string.ui_state_empty_transcripts),
+                        inline = true,
+                    ) {
+                        TranscriptsContent(
+                            uiState = state,
+                            onYearSelected = model::selectYear,
+                            onExamClick = { exam ->
+                                if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
+                            },
+                            onOpenGrades = { navigator.navigate(AppRoute.Grades) },
+                        )
                     }
                 } else {
                     val model = viewModel(key = "$viewModelKey-plan") { StudyPlanViewModel(dataSource) }
                     val state by model.uiState.collectAsStateWithLifecycle()
-                    FeatureStateContent(state.loadState, state.errorMessage,
+                    FeatureStateContent(
+                        state = state.loadState,
+                        errorMessage = state.errorMessage,
                         onRetry = { model.refresh(force = true) },
-                        emptyMessage = stringResource(Res.string.ui_state_empty_study_plan)) {
-                        StudyPlanScreen(state, model::selectYear) { course ->
-                            if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id))
-                        }
+                        emptyMessage = stringResource(Res.string.ui_state_empty_study_plan),
+                        inline = true,
+                    ) {
+                        StudyPlanContent(
+                            uiState = state,
+                            onYearSelected = model::selectYear,
+                            onCourseClick = { course ->
+                                if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id))
+                            },
+                            onStatusFilterChanged = model::selectStatusFilter,
+                        )
                     }
                 }
             }
@@ -446,6 +487,11 @@ internal fun AppRouteContent(
                 onBackgroundStyleSelected = onBackgroundStyleSelected,
                 onReducedMotionChanged = onReducedMotionChanged,
                 onPageTransitionSelected = onPageTransitionSelected,
+                onLiquidIntensityChanged = onLiquidIntensityChanged,
+                onGlassQualitySelected = onGlassQualitySelected,
+                onBackgroundIntensityChanged = onBackgroundIntensityChanged,
+                onBackgroundSpeedChanged = onBackgroundSpeedChanged,
+                onBackgroundVignetteChanged = onBackgroundVignetteChanged,
                 onReset = onResetTheme,
                 onNavigateToColorLab = { navigator.navigate(AppRoute.Colors) },
             )
@@ -470,7 +516,12 @@ internal fun AppRouteContent(
                 taxesUiState.errorMessage,
                 onRetry = { taxesViewModel.refresh(force = true) },
                 emptyMessage = stringResource(Res.string.ui_state_empty_taxes),
-            ) { TaxesScreen(taxesUiState) }
+            ) {
+                TaxesScreen(
+                    uiState = taxesUiState,
+                    onFilterSelected = taxesViewModel::selectFilter,
+                )
+            }
         }
         AppRoute.Grades -> {
             val gradesViewModel =
@@ -552,6 +603,7 @@ internal fun AppRouteContent(
                             ),
                         )
                     },
+                    onBookClick = { navigator.navigate(AppRoute.TransportBooking) },
                 )
             }
         }
@@ -623,40 +675,169 @@ internal fun AppRouteContent(
             }
         }
 
+        is AppRoute.Library -> {
+            val libraryViewModel =
+                viewModel(key = viewModelKey) {
+                    LibraryViewModel(route.initialTab, dataSource, toastSink)
+                }
+            val libraryUiState by libraryViewModel.uiState.collectAsStateWithLifecycle()
+            LibraryScreen(
+                uiState = libraryUiState,
+                onTabSelected = libraryViewModel::selectTab,
+                onQueryChange = libraryViewModel::updateQuery,
+                onSearch = libraryViewModel::search,
+                onBookClick = { book ->
+                    navigator.navigate(AppRoute.LibraryBookDetail(bookId = book.id, title = book.title))
+                },
+                onRefreshMovements = libraryViewModel::refreshMovements,
+                onRequestCancelMovement = libraryViewModel::requestCancelMovement,
+                onConfirmCancelMovement = libraryViewModel::confirmCancelMovement,
+                onDismissCancelMovement = libraryViewModel::dismissCancelMovement,
+                onRenewMovement = libraryViewModel::renewMovement,
+                onRefreshSpaces = libraryViewModel::refreshSpaces,
+                onOpenSpaceBooking = { navigator.navigate(AppRoute.LibraryBooking) },
+                onRequestCancelBooking = libraryViewModel::requestCancelBooking,
+                onConfirmCancelBooking = libraryViewModel::confirmCancelBooking,
+                onDismissCancelBooking = libraryViewModel::dismissCancelBooking,
+            )
+        }
+
+        is AppRoute.LibraryBookDetail -> {
+            val detailViewModel =
+                viewModel(key = viewModelKey) {
+                    LibraryBookDetailViewModel(route.bookId, dataSource, toastSink)
+                }
+            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                state = detailUiState.loadState,
+                errorMessage = detailUiState.errorMessage,
+                onRetry = detailViewModel::refresh,
+            ) {
+                LibraryBookDetailScreen(
+                    uiState = detailUiState,
+                    onPrepareAction = detailViewModel::prepareRequest,
+                    onConfirmDraft = detailViewModel::confirmDraft,
+                    onDismissDraft = detailViewModel::dismissDraft,
+                )
+            }
+        }
+
+        AppRoute.LibraryBooking -> {
+            val bookingViewModel =
+                viewModel(key = viewModelKey) {
+                    LibrarySpaceBookingViewModel(dataSource, toastSink)
+                }
+            val bookingUiState by bookingViewModel.uiState.collectAsStateWithLifecycle()
+            FeatureStateContent(
+                state = bookingUiState.loadState,
+                errorMessage = bookingUiState.errorMessage,
+                onRetry = bookingViewModel::refresh,
+                emptyMessage = stringResource(Res.string.ui_library_booking_slots_empty),
+            ) {
+                LibrarySpaceBookingScreen(
+                    uiState = bookingUiState,
+                    onSelectType = bookingViewModel::selectType,
+                    onSelectOwner = bookingViewModel::selectOwner,
+                    onSelectResource = bookingViewModel::selectResource,
+                    onLoadCalendarPage = bookingViewModel::loadCalendarPage,
+                    onToggleSlot = bookingViewModel::toggleSlot,
+                    onUpdateDeviceAddress = bookingViewModel::updateDeviceAddress,
+                    onUpdateNote = bookingViewModel::updateNote,
+                    onBook = bookingViewModel::book,
+                    onBookingCompleted = { navigator.goBack() },
+                )
+            }
+        }
+
         is AppRoute.Exams -> {
             val account = (sessionState as? AppSessionState.Authenticated)?.account
             val model = viewModel(key = viewModelKey) { ExamsViewModel(dataSource, toastSink, account = account, initialTab = route.initialTab) }
             val state by model.uiState.collectAsStateWithLifecycle()
-            val content: @Composable () -> Unit = {
-                if (account?.isProfessor != true && state.selectedTab == 2) {
-                    val history = viewModel(key = "$viewModelKey-history") { ExamsHistoryViewModel(dataSource) }
-                    val historyState by history.uiState.collectAsStateWithLifecycle()
-                    FeatureStateContent(historyState.loadState, historyState.errorMessage,
-                        onRetry = { history.refresh(force = true) }) { ExamsHistoryScreen(historyState) }
-                } else {
-                    FeatureStateContent(state.loadState, state.errorMessage,
-                        onRetry = { model.refresh(force = true) },
-                        emptyMessage = stringResource(Res.string.ui_state_empty_exams)) {
-                        ExamsScreen(
-                            uiState = state,
+            if (account?.isProfessor == true) {
+                FeatureStateContent(
+                    state = state.loadState,
+                    errorMessage = state.errorMessage,
+                    onRetry = { model.refresh(force = true) },
+                    emptyMessage = stringResource(Res.string.ui_state_empty_exams),
+                ) {
+                    ExamsScreen(
+                        uiState = state,
+                        onTabSelected = model::selectTab,
+                        showTabs = false,
+                        onToggleBooking = model::toggleBooking,
+                        onProfessorExamClick = { item ->
+                            navigator.navigate(AppRoute.ProfessorExamDetail(item.academicItemKey(), item.title))
+                        },
+                        onAddToCalendar = { model.openCalendar(it, uriHandler::openUri) },
+                    )
+                }
+            } else {
+                val history = viewModel(key = "$viewModelKey-history") { ExamsHistoryViewModel(dataSource) }
+                val historyState by history.uiState.collectAsStateWithLifecycle()
+                var bookableFilter by rememberSaveable { mutableStateOf(ExamBookableFilter.ALL) }
+                var historyFilter by rememberSaveable { mutableStateOf(ExamHistoryFilter.ALL) }
+                val examTabs = listOf(
+                    LiquidNavigationItem(
+                        label = stringResource(Res.string.ui_bookable_exams),
+                        badge = state.bookableCount.takeIf { it > 0 }?.toString(),
+                    ),
+                    LiquidNavigationItem(
+                        label = stringResource(Res.string.ui_booked_exams),
+                        badge = state.bookedCount.takeIf { it > 0 }?.toString(),
+                    ),
+                    LiquidNavigationItem(stringResource(Res.string.msg_storico)),
+                )
+                UniScreenLazyColumn {
+                    item(key = "exams-tab-bar") {
+                        LiquidTabBar(
+                            items = examTabs,
+                            selectedIndex = state.selectedTab,
                             onTabSelected = model::selectTab,
-                            showTabs = false,
-                            onToggleBooking = model::toggleBooking,
-                            onProfessorExamClick = { item ->
-                                navigator.navigate(AppRoute.ProfessorExamDetail(item.academicItemKey(), item.title))
-                            },
-                            onAddToCalendar = { model.openCalendar(it, uriHandler::openUri) },
+                            modifier = Modifier.padding(bottom = 4.dp),
                         )
+                    }
+                    if (state.selectedTab == 2) {
+                        if (historyState.loadState != FeatureLoadState.Content) {
+                            item(key = "exams-history-state-${historyState.loadState}") {
+                                FeatureStateContent(
+                                    state = historyState.loadState,
+                                    errorMessage = historyState.errorMessage,
+                                    onRetry = { history.refresh(force = true) },
+                                    inline = true,
+                                ) {}
+                            }
+                        } else {
+                            examsHistoryContentItems(
+                                uiState = historyState,
+                                filter = historyFilter,
+                                onFilterSelected = { historyFilter = it },
+                            )
+                        }
+                    } else {
+                        if (state.loadState != FeatureLoadState.Content) {
+                            item(key = "exams-state-${state.selectedTab}-${state.loadState}") {
+                                FeatureStateContent(
+                                    state = state.loadState,
+                                    errorMessage = state.errorMessage,
+                                    onRetry = { model.refresh(force = true) },
+                                    emptyMessage = stringResource(Res.string.ui_state_empty_exams),
+                                    inline = true,
+                                ) {}
+                            }
+                        } else {
+                            studentExamsContentItems(
+                                uiState = state,
+                                bookableFilter = bookableFilter,
+                                onBookableFilterChange = { bookableFilter = it },
+                                onToggleBooking = model::toggleBooking,
+                                onAddToCalendar = { examId ->
+                                    model.openCalendar(examId, uriHandler::openUri)
+                                },
+                            )
+                        }
                     }
                 }
             }
-            if (account?.isProfessor == true) content() else UniTabbedScreen(
-                tabs = listOf(
-                    LiquidNavigationItem(stringResource(Res.string.ui_bookable_exams)),
-                    LiquidNavigationItem(stringResource(Res.string.ui_booked_exams)),
-                    LiquidNavigationItem(stringResource(Res.string.msg_storico)),
-                ), selectedTab = state.selectedTab, onTabSelected = model::selectTab, content = content,
-            )
         }
 
         is AppRoute.CourseDetail -> {
@@ -824,6 +1005,7 @@ internal fun AppRouteContent(
                     category = news.category,
                     publishedAt = news.publishedAt,
                     sourceUrl = news.sourceUrl,
+                    type = news.type,
                     onOpenSource = { url -> uriHandler.openUri(url) },
                     onBack = { navigator.goBack() },
                 )
@@ -966,6 +1148,7 @@ private fun AppNavigator.openHomeAction(actionId: String) {
         "verbali" -> navigate(AppRoute.Reports)
         "didattica", "condivisione" -> selectTopLevel(AppRoute.Didactics)
         "trasporti" -> navigate(AppRoute.Transport)
+        "biblioteca", "library" -> navigate(AppRoute.Library())
         "tasse" -> navigate(AppRoute.Taxes)
         "rubrica" -> navigate(AppRoute.Contacts)
         "notifiche" -> navigate(AppRoute.News)

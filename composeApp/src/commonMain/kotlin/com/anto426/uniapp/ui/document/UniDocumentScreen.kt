@@ -1,9 +1,11 @@
 package com.anto426.uniapp.ui.document
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,21 +37,197 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeaderSize
 import com.anto426.uniapp.model.legal.LegalSectionData
 import com.anto426.uniapp.updates.presentation.ChangelogUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniSection
 import com.kyant.shapes.RoundedRectangle
 
+private data class ParsedMarkdownSection(
+    val title: String?,
+    val body: String,
+)
+
+private fun splitMarkdownSections(markdown: String): List<ParsedMarkdownSection> {
+    val sections = mutableListOf<ParsedMarkdownSection>()
+    var currentTitle: String? = null
+    val currentLines = mutableListOf<String>()
+
+    fun flush() {
+        val cleaned = currentLines
+            .dropWhile { it.isBlank() || it.trim() == "---" || it.trim() == "***" }
+            .dropLastWhile { it.isBlank() || it.trim() == "---" || it.trim() == "***" }
+            .joinToString("\n")
+        if (!currentTitle.isNullOrBlank() || cleaned.isNotBlank()) {
+            sections += ParsedMarkdownSection(currentTitle, cleaned)
+        }
+        currentLines.clear()
+    }
+
+    for (rawLine in markdown.lines()) {
+        val trimmed = rawLine.trim()
+        if (trimmed.startsWith("## ")) {
+            flush()
+            currentTitle = trimmed.removePrefix("## ").trim()
+        } else {
+            currentLines += rawLine
+        }
+    }
+    flush()
+    return sections
+}
+
+@Composable
+private fun DocumentHeaderCard(
+    title: String?,
+    subtitle: String?,
+    headerIcon: ImageVector?,
+    headerBadge: String?,
+    intro: String? = null,
+) {
+    if (title.isNullOrBlank() && intro.isNullOrBlank()) return
+    val colorScheme = MaterialTheme.colorScheme
+    LiquidCard(
+        contentPadding = PaddingValues(18.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedRectangle(24.dp),
+        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (!title.isNullOrBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (headerIcon != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .background(
+                                    color = colorScheme.primary.copy(alpha = 0.14f),
+                                    shape = RoundedRectangle(13.dp),
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = headerIcon,
+                                contentDescription = null,
+                                tint = colorScheme.primary,
+                                modifier = Modifier.size(21.dp),
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        if (!headerBadge.isNullOrBlank()) {
+                            LiquidBadge(
+                                text = headerBadge,
+                                containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                                contentColor = colorScheme.primary,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                        }
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.onSurface,
+                            fontSize = 18.sp,
+                            lineHeight = 24.sp,
+                        )
+                        if (!subtitle.isNullOrBlank()) {
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant,
+                                lineHeight = 17.sp,
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (!intro.isNullOrBlank()) {
+                if (!title.isNullOrBlank()) {
+                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
+                }
+                Text(
+                    text = parseInlineMarkdown(intro.trim(), colorScheme.primary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                    color = colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun UniSectionedDocumentScreen(
+    sections: List<LegalSectionData>,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    subtitle: String? = null,
+    intro: String? = null,
+    headerIcon: ImageVector? = null,
+    headerBadge: String? = null,
+    onBack: (() -> Unit)? = null,
+    bottomContent: (@Composable () -> Unit)? = null,
+) {
+    UniScreenColumn(modifier = modifier) {
+        DocumentHeaderCard(
+            title = title,
+            subtitle = subtitle,
+            headerIcon = headerIcon,
+            headerBadge = headerBadge,
+            intro = intro,
+        )
+
+        sections.forEach { section ->
+            val sectionTitle = section.title
+            val sectionBody = section.content
+            if (sectionTitle.isNotBlank() || sectionBody.isNotBlank()) {
+                UniSection(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (sectionTitle.isNotBlank()) {
+                        LiquidSectionHeader(
+                            title = sectionTitle,
+                            size = LiquidSectionHeaderSize.Small,
+                        )
+                    }
+                    if (sectionBody.isNotBlank()) {
+                        LiquidCard(
+                            contentPadding = PaddingValues(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedRectangle(22.dp),
+                        ) {
+                            RichMarkdownDocument(
+                                markdown = sectionBody,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (bottomContent != null) {
+            bottomContent()
+        }
+    }
+}
+
 /**
- * Single unified document screen for textual reading experiences:
- * - News Detail
- * - Changelog
- * - Privacy Policy
- * - Terms of Service
- * - Cookie Policy
- *
- * Supports Markdown headers (#, ##, ###), dividers (---), bullet lists (- / * / •),
- * bold (**text**), italics (*text*), code (`code`), and clickable links ([text](url) and https://...).
+ * Unified document screen supporting Markdown sections (`## `), headers, lists, and inline links.
  */
 @Composable
 fun UniDocumentScreen(
@@ -62,84 +240,62 @@ fun UniDocumentScreen(
     onBack: (() -> Unit)? = null,
     bottomContent: (@Composable () -> Unit)? = null,
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val parsedSections = remember(content) { splitMarkdownSections(content) }
+    val hasExplicitSections = parsedSections.any { !it.title.isNullOrBlank() }
 
     UniScreenColumn(modifier = modifier) {
-        if (!title.isNullOrBlank()) {
-            LiquidCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedRectangle(24.dp),
-                contentPadding = 18.dp,
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                        if (headerIcon != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .background(
-                                        color = colorScheme.primary.copy(alpha = 0.14f),
-                                        shape = RoundedRectangle(13.dp),
-                                    ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = headerIcon,
-                                    contentDescription = null,
-                                    tint = colorScheme.primary,
-                                    modifier = Modifier.size(21.dp),
-                                )
-                            }
-                        }
+        val leadingIntro = if (hasExplicitSections && parsedSections.firstOrNull()?.title == null) {
+            parsedSections.firstOrNull()?.body
+        } else {
+            null
+        }
+        DocumentHeaderCard(
+            title = title,
+            subtitle = subtitle,
+            headerIcon = headerIcon,
+            headerBadge = headerBadge,
+            intro = leadingIntro,
+        )
 
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(3.dp),
-                        ) {
-                            if (!headerBadge.isNullOrBlank()) {
-                                LiquidBadge(
-                                    text = headerBadge,
-                                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                                    contentColor = colorScheme.primary,
-                                )
-                                Spacer(Modifier.height(2.dp))
-                            }
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface,
-                                fontSize = 18.sp,
-                                lineHeight = 24.sp,
+        if (hasExplicitSections) {
+            parsedSections
+                .filterNot { it.title == null && it.body == leadingIntro }
+                .forEach { section ->
+                    UniSection(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (!section.title.isNullOrBlank()) {
+                            LiquidSectionHeader(
+                                title = section.title,
+                                size = LiquidSectionHeaderSize.Small,
                             )
-                            if (!subtitle.isNullOrBlank()) {
-                                Text(
-                                    text = subtitle,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colorScheme.onSurfaceVariant,
-                                    lineHeight = 17.sp,
+                        }
+                        if (section.body.isNotBlank()) {
+                            LiquidCard(
+                                contentPadding = PaddingValues(16.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedRectangle(22.dp),
+                            ) {
+                                RichMarkdownDocument(
+                                    markdown = section.body,
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
                     }
                 }
-            }
-
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            contentPadding = 20.dp,
-        ) {
-            RichMarkdownDocument(
-                markdown = content,
+        } else {
+            LiquidCard(
+                contentPadding = PaddingValues(18.dp),
                 modifier = Modifier.fillMaxWidth(),
-            )
+                shape = RoundedRectangle(24.dp),
+            ) {
+                RichMarkdownDocument(
+                    markdown = content,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
+
         if (bottomContent != null) {
-            Spacer(Modifier.height(12.dp))
             bottomContent()
         }
     }
@@ -222,14 +378,14 @@ fun RichMarkdownDocument(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                         )
                         Text(
                             text = parseInlineMarkdown(bulletContent, linkColor),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontSize = 16.sp,
-                            lineHeight = 25.sp,
-                            color = colorScheme.onSurface.copy(alpha = 0.92f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 14.5.sp,
+                            lineHeight = 22.sp,
+                            color = colorScheme.onSurface.copy(alpha = 0.90f),
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -249,14 +405,14 @@ fun RichMarkdownDocument(
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary,
-                            fontSize = 16.sp,
+                            fontSize = 14.5.sp,
                         )
                         Text(
                             text = parseInlineMarkdown(itemContent, linkColor),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontSize = 16.sp,
-                            lineHeight = 25.sp,
-                            color = colorScheme.onSurface.copy(alpha = 0.92f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 14.5.sp,
+                            lineHeight = 22.sp,
+                            color = colorScheme.onSurface.copy(alpha = 0.90f),
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -265,10 +421,10 @@ fun RichMarkdownDocument(
                 else -> {
                     Text(
                         text = parseInlineMarkdown(trimmed, linkColor),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontSize = 16.5.sp,
-                        lineHeight = 26.sp,
-                        color = colorScheme.onSurface.copy(alpha = 0.92f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 14.5.sp,
+                        lineHeight = 22.sp,
+                        color = colorScheme.onSurface.copy(alpha = 0.90f),
                     )
                 }
             }

@@ -43,6 +43,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
@@ -258,6 +259,7 @@ internal fun TransportTicketActions(
                     onClick = { originalVisible = true },
                     modifier = Modifier.fillMaxWidth(),
                     variant = LiquidButtonVariant.Primary,
+                    size = LiquidButtonSize.Medium,
                 )
             } else if (!state.isLoading && !state.isReading) {
                 LiquidButton(
@@ -265,6 +267,7 @@ internal fun TransportTicketActions(
                     onClick = onReload,
                     modifier = Modifier.fillMaxWidth(),
                     variant = LiquidButtonVariant.Primary,
+                    size = LiquidButtonSize.Medium,
                 )
             }
         }
@@ -328,6 +331,7 @@ internal fun TransportTicketActions(
                     onClick = { originalVisible = false },
                     modifier = Modifier.fillMaxWidth(),
                     variant = LiquidButtonVariant.Tonal,
+                    size = LiquidButtonSize.Medium,
                 )
             }
         }

@@ -1,100 +1,130 @@
 package com.anto426.uniapp.ui.components.items
 
-import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
-
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
+import com.anto426.uniapp.model.transport.TripDirection
+import com.kyant.shapes.RoundedRectangle
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun TransportReservationItem(
     reservation: TransportReservation,
-    onClick: () -> Unit = {}
+    showDivider: Boolean = false,
+    onClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val isAndata = reservation.direction == com.anto426.uniapp.model.transport.TripDirection.ANDATA
+    val isAndata = reservation.direction == TripDirection.ANDATA
+    val accentColor = if (isAndata) colorScheme.primary else colorScheme.secondary
 
-    LiquidCard(
-        shape = RoundedRectangle(20.dp),
-        contentPadding = 16.dp,
-        onClick = onClick,
-    ) {
+    val stopsLabel = when {
+        reservation.departureStop.isNotBlank() && reservation.arrivalStop.isNotBlank() ->
+            "${reservation.departureStop} → ${reservation.arrivalStop}"
+        reservation.departureStop.isNotBlank() -> reservation.departureStop
+        else -> null
+    }
+
+    val metaText = buildList {
+        reservation.time.takeIf(String::isNotBlank)?.let(::add)
+        stopsLabel?.let(::add)
+        reservation.busNumber.takeIf(String::isNotBlank)?.let { bus ->
+            add(stringResource(Res.string.ui_transport_navetta_number, bus))
+        }
+        if (isEmpty()) {
+            add(reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) })
+        }
+    }.joinToString(" • ")
+
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 64.dp)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Row(
+            Icon(
+                imageVector = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier.liquidIconContainer(
+                    containerSize = 40.dp,
+                    iconSize = 20.dp,
+                    containerColor = accentColor.copy(alpha = 0.12f),
+                    shape = RoundedRectangle(12.dp),
+                ),
+            )
+
+            Column(
                 modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                Icon(
-                    imageVector = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 40.dp,
-                        iconSize = 20.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedRectangle(12.dp),
-                    ),
+                Text(
+                    text = reservation.route,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = reservation.route,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface,
-                        letterSpacing = (-0.2).sp
-                    )
-                    Text(
-                        text = reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) } +
-                            reservation.time.takeIf(String::isNotBlank)?.let { " • $it" }.orEmpty(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                }
+                Text(
+                    text = metaText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Box(contentAlignment = Alignment.Center) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 LiquidBadge(
-                    text = if (isAndata) stringResource(Res.string.ui_trip_outbound) else stringResource(Res.string.ui_trip_return),
-                    containerColor = colorScheme.primaryContainer,
-                    contentColor = colorScheme.primary,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = 1.05f
-                        scaleY = 1.05f
-                    }
+                    text = stringResource(
+                        if (isAndata) Res.string.ui_transport_outbound_short
+                        else Res.string.ui_transport_return_short,
+                    ),
+                    containerColor = accentColor.copy(alpha = 0.14f),
+                    contentColor = accentColor,
+                )
+                Icon(
+                    imageVector = LiquidIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                    modifier = Modifier.size(16.dp),
                 )
             }
+        }
+
+        if (showDivider) {
+            LiquidHorizontalDivider(
+                modifier = Modifier.padding(start = 70.dp, end = 16.dp),
+                color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+            )
         }
     }
 }

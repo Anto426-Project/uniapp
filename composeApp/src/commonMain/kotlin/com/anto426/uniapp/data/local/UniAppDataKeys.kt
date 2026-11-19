@@ -47,6 +47,36 @@ object UniAppDataKeys {
             serializer = String.serializer().nullable,
             defaultValue = null,
         )
+    val ThemeLiquidIntensity =
+        LocalDataKey(
+            name = "theme.liquid-intensity",
+            serializer = Float.serializer(),
+            defaultValue = 0.82f,
+        )
+    val ThemeGlassQuality =
+        LocalDataKey(
+            name = "theme.glass-quality",
+            serializer = String.serializer().nullable,
+            defaultValue = null,
+        )
+    val ThemeBackgroundIntensity =
+        LocalDataKey(
+            name = "theme.background-intensity",
+            serializer = Float.serializer(),
+            defaultValue = 0.90f,
+        )
+    val ThemeBackgroundSpeed =
+        LocalDataKey(
+            name = "theme.background-speed",
+            serializer = Float.serializer(),
+            defaultValue = 1.0f,
+        )
+    val ThemeBackgroundVignette =
+        LocalDataKey(
+            name = "theme.background-vignette",
+            serializer = Boolean.serializer(),
+            defaultValue = true,
+        )
     val LanguageCode =
         LocalDataKey(
             name = "language.selected",

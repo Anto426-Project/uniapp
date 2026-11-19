@@ -1,43 +1,37 @@
 package com.anto426.uniapp.ui.didactics.components
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
 import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -67,7 +61,7 @@ fun CourseProgramTab(course: StudyCourse) {
         if (!hasAnyContent) {
             LiquidEmptyState(
                 title = stringResource(Res.string.ui_course_syllabus_title),
-                description = "I contenuti e gli obiettivi didattici per questo insegnamento non sono ancora stati registrati nel portale d'Ateneo.",
+                description = stringResource(Res.string.ui_course_syllabus_empty),
             )
             return@Column
         }
@@ -85,7 +79,7 @@ fun CourseProgramTab(course: StudyCourse) {
         if (hasContenuti) {
             val contentText = if (course.contenuti.isNotBlank()) course.contenuti else course.description
             SyllabusSectionCard(
-                title = "Programma & Contenuti",
+                title = stringResource(Res.string.ui_course_contents_title),
                 content = contentText,
                 icon = LiquidIcons.MenuBook,
             )
@@ -103,7 +97,7 @@ fun CourseProgramTab(course: StudyCourse) {
         // 4. Metodi Didattici
         if (hasMetodi) {
             SyllabusSectionCard(
-                title = "Metodi Didattici",
+                title = stringResource(Res.string.ui_course_teaching_methods_title),
                 content = course.metodiDidattici,
                 icon = LiquidIcons.Assignment,
             )
@@ -155,8 +149,8 @@ fun CourseProfessorTab(
                 subtitle = stringResource(Res.string.ui_course_faculty_sub),
             )
             LiquidEmptyState(
-                title = "Docente non specificato",
-                description = "Nessun docente associato a questo insegnamento nei registri Esse3.",
+                title = stringResource(Res.string.ui_course_professor_empty_title),
+                description = stringResource(Res.string.ui_course_professor_empty_desc),
             )
         }
         return
@@ -222,7 +216,7 @@ fun CourseProfessorTab(
                         )
                         if (onContactClick != null) {
                             Text(
-                                text = "Tocca per la scheda rubrica completa",
+                                text = stringResource(Res.string.ui_course_professor_open_directory),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold,
@@ -242,136 +236,25 @@ fun CourseProfessorTab(
             }
         }
 
-        // Quick Contact Actions Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            // Email Button
-            if (email != null) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedRectangle(18.dp))
-                        .background(colorScheme.onSurface.copy(alpha = 0.04f))
-                        .border(BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)), RoundedRectangle(18.dp))
-                        .clickable { uriHandler.openUri("mailto:$email") }
-                        .padding(14.dp),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = "Email",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colorScheme.onSurfaceVariant,
-                            )
-                            Icon(
-                                imageVector = LiquidIcons.Feedback,
-                                contentDescription = null,
-                                tint = colorScheme.primary,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-                        Text(
-                            text = email,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = "Tocca per scrivere",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.primary,
-                        )
-                    }
-                }
-            }
-
-            // Phone Button (if present)
-            if (phone != null) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedRectangle(18.dp))
-                        .background(colorScheme.onSurface.copy(alpha = 0.04f))
-                        .border(BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)), RoundedRectangle(18.dp))
-                        .clickable { uriHandler.openUri("tel:$phone") }
-                        .padding(14.dp),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = "Telefono",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colorScheme.onSurfaceVariant,
-                            )
-                            Icon(
-                                imageVector = LiquidIcons.Phone,
-                                contentDescription = null,
-                                tint = colorScheme.primary,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-                        Text(
-                            text = phone,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = "Chiama interno",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.primary,
-                        )
-                    }
-                }
-            }
+        val emailLabel = stringResource(Res.string.ui_email)
+        val phoneLabel = stringResource(Res.string.ui_phone)
+        val officeLabel = stringResource(Res.string.ui_course_office_location)
+        val contactRows = buildList {
+            if (email != null) add(Triple(emailLabel, email) { uriHandler.openUri("mailto:$email") } to LiquidIcons.Feedback)
+            if (phone != null) add(Triple(phoneLabel, phone) { uriHandler.openUri("tel:$phone") } to LiquidIcons.Phone)
+            if (office != null) add(Triple(officeLabel, office, null) to LiquidIcons.Home)
         }
-
-        // Office / Location (if present)
-        if (office != null) {
-            LiquidCard(
-                shape = RoundedRectangle(20.dp),
-                contentPadding = 16.dp,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.Home,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.liquidIconContainer(
-                            containerSize = 36.dp,
-                            iconSize = 18.dp,
-                            containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                            shape = RoundedRectangle(10.dp),
-                        ),
+        if (contactRows.isNotEmpty()) {
+            UniInsetGroup {
+                contactRows.forEachIndexed { index, (info, rowIcon) ->
+                    val (rowTitle, rowSubtitle, action) = info
+                    UniInsetRow(
+                        title = rowTitle,
+                        subtitle = rowSubtitle,
+                        icon = rowIcon,
+                        onClick = action,
+                        showDivider = index < contactRows.lastIndex,
                     )
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = stringResource(Res.string.ui_course_office_location),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = office,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurface,
-                        )
-                    }
                 }
             }
         }
@@ -400,7 +283,7 @@ fun CourseProfessorTab(
                     )
                 }
                 Text(
-                    text = "Il ricevimento studenti si tiene previo accordo via email istituzionale con il docente, in presenza presso lo studio del dipartimento oppure online tramite Microsoft Teams o Google Meet.",
+                    text = stringResource(Res.string.ui_course_office_hours_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.onSurfaceVariant,
                     lineHeight = 22.sp,
@@ -416,7 +299,9 @@ fun CourseProfessorTab(
 @Composable
 fun CourseDataTab(course: StudyCourse) {
     val colorScheme = MaterialTheme.colorScheme
+    val glassColors = LiquidGlassTheme.colors
     val isCompleted = course.status == CourseStatus.COMPLETED
+    val statusColor = if (isCompleted) glassColors.success else colorScheme.primary
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -445,30 +330,30 @@ fun CourseDataTab(course: StudyCourse) {
                     Icon(
                         imageVector = if (isCompleted) LiquidIcons.Check else LiquidIcons.Calendar,
                         contentDescription = null,
-                        tint = if (isCompleted) colorScheme.primary else colorScheme.secondary,
+                        tint = statusColor,
                         modifier = Modifier.liquidIconContainer(
                             containerSize = 40.dp,
                             iconSize = 20.dp,
-                            containerColor = if (isCompleted) colorScheme.primary.copy(alpha = 0.12f)
-                            else colorScheme.secondary.copy(alpha = 0.12f),
+                            containerColor = statusColor.copy(alpha = 0.12f),
                             shape = RoundedRectangle(12.dp),
                         ),
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = if (isCompleted) "Attività Verbalizzata" else "Attività da Sostenere",
+                            text = stringResource(
+                                if (isCompleted) Res.string.ui_course_activity_verbalized
+                                else Res.string.ui_course_activity_pending,
+                            ),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,
                         )
                         Text(
-                            text = buildString {
-                                if (isCompleted) {
-                                    append("Superato con successo")
-                                    if (!course.examDate.isNullOrBlank()) append(" il ${course.examDate}")
-                                } else {
-                                    append("Pianificato nel piano di studi")
-                                }
+                            text = when {
+                                isCompleted && !course.examDate.isNullOrBlank() ->
+                                    stringResource(Res.string.ui_course_passed_on_date, course.examDate)
+                                isCompleted -> stringResource(Res.string.ui_course_passed_success)
+                                else -> stringResource(Res.string.ui_course_planned_in_plan)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = colorScheme.onSurfaceVariant,
@@ -479,66 +364,68 @@ fun CourseDataTab(course: StudyCourse) {
                 if (isCompleted && !course.grade.isNullOrBlank()) {
                     LiquidBadge(
                         text = course.grade,
-                        containerColor = colorScheme.primaryContainer,
+                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
                         contentColor = colorScheme.primary,
                     )
                 }
             }
         }
 
-        // Academic details 2 a 2
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                AcademicInfoTile(
-                    label = stringResource(Res.string.ui_course_scientific_sector),
-                    value = course.ssd.ifBlank { "—" },
-                    subvalue = "Settore Disciplinare (SSD)",
-                    modifier = Modifier.weight(1f),
-                )
-                AcademicInfoTile(
-                    label = stringResource(Res.string.ui_course_activity_type),
-                    value = course.taf.ifBlank { "Caratterizzante" },
-                    subvalue = "Ambito formativo (TAF)",
-                    modifier = Modifier.weight(1f),
-                )
-            }
+        val dataRows = listOf(
+            Triple(
+                stringResource(Res.string.ui_course_scientific_sector),
+                stringResource(Res.string.ui_course_ssd_subtitle),
+                course.ssd.ifBlank { "—" } to LiquidIcons.Assignment,
+            ),
+            Triple(
+                stringResource(Res.string.ui_course_activity_type),
+                stringResource(Res.string.ui_course_taf_subtitle),
+                course.taf.ifBlank { stringResource(Res.string.ui_course_activity_characterizing) } to LiquidIcons.Info,
+            ),
+            Triple(
+                stringResource(Res.string.ui_course_credits),
+                stringResource(Res.string.ui_course_credits_subtitle),
+                course.cfu.ifBlank { "—" } to LiquidIcons.Star,
+            ),
+            Triple(
+                stringResource(Res.string.ui_course_year_label),
+                stringResource(Res.string.ui_course_plan_placement),
+                when {
+                    course.year > 0 -> stringResource(Res.string.ui_year_nth, course.year)
+                    course.semester.isNotBlank() -> course.semester
+                    else -> "—"
+                } to LiquidIcons.Calendar,
+            ),
+            Triple(
+                stringResource(Res.string.ui_course_language),
+                stringResource(Res.string.ui_course_lang_material_note),
+                course.lingua.ifBlank { stringResource(Res.string.ui_course_lang_italian) } to LiquidIcons.MenuBook,
+            ),
+            Triple(
+                stringResource(Res.string.ui_course_attendance),
+                stringResource(Res.string.ui_course_attendance_no_obligation),
+                stringResource(Res.string.ui_course_attendance_recommended) to LiquidIcons.Check,
+            ),
+        )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                AcademicInfoTile(
-                    label = stringResource(Res.string.ui_course_credits),
-                    value = course.cfu.ifBlank { "—" },
-                    subvalue = "Crediti Universitari",
-                    modifier = Modifier.weight(1f),
-                )
-                AcademicInfoTile(
-                    label = "Anno di Corso",
-                    value = if (course.year > 0) "${course.year}° Anno" else if (course.semester.isNotBlank()) course.semester else "—",
-                    subvalue = "Collocazione piano di studio",
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                AcademicInfoTile(
-                    label = stringResource(Res.string.ui_course_language),
-                    value = course.lingua.ifBlank { stringResource(Res.string.ui_course_lang_italian) },
-                    subvalue = stringResource(Res.string.ui_course_lang_material_note),
-                    modifier = Modifier.weight(1f),
-                )
-                AcademicInfoTile(
-                    label = stringResource(Res.string.ui_course_attendance),
-                    value = stringResource(Res.string.ui_course_attendance_recommended),
-                    subvalue = stringResource(Res.string.ui_course_attendance_no_obligation),
-                    modifier = Modifier.weight(1f),
+        UniInsetGroup {
+            dataRows.forEachIndexed { index, (label, note, valueAndIcon) ->
+                val (valueText, icon) = valueAndIcon
+                UniInsetRow(
+                    title = label,
+                    subtitle = note,
+                    icon = icon,
+                    showDivider = index < dataRows.lastIndex,
+                    trailingContent = {
+                        Text(
+                            text = valueText,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
                 )
             }
         }
@@ -624,97 +511,6 @@ private fun SyllabusSectionCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colorScheme.onSurface.copy(alpha = 0.88f),
                 lineHeight = 22.sp,
-            )
-        }
-    }
-}
-
-/**
- * Reusable Hero Stat Tile for the Top Course Header Card with translucent styling.
- */
-@Composable
-fun CourseHeroStatTile(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-
-    Box(
-        modifier = modifier
-            .clip(RoundedRectangle(16.dp))
-            .background(colorScheme.onSurface.copy(alpha = 0.04f))
-            .border(BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)), RoundedRectangle(16.dp))
-            .padding(12.dp),
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.size(14.dp),
-                )
-            }
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.onSurface,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-/**
- * Reusable Academic Info Tile for 2 a 2 Course Data Grid.
- */
-@Composable
-fun AcademicInfoTile(
-    label: String,
-    value: String,
-    subvalue: String,
-    modifier: Modifier = Modifier,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-
-    Box(
-        modifier = modifier
-            .clip(RoundedRectangle(18.dp))
-            .background(colorScheme.onSurface.copy(alpha = 0.04f))
-            .border(BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)), RoundedRectangle(18.dp))
-            .padding(14.dp),
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.onSurface,
-                maxLines = 1,
-            )
-            Text(
-                text = subvalue,
-                style = MaterialTheme.typography.labelSmall,
-                color = colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-                maxLines = 1,
             )
         }
     }

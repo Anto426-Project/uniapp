@@ -3,19 +3,21 @@ package com.anto426.uniapp.ui.didactics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
-import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.uniapp.didactics.presentation.TranscriptsUiState
 import com.anto426.uniapp.model.didactics.ExamRecord
+import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.items.ExamRecordItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-
+import com.anto426.uniapp.ui.didactics.components.CareerSummaryHeroCard
+import com.anto426.uniapp.ui.didactics.components.CareerYearChipRow
+import com.anto426.uniapp.ui.didactics.components.careerYearLabel
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -24,67 +26,84 @@ fun TranscriptsScreen(
     uiState: TranscriptsUiState,
     onYearSelected: (Int) -> Unit,
     onExamClick: (ExamRecord) -> Unit = {},
+    onOpenGrades: () -> Unit = {},
 ) {
-    val years = uiState.availableYears
-    val tabs = years.map { year ->
-        LiquidNavigationItem(label = if (year > 0) stringResource(Res.string.ui_year_nth, year)
-            else stringResource(Res.string.ui_year_unspecified))
-    }
-    val selectedTabIndex = years.indexOf(uiState.selectedYear).coerceAtLeast(0)
-
     UniScreenColumn {
-        // 1. Year Tab Selector
-        if (tabs.isNotEmpty()) {
-            LiquidTabBar(
-                items = tabs,
-                selectedIndex = selectedTabIndex,
-                onTabSelected = { index ->
-                    years.getOrNull(index)?.let(onYearSelected)
-                },
+        TranscriptsContent(
+            uiState = uiState,
+            onYearSelected = onYearSelected,
+            onExamClick = onExamClick,
+            onOpenGrades = onOpenGrades,
+        )
+    }
+}
+
+@Composable
+fun TranscriptsContent(
+    uiState: TranscriptsUiState,
+    onYearSelected: (Int) -> Unit,
+    onExamClick: (ExamRecord) -> Unit = {},
+    onOpenGrades: () -> Unit = {},
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val years = uiState.availableYears
+
+    val metaPills = buildList {
+        if (uiState.degreeBaseLabel.isNotBlank() && uiState.degreeBaseLabel != "—") {
+            add(stringResource(Res.string.ui_career_degree_base_short, uiState.degreeBaseLabel) to colorScheme.primary)
+        }
+        add(stringResource(Res.string.ui_career_exams_count, uiState.totalExamsCount) to colorScheme.secondary)
+        if (uiState.lodeCount > 0) {
+            add(stringResource(Res.string.ui_career_lodi_count, uiState.lodeCount) to colorScheme.tertiary)
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        CareerSummaryHeroCard(
+            kicker = stringResource(Res.string.ui_career_summary_libretto),
+            headlineValue = uiState.averageLabel,
+            headlineUnit = stringResource(Res.string.ui_career_average_unit),
+            metaPills = metaPills,
+            acquiredCfu = uiState.acquiredCfu,
+            targetCfu = uiState.targetCfu,
+            footerLabel = stringResource(Res.string.ui_career_open_stats),
+            onFooterClick = onOpenGrades,
+        )
+
+        if (years.isNotEmpty()) {
+            CareerYearChipRow(
+                years = years,
+                selectedYear = uiState.selectedYear,
+                onYearSelected = onYearSelected,
             )
         }
 
-        // 2. Exams Grouped by Year
         uiState.displayedYears.forEach { year ->
             val examsForYear = uiState.examsByYear[year].orEmpty()
-            if (examsForYear.isNotEmpty()) {
-                val yearCfu = examsForYear.sumOf { exam ->
-                    exam.cfu.filter { it.isDigit() }.toIntOrNull() ?: 0
-                }
+            val yearTitle = careerYearLabel(year)
 
+            if (examsForYear.isNotEmpty()) {
+                val yearCfu = examsForYear.sumOf { exam -> exam.cfu.firstAcademicIntegerOrNull() ?: 0 }
                 LiquidSectionHeader(
-                    title = when (year) {
-                        0 -> stringResource(Res.string.ui_year_unspecified)
-                        1 -> stringResource(Res.string.ui_year_first)
-                        2 -> stringResource(Res.string.ui_year_second)
-                        3 -> stringResource(Res.string.ui_year_third)
-                        else -> stringResource(Res.string.ui_year_nth, year)
-                    },
+                    title = yearTitle,
                     subtitle = stringResource(Res.string.ui_transcripts_year_summary, yearCfu, examsForYear.size),
                 )
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer(clip = false),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    examsForYear.forEach { exam ->
+                UniInsetGroup {
+                    examsForYear.forEachIndexed { index, exam ->
                         ExamRecordItem(
                             exam = exam,
+                            showDivider = index < examsForYear.lastIndex,
                             onClick = { if (exam.code.isNotBlank()) onExamClick(exam) },
                         )
                     }
                 }
             } else {
                 LiquidSectionHeader(
-                    title = when (year) {
-                        0 -> stringResource(Res.string.ui_year_unspecified)
-                        1 -> stringResource(Res.string.ui_year_first)
-                        2 -> stringResource(Res.string.ui_year_second)
-                        3 -> stringResource(Res.string.ui_year_third)
-                        else -> stringResource(Res.string.ui_year_nth, year)
-                    },
+                    title = yearTitle,
                     subtitle = stringResource(Res.string.ui_transcripts_year_summary, 0, 0),
                 )
                 LiquidEmptyState(

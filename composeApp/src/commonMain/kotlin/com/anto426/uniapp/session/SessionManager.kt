@@ -21,6 +21,11 @@ import com.anto426.unisdk.session.UniCredentials
 import com.anto426.unisdk.session.UniSession
 import com.anto426.unisdk.session.UniUserProfile
 import com.anto426.unisdk.session.UniCareerProfile
+import com.anto426.unisdk.library.LibraryService
+import com.anto426.unisdk.library.LibrarySession
+import com.anto426.unisdk.library.RemoteLibraryService
+import com.anto426.unisdk.errors.UniSdkErrorCode
+import com.anto426.unisdk.errors.UniSdkException
 import com.anto426.unisdk.transport.TransportService
 import com.anto426.unisdk.transport.TransportSession
 import kotlinx.coroutines.CancellationException
@@ -40,11 +45,15 @@ class SessionManager internal constructor(
     private val backend: UniBackendService,
     private val accountStore: UniAccountStore,
     private val localDataStore: UniLocalDataStore,
+    private val libraryService: LibraryService = RemoteLibraryService(),
     private val prepareNotificationOwner: suspend (String?) -> Unit = {},
 ) {
     val avatars = com.anto426.uniapp.account.data.AccountAvatarStore(accountStore)
     private val lock = Mutex()
+    private val libraryLock = Mutex()
     private var activeSession: ActiveSessionContext? = null
+    private var activeLibrarySession: LibrarySessionContext? = null
+    private var guestLibrarySession: LibrarySession? = null
     private var pendingProfileCatalog: List<LoginCareerOption> = emptyList()
     private var pendingProfileUsername: String? = null
     private var demoAuthor: com.anto426.uniapp.project.model.GitHubAuthor? = null
@@ -465,8 +474,15 @@ class SessionManager internal constructor(
     private suspend fun installSessionLocked(next: ActiveSessionContext) {
         val previous = activeSession
         activeSession = next
-        if (previous != null && previous.session !== next.session) {
-            runCatching { backend.closeSession(previous.session) }
+        if (previous != null) {
+            if (previous.account.accountId != next.account.accountId ||
+                previous.account.activeProfileId != next.account.activeProfileId
+            ) {
+                closeLibrarySessionForOwner(previous.account.accountId)
+            }
+            if (previous.session !== next.session) {
+                runCatching { backend.closeSession(previous.session) }
+            }
         }
     }
 
@@ -474,7 +490,23 @@ class SessionManager internal constructor(
         val current = activeSession ?: return
         if (accountId != null && current.account.accountId != accountId) return
         activeSession = null
+        closeLibrarySessionForOwner(current.account.accountId)
         backend.closeSession(current.session)
+    }
+
+    private suspend fun closeLibrarySessionForOwner(accountId: String? = null) {
+        libraryLock.withLock {
+            val lib = activeLibrarySession
+            if (lib != null && (accountId == null || lib.accountId == accountId)) {
+                activeLibrarySession = null
+                runCatching { libraryService.closeSession(lib.session) }
+            }
+            if (accountId == null) {
+                val guest = guestLibrarySession
+                guestLibrarySession = null
+                if (guest != null) runCatching { libraryService.closeSession(guest) }
+            }
+        }
     }
 
     internal suspend fun <T> callAuthenticated(
@@ -505,6 +537,81 @@ class SessionManager internal constructor(
         return value
     }
 
+    internal suspend fun <T> withLibraryGuestSession(
+        retryOnExpiry: Boolean = true,
+        block: suspend LibraryService.(LibrarySession) -> T,
+    ): T = libraryLock.withLock {
+        val session = guestLibrarySession ?: libraryService.openGuestSession().also {
+            guestLibrarySession = it
+        }
+        try {
+            libraryService.block(session)
+        } catch (error: UniSdkException) {
+            if (!retryOnExpiry ||
+                (error.errorCode != UniSdkErrorCode.LIBRARY_SESSION_EXPIRED &&
+                    error.errorCode != UniSdkErrorCode.LIBRARY_SESSION_INVALID)
+            ) {
+                throw error
+            }
+            guestLibrarySession = null
+            runCatching { libraryService.closeSession(session) }
+            val fresh = libraryService.openGuestSession().also { guestLibrarySession = it }
+            libraryService.block(fresh)
+        }
+    }
+
+    internal suspend fun <T> withAuthenticatedLibrarySession(
+        accountId: String,
+        profileId: String?,
+        retryOnExpiry: Boolean = true,
+        block: suspend LibraryService.(LibrarySession) -> T,
+    ): T {
+        val active = activeContextFor(accountId, profileId)
+        val result = libraryLock.withLock {
+            suspend fun openFresh(): LibrarySession {
+                val previous = activeLibrarySession
+                if (previous != null) {
+                    activeLibrarySession = null
+                    runCatching { libraryService.closeSession(previous.session) }
+                }
+                return accountStore.withCredentials(accountId) { credentials ->
+                    libraryService.openSession(credentials)
+                }.also { created ->
+                    activeLibrarySession = LibrarySessionContext(accountId, profileId, created)
+                }
+            }
+
+            val current = activeLibrarySession
+                ?.takeIf { it.accountId == accountId && it.profileId == profileId }
+                ?.session
+                ?: openFresh()
+
+            try {
+                libraryService.block(current)
+            } catch (error: UniSdkException) {
+                if (error.errorCode != UniSdkErrorCode.LIBRARY_SESSION_EXPIRED &&
+                    error.errorCode != UniSdkErrorCode.LIBRARY_SESSION_INVALID
+                ) {
+                    throw error
+                }
+                activeLibrarySession = null
+                runCatching { libraryService.closeSession(current) }
+                if (!retryOnExpiry) throw error
+                val fresh = openFresh()
+                libraryService.block(fresh)
+            }
+        }
+        ensureActiveContext(active)
+        return result
+    }
+
+    internal suspend fun currentAuthenticatedLibrarySessionOrNull(
+        accountId: String,
+        profileId: String?,
+    ): LibrarySession? = libraryLock.withLock {
+        activeLibrarySession?.takeIf { it.accountId == accountId && it.profileId == profileId }?.session
+    }
+
     private suspend fun activeContextFor(accountId: String, profileId: String?): ActiveSessionContext =
         lock.withLock {
             val current = activeSession ?: throw InactiveAccountSessionException(accountId)
@@ -529,6 +636,7 @@ class SessionManager internal constructor(
             pendingProfileCatalog = emptyList()
             pendingProfileUsername = null
             runCatching { closeActiveSessionLocked() }
+            runCatching { closeLibrarySessionForOwner(null) }
         }
     }
 
@@ -546,6 +654,12 @@ private data class ActiveSessionContext(
     val account: UniAccountSummary,
     val profile: UniUserProfile,
     val session: UniSession,
+)
+
+private data class LibrarySessionContext(
+    val accountId: String,
+    val profileId: String?,
+    val session: LibrarySession,
 )
 
 internal fun UniUserProfile.matchesSelectedCareer(selected: LoginCareerOption?): Boolean =

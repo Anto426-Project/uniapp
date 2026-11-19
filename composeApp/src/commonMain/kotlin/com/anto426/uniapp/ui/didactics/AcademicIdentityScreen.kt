@@ -1,16 +1,13 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
-import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityUiState
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.AcademicIdentityBannerCard
 import org.jetbrains.compose.resources.stringResource
@@ -18,84 +15,79 @@ import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun AcademicIdentityScreen(uiState: AcademicIdentityUiState) {
+    val colorScheme = MaterialTheme.colorScheme
+    val glassColors = LiquidGlassTheme.colors
+
+    val detailRows = if (uiState.isProfessor) {
+        listOf(
+            Triple(
+                stringResource(Res.string.ui_professor_username),
+                uiState.username.ifBlank { "—" },
+                LiquidIcons.AccountCircle to colorScheme.primary,
+            ),
+            Triple(
+                stringResource(Res.string.ui_professor_id),
+                uiState.teacherId.ifBlank { "—" },
+                LiquidIcons.Badge to colorScheme.secondary,
+            ),
+            Triple(
+                stringResource(Res.string.ui_department_label),
+                uiState.departmentName.ifBlank { stringResource(Res.string.ui_university) },
+                LiquidIcons.MenuBook to colorScheme.tertiary,
+            ),
+            Triple(
+                stringResource(Res.string.ui_professor_department_id),
+                uiState.departmentId.ifBlank { "—" },
+                LiquidIcons.Info to colorScheme.primary,
+            ),
+        )
+    } else {
+        listOf(
+            Triple(
+                stringResource(Res.string.ui_matricola),
+                uiState.matricola.ifBlank { "—" },
+                LiquidIcons.Badge to colorScheme.primary,
+            ),
+            Triple(
+                stringResource(Res.string.ui_degree_label),
+                uiState.degreeName.ifBlank { "—" },
+                LiquidIcons.MenuBook to colorScheme.secondary,
+            ),
+            Triple(
+                stringResource(Res.string.ui_department_label),
+                uiState.departmentName.ifBlank { stringResource(Res.string.ui_university) },
+                LiquidIcons.Info to colorScheme.tertiary,
+            ),
+            Triple(
+                stringResource(Res.string.ui_enrollment_status),
+                stringResource(Res.string.ui_student_status),
+                LiquidIcons.Check to glassColors.success,
+            ),
+        )
+    }
+
     UniScreenColumn {
-        // ==========================================
-        // 1. HERO TESSERA STUDENTE (BANNER STYLE - NESSUN DOPPIO TITOLO)
-        // ==========================================
+        // 1. Hero Tessera Digitale (3D Flip Front/Back)
         AcademicIdentityBannerCard(
             uiState = uiState,
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // ==========================================
-        // 2. GRUPPO DETTAGLI ACCADEMICI (PREFERENCE GROUP STYLE)
-        // ==========================================
-        LiquidPreferenceGroup(
+        // 2. Dettagli Accademici
+        LiquidSectionHeader(
             title = stringResource(
                 if (uiState.isProfessor) Res.string.ui_professor_id_details_title
                 else Res.string.ui_student_id_details_title,
             ),
-        ) {
-            if (uiState.isProfessor) {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_professor_username),
-                    subtitle = uiState.username.ifBlank { "—" },
-                    icon = LiquidIcons.AccountCircle,
-                )
+        )
 
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_professor_id),
-                    subtitle = uiState.teacherId.ifBlank { "—" },
-                    icon = LiquidIcons.Badge,
-                )
-
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_department_label),
-                    subtitle = uiState.departmentName.ifBlank { stringResource(Res.string.ui_university) },
-                    icon = LiquidIcons.MenuBook,
-                )
-
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_professor_department_id),
-                    subtitle = uiState.departmentId.ifBlank { "—" },
-                    icon = LiquidIcons.Info,
-                )
-            } else {
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_matricola),
-                    subtitle = uiState.matricola.ifBlank { "—" },
-                    icon = LiquidIcons.Badge,
-                )
-
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_degree_label),
-                    subtitle = uiState.degreeName.ifBlank { "—" },
-                    icon = LiquidIcons.MenuBook,
-                )
-
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_department_label),
-                    subtitle = uiState.departmentName.ifBlank { stringResource(Res.string.ui_university) },
-                    icon = LiquidIcons.Info,
-                )
-
-                LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-
-                LiquidPreferenceItem(
-                    title = stringResource(Res.string.ui_enrollment_status),
-                    subtitle = stringResource(Res.string.ui_student_status),
-                    icon = LiquidIcons.Check,
+        UniInsetGroup {
+            detailRows.forEachIndexed { index, (title, value, iconPair) ->
+                UniInsetRow(
+                    title = title,
+                    subtitle = value,
+                    icon = iconPair.first,
+                    iconTint = iconPair.second,
+                    showDivider = index < detailRows.lastIndex,
                 )
             }
         }

@@ -23,6 +23,9 @@ fun AppRoute.topLevelParent(): AppRoute =
         AppRoute.Transport,
         AppRoute.TransportBooking,
         is AppRoute.ReservationDetail,
+        is AppRoute.Library,
+        is AppRoute.LibraryBookDetail,
+        AppRoute.LibraryBooking,
         AppRoute.Contacts,
         is AppRoute.ContactDetail,
         -> AppRoute.Services

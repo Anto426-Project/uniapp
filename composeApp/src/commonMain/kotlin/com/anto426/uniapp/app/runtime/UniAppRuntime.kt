@@ -18,6 +18,8 @@ import com.anto426.uniapp.updates.data.UniSdkAppUpdateSource
 import com.anto426.uniapp.updates.platform.rememberPlatformAppUpdateEnvironment
 import com.anto426.uniapp.updates.runtime.AppUpdateController
 import com.anto426.unisdk.backend.RemoteUniBackendService
+import com.anto426.unisdk.library.LibraryService
+import com.anto426.unisdk.library.RemoteLibraryService
 import com.anto426.unisdk.platform.registerPushNotificationsTokenProvider
 import com.anto426.firebase.createPushNotificationConnector
 import kotlinx.coroutines.CancellationException
@@ -41,6 +43,7 @@ class UniAppRuntime internal constructor(
     internal val updateController: AppUpdateController,
     internal val notificationManager: AppNotificationManager,
     private val backend: RemoteUniBackendService,
+    private val libraryService: LibraryService,
     private val unregisterPushTokenProvider: () -> Unit,
 ) {
     val appInfo: com.anto426.unisdk.platform.AppInfo get() = com.anto426.unisdk.platform.AppInfoProvider.current
@@ -160,6 +163,7 @@ class UniAppRuntime internal constructor(
             try {
                 sessionController.shutdown()
                 backend.close()
+                libraryService.close()
             } finally {
                 cleanupScope.cancel()
             }
@@ -176,9 +180,10 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
     val runtime =
         remember(accountStore, updateEnvironment, notificationPermissions, pushConnector) {
             val backend = RemoteUniBackendService()
+            val libraryService = RemoteLibraryService()
             val localDataStore = EncryptedUniLocalDataStore(accountStore)
             val notificationManager = AppNotificationManager(pushConnector, notificationPermissions)
-            val sessionController = SessionManager(backend, accountStore, localDataStore) { accountId ->
+            val sessionController = SessionManager(backend, accountStore, localDataStore, libraryService = libraryService) { accountId ->
                 val account = accountId?.let { id ->
                     accountStore.snapshot().accounts.firstOrNull { it.accountId == id }
                 }
@@ -207,6 +212,7 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
                     ),
                 notificationManager = notificationManager,
                 backend = backend,
+                libraryService = libraryService,
                 unregisterPushTokenProvider = unregisterPushTokenProvider,
             )
         }

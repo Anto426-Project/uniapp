@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 class ContactsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
 
     @Test
-    fun derivesRealCategoriesFromCitiesAndRemovesTutti() = runTest {
+    fun derivesRealCategoriesFromCitiesAndSupportsAllFilter() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
             val dummyContacts = listOf(
@@ -72,12 +72,20 @@ class ContactsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             assertEquals(FeatureLoadState.Content, state.loadState)
             // Real categories extracted: Campobasso, Pesche, Termoli
             assertEquals(listOf("Campobasso", "Pesche", "Termoli"), state.categories)
+            assertEquals(listOf(1, 1, 1), state.categoryCounts)
+            assertEquals(3, state.totalContactsCount)
             assertFalse(state.categories.contains("Tutti"))
 
-            // Default category selected is index 0: Campobasso
-            assertEquals(0, state.selectedCategoryIndex)
-            assertEquals(1, state.visibleContacts.size)
-            assertEquals("Mario Rossi", state.visibleContacts.first().name)
+            // Default selection shows all contacts across extracted categories
+            assertEquals(ContactsUiState.ALL_CATEGORIES_INDEX, state.selectedCategoryIndex)
+            assertEquals(3, state.visibleContacts.size)
+
+            // Select Campobasso (index 0)
+            viewModel.selectCategory(0)
+            val campobassoState = viewModel.uiState.value
+            assertEquals(0, campobassoState.selectedCategoryIndex)
+            assertEquals(1, campobassoState.visibleContacts.size)
+            assertEquals("Mario Rossi", campobassoState.visibleContacts.first().name)
 
             // Select Pesche (index 1)
             viewModel.selectCategory(1)
@@ -86,11 +94,14 @@ class ContactsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             assertEquals(1, pescheState.visibleContacts.size)
             assertEquals("Giulia Verdi", pescheState.visibleContacts.first().name)
 
-            // Search query filtering within selected category
+            // Search query filtering within selected category, then return to All
             viewModel.updateSearchQuery("Verdi")
             assertEquals(1, viewModel.uiState.value.visibleContacts.size)
             viewModel.updateSearchQuery("Inesistente")
             assertTrue(viewModel.uiState.value.visibleContacts.isEmpty())
+            viewModel.updateSearchQuery("")
+            viewModel.selectCategory(ContactsUiState.ALL_CATEGORIES_INDEX)
+            assertEquals(3, viewModel.uiState.value.visibleContacts.size)
         } finally {
             Dispatchers.resetMain()
         }

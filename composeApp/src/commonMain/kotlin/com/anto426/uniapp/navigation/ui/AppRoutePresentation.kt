@@ -167,6 +167,22 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
             subtitleRes = Res.string.nav_route_reservation_detail_subtitle,
             icon = LiquidIcons.Calendar,
         )
+        is AppRoute.Library -> AppRoutePresentation(
+            titleRes = Res.string.nav_route_library_title,
+            subtitleRes = Res.string.nav_route_library_subtitle,
+            icon = LiquidIcons.MenuBook,
+        )
+        is AppRoute.LibraryBookDetail -> AppRoutePresentation(
+            titleString = title.ifBlank { null },
+            titleRes = if (title.isBlank()) Res.string.nav_route_library_book_detail_title else null,
+            subtitleRes = Res.string.nav_route_library_book_detail_subtitle,
+            icon = LiquidIcons.MenuBook,
+        )
+        AppRoute.LibraryBooking -> AppRoutePresentation(
+            titleRes = Res.string.nav_route_library_booking_title,
+            subtitleRes = Res.string.nav_route_library_booking_subtitle,
+            icon = LiquidIcons.Calendar,
+        )
         is AppRoute.Transcripts -> AppRoutePresentation(
             titleRes = Res.string.nav_route_transcripts_title,
             subtitleRes = Res.string.nav_route_transcripts_subtitle,

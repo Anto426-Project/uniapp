@@ -3,19 +3,23 @@ package com.anto426.uniapp.ui.didactics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
-import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.uniapp.didactics.presentation.StudyPlanUiState
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
+import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.items.StudyCourseItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-
+import com.anto426.uniapp.ui.didactics.components.CareerStatusFilterRow
+import com.anto426.uniapp.ui.didactics.components.CareerSummaryHeroCard
+import com.anto426.uniapp.ui.didactics.components.CareerYearChipRow
+import com.anto426.uniapp.ui.didactics.components.careerYearLabel
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -23,47 +27,101 @@ import uniapp.composeapp.generated.resources.*
 fun StudyPlanScreen(
     uiState: StudyPlanUiState,
     onYearSelected: (Int) -> Unit,
-    onCourseClick: (StudyCourse) -> Unit = {}
+    onCourseClick: (StudyCourse) -> Unit = {},
+    onStatusFilterChanged: (CourseStatus?) -> Unit = {},
 ) {
-    val tabs = uiState.years.map { year -> LiquidNavigationItem(label =
-        if (year.yearNumber > 0) stringResource(Res.string.ui_year_nth, year.yearNumber)
-        else stringResource(Res.string.ui_year_unspecified)) }
-
     UniScreenColumn {
-        // 1. Year Tab Selector
-        if (tabs.isNotEmpty()) {
-            LiquidTabBar(
-                items = tabs,
-                selectedIndex = uiState.selectedYearIndex.coerceIn(0, tabs.lastIndex),
-                onTabSelected = onYearSelected,
+        StudyPlanContent(
+            uiState = uiState,
+            onYearSelected = onYearSelected,
+            onCourseClick = onCourseClick,
+            onStatusFilterChanged = onStatusFilterChanged,
+        )
+    }
+}
+
+@Composable
+fun StudyPlanContent(
+    uiState: StudyPlanUiState,
+    onYearSelected: (Int) -> Unit,
+    onCourseClick: (StudyCourse) -> Unit = {},
+    onStatusFilterChanged: (CourseStatus?) -> Unit = {},
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val yearNumbers = uiState.years.map { it.yearNumber }
+    val selectedYearNumber = uiState.years.getOrNull(uiState.selectedYearIndex)?.yearNumber ?: 0
+    val remainingCount = (uiState.totalCoursesCount - uiState.completedCount).coerceAtLeast(0)
+
+    val metaPills = buildList {
+        add(stringResource(Res.string.ui_career_exams_count, uiState.totalCoursesCount) to colorScheme.primary)
+        if (remainingCount > 0) {
+            add("$remainingCount ${stringResource(Res.string.ui_career_to_complete).lowercase()}" to colorScheme.secondary)
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        CareerSummaryHeroCard(
+            kicker = stringResource(Res.string.ui_career_summary_plan),
+            headlineValue = "${uiState.completedCount}/${uiState.totalCoursesCount}",
+            headlineUnit = stringResource(Res.string.ui_status_completed),
+            metaPills = metaPills,
+            acquiredCfu = uiState.acquiredCfu,
+            targetCfu = uiState.totalCfu.coerceAtLeast(1),
+        )
+
+        if (yearNumbers.isNotEmpty()) {
+            CareerYearChipRow(
+                years = yearNumbers,
+                selectedYear = selectedYearNumber,
+                onYearSelected = { targetYear ->
+                    val index = uiState.years.indexOfFirst { it.yearNumber == targetYear }
+                    if (index >= 0) onYearSelected(index)
+                },
             )
         }
 
-        // 2. Courses Grouped by Year
+        CareerStatusFilterRow(
+            selectedStatus = uiState.statusFilter,
+            onStatusSelected = onStatusFilterChanged,
+        )
+
         uiState.displayedYears.forEach { yearGroup ->
-            val totalYearCfu = yearGroup.courses.sumOf { course ->
-                course.cfu.filter { it.isDigit() }.toIntOrNull() ?: 0
-            }
+            val totalYearCfu = yearGroup.courses.sumOf { course -> course.cfu.firstAcademicIntegerOrNull() ?: 0 }
             val completedCount = yearGroup.courses.count { it.status == CourseStatus.COMPLETED }
+            val filteredCourses = when (uiState.statusFilter) {
+                null -> yearGroup.courses
+                CourseStatus.COMPLETED -> yearGroup.courses.filter { it.status == CourseStatus.COMPLETED }
+                CourseStatus.ACTIVE, CourseStatus.PLANNED -> yearGroup.courses.filter { it.status != CourseStatus.COMPLETED }
+            }
 
             LiquidSectionHeader(
-                title = if (yearGroup.yearNumber > 0) stringResource(Res.string.ui_year_nth, yearGroup.yearNumber)
-                    else stringResource(Res.string.ui_year_unspecified),
-                subtitle = stringResource(Res.string.ui_study_plan_year_summary, totalYearCfu, completedCount, yearGroup.courses.size),
+                title = careerYearLabel(yearGroup.yearNumber),
+                subtitle = stringResource(
+                    Res.string.ui_study_plan_year_summary,
+                    totalYearCfu,
+                    completedCount,
+                    yearGroup.courses.size,
+                ),
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer(clip = false),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                yearGroup.courses.forEach { course ->
-                    StudyCourseItem(
-                        course = course,
-                        onClick = { onCourseClick(course) },
-                    )
+            if (filteredCourses.isNotEmpty()) {
+                UniInsetGroup {
+                    filteredCourses.forEachIndexed { index, course ->
+                        StudyCourseItem(
+                            course = course,
+                            showDivider = index < filteredCourses.lastIndex,
+                            onClick = { onCourseClick(course) },
+                        )
+                    }
                 }
+            } else {
+                LiquidEmptyState(
+                    title = stringResource(Res.string.ui_career_filter_empty),
+                    description = stringResource(Res.string.ui_career_filter_empty_desc),
+                )
             }
         }
     }

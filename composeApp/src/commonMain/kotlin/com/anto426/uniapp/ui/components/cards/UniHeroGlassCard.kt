@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -438,6 +438,28 @@ fun UniHeroGlassCard(
             internalFlipped = target
         }
     }
+    val flipOnTap = backContent != null && flipTrigger == UniHeroFlipTrigger.CLICK
+    val flipOnLongPress = backContent != null && flipTrigger == UniHeroFlipTrigger.LONG_PRESS
+    val tapCard: (() -> Unit)? = if (flipped || flipOnTap || onClick != null) {
+        {
+            if (flipped) {
+                setFlipped(false)
+            } else {
+                if (flipOnTap) setFlipped(true)
+                onClick?.invoke()
+            }
+        }
+    } else {
+        null
+    }
+    val longPressCard: (() -> Unit)? = if (flipOnLongPress || onLongPress != null) {
+        {
+            if (flipOnLongPress) setFlipped(!flipped)
+            onLongPress?.invoke()
+        }
+    } else {
+        null
+    }
 
     val performance = LocalLiquidGlassPerformance.current
     val rotation by animateLiquidFloatAsState(
@@ -476,7 +498,7 @@ fun UniHeroGlassCard(
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
-            .height(height)
+            .heightIn(min = height)
             .graphicsLayer {
                 rotationY = rotation
                 cameraDistance = 14f * density
@@ -484,6 +506,7 @@ fun UniHeroGlassCard(
         shape = shape,
         contentPadding = 0.dp,
         colors = LiquidCardDefaults.colors(containerColor = Color.Transparent),
+        onClick = if (longPressCard == null) tapCard else null,
     ) {
         MaterialTheme(colorScheme = heroColorScheme) {
             CompositionLocalProvider(
@@ -492,30 +515,23 @@ fun UniHeroGlassCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .heightIn(min = height)
                         .clip(shape)
-                .pointerInput(flipTrigger, flipped) {
-                    detectTapGestures(
-                        onLongPress = {
-                            if (flipTrigger == UniHeroFlipTrigger.LONG_PRESS) {
-                                setFlipped(!flipped)
-                            }
-                            onLongPress?.invoke()
-                        },
-                        onTap = {
-                            if (flipped) {
-                                // Toccando il retro si torna sempre al fronte
-                                setFlipped(false)
-                            } else {
-                                if (flipTrigger == UniHeroFlipTrigger.CLICK) {
-                                    setFlipped(true)
+                        .then(
+                            if (longPressCard != null) {
+                                Modifier.pointerInput(flipTrigger, flipped, tapCard, longPressCard) {
+                                    detectTapGestures(
+                                        onTap = { tapCard?.invoke() },
+                                        onLongPress = { longPressCard.invoke() },
+                                    )
                                 }
-                                onClick?.invoke()
+                            } else {
+                                Modifier
                             }
-                        },
-                    )
-                },
-        ) {
+                        ),
+                    propagateMinConstraints = true,
+                ) {
             if (backgroundContent != null) {
                 backgroundContent(cardArtworkBackdrop)
             } else {
@@ -528,20 +544,27 @@ fun UniHeroGlassCard(
                     UniHeroFluidBackground(alpha = 0.98f, palette = palette)
                 }
 
-                // 2. Lenti ottiche in vetro
-                UniHeroGlassLenses(cardArtworkBackdrop)
+                // 2. Lenti ottiche in vetro (vincolate a matchParentSize per non espandere le card compatte)
+                Box(modifier = Modifier.matchParentSize()) {
+                    UniHeroGlassLenses(cardArtworkBackdrop)
+                }
             }
 
             // 3. Facce della card in base alla rotazione
             if (rotation <= 90f) {
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = height),
+                    propagateMinConstraints = true,
+                ) {
                     frontContent()
                 }
             } else {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .heightIn(min = height)
                         .graphicsLayer { rotationY = 180f },
+                    propagateMinConstraints = true,
                 ) {
                     backContent?.invoke(this)
                 }

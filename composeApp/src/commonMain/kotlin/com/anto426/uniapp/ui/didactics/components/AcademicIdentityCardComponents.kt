@@ -41,8 +41,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.border
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -123,11 +125,11 @@ private fun AcademicIdentityFrontFace(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f, fill = false),
+                modifier = Modifier.weight(1f).padding(end = 10.dp),
             ) {
                 UniAppBrandLogo(modifier = Modifier.size(40.dp))
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -152,6 +154,7 @@ private fun AcademicIdentityFrontFace(
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -197,6 +200,14 @@ private fun AcademicIdentityFrontFace(
                 initials = uiState.initials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
                 size = 86.dp,
                 contentDescription = stringResource(Res.string.ui_profile_picture),
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .border(
+                        width = 2.dp,
+                        color = colorScheme.primary.copy(alpha = 0.42f),
+                        shape = CircleShape,
+                    )
+                    .padding(3.dp),
             )
 
             Column(
@@ -216,6 +227,7 @@ private fun AcademicIdentityFrontFace(
                     textAlign = TextAlign.Center,
                     fontSize = 20.sp,
                     maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Text(
@@ -228,7 +240,8 @@ private fun AcademicIdentityFrontFace(
                     fontWeight = FontWeight.SemiBold,
                     color = colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    maxLines = 1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
@@ -297,11 +310,11 @@ private fun AcademicIdentityBackFace(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f, fill = false),
+                modifier = Modifier.weight(1f).padding(end = 10.dp),
             ) {
                 UniAppBrandLogo(modifier = Modifier.size(40.dp))
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -326,6 +339,7 @@ private fun AcademicIdentityBackFace(
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

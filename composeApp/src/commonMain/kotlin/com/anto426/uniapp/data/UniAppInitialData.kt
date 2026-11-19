@@ -28,7 +28,6 @@ object UniAppInitialData {
             subtitleRes = Res.string.portal_prof_library_sub,
             icon = LiquidIcons.MenuBook,
             id = "library",
-            badgeLabelRes = Res.string.ui_services_in_app_soon,
         ),
     )
 
@@ -47,7 +46,6 @@ object UniAppInitialData {
             subtitleRes = Res.string.portal_prof_library_sub,
             icon = LiquidIcons.MenuBook,
             id = "library",
-            badgeLabelRes = Res.string.ui_services_in_app_soon,
         ),
     )
 
@@ -121,6 +119,15 @@ object UniAppInitialData {
 
     val languages = listOf(
         LanguageInfo(Res.string.ui_course_lang_italian, Res.string.ui_language_italian_default, "it"),
+        LanguageInfo(Res.string.ui_language_english, Res.string.ui_language_english_region, "en"),
+        LanguageInfo(Res.string.ui_language_french, Res.string.ui_language_french_region, "fr"),
+        LanguageInfo(Res.string.ui_language_spanish, Res.string.ui_language_spanish_region, "es"),
+        LanguageInfo(Res.string.ui_language_german, Res.string.ui_language_german_region, "de"),
+        LanguageInfo(Res.string.ui_language_portuguese, Res.string.ui_language_portuguese_region, "pt"),
+        LanguageInfo(Res.string.ui_language_dutch, Res.string.ui_language_dutch_region, "nl"),
+        LanguageInfo(Res.string.ui_language_polish, Res.string.ui_language_polish_region, "pl"),
+        LanguageInfo(Res.string.ui_language_chinese, Res.string.ui_language_chinese_region, "zh"),
+        LanguageInfo(Res.string.ui_language_japanese, Res.string.ui_language_japanese_region, "ja"),
     )
 
     val palettes = listOf(

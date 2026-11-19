@@ -1,12 +1,10 @@
 package com.anto426.uniapp.ui.settings
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,7 +36,6 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.components.feedback.sheet.LiquidSheet
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
@@ -341,48 +338,15 @@ fun SettingsScreen(
             )
         }
 
-        // 5. Sessione (azione distruttiva ben separata)
-        LiquidCard(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 52.dp)
-                .semantics(mergeDescendants = true) {}
-                .graphicsLayer(clip = false),
-            shape = RoundedRectangle(20.dp),
-            border = BorderStroke(1.dp, colorScheme.error.copy(alpha = 0.25f)),
-            onClick = onRequestSignOut,
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Close,
-                    contentDescription = null,
-                    tint = colorScheme.error,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 32.dp,
-                        iconSize = 17.dp,
-                        containerColor = colorScheme.error.copy(alpha = 0.14f),
-                        shape = RoundedRectangle(9.dp),
-                    ),
-                )
-                Text(
-                    text = stringResource(Res.string.ui_sign_out),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorScheme.error,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    imageVector = LiquidIcons.ChevronRight,
-                    contentDescription = null,
-                    tint = colorScheme.error.copy(alpha = 0.55f),
-                    modifier = Modifier.size(16.dp),
-                )
-            }
+        // 5. Sessione
+        UniInsetGroup {
+            UniInsetRow(
+                title = stringResource(Res.string.ui_sign_out),
+                icon = LiquidIcons.Close,
+                iconTint = colorScheme.error,
+                onClick = onRequestSignOut,
+                showDivider = false,
+            )
         }
     }
 

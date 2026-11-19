@@ -1,10 +1,14 @@
 package com.anto426.uniapp.ui.services
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,13 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
@@ -28,6 +31,8 @@ import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.model.services.contactDialUri
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.encodeURLParameter
@@ -35,6 +40,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ContactDetailScreen(contact: ContactData) {
     val uriHandler = LocalUriHandler.current
@@ -68,6 +74,10 @@ fun ContactDetailScreen(contact: ContactData) {
         }
     }
 
+    val combinedLocation = listOfNotNull(
+        contact.building.trim().takeIf { it.isNotBlank() },
+        contact.address.trim().takeIf { it.isNotBlank() },
+    ).joinToString(" • ")
     val locationFields = listOf(
         ContactDetailField(Res.string.ui_contact_organization, contact.department, LiquidIcons.Info),
         ContactDetailField(Res.string.ui_contact_location, contact.city, LiquidIcons.Home),
@@ -75,7 +85,7 @@ fun ContactDetailScreen(contact: ContactData) {
         ContactDetailField(Res.string.ui_contact_building, contact.building, LiquidIcons.Home),
         ContactDetailField(
             Res.string.ui_office,
-            contact.office.takeIf { contact.address.isBlank() && contact.building.isBlank() }.orEmpty(),
+            contact.office.takeIf { it.isNotBlank() && !it.equals(combinedLocation, ignoreCase = true) }.orEmpty(),
             LiquidIcons.Home,
         ),
         ContactDetailField(Res.string.ui_office_hours, contact.officeHours, LiquidIcons.Time),
@@ -85,7 +95,8 @@ fun ContactDetailScreen(contact: ContactData) {
         // Hero Card Contatto
         LiquidCard(
             shape = RoundedRectangle(24.dp),
-            contentPadding = 20.dp,
+            contentPadding = PaddingValues(18.dp),
+            border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.20f)),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -103,13 +114,15 @@ fun ContactDetailScreen(contact: ContactData) {
 
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
                             text = contact.name,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
 
                         if (contact.role.isNotBlank()) {
@@ -117,22 +130,48 @@ fun ContactDetailScreen(contact: ContactData) {
                                 text = contact.role,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colorScheme.onSurfaceVariant,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
 
-                        if (contact.department.isNotBlank()) {
-                            LiquidBadge(
+                        if (contact.department.isNotBlank() && contact.department != contact.role) {
+                            Text(
                                 text = contact.department,
-                                containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                                contentColor = colorScheme.primary,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.primary,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
                             )
+                        }
+
+                        if (contact.city.isNotBlank() || contact.building.isNotBlank()) {
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                if (contact.city.isNotBlank()) {
+                                    LiquidBadge(
+                                        text = contact.city,
+                                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                                        contentColor = colorScheme.primary,
+                                    )
+                                }
+                                if (contact.building.isNotBlank()) {
+                                    LiquidBadge(
+                                        text = contact.building,
+                                        containerColor = colorScheme.secondary.copy(alpha = 0.12f),
+                                        contentColor = colorScheme.secondary,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
-                // Pulsanti Azione Rapida Inline (Scrivi Email / Chiama)
                 if (emailUri != null || firstPhoneUri != null) {
-                    LiquidHorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -148,9 +187,9 @@ fun ContactDetailScreen(contact: ContactData) {
                                         toastSink.error(openFailed)
                                     }
                                 },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                                 variant = LiquidButtonVariant.Primary,
-                                size = LiquidButtonSize.Small,
+                                size = LiquidButtonSize.Medium,
                             )
                         }
 
@@ -164,9 +203,9 @@ fun ContactDetailScreen(contact: ContactData) {
                                         toastSink.error(openFailed)
                                     }
                                 },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                                 variant = LiquidButtonVariant.Tonal,
-                                size = LiquidButtonSize.Small,
+                                size = LiquidButtonSize.Medium,
                             )
                         }
                     }
@@ -203,14 +242,15 @@ private fun ContactDetailGroup(
     fields: List<ContactDetailField>,
     onOpenUri: (String) -> Unit = {},
 ) {
-    LiquidPreferenceGroup(title = stringResource(title)) {
+    UniInsetGroup(title = stringResource(title)) {
         fields.forEachIndexed { index, field ->
-            if (index > 0) LiquidHorizontalDivider()
-            LiquidPreferenceItem(
+            UniInsetRow(
                 title = stringResource(field.label),
                 subtitle = field.value,
                 icon = field.icon,
+                iconTint = MaterialTheme.colorScheme.primary,
                 onClick = field.uri?.let { uri -> { onOpenUri(uri) } },
+                showDivider = index < fields.lastIndex,
             )
         }
     }

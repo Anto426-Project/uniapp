@@ -11,6 +11,8 @@ class UniSdkErrorMessagesTest {
     fun knownCodesHaveApplicationResources() {
         assertNotNull(sdkErrorResource("UNI_AUTH_INVALID_CREDENTIALS"))
         assertNotNull(sdkErrorResource("UNI_TRANSPORT_BOOKING_UNVERIFIED"))
+        assertNotNull(sdkErrorResource("UNI_LIBRARY_BOOKING_REJECTED"))
+        assertNotNull(sdkErrorResource("UNI_LIBRARY_SESSION_EXPIRED"))
         assertNull(sdkErrorResource("UNI_FUTURE_UNKNOWN_ERROR"))
         assertNull(sdkErrorResource("Server provided text"))
     }

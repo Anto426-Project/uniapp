@@ -24,12 +24,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.anto426.uniapp.ui.components.layout.UniContentHost
 import androidx.compose.ui.draw.clip
+import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
+import com.anto426.liquidmonet.motion.LiquidMotion
+import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
+import com.anto426.uniapp.ui.components.layout.UniContentHost
+import com.anto426.uniapp.ui.motion.UniMotion
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.LayerOutsets
@@ -50,6 +55,7 @@ import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.home.presentation.HomeDashboardUiState
@@ -58,7 +64,6 @@ import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
-import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.items.UniNewsCard
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
@@ -305,106 +310,111 @@ fun HomeSummarySection(
                     }
                 }
             } else {
-                Row(
+                val cfuPercentage = (uiState.progress * 100).toInt().coerceIn(0, 100)
+                val targetCfuLabel = uiState.targetCfu.takeIf { it > 0 }?.toString() ?: "—"
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 18.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Text(
-                                text = uiState.degreeName.ifBlank {
-                                    uiState.departmentName.ifBlank { stringResource(Res.string.ui_home_career_eyebrow) }
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                            if (uiState.completedExams > 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
                                 Text(
-                                    text = "• ${stringResource(Res.string.ui_didactics_exams_badge, uiState.completedExams).lowercase()}",
-                                    style = MaterialTheme.typography.labelMedium,
+                                    text = uiState.degreeName.ifBlank {
+                                        uiState.departmentName.ifBlank { stringResource(Res.string.ui_home_career_eyebrow) }
+                                    },
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = colorScheme.onSurfaceVariant,
                                     maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                )
+                                if (uiState.completedExams > 0) {
+                                    Text(
+                                        text = "• ${stringResource(Res.string.ui_didactics_exams_badge, uiState.completedExams).lowercase()}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    text = uiState.average,
+                                    style = MaterialTheme.typography.displaySmall,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = (-1.0).sp,
+                                    color = colorScheme.onSurface,
+                                    maxLines = 1,
+                                )
+                                Text(
+                                    text = stringResource(Res.string.ui_home_average_label).lowercase(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 5.dp),
                                 )
                             }
-                        }
 
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
                             Text(
-                                text = uiState.average,
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = (-1.0).sp,
-                                color = colorScheme.onSurface,
+                                text = "${stringResource(Res.string.ui_graduation_base)} ${uiState.degreeBase}/110",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.primary,
                                 maxLines = 1,
-                            )
-                            Text(
-                                text = stringResource(Res.string.ui_home_average_label).lowercase(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 5.dp),
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
 
-                        Text(
-                            text = "${stringResource(Res.string.ui_graduation_base)} ${uiState.degreeBase}/110",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.primary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        Icon(
+                            imageVector = LiquidIcons.ChevronRight,
+                            contentDescription = stringResource(Res.string.ui_details),
+                            tint = colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
                         )
                     }
 
-                    Spacer(Modifier.width(12.dp))
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            UniCircularProgressRing(
-                                progress = uiState.progress,
-                                centerText = "${(uiState.progress * 100).toInt()}%",
-                                subtitleText = "CFU",
-                                size = 68.dp,
-                                strokeWidth = 6.5.dp,
-                                primaryColor = colorScheme.primary,
-                                secondaryColor = colorScheme.tertiary,
+                            Text(
+                                text = "${uiState.acquiredCfu}/$targetCfuLabel CFU",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 1,
                             )
-                            Icon(
-                                imageVector = LiquidIcons.ChevronRight,
-                                contentDescription = stringResource(Res.string.ui_details),
-                                tint = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp),
+                            Text(
+                                text = "$cfuPercentage%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                                maxLines = 1,
                             )
                         }
-                        Text(
-                            text = "${uiState.acquiredCfu}/${uiState.targetCfu.takeIf { it > 0 } ?: "—"} CFU",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            modifier = Modifier.padding(end = 22.dp),
+                        LiquidLinearProgressIndicator(
+                            progress = uiState.progress,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -509,7 +519,6 @@ fun HomeSpotlightRow(
             },
             accentColor = if (hasDueTaxes) glassColors.warning else glassColors.success,
             valueColor = if (hasDueTaxes) glassColors.warning else colorScheme.onSurface,
-            border = if (hasDueTaxes) BorderStroke(1.dp, glassColors.warning.copy(alpha = 0.35f)) else null,
             onClick = if (uiState.isProfessor) onOpenTheses else onOpenTaxes,
             modifier = Modifier.weight(1f),
         )
@@ -524,7 +533,6 @@ private fun AppleHomeWidgetTile(
     icon: ImageVector,
     accentColor: Color,
     valueColor: Color = MaterialTheme.colorScheme.onSurface,
-    border: BorderStroke? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -535,7 +543,6 @@ private fun AppleHomeWidgetTile(
             .graphicsLayer(clip = false)
             .semantics(mergeDescendants = true) {},
         shape = RoundedRectangle(20.dp),
-        border = border,
         onClick = onClick,
     ) {
         Column(
@@ -828,7 +835,8 @@ fun HomeQuickAccessGroup(
             UniContentHost(
                 targetState = isCustomizing,
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.TopStart,
+                transition = UniMotion.inlineContentTransition,
+                contentAlignment = Alignment.TopCenter,
                 label = "QuickAccessModeTransition",
             ) { editing ->
                 val items = if (editing) allActions else visibleActions
@@ -899,12 +907,18 @@ private fun QuickAccessBentoTile(
         editing && !selected -> BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.45f))
         else -> null
     }
+    val performance = LocalLiquidGlassPerformance.current
+    val tileAlpha by animateLiquidFloatAsState(
+        targetValue = if (isActive) 1f else 0.62f,
+        animationSpec = remember(performance) { LiquidMotion.spatialSpring(performance) },
+        label = "quickAccessTileAlpha",
+    )
     val tileModifier = modifier
         .semantics(mergeDescendants = true) {
             if (editing) this.selected = selected
         }
         .graphicsLayer {
-            alpha = if (isActive) 1f else 0.62f
+            alpha = tileAlpha
             // Dimmed tiles need room for their press and drag to draw outside the layout.
             outsets = if (alpha < 1f) LayerOutsets(40.dp) else LayerOutsets.Zero
         }

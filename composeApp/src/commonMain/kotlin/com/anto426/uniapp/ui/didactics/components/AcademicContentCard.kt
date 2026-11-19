@@ -75,14 +75,14 @@ fun AcademicContentCard(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f, fill = false),
                         )
                         item.code?.takeIf(String::isNotBlank)?.let { code ->
                             LiquidBadge(
                                 text = code,
-                                containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                containerColor = colorScheme.primary.copy(alpha = 0.14f),
                                 contentColor = colorScheme.primary,
                             )
                         }

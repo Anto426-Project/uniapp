@@ -22,7 +22,7 @@ class ContactsViewModel(
 ) : ViewModel() {
     private var contacts: List<ContactData> = emptyList()
     private var categories: List<String> = emptyList()
-    private var selectedCategoryIndex = 0
+    private var selectedCategoryIndex = ContactsUiState.ALL_CATEGORIES_INDEX
     private var selectedCategoryName: String? = null
     private var groupByCity = false
     private var unspecifiedCategory = ""
@@ -54,12 +54,12 @@ class ContactsViewModel(
     }
 
     fun selectCategory(index: Int) {
-        if (categories.isNotEmpty()) {
+        if (index == ContactsUiState.ALL_CATEGORIES_INDEX || categories.isEmpty()) {
+            selectedCategoryIndex = ContactsUiState.ALL_CATEGORIES_INDEX
+            selectedCategoryName = null
+        } else {
             selectedCategoryIndex = index.coerceIn(categories.indices)
             selectedCategoryName = categories.getOrNull(selectedCategoryIndex)
-        } else {
-            selectedCategoryIndex = 0
-            selectedCategoryName = null
         }
         publishState()
     }
@@ -85,8 +85,8 @@ class ContactsViewModel(
         if (currentName != null && categories.contains(currentName)) {
             selectedCategoryIndex = categories.indexOf(currentName)
         } else {
-            selectedCategoryIndex = 0
-            selectedCategoryName = categories.firstOrNull()
+            selectedCategoryIndex = ContactsUiState.ALL_CATEGORIES_INDEX
+            selectedCategoryName = null
         }
     }
 
@@ -98,7 +98,11 @@ class ContactsViewModel(
     }
 
     private fun buildUiState(): ContactsUiState {
-        val currentCategory = categories.getOrNull(selectedCategoryIndex).orEmpty()
+        val currentCategory = if (selectedCategoryIndex == ContactsUiState.ALL_CATEGORIES_INDEX) {
+            ""
+        } else {
+            categories.getOrNull(selectedCategoryIndex).orEmpty()
+        }
         val byCategory = if (currentCategory.isNotEmpty()) {
             contacts.filter {
                 categoryValue(it).ifBlank { unspecifiedCategory }.equals(currentCategory, ignoreCase = true)
@@ -125,10 +129,17 @@ class ContactsViewModel(
                         contact.lastName.contains(normalizedQuery, ignoreCase = true)
                 }
             }
+        val categoryCounts = categories.map { categoryName ->
+            contacts.count {
+                categoryValue(it).ifBlank { unspecifiedCategory }.equals(categoryName, ignoreCase = true)
+            }
+        }
         return ContactsUiState(
             categories = categories,
+            categoryCounts = categoryCounts,
             selectedCategoryIndex = selectedCategoryIndex,
             visibleContacts = visible,
+            totalContactsCount = contacts.size,
             loadState = if (contacts.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
         )
     }

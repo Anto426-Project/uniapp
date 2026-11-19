@@ -27,7 +27,7 @@ fun UniTabbedScreen(
             selectedIndex = selectedTab,
             onTabSelected = onTabSelected,
             modifier = Modifier.padding(start = 18.dp, end = 18.dp,
-                top = screenPadding.calculateTopPadding() + 12.dp, bottom = 8.dp),
+                top = screenPadding.calculateTopPadding(), bottom = 8.dp),
         )
         Box(Modifier.weight(1f)) {
             CompositionLocalProvider(LocalUniScreenPadding provides PaddingValues(

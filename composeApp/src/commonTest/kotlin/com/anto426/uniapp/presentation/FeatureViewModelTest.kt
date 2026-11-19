@@ -74,6 +74,11 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
 
         assertEquals(1, viewModel.uiState.value.pendingPayments.size)
         assertEquals(1, viewModel.uiState.value.paidPayments.size)
+        assertEquals("€ 100.00", viewModel.uiState.value.dueAmountLabel)
+        assertEquals("€ 20.00", viewModel.uiState.value.paidTotalLabel)
+        assertEquals("domani", viewModel.uiState.value.nextDueDate)
+        viewModel.selectFilter(com.anto426.uniapp.services.presentation.TaxesFilter.PENDING)
+        assertEquals(com.anto426.uniapp.services.presentation.TaxesFilter.PENDING, viewModel.uiState.value.filter)
     }
 
     @Test
@@ -179,6 +184,12 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
 
         assertEquals(listOf(1, 4), viewModel.uiState.value.years.map { it.yearNumber })
         assertEquals(1, viewModel.uiState.value.displayedYears.single().yearNumber)
+        assertEquals(1, viewModel.uiState.value.completedCount)
+        assertEquals(2, viewModel.uiState.value.totalCoursesCount)
+        assertEquals(9, viewModel.uiState.value.acquiredCfu)
+        assertEquals(180, viewModel.uiState.value.totalCfu)
+        viewModel.selectStatusFilter(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED)
+        assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED, viewModel.uiState.value.statusFilter)
         viewModel.selectYear(1)
         assertEquals(4, viewModel.uiState.value.displayedYears.single().yearNumber)
     }
@@ -224,6 +235,12 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals(listOf(1, 2, 0), viewModel.uiState.value.availableYears)
         assertEquals(1, viewModel.uiState.value.selectedYear)
         assertEquals(listOf(1), viewModel.uiState.value.displayedYears)
+        assertEquals("28.0", viewModel.uiState.value.averageLabel)
+        assertEquals("102.0", viewModel.uiState.value.degreeBaseLabel)
+        assertEquals(18, viewModel.uiState.value.acquiredCfu)
+        assertEquals(180, viewModel.uiState.value.targetCfu)
+        assertEquals(5, viewModel.uiState.value.totalExamsCount)
+        assertEquals(1, viewModel.uiState.value.lodeCount)
         viewModel.selectYear(2)
         assertEquals(2, viewModel.uiState.value.selectedYear)
         assertEquals(listOf(2), viewModel.uiState.value.displayedYears)
@@ -325,6 +342,38 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals(listOf("9 CFU"), viewModel.uiState.value.cfuEntries.map { it.label })
         assertTrue(viewModel.uiState.value.cfuMax >= 2f)
         assertTrue(initial.isNotEmpty())
+    }
+
+    @Test
+    fun gradesSimulationSelectionsSurviveRefresh() = runViewModelTest {
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadCareer(forceRefresh: Boolean) = Career(
+                average = "25.0",
+                degreeBase = "91.67",
+                cfu = "12",
+                cfuTarget = 168,
+                year = "1",
+                status = "Attivo",
+                exams = listOf(CareerExam("Analisi", "25", "01/02/2026", 12, "A")),
+            )
+
+            override suspend fun loadStudyPlan(forceRefresh: Boolean) = StudyPlan(
+                courses = listOf(
+                    StudyPlanCourse("Reti", cfu = 9, year = 2, completed = false, adsceId = "course-reti"),
+                ),
+            )
+        }
+        val viewModel = GradesViewModel(source)
+        advanceUntilIdle()
+
+        viewModel.updateSimulatedGrade("course-reti", 30)
+        viewModel.refresh(force = true)
+        advanceUntilIdle()
+
+        val item = viewModel.uiState.value.simulationItems.single()
+        assertEquals(true, item.isEnabled)
+        assertEquals(30, item.grade)
+        assertEquals(168, viewModel.uiState.value.degreeCfuTarget)
     }
 
     @Test

@@ -9,6 +9,7 @@ import uniapp.composeapp.generated.resources.*
 /** One SDK preset for changing app content; the SDK owns timing and reduced motion. */
 internal object UniMotion {
     val contentTransition = LiquidSwitcherTransition.DirectionalHorizontal
+    val inlineContentTransition = LiquidSwitcherTransition.Crossfade
 
     val options = (listOf(contentTransition) + LiquidSwitcherTransition.entries.filter {
         it != contentTransition && it != LiquidSwitcherTransition.None

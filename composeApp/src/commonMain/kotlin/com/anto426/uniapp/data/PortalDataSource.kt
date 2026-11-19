@@ -50,6 +50,10 @@ class PortalDataSource(
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val requestLocksGuard = Mutex()
     private val requestLocks = mutableMapOf<String, Mutex>()
+    private val libraryGateway = com.anto426.uniapp.library.data.PortalLibraryGateway(sessions) {
+        val context = activeContext()
+        context.accountId to context.sessionState.account.activeProfileId
+    }
 
     private fun ActiveAccountContext.profileScopedKey(key: String): String =
         profileCacheKey(sessionState.account.activeProfileId, key)
@@ -347,6 +351,56 @@ class PortalDataSource(
             safelyMarkTransportSnapshotStale(context, removedBookingId = bookingId.takeIf { imageRemoved })
         }
     }
+
+    override suspend fun searchLibraryBooks(query: String, page: Int) =
+        libraryGateway.searchBooks(query, page)
+
+    override suspend fun loadLibraryBook(id: String) =
+        libraryGateway.loadBook(id)
+
+    override suspend fun prepareLibraryBookRequest(bookId: String, actionId: String) =
+        libraryGateway.prepareBookRequest(bookId, actionId)
+
+    override suspend fun confirmLibraryBookRequest(draftId: String) =
+        libraryGateway.confirmBookRequest(draftId)
+
+    override suspend fun loadLibraryMovements(forceRefresh: Boolean) =
+        libraryGateway.loadMovements()
+
+    override suspend fun cancelLibraryMovement(movementToken: String) =
+        libraryGateway.cancelMovement(movementToken)
+
+    override suspend fun renewLibraryMovement(movementToken: String) =
+        libraryGateway.renewMovement(movementToken)
+
+    override suspend fun loadLibraryBookingOverview() =
+        libraryGateway.loadBookingOverview()
+
+    override suspend fun loadLibraryResourceSelection(contextId: String, typeId: String) =
+        libraryGateway.loadResourceSelection(contextId, typeId)
+
+    override suspend fun loadLibraryResourcesForOwner(ownerId: String) =
+        libraryGateway.loadResourcesForOwner(ownerId)
+
+    override suspend fun loadLibraryCalendar(
+        contextId: String,
+        resourceId: String,
+        fromDate: kotlinx.datetime.LocalDate?,
+        toDate: kotlinx.datetime.LocalDate?,
+    ) = libraryGateway.loadCalendar(contextId, resourceId, fromDate, toDate)
+
+    override suspend fun loadLibraryCalendarPage(calendarId: String, page: Int) =
+        libraryGateway.loadCalendarPage(calendarId, page)
+
+    override suspend fun bookLibrarySpace(
+        calendarId: String,
+        slotIds: List<String>,
+        note: String,
+        deviceAddresses: Map<String, String>,
+    ) = libraryGateway.bookSpace(calendarId, slotIds, note, deviceAddresses)
+
+    override suspend fun cancelLibrarySpaceBooking(bookingToken: String) =
+        libraryGateway.cancelSpaceBooking(bookingToken)
 
     private suspend fun safelyMarkTransportSnapshotStale(context: ActiveAccountContext, removedBookingId: String? = null) {
         try { markTransportSnapshotStale(context, removedBookingId) }

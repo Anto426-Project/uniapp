@@ -1,9 +1,9 @@
 package com.anto426.uniapp.ui.legal
 
 import androidx.compose.runtime.Composable
+import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.legal.LegalSectionData
-import com.anto426.uniapp.ui.document.UniDocumentScreen
-import com.anto426.uniapp.ui.document.toMarkdownString
+import com.anto426.uniapp.ui.document.UniSectionedDocumentScreen
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -12,13 +12,13 @@ fun TermsScreen(
     sections: List<LegalSectionData>,
     onBack: (() -> Unit)? = null,
 ) {
-    val intro = stringResource(Res.string.ui_terms_intro)
-    val body = sections.toMarkdownString()
-    val fullContent = if (intro.isNotBlank()) "$intro\n\n---\n\n$body" else body
-
-    UniDocumentScreen(
-        content = fullContent,
+    UniSectionedDocumentScreen(
+        sections = sections,
+        title = stringResource(Res.string.ui_terms_title),
+        subtitle = stringResource(Res.string.ui_terms_subtitle),
+        intro = stringResource(Res.string.ui_terms_intro),
+        headerIcon = LiquidIcons.Assignment,
+        headerBadge = stringResource(Res.string.nav_route_terms_title),
         onBack = onBack,
     )
 }
-

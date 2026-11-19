@@ -251,19 +251,22 @@ class GradesViewModel(
             val currentExams = career.toGradeExams()
             val targetCfu = career.cfuTarget ?: 180
 
+            val existingItemsById = mutableUiState.value.simulationItems.associateBy { it.id }
             val existingCustomItems = mutableUiState.value.simulationItems.filter { it.isCustom }
             val passedTitles = currentExams.map { it.name.trim().lowercase() }.toSet()
 
             val planSimulationItems = studyPlan?.courses
                 ?.filterNot { it.completed || it.title.trim().lowercase() in passedTitles }
                 ?.map { course ->
+                    val id = course.adsceId?.takeIf { it.isNotBlank() } ?: "plan_${course.title.hashCode()}"
+                    val existing = existingItemsById[id]
                     val cfuVal = course.cfu ?: 6
                     SimulationItem(
-                        id = course.adsceId?.takeIf { it.isNotBlank() } ?: "plan_${course.title.hashCode()}",
+                        id = id,
                         name = course.title,
-                        cfu = cfuVal,
-                        grade = 28,
-                        isEnabled = false,
+                        cfu = existing?.cfu ?: cfuVal,
+                        grade = existing?.grade ?: 28,
+                        isEnabled = existing?.isEnabled ?: false,
                         isCustom = false,
                     )
                 }.orEmpty()
@@ -272,12 +275,14 @@ class GradesViewModel(
                 examRounds.filterNot { it.booked || it.courseName.trim().lowercase() in passedTitles }
                     .distinctBy { it.courseName }
                     .map { round ->
+                        val id = "round_${round.courseName.hashCode()}"
+                        val existing = existingItemsById[id]
                         SimulationItem(
-                            id = "round_${round.courseName.hashCode()}",
+                            id = id,
                             name = round.courseName,
-                            cfu = 6,
-                            grade = 28,
-                            isEnabled = false,
+                            cfu = existing?.cfu ?: 6,
+                            grade = existing?.grade ?: 28,
+                            isEnabled = existing?.isEnabled ?: false,
                             isCustom = false,
                         )
                     }

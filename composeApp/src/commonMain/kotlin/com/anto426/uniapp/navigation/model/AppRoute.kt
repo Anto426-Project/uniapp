@@ -85,6 +85,18 @@ sealed interface AppRoute : NavKey {
     ) : AppRoute
 
     @Serializable
+    data class Library(val initialTab: Int = 0) : AppRoute
+
+    @Serializable
+    data class LibraryBookDetail(
+        val bookId: String,
+        val title: String = "",
+    ) : AppRoute
+
+    @Serializable
+    data object LibraryBooking : AppRoute
+
+    @Serializable
     data class Transcripts(val initialTab: Int = 0) : AppRoute
 
     @Serializable

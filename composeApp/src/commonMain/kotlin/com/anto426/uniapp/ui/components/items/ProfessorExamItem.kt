@@ -2,12 +2,12 @@ package com.anto426.uniapp.ui.components.items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,7 +22,11 @@ import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.unisdk.model.ProfessorContentItem
+import com.kyant.shapes.RoundedRectangle
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfessorExamItem(
     exam: ProfessorContentItem,
@@ -36,89 +40,85 @@ fun ProfessorExamItem(
             match?.groupValues?.get(1)?.toIntOrNull()
         }
 
-    val bookingsText = bookingsCount?.let { "$it iscritti" }
-
-    val subtitle = buildList {
-        exam.date?.takeIf(String::isNotBlank)?.let(::add)
-        bookingsText?.let(::add)
-        if (isEmpty()) {
-            exam.subtitle?.takeIf(String::isNotBlank)?.let(::add)
-        }
-    }.joinToString(" • ").ifBlank { "Sessione d'appello" }
+    val subtitle = listOfNotNull(
+        exam.date?.takeIf(String::isNotBlank),
+        exam.subtitle?.takeIf(String::isNotBlank)?.takeIf { sub -> !sub.equals(exam.date, ignoreCase = true) },
+    ).joinToString(" • ").ifBlank {
+        stringResource(Res.string.ui_professor_exam_session_fallback)
+    }
 
     LiquidCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedRectangle(20.dp),
-        contentPadding = 16.dp,
+        shape = RoundedRectangle(22.dp),
+        contentPadding = PaddingValues(16.dp),
         onClick = onClickDetail,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Row(
+            Icon(
+                imageVector = LiquidIcons.Calendar,
+                contentDescription = null,
+                tint = colorScheme.primary,
+                modifier = Modifier.liquidIconContainer(
+                    containerSize = 42.dp,
+                    iconSize = 20.dp,
+                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                    shape = RoundedRectangle(12.dp),
+                ),
+            )
+
+            Column(
                 modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(
-                    imageVector = LiquidIcons.Calendar,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 42.dp,
-                        iconSize = 20.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        shape = RoundedRectangle(12.dp),
-                    ),
+                Text(
+                    text = exam.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
-                Spacer(modifier = Modifier.width(14.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                if (!exam.code.isNullOrBlank() || bookingsCount != null) {
+                    FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Text(
-                            text = exam.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
                         exam.code?.takeIf(String::isNotBlank)?.let { code ->
                             LiquidBadge(
                                 text = code,
-                                containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                containerColor = colorScheme.primary.copy(alpha = 0.14f),
                                 contentColor = colorScheme.primary,
                             )
                         }
+                        bookingsCount?.let { count ->
+                            LiquidBadge(
+                                text = stringResource(Res.string.ui_professor_registered_count, count),
+                                containerColor = colorScheme.onSurface.copy(alpha = 0.06f),
+                                contentColor = colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
-
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                 }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
 
             Icon(
                 imageVector = LiquidIcons.ChevronRight,
                 contentDescription = null,
                 tint = colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(18.dp),
             )
         }
     }

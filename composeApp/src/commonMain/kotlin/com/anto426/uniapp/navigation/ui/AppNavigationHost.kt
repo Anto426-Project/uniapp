@@ -224,8 +224,9 @@ internal fun AppNavigationHost(
                 },
                 isDark = isDark,
                 monetSeed = monetSeed,
-                intensity = 0.90f,
-                speedFactor = 1.0f,
+                intensity = themeUiState.backgroundIntensity,
+                speedFactor = themeUiState.backgroundSpeedFactor,
+                showVignette = themeUiState.showBackgroundVignette,
             )
         },
         topBar = {
@@ -249,6 +250,7 @@ internal fun AppNavigationHost(
                         navigator = navigator,
                         shellViewModel = shellViewModel,
                         isSearchActive = shellUiState.isSearchActive,
+                        isUpdateBusy = updateUiState.isBusy,
                         onRefreshUpdate = updateViewModel::refresh,
                         onRequestDisconnectAll = deviceSessionsViewModel::requestDisconnectAll,
                         account = authenticatedAccount,
@@ -335,7 +337,7 @@ internal fun AppNavigationHost(
         ) { innerPadding ->
             val screenPadding =
                 PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
+                    top = innerPadding.calculateTopPadding() + if (showTopBar) 12.dp else 0.dp,
                     bottom = if (showBottomBar) 80.dp else 16.dp,
                 )
             CompositionLocalProvider(
@@ -386,6 +388,11 @@ internal fun AppNavigationHost(
                             onBackgroundStyleSelected = themeViewModel::selectBackgroundStyle,
                             onReducedMotionChanged = themeViewModel::setReducedMotion,
                             onPageTransitionSelected = themeViewModel::selectPageTransition,
+                            onLiquidIntensityChanged = themeViewModel::setLiquidIntensity,
+                            onGlassQualitySelected = themeViewModel::selectGlassQuality,
+                            onBackgroundIntensityChanged = themeViewModel::setBackgroundIntensity,
+                            onBackgroundSpeedChanged = themeViewModel::setBackgroundSpeedFactor,
+                            onBackgroundVignetteChanged = themeViewModel::setBackgroundVignette,
                             onResetTheme = themeViewModel::reset,
                             onCustomColorSelected = themeViewModel::selectCustomColor,
                             languageUiState = languageUiState,
@@ -555,6 +562,7 @@ private fun topBarActions(
     navigator: AppNavigator,
     shellViewModel: AppShellViewModel,
     isSearchActive: Boolean,
+    isUpdateBusy: Boolean,
     onRefreshUpdate: () -> Unit,
     onRequestDisconnectAll: () -> Unit,
     account: UniAccountSummary?,
@@ -578,6 +586,24 @@ private fun topBarActions(
                             shellViewModel.setSearchActive(true)
                         }
                     },
+                ),
+            )
+
+        AppRoute.Updates ->
+            listOf(
+                LiquidTopBarAction(
+                    icon = LiquidIcons.Refresh,
+                    label = stringResource(Res.string.ui_update_check_action),
+                    onClick = { if (!isUpdateBusy) onRefreshUpdate() },
+                ),
+            )
+
+        is AppRoute.Transcripts ->
+            listOf(
+                LiquidTopBarAction(
+                    icon = LiquidIcons.Analytics,
+                    label = stringResource(Res.string.ui_career_open_stats),
+                    onClick = { navigator.navigate(AppRoute.Grades) },
                 ),
             )
 

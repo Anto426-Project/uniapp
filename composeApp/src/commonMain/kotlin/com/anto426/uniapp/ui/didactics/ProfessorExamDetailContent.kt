@@ -1,39 +1,34 @@
 package com.anto426.uniapp.ui.didactics
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceGroup
-import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.toAcademicDetailFields
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
 import com.anto426.unisdk.model.ProfessorContentItem
-import com.anto426.unisdk.model.ProfessorExamBooking
+import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -55,99 +50,114 @@ internal fun ProfessorExamDetailContent(
         LiquidNavigationItem(
             label = stringResource(Res.string.ui_professor_registered_students),
             badge = if (bookingsCount > 0) bookingsCount.toString() else null,
-            icon = LiquidIcons.AccountCircle,
         ),
         LiquidNavigationItem(
             label = stringResource(Res.string.ui_professor_commission),
             badge = if (item.commission.isNotEmpty()) item.commission.size.toString() else null,
-            icon = LiquidIcons.AccountCircle,
         ),
         LiquidNavigationItem(
             label = stringResource(Res.string.ui_professor_exam_round_tab),
-            icon = LiquidIcons.Info,
         ),
     )
 
     UniScreenColumn {
-        // ==========================================
-        // 1. HERO HEADER CARD
-        // ==========================================
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
-            contentPadding = 20.dp,
+            contentPadding = PaddingValues(18.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Top Tag Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    LiquidBadge(
-                        text = stringResource(Res.string.ui_professor_exam_round_tag),
-                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        contentColor = colorScheme.primary,
-                    )
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            imageVector = LiquidIcons.Calendar,
+                            contentDescription = null,
+                            tint = colorScheme.primary,
+                            modifier = Modifier.liquidIconContainer(
+                                containerSize = 36.dp,
+                                iconSize = 18.dp,
+                                containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                                shape = RoundedRectangle(11.dp),
+                            ),
+                        )
+                        Text(
+                            text = stringResource(Res.string.ui_professor_exam_round_tag),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
 
                     item.code?.takeIf(String::isNotBlank)?.let { code ->
                         LiquidBadge(
                             text = code,
-                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
-                            contentColor = colorScheme.primary,
+                            containerColor = colorScheme.onSurface.copy(alpha = 0.06f),
+                            contentColor = colorScheme.onSurfaceVariant,
                         )
                     }
                 }
 
-                // Title & Subtitle
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = item.title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = colorScheme.onSurface,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     item.subtitle?.takeIf(String::isNotBlank)?.let { subtitle ->
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
 
-                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
+                LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
 
-                // Hero Quick Stat Tiles Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    ProfessorHeroStatTile(
+                    GradesMetricTile(
                         label = stringResource(Res.string.ui_professor_registered_students),
-                        value = if (bookingsCount > 0) "$bookingsCount" else "0",
-                        icon = LiquidIcons.AccountCircle,
+                        value = "$bookingsCount",
+                        valueColor = colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
 
                     item.date?.takeIf(String::isNotBlank)?.let { date ->
-                        ProfessorHeroStatTile(
+                        GradesMetricTile(
                             label = stringResource(Res.string.ui_date_time_label),
                             value = date,
-                            icon = LiquidIcons.Calendar,
+                            valueColor = colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                     }
 
                     if (item.commission.isNotEmpty()) {
-                        ProfessorHeroStatTile(
+                        GradesMetricTile(
                             label = stringResource(Res.string.ui_professor_commission),
                             value = stringResource(Res.string.ui_professor_members_count, item.commission.size),
-                            icon = LiquidIcons.AccountCircle,
+                            valueColor = colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -155,18 +165,12 @@ internal fun ProfessorExamDetailContent(
             }
         }
 
-        // ==========================================
-        // 2. TAB BAR
-        // ==========================================
         LiquidTabBar(
             items = tabs,
             selectedIndex = selectedTab.coerceIn(0, tabs.lastIndex),
             onTabSelected = onTabSelected,
         )
 
-        // ==========================================
-        // 3. TAB CONTENT
-        // ==========================================
         when (selectedTab.coerceIn(0, tabs.lastIndex)) {
             0 -> ProfessorBookingsTabContent(item = item)
             1 -> ProfessorCommissionTabContent(item = item)
@@ -176,72 +180,38 @@ internal fun ProfessorExamDetailContent(
 }
 
 @Composable
-private fun ProfessorHeroStatTile(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                modifier = Modifier.size(13.dp),
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
 private fun ProfessorBookingsTabContent(
     item: ProfessorContentItem,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     if (item.bookings.isEmpty()) {
-        LiquidEmptyState(
-            title = stringResource(Res.string.ui_professor_no_bookings),
-            description = stringResource(Res.string.ui_professor_no_bookings_description),
-            icon = LiquidIcons.AccountCircle,
-        )
+        UniInsetGroup {
+            UniInsetRow(
+                title = stringResource(Res.string.ui_professor_no_bookings),
+                subtitle = stringResource(Res.string.ui_professor_no_bookings_description),
+                icon = LiquidIcons.AccountCircle,
+                showDivider = false,
+            )
+        }
     } else {
-        val colorScheme = MaterialTheme.colorScheme
-        LiquidPreferenceGroup(
-            title = "${stringResource(Res.string.ui_professor_bookings)} (${item.bookings.size})",
-        ) {
-            item.bookings.forEach { booking ->
-                LiquidPreferenceItem(
+        LiquidSectionHeader(
+            title = stringResource(Res.string.ui_professor_bookings),
+            subtitle = stringResource(Res.string.ui_professor_registered_count, item.bookings.size),
+        )
+        UniInsetGroup {
+            item.bookings.forEachIndexed { index, booking ->
+                UniInsetRow(
                     title = booking.studentName,
                     subtitle = booking.matricola?.takeIf(String::isNotBlank)?.let {
                         stringResource(Res.string.ui_professor_student_matricola_format, it)
                     } ?: stringResource(Res.string.ui_professor_student_registered_fallback),
                     icon = LiquidIcons.AccountCircle,
-                    trailingContent = {
-                        booking.grade?.takeIf(String::isNotBlank)?.let { grade ->
+                    showDivider = index < item.bookings.lastIndex,
+                    trailingContent = booking.grade?.takeIf(String::isNotBlank)?.let { grade ->
+                        {
                             LiquidBadge(
                                 text = grade,
-                                containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                containerColor = colorScheme.primary.copy(alpha = 0.14f),
                                 contentColor = colorScheme.primary,
                             )
                         }
@@ -257,20 +227,27 @@ private fun ProfessorCommissionTabContent(
     item: ProfessorContentItem,
 ) {
     if (item.commission.isEmpty()) {
-        LiquidEmptyState(
-            title = stringResource(Res.string.ui_professor_no_commission),
-            description = stringResource(Res.string.ui_professor_no_commission_description),
-            icon = LiquidIcons.AccountCircle,
-        )
+        UniInsetGroup {
+            UniInsetRow(
+                title = stringResource(Res.string.ui_professor_no_commission),
+                subtitle = stringResource(Res.string.ui_professor_no_commission_description),
+                icon = LiquidIcons.AccountCircle,
+                showDivider = false,
+            )
+        }
     } else {
-        LiquidPreferenceGroup(
-            title = "${stringResource(Res.string.ui_professor_commission)} (${item.commission.size})",
-        ) {
-            item.commission.forEach { member ->
-                LiquidPreferenceItem(
+        LiquidSectionHeader(
+            title = stringResource(Res.string.ui_professor_commission),
+            subtitle = stringResource(Res.string.ui_professor_members_count, item.commission.size),
+        )
+        UniInsetGroup {
+            item.commission.forEachIndexed { index, member ->
+                UniInsetRow(
                     title = member.displayName,
-                    subtitle = member.role?.takeIf(String::isNotBlank) ?: stringResource(Res.string.ui_professor_examiner_role_fallback),
+                    subtitle = member.role?.takeIf(String::isNotBlank)
+                        ?: stringResource(Res.string.ui_professor_examiner_role_fallback),
                     icon = LiquidIcons.AccountCircle,
+                    showDivider = index < item.commission.lastIndex,
                 )
             }
         }
@@ -290,30 +267,40 @@ private fun ProfessorSessionInfoTabContent(
                     label.equals("Prenotazione", ignoreCase = true)
             }
 
+    val teachingCodeLabel = stringResource(Res.string.ui_professor_teaching_code)
+    val courseDepartmentLabel = stringResource(Res.string.ui_professor_course_department)
+    val extraDetailsLabel = stringResource(Res.string.ui_professor_extra_details)
+    val dateTimeLabel = stringResource(Res.string.ui_date_time_label)
+
     val fields = rawFields.ifEmpty {
         listOfNotNull(
-            item.date?.takeIf(String::isNotBlank)?.let { "Data e Ora" to it },
-            item.code?.takeIf(String::isNotBlank)?.let { "Codice Insegnamento" to it },
-            item.subtitle?.takeIf(String::isNotBlank)?.let { "Corso / Dipartimento" to it },
-            item.detail?.takeIf(String::isNotBlank)?.let { "Dettagli Aggiuntivi" to it },
+            item.date?.takeIf(String::isNotBlank)?.let { dateTimeLabel to it },
+            item.code?.takeIf(String::isNotBlank)?.let { teachingCodeLabel to it },
+            item.subtitle?.takeIf(String::isNotBlank)?.let { courseDepartmentLabel to it },
+            item.detail?.takeIf(String::isNotBlank)?.let { extraDetailsLabel to it },
         )
     }
 
     if (fields.isEmpty()) {
-        LiquidEmptyState(
-            title = stringResource(Res.string.ui_details_none_title),
-            description = stringResource(Res.string.ui_professor_exam_details_none_desc),
-            icon = LiquidIcons.Info,
-        )
+        UniInsetGroup {
+            UniInsetRow(
+                title = stringResource(Res.string.ui_details_none_title),
+                subtitle = stringResource(Res.string.ui_professor_exam_details_none_desc),
+                icon = LiquidIcons.Info,
+                showDivider = false,
+            )
+        }
     } else {
-        LiquidPreferenceGroup(
+        LiquidSectionHeader(
             title = stringResource(Res.string.ui_professor_exam_round_tab),
-        ) {
-            fields.forEach { (label, value) ->
-                LiquidPreferenceItem(
+        )
+        UniInsetGroup {
+            fields.forEachIndexed { index, (label, value) ->
+                UniInsetRow(
                     title = label,
                     subtitle = value,
                     icon = LiquidIcons.Info,
+                    showDivider = index < fields.lastIndex,
                 )
             }
         }

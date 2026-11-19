@@ -1,6 +1,7 @@
 package com.anto426.uniapp.settings.presentation
 
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.uniapp.data.local.FakeUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniAppDataKeys
@@ -96,6 +97,47 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
             assertEquals(PageMotionPreferences(), viewModel.uiState.value.pageMotion)
             assertEquals(PageMotionPreferences(), store.read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion))
             assertEquals(false, store.read(LocalDataScope.Application, UniAppDataKeys.ThemeReducedMotion))
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun liquidMonetOptionsPersistAndResetToDefaults() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val store = FakeUniLocalDataStore()
+            val viewModel = ThemeViewModel(store)
+            advanceUntilIdle()
+
+            viewModel.setLiquidIntensity(0.45f)
+            viewModel.selectGlassQuality(LiquidGlassQualityTier.HIGH)
+            viewModel.setBackgroundIntensity(0.60f)
+            viewModel.setBackgroundSpeedFactor(1.6f)
+            viewModel.setBackgroundVignette(false)
+            advanceUntilIdle()
+
+            assertEquals(0.45f, viewModel.uiState.value.liquidIntensity)
+            assertEquals(LiquidGlassQualityTier.HIGH, viewModel.uiState.value.glassQuality)
+            assertEquals(0.60f, viewModel.uiState.value.backgroundIntensity)
+            assertEquals(1.6f, viewModel.uiState.value.backgroundSpeedFactor)
+            assertEquals(false, viewModel.uiState.value.showBackgroundVignette)
+
+            val reloaded = ThemeViewModel(store)
+            advanceUntilIdle()
+            assertEquals(0.45f, reloaded.uiState.value.liquidIntensity)
+            assertEquals(LiquidGlassQualityTier.HIGH, reloaded.uiState.value.glassQuality)
+            assertEquals(0.60f, reloaded.uiState.value.backgroundIntensity)
+            assertEquals(1.6f, reloaded.uiState.value.backgroundSpeedFactor)
+            assertEquals(false, reloaded.uiState.value.showBackgroundVignette)
+
+            reloaded.reset()
+            advanceUntilIdle()
+            assertEquals(ThemeUiState.DEFAULT_LIQUID_INTENSITY, reloaded.uiState.value.liquidIntensity)
+            assertEquals(null, reloaded.uiState.value.glassQuality)
+            assertEquals(ThemeUiState.DEFAULT_BACKGROUND_INTENSITY, reloaded.uiState.value.backgroundIntensity)
+            assertEquals(ThemeUiState.DEFAULT_BACKGROUND_SPEED, reloaded.uiState.value.backgroundSpeedFactor)
+            assertEquals(true, reloaded.uiState.value.showBackgroundVignette)
         } finally {
             Dispatchers.resetMain()
         }

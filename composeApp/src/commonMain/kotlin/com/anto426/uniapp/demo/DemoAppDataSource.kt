@@ -2,6 +2,7 @@ package com.anto426.uniapp.demo
 
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.UniAppPortraitSharer
+import com.anto426.uniapp.library.model.*
 import com.anto426.unisdk.model.*
 import com.anto426.unisdk.transport.*
 import kotlinx.coroutines.sync.Mutex
@@ -19,6 +20,30 @@ internal class DemoAppDataSource(
     private var rounds: List<ExamRound>? = null
     private var transport: TransportData? = null
     private var surveys: List<SurveyCourse>? = null
+    private var demoMovements: List<LibraryMovementItem> = listOf(
+        LibraryMovementItem(
+            id = "demo-mov-1",
+            title = "Informatica : arte e mestiere",
+            detail = "Biblioteca Campobasso · In prestito fino al 28/11/2026",
+            branchName = "Campobasso",
+            statusBadge = "In prestito",
+            canCancel = false,
+            canRenew = true,
+            actionToken = "demo-mov-token-1",
+        ),
+    )
+    private var demoSpaceBookings: List<LibrarySpaceBooking> = listOf(
+        LibrarySpaceBooking(
+            id = "demo-space-1",
+            title = "Sala Studio Centrale · Campobasso",
+            description = "Sala Studio Centrale · Campobasso · 20/11/2026 09:00 - 13:00",
+            dateLabel = "20/11/2026",
+            timeLabel = "09:00 – 13:00",
+            canCancel = true,
+            bookingToken = "demo-space-token-1",
+        ),
+    )
+    private var pendingDraftBookTitle: String = ""
     private suspend fun feedback() = getString(Res.string.ui_demo_action)
     override suspend fun loadCareer(forceRefresh: Boolean) = DemoCatalog.load().career
     override suspend fun loadProfessorDashboard(forceRefresh: Boolean) = ProfessorDashboard()
@@ -74,6 +99,218 @@ internal class DemoAppDataSource(
         val bookings = current.bookings.filterNot { it.id == bookingId }
         transport = current.copy(bookings = bookings, totalCount = bookings.size)
         TransportActionResult.Completed
+    }
+
+    private val demoBooks = listOf(
+        LibraryCatalogBook(
+            id = "MOL00065117",
+            title = "Informatica : arte e mestiere",
+            subtitle = "Ceri, Stefano",
+            metadata = "1999",
+            branches = listOf("Campobasso", "Pesche", "Termoli"),
+        ),
+        LibraryCatalogBook(
+            id = "MOL00371948",
+            title = "Informatica giuridica",
+            subtitle = "Ziccardi, Giovanni",
+            metadata = "2020",
+            branches = listOf("Campobasso", "Pesche"),
+        ),
+        LibraryCatalogBook(
+            id = "MOL00453666",
+            title = "Principi di sistemi operativi e reti",
+            subtitle = "Tanenbaum, Andrew S.",
+            metadata = "2022",
+            branches = listOf("Pesche"),
+        ),
+        LibraryCatalogBook(
+            id = "MOL00511204",
+            title = "Economia aziendale e bilancio",
+            subtitle = "Airoldi, Giuseppe",
+            metadata = "2021",
+            branches = listOf("Campobasso", "Termoli"),
+        ),
+    )
+
+    override suspend fun searchLibraryBooks(query: String, page: Int): LibraryCatalogPage {
+        val q = query.trim().lowercase()
+        val matched = demoBooks.filter {
+            q.isBlank() || it.title.lowercase().contains(q) || it.subtitle.lowercase().contains(q)
+        }
+        return LibraryCatalogPage(query = query, books = matched, page = page, total = matched.size)
+    }
+
+    override suspend fun loadLibraryBook(id: String): LibraryBookDetail {
+        val book = demoBooks.firstOrNull { it.id == id } ?: demoBooks.first()
+        return LibraryBookDetail(
+            id = book.id,
+            title = book.title,
+            author = book.subtitle,
+            year = book.metadata,
+            availabilitySummary = "Documento disponibile",
+            isAvailable = true,
+            branches = book.branches,
+            inventory = "D1 1225",
+            shelfmark = "PE SL004 CERIS",
+            notes = "1 v.",
+            description = "${book.title} · ${book.subtitle} (${book.metadata}). Copia disponibile presso le sedi d'Ateneo.",
+            actions = listOf(
+                LibraryBookCopyAction(
+                    actionId = "demo-act-${book.id}-MOLBU",
+                    label = "Richiesta di prestito",
+                    libraryCode = "MOLBU",
+                    branchName = "Biblioteca di Ateneo · Campobasso",
+                    movementType = "RPE",
+                ),
+                LibraryBookCopyAction(
+                    actionId = "demo-act-${book.id}-MOLBA",
+                    label = "Richiesta di prestito",
+                    libraryCode = "MOLBA",
+                    branchName = "Biblioteca di Ateneo · Pesche",
+                    movementType = "RPE",
+                ),
+            ),
+        )
+    }
+
+    override suspend fun prepareLibraryBookRequest(bookId: String, actionId: String): LibraryBookLoanDraft {
+        val book = demoBooks.firstOrNull { it.id == bookId } ?: demoBooks.first()
+        val branch = if (actionId.endsWith("MOLBA")) "Pesche" else "Campobasso"
+        pendingDraftBookTitle = book.title
+        return LibraryBookLoanDraft(
+            draftId = "demo-draft-${demoMovements.size + 1}",
+            description = "${book.title} — Richiesta di prestito ($branch)",
+        )
+    }
+
+    override suspend fun confirmLibraryBookRequest(draftId: String): LibraryLoanSubmissionResult {
+        lock.withLock {
+            val idx = demoMovements.size + 1
+            demoMovements = demoMovements + LibraryMovementItem(
+                id = "demo-mov-$idx",
+                title = pendingDraftBookTitle.ifBlank { "Documento biblioteca" },
+                detail = "Biblioteca Campobasso · Richiesta registrata (modalità demo)",
+                branchName = "Campobasso",
+                statusBadge = "Richiesta attiva",
+                canCancel = true,
+                canRenew = false,
+                actionToken = "demo-mov-token-$idx",
+            )
+        }
+        return LibraryLoanSubmissionResult(description = feedback(), requiresVerification = true)
+    }
+
+    override suspend fun loadLibraryMovements(forceRefresh: Boolean): List<LibraryMovementItem> =
+        lock.withLock { demoMovements }
+
+    override suspend fun cancelLibraryMovement(movementToken: String) {
+        lock.withLock {
+            demoMovements = demoMovements.filterNot { it.actionToken == movementToken }
+        }
+    }
+
+    override suspend fun renewLibraryMovement(movementToken: String): String = feedback()
+
+    override suspend fun loadLibraryBookingOverview(): LibraryBookingOverview = lock.withLock {
+        LibraryBookingOverview(
+            contextId = "demo-ctx",
+            types = listOf(
+                LibraryBookingOption("study", "Posto sala studio"),
+                LibraryBookingOption("pickup", "Appuntamento ritiro prestito"),
+            ),
+            bookings = demoSpaceBookings,
+        )
+    }
+
+    override suspend fun loadLibraryResourceSelection(contextId: String, typeId: String): LibrarySpaceSelection =
+        if (typeId == "study") {
+            LibrarySpaceSelection(
+                owners = listOf(
+                    LibraryBookingOption("MOLBU", "Campobasso · Sede Centrale"),
+                    LibraryBookingOption("MOLBA", "Pesche · Scienze"),
+                ),
+                resources = listOf(
+                    LibraryBookingOption("cb-sala-1", "Sala Lettura Piano 1"),
+                    LibraryBookingOption("cb-sala-pc", "Postazione multimediale"),
+                ),
+            )
+        } else {
+            LibrarySpaceSelection(
+                owners = emptyList(),
+                resources = listOf(LibraryBookingOption("desk-cb", "Sportello prestiti Campobasso")),
+            )
+        }
+
+    override suspend fun loadLibraryResourcesForOwner(ownerId: String): List<LibraryBookingOption> =
+        if (ownerId == "MOLBA") {
+            listOf(LibraryBookingOption("pe-sala-1", "Sala Studio Pesche"))
+        } else {
+            listOf(
+                LibraryBookingOption("cb-sala-1", "Sala Lettura Piano 1"),
+                LibraryBookingOption("cb-sala-pc", "Postazione multimediale"),
+            )
+        }
+
+    override suspend fun loadLibraryCalendar(
+        contextId: String,
+        resourceId: String,
+        fromDate: kotlinx.datetime.LocalDate?,
+        toDate: kotlinx.datetime.LocalDate?,
+    ): LibrarySpaceCalendar = LibrarySpaceCalendar(
+        calendarId = "demo-cal-$resourceId",
+        resourceId = resourceId,
+        page = 1,
+        description = "Disponibilità simulata",
+        slots = listOf(
+            LibrarySpaceSlot(
+                slotId = "slot-1",
+                label = "1",
+                timeLabel = "09:00 – 13:00",
+                description = "21/11/2026 09:00 - 13:00 · 14 posti",
+                dateLabel = "21/11/2026",
+                seatsLabel = "14 / 20 posti",
+                requiresDeviceAddress = false,
+            ),
+            LibrarySpaceSlot(
+                slotId = "slot-2",
+                label = "1",
+                timeLabel = "14:00 – 18:00",
+                description = "21/11/2026 14:00 - 18:00 · 9 posti",
+                dateLabel = "21/11/2026",
+                seatsLabel = "9 / 20 posti",
+                requiresDeviceAddress = false,
+            ),
+        ),
+    )
+
+    override suspend fun loadLibraryCalendarPage(calendarId: String, page: Int): LibrarySpaceCalendar =
+        loadLibraryCalendar("demo-ctx", calendarId.removePrefix("demo-cal-"), null, null).copy(page = page)
+
+    override suspend fun bookLibrarySpace(
+        calendarId: String,
+        slotIds: List<String>,
+        note: String,
+        deviceAddresses: Map<String, String>,
+    ): LibrarySpaceBookingOutcome {
+        lock.withLock {
+            val idx = demoSpaceBookings.size + 1
+            demoSpaceBookings = demoSpaceBookings + LibrarySpaceBooking(
+                id = "demo-space-$idx",
+                title = "Prenotazione dimostrativa",
+                description = "Prenotazione dimostrativa (${slotIds.size} fasce)",
+                dateLabel = "21/11/2026",
+                timeLabel = "09:00 – 13:00",
+                canCancel = true,
+                bookingToken = "demo-space-token-$idx",
+            )
+        }
+        return LibrarySpaceBookingOutcome(confirmed = true, serverCode = 1)
+    }
+
+    override suspend fun cancelLibrarySpaceBooking(bookingToken: String) {
+        lock.withLock {
+            demoSpaceBookings = demoSpaceBookings.filterNot { it.bookingToken == bookingToken }
+        }
     }
 
 }

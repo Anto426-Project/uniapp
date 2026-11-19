@@ -1,5 +1,15 @@
 package com.anto426.uniapp.data
 
+import com.anto426.uniapp.library.model.LibraryBookDetail
+import com.anto426.uniapp.library.model.LibraryBookLoanDraft
+import com.anto426.uniapp.library.model.LibraryBookingOption
+import com.anto426.uniapp.library.model.LibraryBookingOverview
+import com.anto426.uniapp.library.model.LibraryCatalogPage
+import com.anto426.uniapp.library.model.LibraryLoanSubmissionResult
+import com.anto426.uniapp.library.model.LibraryMovementItem
+import com.anto426.uniapp.library.model.LibrarySpaceBookingOutcome
+import com.anto426.uniapp.library.model.LibrarySpaceCalendar
+import com.anto426.uniapp.library.model.LibrarySpaceSelection
 import com.anto426.unisdk.model.AttendanceRecord
 import com.anto426.unisdk.model.Career
 import com.anto426.unisdk.model.ConnectedDevice
@@ -52,6 +62,31 @@ interface UniAppDataSource {
     }
     suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult
     suspend fun deleteTransportBooking(bookingId: String): TransportActionResult
+
+    suspend fun searchLibraryBooks(query: String, page: Int = 1): LibraryCatalogPage
+    suspend fun loadLibraryBook(id: String): LibraryBookDetail
+    suspend fun prepareLibraryBookRequest(bookId: String, actionId: String): LibraryBookLoanDraft
+    suspend fun confirmLibraryBookRequest(draftId: String): LibraryLoanSubmissionResult
+    suspend fun loadLibraryMovements(forceRefresh: Boolean = false): List<LibraryMovementItem>
+    suspend fun cancelLibraryMovement(movementToken: String)
+    suspend fun renewLibraryMovement(movementToken: String): String
+    suspend fun loadLibraryBookingOverview(): LibraryBookingOverview
+    suspend fun loadLibraryResourceSelection(contextId: String, typeId: String): LibrarySpaceSelection
+    suspend fun loadLibraryResourcesForOwner(ownerId: String): List<LibraryBookingOption>
+    suspend fun loadLibraryCalendar(
+        contextId: String,
+        resourceId: String,
+        fromDate: kotlinx.datetime.LocalDate? = null,
+        toDate: kotlinx.datetime.LocalDate? = null,
+    ): LibrarySpaceCalendar
+    suspend fun loadLibraryCalendarPage(calendarId: String, page: Int): LibrarySpaceCalendar
+    suspend fun bookLibrarySpace(
+        calendarId: String,
+        slotIds: List<String>,
+        note: String = "",
+        deviceAddresses: Map<String, String> = emptyMap(),
+    ): LibrarySpaceBookingOutcome
+    suspend fun cancelLibrarySpaceBooking(bookingToken: String)
 }
 
 internal interface UniAppPortraitSharer {

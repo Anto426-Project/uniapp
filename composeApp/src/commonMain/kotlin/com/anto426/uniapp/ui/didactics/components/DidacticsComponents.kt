@@ -80,7 +80,7 @@ fun ProfessorDidacticsContent(
 
                     LiquidBadge(
                         text = stringResource(Res.string.ui_professor_area_title),
-                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
+                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
                         contentColor = colorScheme.primary,
                     )
                 }
@@ -201,7 +201,7 @@ fun ProfessorMetricBadge(
     LiquidBadge(
         text = text,
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f),
+        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
         contentColor = MaterialTheme.colorScheme.primary,
     )
 }

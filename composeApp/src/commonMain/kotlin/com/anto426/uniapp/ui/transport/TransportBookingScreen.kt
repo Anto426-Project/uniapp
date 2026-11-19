@@ -35,9 +35,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
@@ -241,7 +243,22 @@ fun TransportBookingScreen(
                             color = colorScheme.onSurface,
                         )
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (availableSelectedDates.isNotEmpty()) {
+                                Text(
+                                    text = "${stringResource(Res.string.ui_transport_clear_selection)} (${availableSelectedDates.size})",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.primary,
+                                    modifier = Modifier
+                                        .clip(RoundedRectangle(10.dp))
+                                        .clickable { selectedDates = emptySet() }
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                )
+                            }
                             LiquidIconButton(
                                 icon = LiquidIcons.ChevronLeft,
                                 enabled = displayedMonthIndex > firstMonthIndex,
@@ -453,6 +470,7 @@ fun TransportBookingScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = colorScheme.onSurface,
                                         maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
 
@@ -482,6 +500,7 @@ fun TransportBookingScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = colorScheme.onSurface,
                                         maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }
@@ -520,13 +539,13 @@ fun TransportBookingScreen(
 
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
-                                text = "Posto a sedere prenotato",
+                                text = stringResource(Res.string.ui_transport_seat_reserved_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.onSurface,
                             )
                             Text(
-                                text = "Posto garantito e riservato a bordo per le date selezionate",
+                                text = stringResource(Res.string.ui_transport_seat_reserved_desc),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colorScheme.onSurfaceVariant,
                             )
@@ -621,6 +640,7 @@ fun TransportBookingScreen(
             isLoading = uiState.isSubmitting,
             modifier = Modifier.fillMaxWidth(),
             variant = LiquidButtonVariant.Primary,
+            size = LiquidButtonSize.Medium,
         )
     }
 }
@@ -640,13 +660,11 @@ private fun BookingDirectionSelector(
     onDirectionSelected: (TransportDirection) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val directions = remember {
-        listOf(
-            Triple(TransportDirection.OUTBOUND, "Andata", LiquidIcons.ArrowForward),
-            Triple(TransportDirection.RETURN, "Ritorno", LiquidIcons.ArrowBack),
-            Triple(TransportDirection.ROUND_TRIP, "A/R", LiquidIcons.Refresh),
-        )
-    }
+    val directions = listOf(
+        Triple(TransportDirection.OUTBOUND, stringResource(Res.string.ui_transport_outbound_short), LiquidIcons.ArrowForward),
+        Triple(TransportDirection.RETURN, stringResource(Res.string.ui_transport_return_short), LiquidIcons.ArrowBack),
+        Triple(TransportDirection.ROUND_TRIP, stringResource(Res.string.ui_transport_round_trip_short), LiquidIcons.Refresh),
+    )
 
     Row(
         modifier = modifier.fillMaxWidth(),

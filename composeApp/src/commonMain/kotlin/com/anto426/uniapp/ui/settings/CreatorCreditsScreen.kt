@@ -1,24 +1,23 @@
 package com.anto426.uniapp.ui.settings
 
-
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.project.presentation.ProjectInfoUiState
@@ -27,9 +26,7 @@ import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniRemoteAvatar
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.platform.ProjectInfo
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.foundation.clickable
+import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -39,71 +36,54 @@ internal fun CreatorCreditsScreen(
     onOpenLink: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val author = state.data?.author
     val creatorName = author?.name?.takeIf(String::isNotBlank) ?: ProjectInfo.authorLogin
     val creator = state.data?.contributors.orEmpty().firstOrNull { it.login.equals(ProjectInfo.authorLogin, true) }
     val contributors = state.data?.contributors.orEmpty().filterNot { it.login.equals(ProjectInfo.authorLogin, true) }
 
     UniScreenColumn(modifier = modifier) {
-        // Stato di sincronizzazione discreto
-        if (state.loading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.Refresh,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "Sincronizzazione profilo e crediti da GitHub…",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
+        if (state.loading || state.stale || state.error) {
+            val statusIcon = if (state.loading) LiquidIcons.Refresh else LiquidIcons.Info
+            val statusText = when {
+                state.loading -> "Sincronizzazione profilo e crediti da GitHub…"
+                state.stale -> stringResource(Res.string.ui_project_cached)
+                else -> stringResource(Res.string.ui_project_load_failed)
             }
-        } else if (state.stale || state.error) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.40f))
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+            val statusTint = if (state.loading) colorScheme.primary else colorScheme.onSurfaceVariant
+            LiquidCard(
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(16.dp),
+                border = BorderStroke(1.dp, statusTint.copy(alpha = 0.20f)),
             ) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        imageVector = LiquidIcons.Info,
+                        imageVector = statusIcon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        tint = statusTint,
                         modifier = Modifier.size(16.dp),
                     )
                     Text(
-                        text = stringResource(if (state.stale) Res.string.ui_project_cached else Res.string.ui_project_load_failed),
+                        text = statusText,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        color = statusTint,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }
         }
 
-        // 1. Creatore & Lead Developer Hero Card (senza cerchio/bordo attorno all'avatar)
+        // 1. Creatore & Lead Developer Hero Card
         LiquidCard(
+            contentPadding = PaddingValues(20.dp),
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = 22.dp,
+            shape = RoundedRectangle(24.dp),
+            border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(
@@ -111,41 +91,30 @@ internal fun CreatorCreditsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    // Avatar diretto e pulito, senza cerchi/bordi esterni
                     UniRemoteAvatar(
                         imageUrl = author?.avatarUrl ?: creator?.avatarUrl,
                         name = creatorName,
-                        size = 72.dp,
+                        size = 68.dp,
                     )
 
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                .padding(horizontal = 8.dp, vertical = 2.dp),
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.ui_project_creator).uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.primary,
-                                letterSpacing = 0.8.sp,
-                            )
-                        }
-
+                        LiquidBadge(
+                            text = stringResource(Res.string.ui_project_creator).uppercase(),
+                            containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                            contentColor = colorScheme.primary,
+                        )
                         Text(
                             text = creatorName,
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = colorScheme.onSurface,
                         )
-
                         Text(
                             text = "@${author?.login ?: ProjectInfo.authorLogin}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = colorScheme.primary,
                             fontWeight = FontWeight.Medium,
                         )
                     }
@@ -156,11 +125,10 @@ internal fun CreatorCreditsScreen(
                 Text(
                     text = bioText,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = colorScheme.onSurfaceVariant,
                     lineHeight = 20.sp,
                 )
 
-                // Metriche dell'autore su GitHub
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -174,31 +142,26 @@ internal fun CreatorCreditsScreen(
                         "Contributi" to contribs,
                         "Follower" to followers,
                     ).forEach { (label, value) ->
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                                    shape = RoundedCornerShape(14.dp),
-                                )
-                                .padding(vertical = 12.dp, horizontal = 8.dp),
-                            contentAlignment = Alignment.Center,
+                        LiquidCard(
+                            contentPadding = PaddingValues(vertical = 12.dp, horizontal = 8.dp),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedRectangle(16.dp),
+                            border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)),
                         ) {
                             Column(
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 Text(
                                     text = value,
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = colorScheme.primary,
                                 )
                                 Text(
                                     text = label,
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -214,31 +177,33 @@ internal fun CreatorCreditsScreen(
             }
         }
 
-        // 2. Crediti e Riconoscimenti alle Persone (Contributori GitHub & Collaboratori)
+        // 2. Crediti e Riconoscimenti
         UniInsetGroup(title = stringResource(Res.string.ui_credits_acknowledgements)) {
             Text(
                 text = stringResource(Res.string.ui_credits_explanation),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 lineHeight = 18.sp,
             )
 
             contributors.forEach { person ->
                 LiquidHorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                    color = colorScheme.outlineVariant.copy(alpha = 0.25f),
                 )
                 val name = person.login ?: person.name ?: stringResource(Res.string.ui_project_unlinked_contributor)
                 val link = person.url
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = 52.dp)
+                        .defaultMinSize(minHeight = 54.dp)
                         .then(
                             if (link != null) {
                                 Modifier.clickable(role = Role.Button) { onOpenLink(link) }
-                            } else Modifier,
+                            } else {
+                                Modifier
+                            },
                         )
                         .semantics(mergeDescendants = true) {}
                         .padding(horizontal = 16.dp, vertical = 10.dp),
@@ -248,26 +213,30 @@ internal fun CreatorCreditsScreen(
                     UniRemoteAvatar(person.avatarUrl, name, size = 36.dp)
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(
                             text = name,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = colorScheme.onSurface,
                         )
                         Text(
-                            text = stringResource(Res.string.ui_project_contributions, person.contributions) +
-                                if (person.type == "Bot") " · Bot automatizzato" else " · Contributore",
+                            text = stringResource(Res.string.ui_project_contributions, person.contributions),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = colorScheme.onSurfaceVariant,
                         )
                     }
+                    LiquidBadge(
+                        text = if (person.type == "Bot") "Bot" else "Contributor",
+                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                        contentColor = colorScheme.primary,
+                    )
                     if (link != null) {
                         Icon(
                             imageVector = LiquidIcons.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
+                            tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.size(16.dp),
                         )
                     }
@@ -277,13 +246,13 @@ internal fun CreatorCreditsScreen(
             if (contributors.isEmpty()) {
                 LiquidHorizontalDivider(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    color = colorScheme.outlineVariant.copy(alpha = 0.25f),
                 )
                 UniInsetRow(
                     title = stringResource(Res.string.msg_contributori_della_community),
                     subtitle = stringResource(Res.string.ui_credits_no_other_contributors),
                     icon = LiquidIcons.AccountCircle,
-                    iconTint = MaterialTheme.colorScheme.primary,
+                    iconTint = colorScheme.primary,
                     showDivider = false,
                 )
             }

@@ -1,19 +1,13 @@
 package com.anto426.uniapp.ui.news
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,24 +15,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
+import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.statuscard.LiquidStatusType
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.ui.components.items.NewsCategoryPill
+import com.anto426.uniapp.ui.components.items.resolveNewsCategoryVisuals
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.document.RichMarkdownDocument
-import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewsDetailScreen(
     title: String,
@@ -48,6 +45,7 @@ fun NewsDetailScreen(
     category: String = "",
     publishedAt: String = "",
     sourceUrl: String? = null,
+    type: LiquidStatusType = LiquidStatusType.Info,
     onOpenSource: ((String) -> Unit)? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -59,67 +57,68 @@ fun NewsDetailScreen(
     val distinctSummary = remember(summary, article) {
         summary.isNotBlank() && article.isNotBlank() && !article.startsWith(summary, ignoreCase = true)
     }
-    val articleMarkdown = remember(summary, article, distinctSummary, summaryHeading, articleHeading) {
-        if (distinctSummary) {
-            "## $articleHeading\n\n$article"
-        } else {
-            formatNewsBody(description, fullContent, summaryHeading, articleHeading)
+    val bodyMarkdown = remember(summary, article, distinctSummary, articleHeading) {
+        when {
+            distinctSummary -> "## $articleHeading\n\n$article"
+            article.isNotBlank() -> "## $articleHeading\n\n$article"
+            summary.isNotBlank() -> "## $articleHeading\n\n$summary"
+            else -> ""
         }
     }
     val originalUrl = remember(sourceUrl) { sourceUrl.newsSourceUrlOrNull() }
     val originalHost = remember(originalUrl) {
         originalUrl?.let { runCatching { Url(it).host.removePrefix("www.") }.getOrNull() }
     }
-
-    val categoryLabel = category.trim().takeIf { it.isNotBlank() && !it.all(Char::isDigit) }
-    val categoryColor = when {
-        categoryLabel?.contains("dip", ignoreCase = true) == true -> colorScheme.tertiary
-        categoryLabel?.contains("cors", ignoreCase = true) == true -> colorScheme.secondary
-        else -> colorScheme.primary
-    }
-    val categoryIcon = when {
-        categoryLabel?.contains("dip", ignoreCase = true) == true -> LiquidIcons.Star
-        categoryLabel?.contains("ateneo", ignoreCase = true) == true -> LiquidIcons.Home
-        else -> LiquidIcons.Notifications
-    }
-    val dateLabel = publishedAt.trim().ifBlank { stringResource(Res.string.ui_news_official_notice) }
+    val visuals = resolveNewsCategoryVisuals(
+        type = type,
+        category = category,
+        publishedAt = publishedAt,
+    )
 
     UniScreenColumn {
         // 1. Editorial Hero Header Card
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(26.dp),
-            contentPadding = 20.dp,
+            shape = RoundedRectangle(24.dp),
+            contentPadding = PaddingValues(18.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        NewsCategoryPill(
-                            label = categoryLabel ?: stringResource(Res.string.ui_news_generic),
-                            icon = categoryIcon,
-                            accentColor = categoryColor,
+                        Icon(
+                            imageVector = visuals.icon,
+                            contentDescription = null,
+                            tint = visuals.color,
+                            modifier = Modifier.liquidIconContainer(
+                                containerSize = 36.dp,
+                                iconSize = 18.dp,
+                                containerColor = visuals.color.copy(alpha = 0.14f),
+                                shape = RoundedRectangle(11.dp),
+                            ),
                         )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        ) {
-                            Icon(
-                                imageVector = LiquidIcons.Calendar,
-                                contentDescription = null,
-                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-                                modifier = Modifier.size(13.dp),
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = visuals.label.uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = visuals.color,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                text = dateLabel,
+                                text = visuals.subtitle,
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
                                 color = colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -127,60 +126,52 @@ fun NewsDetailScreen(
                         }
                     }
 
-                    if (title.isNotBlank()) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = colorScheme.onSurface,
-                            fontSize = 21.sp,
-                            lineHeight = 27.sp,
+                    if (!originalHost.isNullOrBlank()) {
+                        LiquidBadge(
+                            text = originalHost,
+                            containerColor = colorScheme.surfaceVariant.copy(alpha = 0.65f),
+                            contentColor = colorScheme.onSurfaceVariant,
                         )
                     }
+                }
 
-                    if (distinctSummary) {
-                        val calloutShape = RoundedRectangle(16.dp)
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(calloutShape)
-                                .border(
-                                    width = 1.dp,
-                                    color = colorScheme.onSurface.copy(alpha = 0.09f),
-                                    shape = calloutShape,
-                                )
-                                .padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                                Text(
-                                    text = summaryHeading.uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = categoryColor,
-                                    letterSpacing = 0.7.sp,
-                                    fontSize = 10.sp,
-                                )
-                                Text(
-                                    text = summary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = colorScheme.onSurface.copy(alpha = 0.90f),
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp,
-                                )
-                        }
+                if (title.isNotBlank()) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        color = colorScheme.onSurface,
+                    )
+                }
+
+                if (distinctSummary) {
+                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = summaryHeading.uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = visuals.color,
+                        )
+                        Text(
+                            text = summary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
+        }
 
         // 2. Article Body Card
-        if (articleMarkdown.isNotBlank()) {
+        if (bodyMarkdown.isNotBlank()) {
             LiquidCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedRectangle(24.dp),
-                contentPadding = 20.dp,
+                shape = RoundedRectangle(22.dp),
+                contentPadding = PaddingValues(18.dp),
             ) {
                 RichMarkdownDocument(
-                    markdown = articleMarkdown,
+                    markdown = bodyMarkdown,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -190,29 +181,43 @@ fun NewsDetailScreen(
         if (originalUrl != null && onOpenSource != null) {
             LiquidCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedRectangle(22.dp),
-                contentPadding = 16.dp,
+                shape = RoundedRectangle(20.dp),
+                contentPadding = PaddingValues(16.dp),
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    if (!originalHost.isNullOrBlank()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(
+                            imageVector = LiquidIcons.Info,
+                            contentDescription = null,
+                            tint = visuals.color,
+                            modifier = Modifier.liquidIconContainer(
+                                containerSize = 36.dp,
+                                iconSize = 18.dp,
+                                containerColor = visuals.color.copy(alpha = 0.12f),
+                                shape = RoundedRectangle(10.dp),
+                            ),
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
-                            Icon(
-                                imageVector = LiquidIcons.Info,
-                                contentDescription = null,
-                                tint = colorScheme.primary,
-                                modifier = Modifier.size(16.dp),
+                            Text(
+                                text = stringResource(Res.string.ui_news_source_official_label),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                text = originalHost,
-                                style = MaterialTheme.typography.labelMedium,
+                                text = originalHost ?: originalUrl,
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onSurfaceVariant,
+                                color = colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -220,26 +225,12 @@ fun NewsDetailScreen(
                     }
 
                     LiquidButton(
+                        text = stringResource(Res.string.ui_news_open_original),
                         onClick = { onOpenSource(originalUrl) },
                         variant = LiquidButtonVariant.Primary,
+                        size = LiquidButtonSize.Medium,
                         modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.ui_news_open_original),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Icon(
-                                imageVector = LiquidIcons.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-                    }
+                    )
                 }
             }
         }

@@ -26,7 +26,8 @@ fun UniTheme(
         darkTheme = darkTheme,
         useMonetEngine = state.selectedThemeIndex == 0,
         customMonetSeed = monetSeed,
-        liquidIntensity = 0.82f,
+        liquidIntensity = state.liquidIntensity.coerceIn(0f, 1f),
+        maximumGlassQuality = state.glassQuality,
         reduceMotion = state.reducedMotion,
     ) {
         CompositionLocalProvider(LocalUniContentTransition provides UniMotion.effectiveTransition(state.pageMotion)) {

@@ -163,11 +163,12 @@ internal fun AppUnlockScreen(
                 }
 
                 // Sezione Password UniApp
-                LiquidTextField(
+                UniAuthLabeledField(
                     value = password,
                     onValueChange = { password = it },
                     type = LiquidTextFieldType.Password,
                     label = stringResource(Res.string.ui_app_password_label),
+                    leadingIcon = LiquidIcons.Lock,
                     enabled = canUnlock && !unlockUiState.isAuthenticating,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,

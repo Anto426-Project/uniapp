@@ -40,16 +40,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.liquidmonet.components.menu.dropdownmenu.LiquidDropdownMenu
 import com.anto426.liquidmonet.components.menu.menuitem.LiquidMenuItem
-import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
+import com.anto426.liquidmonet.components.selection.slider.LiquidSlider
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
+import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
+import kotlin.math.roundToInt
 import com.anto426.liquidmonet.glass.overlay.liquidGlassOverlayAnchor
 import com.anto426.liquidmonet.glass.overlay.rememberLiquidGlassOverlayAnchorState
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -339,6 +341,11 @@ fun ThemeScreen(
     onBackgroundStyleSelected: (String) -> Unit,
     onReducedMotionChanged: (Boolean) -> Unit,
     onPageTransitionSelected: (LiquidSwitcherTransition) -> Unit,
+    onLiquidIntensityChanged: (Float) -> Unit = {},
+    onGlassQualitySelected: (LiquidGlassQualityTier?) -> Unit = {},
+    onBackgroundIntensityChanged: (Float) -> Unit = {},
+    onBackgroundSpeedChanged: (Float) -> Unit = {},
+    onBackgroundVignetteChanged: (Boolean) -> Unit = {},
     onReset: () -> Unit,
     onNavigateToColorLab: () -> Unit = {},
 ) {
@@ -379,6 +386,35 @@ fun ThemeScreen(
         it.value == UniMotion.selectedTransition(uiState.pageMotion)
     }
 
+    val qualityChoices = listOf<ThemeOptionChoice<LiquidGlassQualityTier?>>(
+        ThemeOptionChoice(
+            null,
+            stringResource(Res.string.ui_theme_glass_quality_auto),
+            stringResource(Res.string.ui_theme_glass_quality_auto_sub),
+        ),
+        ThemeOptionChoice(
+            LiquidGlassQualityTier.MINIMAL,
+            stringResource(Res.string.ui_theme_glass_quality_minimal),
+            stringResource(Res.string.ui_theme_glass_quality_minimal_sub),
+        ),
+        ThemeOptionChoice(
+            LiquidGlassQualityTier.BALANCED,
+            stringResource(Res.string.ui_theme_glass_quality_balanced),
+            stringResource(Res.string.ui_theme_glass_quality_balanced_sub),
+        ),
+        ThemeOptionChoice(
+            LiquidGlassQualityTier.HIGH,
+            stringResource(Res.string.ui_theme_glass_quality_high),
+            stringResource(Res.string.ui_theme_glass_quality_high_sub),
+        ),
+        ThemeOptionChoice(
+            LiquidGlassQualityTier.ULTRA,
+            stringResource(Res.string.ui_theme_glass_quality_ultra),
+            stringResource(Res.string.ui_theme_glass_quality_ultra_sub),
+        ),
+    )
+    val selectedQuality = qualityChoices.firstOrNull { it.value == uiState.glassQuality } ?: qualityChoices.first()
+
     val modeLabel = when (uiState.themeMode) {
         AppThemeMode.System -> stringResource(Res.string.ui_theme_mode_system)
         AppThemeMode.Light -> stringResource(Res.string.ui_theme_mode_light)
@@ -399,20 +435,57 @@ fun ThemeScreen(
             backgroundTitle = selectedBackground.title,
         )
 
-        // 2. Segmented Liquid Pill Bar for Sistema | Chiaro | Scuro
+        // 2. Unclipped Mode Pills for Sistema | Chiaro | Scuro
         val modeEntries = listOf(
             Triple(AppThemeMode.System, stringResource(Res.string.ui_theme_mode_system), ThemeIcons.AutoMode),
             Triple(AppThemeMode.Light, stringResource(Res.string.ui_theme_mode_light), ThemeIcons.LightMode),
             Triple(AppThemeMode.Dark, stringResource(Res.string.ui_theme_mode_dark), ThemeIcons.DarkMode),
         )
-        LiquidTabBar(
-            items = modeEntries.map { (_, title, icon) ->
-                LiquidNavigationItem(label = title, icon = icon)
-            },
-            selectedIndex = modeEntries.indexOfFirst { it.first == uiState.themeMode }.coerceAtLeast(0),
-            onTabSelected = { index -> onThemeModeSelected(modeEntries[index].first) },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-        )
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            modeEntries.forEach { (mode, title, icon) ->
+                val isSelected = uiState.themeMode == mode
+                val colorScheme = MaterialTheme.colorScheme
+                LiquidCard(
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics(mergeDescendants = true) { selected = isSelected },
+                    shape = Capsule(),
+                    border = BorderStroke(
+                        width = if (isSelected) 1.5.dp else 0.75.dp,
+                        color = if (isSelected) colorScheme.primary.copy(alpha = 0.78f) else colorScheme.outlineVariant.copy(alpha = 0.25f),
+                    ),
+                    colors = LiquidCardDefaults.colors(
+                        containerColor = if (isSelected) colorScheme.primary.copy(alpha = 0.14f) else Color.Transparent,
+                    ),
+                    onClick = { onThemeModeSelected(mode) },
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                            color = if (isSelected) colorScheme.primary else colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+        }
 
         // 3. Tavolozza Colori & Monet Seed
         ThemeColorGroup(
@@ -421,11 +494,26 @@ fun ThemeScreen(
             onNavigateToColorLab = onNavigateToColorLab,
         )
 
-        // 4. Sfondo Liquid & Animazioni
+        // 4. Materiale Vetro & Trasparenza (Liquid Monet 2.0.43)
+        ThemeGlassCustomizationGroup(
+            qualityChoices = qualityChoices,
+            selectedQuality = selectedQuality,
+            onQualitySelected = onGlassQualitySelected,
+            liquidIntensity = uiState.liquidIntensity,
+            onLiquidIntensityChanged = onLiquidIntensityChanged,
+        )
+
+        // 5. Sfondo Liquid & Animazioni
         ThemeEffectsGroup(
             backgroundChoices = backgroundChoices,
             selectedBackground = selectedBackground,
             onBackgroundStyleSelected = { onBackgroundStyleSelected(it.toStyleName()) },
+            backgroundIntensity = uiState.backgroundIntensity,
+            onBackgroundIntensityChanged = onBackgroundIntensityChanged,
+            backgroundSpeedFactor = uiState.backgroundSpeedFactor,
+            onBackgroundSpeedChanged = onBackgroundSpeedChanged,
+            showBackgroundVignette = uiState.showBackgroundVignette,
+            onBackgroundVignetteChanged = onBackgroundVignetteChanged,
             motionChoices = motionChoices,
             selectedMotion = selectedMotion,
             onTransitionSelected = onPageTransitionSelected,
@@ -608,7 +696,6 @@ private fun ThemeColorGroup(
             subtitle = stringResource(Res.string.ui_theme_material_you_sub),
             icon = ThemeIcons.Sparkles,
             iconTint = colorScheme.primary,
-            onClick = { onThemeSelected(if (isDynamicSelected) fallbackIndex else 0) },
             showDivider = true,
             trailingContent = {
                 LiquidSwitch(
@@ -679,10 +766,48 @@ private fun ThemeColorGroup(
 }
 
 @Composable
+private fun ThemeGlassCustomizationGroup(
+    qualityChoices: List<ThemeOptionChoice<LiquidGlassQualityTier?>>,
+    selectedQuality: ThemeOptionChoice<LiquidGlassQualityTier?>,
+    onQualitySelected: (LiquidGlassQualityTier?) -> Unit,
+    liquidIntensity: Float,
+    onLiquidIntensityChanged: (Float) -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    UniInsetGroup(title = stringResource(Res.string.ui_theme_glass_group)) {
+        ThemeDropdownRow(
+            title = stringResource(Res.string.ui_theme_glass_quality),
+            selected = selectedQuality,
+            items = qualityChoices,
+            icon = LiquidIcons.Star,
+            iconTint = colorScheme.primary,
+            onItemSelected = onQualitySelected,
+            showDivider = true,
+        )
+        ThemeSliderRow(
+            title = stringResource(Res.string.ui_theme_liquid_intensity),
+            valueLabel = "${(liquidIntensity * 100f).roundToInt()}%",
+            value = liquidIntensity,
+            onValueChange = onLiquidIntensityChanged,
+            valueRange = 0.2f..1.0f,
+            icon = ThemeIcons.Sparkles,
+            iconTint = colorScheme.secondary,
+            showDivider = false,
+        )
+    }
+}
+
+@Composable
 private fun ThemeEffectsGroup(
     backgroundChoices: List<ThemeOptionChoice<LiquidBackgroundEffect>>,
     selectedBackground: ThemeOptionChoice<LiquidBackgroundEffect>,
     onBackgroundStyleSelected: (LiquidBackgroundEffect) -> Unit,
+    backgroundIntensity: Float,
+    onBackgroundIntensityChanged: (Float) -> Unit,
+    backgroundSpeedFactor: Float,
+    onBackgroundSpeedChanged: (Float) -> Unit,
+    showBackgroundVignette: Boolean,
+    onBackgroundVignetteChanged: (Boolean) -> Unit,
     motionChoices: List<ThemeOptionChoice<LiquidSwitcherTransition>>,
     selectedMotion: ThemeOptionChoice<LiquidSwitcherTransition>,
     onTransitionSelected: (LiquidSwitcherTransition) -> Unit,
@@ -690,6 +815,7 @@ private fun ThemeEffectsGroup(
     onReducedMotionChanged: (Boolean) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val roundedSpeed = (backgroundSpeedFactor * 10f).roundToInt() / 10f
     UniInsetGroup(title = stringResource(Res.string.ui_theme_graphics_motion_group)) {
         ThemeDropdownRow(
             title = stringResource(Res.string.ui_theme_engine_group),
@@ -699,6 +825,37 @@ private fun ThemeEffectsGroup(
             iconTint = colorScheme.primary,
             onItemSelected = onBackgroundStyleSelected,
             showDivider = true,
+        )
+        ThemeSliderRow(
+            title = stringResource(Res.string.ui_theme_glow_intensity),
+            valueLabel = "${(backgroundIntensity * 100f).roundToInt()}%",
+            value = backgroundIntensity,
+            onValueChange = onBackgroundIntensityChanged,
+            valueRange = 0.2f..1.0f,
+            icon = LiquidIcons.Palette,
+            iconTint = colorScheme.primary,
+            showDivider = true,
+        )
+        ThemeSliderRow(
+            title = stringResource(Res.string.ui_theme_anim_speed),
+            valueLabel = "${roundedSpeed}x",
+            value = backgroundSpeedFactor,
+            onValueChange = onBackgroundSpeedChanged,
+            valueRange = 0.25f..2.0f,
+            icon = ThemeIcons.SlowMotion,
+            iconTint = colorScheme.secondary,
+            enabled = !reducedMotion,
+            showDivider = true,
+        )
+        UniInsetRow(
+            title = stringResource(Res.string.ui_theme_vignette_title),
+            subtitle = stringResource(Res.string.ui_theme_vignette_sub),
+            icon = ThemeIcons.Wallpaper,
+            iconTint = colorScheme.tertiary,
+            showDivider = true,
+            trailingContent = {
+                LiquidSwitch(checked = showBackgroundVignette, onCheckedChange = onBackgroundVignetteChanged)
+            },
         )
         ThemeDropdownRow(
             title = stringResource(Res.string.ui_theme_page_motion_style),
@@ -725,6 +882,74 @@ private fun ThemeEffectsGroup(
                 style = MaterialTheme.typography.bodySmall,
                 color = colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeSliderRow(
+    title: String,
+    valueLabel: String,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    icon: ImageVector,
+    iconTint: Color,
+    enabled: Boolean = true,
+    showDivider: Boolean,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 36.dp,
+                        iconSize = 18.dp,
+                        containerColor = iconTint.copy(alpha = 0.14f),
+                        shape = RoundedRectangle(10.dp),
+                    ),
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (enabled) colorScheme.onSurface else colorScheme.onSurface.copy(alpha = 0.48f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                LiquidBadge(
+                    text = valueLabel,
+                    containerColor = colorScheme.primary.copy(alpha = if (enabled) 0.14f else 0.06f),
+                    contentColor = if (enabled) colorScheme.primary else colorScheme.onSurfaceVariant,
+                )
+            }
+            LiquidSlider(
+                value = value.coerceIn(valueRange),
+                onValueChange = onValueChange,
+                valueRange = valueRange,
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (showDivider) {
+            LiquidHorizontalDivider(
+                modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                color = colorScheme.outlineVariant.copy(alpha = 0.25f),
             )
         }
     }

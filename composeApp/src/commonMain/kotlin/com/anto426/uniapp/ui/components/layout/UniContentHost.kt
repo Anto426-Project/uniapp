@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 
 /** Shared host for feature content changes; Liquid Monet owns timing and reduced motion. */
@@ -11,6 +12,7 @@ import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 internal fun <T> UniContentHost(
     targetState: T,
     modifier: Modifier = Modifier,
+    transition: LiquidSwitcherTransition = LocalUniContentTransition.current,
     contentAlignment: Alignment = Alignment.Center,
     label: String = "UniContentHost",
     content: @Composable (T) -> Unit,
@@ -18,7 +20,7 @@ internal fun <T> UniContentHost(
     LiquidAnimatedSwitcher(
         targetState = targetState,
         modifier = modifier,
-        transition = LocalUniContentTransition.current,
+        transition = transition,
         contentAlignment = contentAlignment,
         label = label,
     ) { state -> content(state) }

@@ -1,11 +1,10 @@
 package com.anto426.uniapp.settings.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.liquidmonet.theme.monet.LiquidMonetPresets
 import com.anto426.liquidmonet.theme.monet.LiquidMonetSeed
 import com.anto426.uniapp.data.local.LocalDataKey
@@ -16,21 +15,24 @@ import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.model.settings.ThemeOption
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.uniapp.settings.model.PageMotionPreferences
 import com.anto426.uniapp.ui.motion.UniMotion
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
 
 enum class AppThemeMode {
     System,
     Light,
-    Dark
+    Dark,
 }
 
 data class ThemeUiState(
@@ -41,9 +43,18 @@ data class ThemeUiState(
     val selectedBackgroundStyle: String = defaultBackgroundStyles.first(),
     val reducedMotion: Boolean = false,
     val pageMotion: PageMotionPreferences = PageMotionPreferences(),
-    val customColor: Color? = null
+    val customColor: Color? = null,
+    val liquidIntensity: Float = DEFAULT_LIQUID_INTENSITY,
+    val glassQuality: LiquidGlassQualityTier? = null,
+    val backgroundIntensity: Float = DEFAULT_BACKGROUND_INTENSITY,
+    val backgroundSpeedFactor: Float = DEFAULT_BACKGROUND_SPEED,
+    val showBackgroundVignette: Boolean = true,
 ) {
     companion object {
+        const val DEFAULT_LIQUID_INTENSITY = 0.82f
+        const val DEFAULT_BACKGROUND_INTENSITY = 0.90f
+        const val DEFAULT_BACKGROUND_SPEED = 1.0f
+
         val defaultBackgroundStyles = listOf("Aurora", "Mesh Glow", "Orbital Pulse", "Radiant Beam")
         val defaultThemes = buildThemes(null)
 
@@ -53,7 +64,7 @@ data class ThemeUiState(
             ThemeOption("Emerald", "Natura", Color(0xFF2ECC71)),
             ThemeOption("Sunset", "Caldo", Color(0xFFE67E22)),
             ThemeOption("Violet", "Ametista", Color(0xFF9B59B6)),
-            ThemeOption("Personalizzato", "Colore su misura", customColor ?: Color(0xFF2979FF), isCustom = true)
+            ThemeOption("Personalizzato", "Colore su misura", customColor ?: Color(0xFF2979FF), isCustom = true),
         )
     }
 
@@ -74,12 +85,13 @@ data class ThemeUiState(
 
 class ThemeViewModel(
     private val localDataStore: UniLocalDataStore,
-    private val toastSink: AppToastSink = AppToastSink.None
+    private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(ThemeUiState())
     val uiState: StateFlow<ThemeUiState> = mutableUiState.asStateFlow()
     private val pageMotionWrites = Mutex()
     private var pageMotionChanged = false
+    private val sliderJobs = mutableMapOf<String, Job>()
 
     init {
         viewModelScope.launch {
@@ -111,6 +123,20 @@ class ThemeViewModel(
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemePageMotion)
                         .let(UniMotion::normalized)
                         .let { if (pageMotionChanged) mutableUiState.value.pageMotion else it },
+                    liquidIntensity = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeLiquidIntensity)
+                        .coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_LIQUID_INTENSITY),
+                    glassQuality = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeGlassQuality)
+                        ?.let(::parseGlassQuality),
+                    backgroundIntensity = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundIntensity)
+                        .coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_BACKGROUND_INTENSITY),
+                    backgroundSpeedFactor = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundSpeed)
+                        .coerceFiniteIn(0.25f..2.0f, ThemeUiState.DEFAULT_BACKGROUND_SPEED),
+                    showBackgroundVignette = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundVignette),
                 )
             } catch (error: CancellationException) {
                 throw error
@@ -127,7 +153,7 @@ class ThemeViewModel(
         val effectiveCustomColor = if (isCustom && current.customColor == null) Color(0xFF2979FF) else current.customColor
         mutableUiState.value = current.copy(
             selectedThemeIndex = index,
-            customColor = effectiveCustomColor
+            customColor = effectiveCustomColor,
         )
         persistPreference(UniAppDataKeys.ThemeSelection, index)
     }
@@ -139,7 +165,7 @@ class ThemeViewModel(
         mutableUiState.value = current.copy(
             themes = updatedThemes,
             customColor = color,
-            selectedThemeIndex = customIndex
+            selectedThemeIndex = customIndex,
         )
         viewModelScope.launch {
             try {
@@ -174,6 +200,34 @@ class ThemeViewModel(
         persistPreference(UniAppDataKeys.ThemeReducedMotion, reduced, showSuccess = false)
     }
 
+    fun setLiquidIntensity(intensity: Float) {
+        val normalized = intensity.coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_LIQUID_INTENSITY)
+        mutableUiState.value = mutableUiState.value.copy(liquidIntensity = normalized)
+        persistDebouncedPreference(UniAppDataKeys.ThemeLiquidIntensity, normalized)
+    }
+
+    fun selectGlassQuality(quality: LiquidGlassQualityTier?) {
+        mutableUiState.value = mutableUiState.value.copy(glassQuality = quality)
+        persistPreference(UniAppDataKeys.ThemeGlassQuality, quality?.name)
+    }
+
+    fun setBackgroundIntensity(intensity: Float) {
+        val normalized = intensity.coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_BACKGROUND_INTENSITY)
+        mutableUiState.value = mutableUiState.value.copy(backgroundIntensity = normalized)
+        persistDebouncedPreference(UniAppDataKeys.ThemeBackgroundIntensity, normalized)
+    }
+
+    fun setBackgroundSpeedFactor(speed: Float) {
+        val normalized = speed.coerceFiniteIn(0.25f..2.0f, ThemeUiState.DEFAULT_BACKGROUND_SPEED)
+        mutableUiState.value = mutableUiState.value.copy(backgroundSpeedFactor = normalized)
+        persistDebouncedPreference(UniAppDataKeys.ThemeBackgroundSpeed, normalized)
+    }
+
+    fun setBackgroundVignette(show: Boolean) {
+        mutableUiState.value = mutableUiState.value.copy(showBackgroundVignette = show)
+        persistPreference(UniAppDataKeys.ThemeBackgroundVignette, show, showSuccess = false)
+    }
+
     fun selectPageTransition(transition: LiquidSwitcherTransition) {
         if (transition == LiquidSwitcherTransition.None) return
         updatePageMotion(PageMotionPreferences(true, transition.name))
@@ -196,29 +250,38 @@ class ThemeViewModel(
     }
 
     fun reset() {
+        sliderJobs.values.forEach { it.cancel() }
+        sliderJobs.clear()
         val defaults = ThemeUiState()
         updatePageMotion(defaults.pageMotion)
         mutableUiState.value = defaults
         viewModelScope.launch {
             try {
-                localDataStore.write(
-                    LocalDataScope.Application,
-                    UniAppDataKeys.ThemeSelection,
-                    defaults.selectedThemeIndex,
-                )
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeSelection, defaults.selectedThemeIndex)
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeMode, defaults.themeMode.name)
-                localDataStore.write(
-                    LocalDataScope.Application,
-                    UniAppDataKeys.ThemeBackground,
-                    defaults.selectedBackgroundStyle,
-                )
-                localDataStore.write(
-                    LocalDataScope.Application,
-                    UniAppDataKeys.ThemeReducedMotion,
-                    defaults.reducedMotion,
-                )
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackground, defaults.selectedBackgroundStyle)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeReducedMotion, defaults.reducedMotion)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeLiquidIntensity, defaults.liquidIntensity)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeGlassQuality, defaults.glassQuality?.name)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundIntensity, defaults.backgroundIntensity)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundSpeed, defaults.backgroundSpeedFactor)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundVignette, defaults.showBackgroundVignette)
                 localDataStore.remove(LocalDataScope.Application, UniAppDataKeys.ThemeCustomColor)
                 toastSink.success("Tema ripristinato.")
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+            }
+        }
+    }
+
+    private fun <T> persistDebouncedPreference(key: LocalDataKey<T>, value: T) {
+        sliderJobs.remove(key.name)?.cancel()
+        sliderJobs[key.name] = viewModelScope.launch {
+            delay(180L)
+            try {
+                localDataStore.write(LocalDataScope.Application, key, value)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -249,4 +312,9 @@ class ThemeViewModel(
     private fun parseThemeMode(value: String): AppThemeMode? =
         AppThemeMode.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
 
+    private fun parseGlassQuality(value: String): LiquidGlassQualityTier? =
+        LiquidGlassQualityTier.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+
+    private fun Float.coerceFiniteIn(range: ClosedFloatingPointRange<Float>, fallback: Float): Float =
+        if (isFinite()) coerceIn(range) else fallback
 }

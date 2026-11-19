@@ -1,26 +1,17 @@
 package com.anto426.uniapp.ui.news
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import androidx.compose.runtime.key
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
-import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
-import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
+import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
+import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.news.presentation.NewsFilter
 import com.anto426.uniapp.news.presentation.NewsUiState
 import com.anto426.uniapp.ui.components.items.UniNewsCard
+import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -31,25 +22,34 @@ fun NewsScreen(
     onTabSelected: (Int) -> Unit,
     onNewsSelected: (NewsItem) -> Unit,
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val tabs = uiState.filters.map { filter ->
-        when (filter) {
-            NewsFilter.All -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_all), icon = LiquidIcons.MenuBook)
-            NewsFilter.University -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_university), icon = LiquidIcons.Home)
-            NewsFilter.Department -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_department), icon = LiquidIcons.Star)
-            NewsFilter.Course -> LiquidNavigationItem(label = stringResource(Res.string.ui_news_course), icon = LiquidIcons.MenuBook)
-        }
-    }
     val visibleNews = uiState.visibleNews
-    val activeTabLabel = tabs.getOrNull(uiState.selectedTab)?.label ?: stringResource(Res.string.ui_news)
 
     UniScreenLazyColumn {
-        item(key = "news-tabs") {
-            LiquidTabBar(
-                items = tabs,
-                selectedIndex = uiState.selectedTab,
-                onTabSelected = onTabSelected,
-            )
+        if (uiState.filters.size > 1) {
+            item(key = "news-filter-chips") {
+                UniHorizontalChipRow {
+                    uiState.filters.forEachIndexed { index, filter ->
+                        key(filter) {
+                            val selected = uiState.selectedTab == index
+                            val label = when (filter) {
+                                NewsFilter.All -> stringResource(Res.string.ui_news_all)
+                                NewsFilter.University -> stringResource(Res.string.ui_news_university)
+                                NewsFilter.Department -> stringResource(Res.string.ui_news_department)
+                                NewsFilter.Course -> stringResource(Res.string.ui_news_course)
+                            }
+                            val count = filter.category?.let { category ->
+                                uiState.feed.byCategory[category.lowercase()]?.size ?: 0
+                            } ?: uiState.news.size
+                            LiquidChip(
+                                label = "$label ($count)",
+                                selected = selected,
+                                leadingIcon = if (selected) LiquidIcons.Check else null,
+                                onClick = { onTabSelected(index) },
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         if (visibleNews.isEmpty()) {
@@ -60,39 +60,36 @@ fun NewsScreen(
                 )
             }
         } else {
-            item(key = "news-count-${uiState.selectedTab}") {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = activeTabLabel,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface,
-                    )
-                    LiquidBadge(
-                        text = "${visibleNews.size}",
-                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
-                        contentColor = colorScheme.primary,
-                    )
+            val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
+            item(key = "news-section-header-${uiState.selectedTab}") {
+                val activeLabel = when (activeFilter) {
+                    NewsFilter.University -> stringResource(Res.string.ui_news_university)
+                    NewsFilter.Department -> stringResource(Res.string.ui_news_department)
+                    NewsFilter.Course -> stringResource(Res.string.ui_news_course)
+                    NewsFilter.All, null -> stringResource(Res.string.ui_news_latest_header)
                 }
+                val countLabel = if (visibleNews.size == 1) {
+                    stringResource(Res.string.ui_news_count_one)
+                } else {
+                    stringResource(Res.string.ui_news_count_format, visibleNews.size)
+                }
+                LiquidSectionHeader(
+                    title = activeLabel,
+                    subtitle = countLabel,
+                )
             }
-        }
 
-        itemsIndexed(
-            items = visibleNews,
-            contentType = { index, _ -> if (index == 0) "news-featured-card" else "news-card" },
-            key = { index, news -> news.key.ifBlank { "${news.title}|$index" } },
-        ) { index, news ->
-            UniNewsCard(
-                news = news,
-                onClick = { onNewsSelected(news) },
-                featured = index == 0,
-            )
+            itemsIndexed(
+                items = visibleNews,
+                contentType = { _, _ -> "news-card" },
+                key = { index, news -> news.key.ifBlank { "${news.title}|$index" } },
+            ) { _, news ->
+                UniNewsCard(
+                    news = news,
+                    onClick = { onNewsSelected(news) },
+                    homeCard = true,
+                )
+            }
         }
     }
 }

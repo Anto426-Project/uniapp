@@ -20,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -160,13 +162,20 @@ fun ReservationHeroFrontFace(
                 contentColor = colorScheme.primary,
             )
 
-            if (reservation.departureStop.isNotBlank()) {
+            if (reservation.departureStop.isNotBlank() || reservation.arrivalStop.isNotBlank()) {
+                val stopText = when {
+                    reservation.departureStop.isNotBlank() && reservation.arrivalStop.isNotBlank() ->
+                        "${reservation.departureStop} → ${reservation.arrivalStop}"
+                    else -> reservation.departureStop.ifBlank { reservation.arrivalStop }
+                }
                 Text(
-                    text = reservation.departureStop,
+                    text = stopText,
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
