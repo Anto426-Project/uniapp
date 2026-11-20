@@ -1,11 +1,18 @@
 package com.anto426.uniapp.data.local
 
+import com.anto426.uniapp.model.didactics.SimulationItem
 import com.anto426.uniapp.security.password.AppPasswordVerifier
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 
 /** Canonical catalog of local values. Keys must never be duplicated inside feature packages. */
 object UniAppDataKeys {
+    val GradeSimulation = LocalDataKey(
+        name = "didactics.grade-simulation.v1",
+        serializer = ListSerializer(SimulationItem.serializer()),
+        defaultValue = emptyList(),
+    )
     val GitHubProject = LocalDataKey(
         "project.github.v1",
         com.anto426.uniapp.project.model.GitHubProjectSnapshot.serializer(),

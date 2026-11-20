@@ -366,6 +366,7 @@
     <string name="ui_news_summary_heading">Summary</string>
     <string name="ui_news_article_heading">News</string>
     <string name="ui_news_open_original">Open original announcement</string>
+    <string name="ui_news_share">Share announcement</string>
     <string name="ui_home_news_page_notice">News %1$d of %2$d • swipe to browse</string>
 
 
@@ -448,7 +449,7 @@
     <string name="ui_revoke_access">Revoke access</string>
     <string name="ui_revoke">Revoke</string>
     <string name="ui_revoke_question">Are you sure you want to disconnect %1$s? You will need to sign in again on that device.</string>
-    <string name="ui_devices_security_note">Active sessions keep your university account signed in on each device. If you don’t recognize a sign-in, close the other sessions using the button above.</string>
+    <string name="ui_devices_security_note">You can revoke sign-ins you don’t recognize in Other sessions.</string>
     <string name="ui_push_notifications">Push notifications</string>
     <string name="ui_academic_alerts">Academic alerts and deadlines</string>
     <string name="ui_biometric_security">Biometric security</string>
@@ -457,6 +458,7 @@
     <string name="ui_biometric_not_enrolled">Set up fingerprint, face, or device PIN first</string>
     <string name="ui_biometric_unavailable">Device authentication unavailable</string>
     <string name="ui_unlock_title">Unlock UniApp</string>
+    <string name="ui_unlock_welcome_back">Welcome back</string>
     <string name="ui_unlock_protected_access">Protected access</string>
     <string name="ui_unlock_security_badge">System</string>
     <string name="ui_unlock_methods">Unlock UniApp with your device or your app password.</string>
@@ -877,6 +879,9 @@
     <string name="ui_grades_cfu_chart_detail">Recorded / simulated credits (CFU)</string>
     <string name="ui_grades_no_cfu_data">No CFU data available</string>
     <string name="ui_grades_tier_band_format">Range %1$s</string>
+    <string name="ui_grades_decrease_value">Decrease %1$s</string>
+    <string name="ui_grades_increase_value">Increase %1$s</string>
+    <string name="ui_grades_remove_custom_exam">Remove simulated exam</string>
     <string name="ui_grades_add_custom_exam_title">Add custom exam</string>
     <string name="ui_grades_custom_exam_name">Course name</string>
     <string name="ui_grades_custom_exam_name_placeholder">E.g. internship / elective exam</string>
@@ -1247,6 +1252,7 @@
     <string name="msg_impossibile_caricare_il_piano_di_studi">Unable to load study plan.</string>
     <string name="msg_impossibile_caricare_gli_appelli">Unable to load exam sessions.</string>
     <string name="msg_operazione_sull_appello_non_riuscita">Exam session action failed.</string>
+    <string name="msg_impossibile_salvare_la_simulazione">Could not save the simulation.</string>
     <string name="msg_impossibile_caricare_voti_e_simulazione">Unable to load grades and simulation.</string>
     <string name="msg_impossibile_caricare_le_presenze">Unable to load attendance.</string>
     <string name="msg_inserisci_o_inquadra_un_codice_qr_valido">Enter or scan a valid QR code.</string>
@@ -1703,4 +1709,43 @@
     <string name="ui_library_booking_step_2">2. Date &amp; time slot</string>
     <string name="ui_library_booking_step_3">3. Review &amp; confirm</string>
     <string name="ui_library_booking_selected_slots">%1$d slots selected</string>
+    <string name="ui_new_badge">New</string>
+    <string name="ui_version_number">Version %1$s</string>
+    <string name="ui_project_contribute_group">Contribute to the project</string>
+    <string name="ui_project_report_ideas">Share ideas or report issues</string>
+    <string name="ui_search_close">Close search</string>
+    <string name="ui_monet_palette">Monet palette</string>
+    <string name="ui_project_syncing">Syncing the profile and credits from GitHub…</string>
+    <string name="ui_sdk_liquid_description">Optical rendering and glass components</string>
+    <string name="ui_sdk_uni_description">Esse3 services and university integration</string>
+    <string name="ui_sdk_storage_description">Hardware-backed encrypted storage</string>
+    <string name="ui_sdk_firebase_description">Notifications and cloud connector</string>
+    <string name="ui_sdk_internal_description">Internal module</string>
+    <string name="ui_biometric_prompt_title">Protect UniApp</string>
+    <string name="msg_sign_out_in_progress">Signing out…</string>
+    <string name="msg_login_succeeded">Signed in.</string>
+    <string name="msg_account_activated">Account activated.</string>
+    <string name="msg_academic_profile_activated">University profile activated.</string>
+    <string name="msg_custom_color_applied">Custom color applied.</string>
+    <string name="msg_theme_reset">Theme reset.</string>
+    <string name="msg_theme_updated">Theme updated.</string>
+    <string name="msg_update_started">Update started…</string>
+    <string name="msg_survey_answer_required">Answer all required questions.</string>
+    <string name="msg_transport_booking_cancelled">Booking cancelled.</string>
+    <string name="ui_brand_motto_first">NEVER</string>
+    <string name="ui_brand_motto_second">SETTLE</string>
+    <string name="ui_brand_experience">UniApp Experience ✨</string>
+    <string name="ui_theme_palette_dynamic">Material You</string>
+    <string name="ui_theme_palette_sapphire">Sapphire</string>
+    <string name="ui_theme_palette_emerald">Emerald</string>
+    <string name="ui_theme_palette_sunset">Sunset</string>
+    <string name="ui_theme_palette_violet">Violet</string>
+    <string name="ui_theme_palette_custom">Custom</string>
+    <string name="msg_biometric_enabled">Biometric sign-in enabled.</string>
+    <string name="msg_biometric_disabled">Biometric sign-in disabled.</string>
+    <string name="msg_update_finish_in_app_store">Finish updating in the App Store.</string>
+    <string name="ui_news_attachment_document">Document</string>
+    <string name="ui_library_document_available">Item available</string>
+    <string name="ui_library_requestable_copies">Copies available to request: %1$d</string>
+    <string name="ui_library_active_request">Active request</string>
 </resources>

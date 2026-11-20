@@ -408,6 +408,8 @@ class UniAccountStoreTest {
         )
         factory.open("test.vault.storage-migrations")
             .putString("migration.storage-reset-20260927", "complete")
+        factory.open("test.vault.storage-reset")
+            .putString("storage-reset-20260929", "complete")
 
         val current = createStore(listOf("new-installation"), factory, resetStorageForRelease = true)
         assertTrue(current.snapshot().accounts.isEmpty())

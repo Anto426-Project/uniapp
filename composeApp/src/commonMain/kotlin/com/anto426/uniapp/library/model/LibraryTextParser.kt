@@ -67,14 +67,7 @@ internal object LibraryTextParser {
         val normalized = normalizeText(rawDescription)
         val cleaned = cleanBookDescription(normalized, title)
         val parsedSummary = parseCatalogBook(id, title, normalized)
-        val isAvailable = normalized.contains("Documento disponibile", ignoreCase = true) || actions.isNotEmpty()
-        val availability = if (normalized.contains("Documento disponibile", ignoreCase = true)) {
-            "Documento disponibile"
-        } else if (actions.isNotEmpty()) {
-            "${actions.size} copie richiedibili"
-        } else {
-            null
-        }
+        val hasAvailableDocument = normalized.contains("Documento disponibile", ignoreCase = true)
 
         val inventory = extractLabeledValue(
             normalized,
@@ -100,8 +93,7 @@ internal object LibraryTextParser {
             title = title.trim(),
             author = parsedSummary.subtitle.takeIf { it != title.trim() && it.isNotBlank() },
             year = parsedSummary.metadata.takeIf { it.isNotBlank() },
-            availabilitySummary = availability,
-            isAvailable = isAvailable,
+            hasAvailableDocument = hasAvailableDocument,
             branches = branches,
             inventory = inventory,
             shelfmark = shelfmark,
@@ -134,17 +126,11 @@ internal object LibraryTextParser {
             text
         }
         val dueDate = dateRegex.find(text)?.value
-        val status = when {
-            canRenew -> "In prestito"
-            canCancel -> "Richiesta attiva"
-            else -> null
-        }
         return LibraryMovementItem(
             id = id,
             title = withoutBranch.ifBlank { text },
             detail = text,
             branchName = branch,
-            statusBadge = status,
             dueDateLabel = dueDate,
             canCancel = canCancel,
             canRenew = canRenew,

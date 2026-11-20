@@ -366,6 +366,7 @@
     <string name="ui_news_summary_heading">摘要</string>
     <string name="ui_news_article_heading">新闻</string>
     <string name="ui_news_open_original">打开原始公告</string>
+    <string name="ui_news_share">分享公告</string>
     <string name="ui_home_news_page_notice">第 %1$d/%2$d 条新闻 • 滑动浏览</string>
 
 
@@ -448,7 +449,7 @@
     <string name="ui_revoke_access">撤销访问权限</string>
     <string name="ui_revoke">撤销</string>
     <string name="ui_revoke_question">确定要断开 %1$s 的连接吗？您需要在该设备上重新登录。</string>
-    <string name="ui_devices_security_note">活跃会话会在对应设备上保持大学账号的登录状态。若发现未知登录，请点击上方按钮关闭其他会话。</string>
+    <string name="ui_devices_security_note">如发现不认识的登录，可以在“其他会话”中结束对应会话。</string>
     <string name="ui_push_notifications">推送通知</string>
     <string name="ui_academic_alerts">学业提醒与截止日期</string>
     <string name="ui_biometric_security">生物识别安全</string>
@@ -457,6 +458,7 @@
     <string name="ui_biometric_not_enrolled">请先在设备上设置指纹、面容或锁屏密码</string>
     <string name="ui_biometric_unavailable">设备身份验证不可用</string>
     <string name="ui_unlock_title">解锁 UniApp</string>
+    <string name="ui_unlock_welcome_back">欢迎回来</string>
     <string name="ui_unlock_protected_access">受保护访问</string>
     <string name="ui_unlock_security_badge">系统</string>
     <string name="ui_unlock_methods">使用设备验证或应用密码解锁 UniApp。</string>
@@ -877,6 +879,9 @@
     <string name="ui_grades_cfu_chart_detail">已登记 / 模拟学分 (CFU)</string>
     <string name="ui_grades_no_cfu_data">暂无 CFU 数据</string>
     <string name="ui_grades_tier_band_format">%1$s 分数段</string>
+    <string name="ui_grades_decrease_value">降低%1$s</string>
+    <string name="ui_grades_increase_value">提高%1$s</string>
+    <string name="ui_grades_remove_custom_exam">移除模拟考试</string>
     <string name="ui_grades_add_custom_exam_title">添加自定义考试</string>
     <string name="ui_grades_custom_exam_name">课程名称</string>
     <string name="ui_grades_custom_exam_name_placeholder">例如 实习 / 选修课</string>
@@ -1247,6 +1252,7 @@
     <string name="msg_impossibile_caricare_il_piano_di_studi">无法加载学习计划。</string>
     <string name="msg_impossibile_caricare_gli_appelli">无法加载考试场次。</string>
     <string name="msg_operazione_sull_appello_non_riuscita">考试场次操作失败。</string>
+    <string name="msg_impossibile_salvare_la_simulazione">无法保存模拟。</string>
     <string name="msg_impossibile_caricare_voti_e_simulazione">无法加载成绩与模拟数据。</string>
     <string name="msg_impossibile_caricare_le_presenze">无法加载考勤记录。</string>
     <string name="msg_inserisci_o_inquadra_un_codice_qr_valido">请输入或扫描有效的二维码。</string>
@@ -1703,4 +1709,43 @@
     <string name="ui_library_booking_step_2">2. 选择日期与时段</string>
     <string name="ui_library_booking_step_3">3. 确认预约</string>
     <string name="ui_library_booking_selected_slots">已选 %1$d 个时段</string>
+    <string name="ui_new_badge">新版本</string>
+    <string name="ui_version_number">版本 %1$s</string>
+    <string name="ui_project_contribute_group">参与项目</string>
+    <string name="ui_project_report_ideas">提交建议或报告问题</string>
+    <string name="ui_search_close">关闭搜索</string>
+    <string name="ui_monet_palette">Monet 调色板</string>
+    <string name="ui_project_syncing">正在从 GitHub 同步个人资料和贡献者信息…</string>
+    <string name="ui_sdk_liquid_description">光学渲染与玻璃组件</string>
+    <string name="ui_sdk_uni_description">Esse3 服务与大学系统集成</string>
+    <string name="ui_sdk_storage_description">由硬件保护的加密存储</string>
+    <string name="ui_sdk_firebase_description">通知与云连接</string>
+    <string name="ui_sdk_internal_description">内部模块</string>
+    <string name="ui_biometric_prompt_title">保护 UniApp</string>
+    <string name="msg_sign_out_in_progress">正在退出登录…</string>
+    <string name="msg_login_succeeded">已登录。</string>
+    <string name="msg_account_activated">账号已启用。</string>
+    <string name="msg_academic_profile_activated">大学档案已启用。</string>
+    <string name="msg_custom_color_applied">已应用自定义颜色。</string>
+    <string name="msg_theme_reset">主题已重置。</string>
+    <string name="msg_theme_updated">主题已更新。</string>
+    <string name="msg_update_started">已开始更新…</string>
+    <string name="msg_survey_answer_required">请回答所有必答题。</string>
+    <string name="msg_transport_booking_cancelled">预订已取消。</string>
+    <string name="ui_brand_motto_first">永不</string>
+    <string name="ui_brand_motto_second">妥协</string>
+    <string name="ui_brand_experience">UniApp 使用体验 ✨</string>
+    <string name="ui_theme_palette_dynamic">Material You</string>
+    <string name="ui_theme_palette_sapphire">蓝宝石</string>
+    <string name="ui_theme_palette_emerald">祖母绿</string>
+    <string name="ui_theme_palette_sunset">日落</string>
+    <string name="ui_theme_palette_violet">紫罗兰</string>
+    <string name="ui_theme_palette_custom">自定义</string>
+    <string name="msg_biometric_enabled">已开启生物识别登录。</string>
+    <string name="msg_biometric_disabled">已关闭生物识别登录。</string>
+    <string name="msg_update_finish_in_app_store">请在 App Store 中完成更新。</string>
+    <string name="ui_news_attachment_document">文档</string>
+    <string name="ui_library_document_available">馆藏可用</string>
+    <string name="ui_library_requestable_copies">可申请册数：%1$d</string>
+    <string name="ui_library_active_request">申请中</string>
 </resources>

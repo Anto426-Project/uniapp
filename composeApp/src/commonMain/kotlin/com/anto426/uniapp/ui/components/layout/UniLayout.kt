@@ -48,6 +48,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.icons.LiquidIcons
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 val LocalUniScreenPadding = compositionLocalOf { PaddingValues(0.dp) }
 val LocalNavigationBarVisible = compositionLocalOf { true }
@@ -204,7 +206,7 @@ fun UniNeverSettleCard(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "UniApp Experience ✨",
+                    text = stringResource(Res.string.ui_brand_experience),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp
@@ -217,7 +219,7 @@ fun UniNeverSettleCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "NEVER",
+                        text = stringResource(Res.string.ui_brand_motto_first),
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontWeight = FontWeight.Black,
                             fontSize = 32.sp,
@@ -231,7 +233,7 @@ fun UniNeverSettleCard(
                         shape = RoundedRectangle(12.dp)
                     ) {
                         Text(
-                            text = "SETTLE",
+                            text = stringResource(Res.string.ui_brand_motto_second),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 0.5.sp

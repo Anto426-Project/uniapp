@@ -11,8 +11,10 @@ class AppRouteGuard {
     fun resolve(
         requested: AppRoute,
         sessionState: AppSessionState,
-    ): AppRoute =
-        when (sessionState) {
+    ): AppRoute {
+        // Release notes are application metadata and can be opened during session restoration or unlock.
+        if (requested == AppRoute.Changelog) return requested
+        return when (sessionState) {
             AppSessionState.Initializing,
             AppSessionState.Switching,
             is AppSessionState.UnlockRequired,
@@ -51,6 +53,7 @@ class AppRouteGuard {
                     -> AppRoute.Login
                 }
         }
+    }
 
     fun canRender(
         route: AppRoute,

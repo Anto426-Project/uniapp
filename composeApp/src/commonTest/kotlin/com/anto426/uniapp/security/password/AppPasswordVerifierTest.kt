@@ -29,6 +29,14 @@ class AppPasswordVerifierTest {
     }
 
     @Test
+    fun verifierAcceptsSixDigitNumericPin() {
+        val pin = "123456"
+        val verifier = createAppPasswordVerifier(pin)
+        assertTrue(verifyAppPassword(pin, verifier))
+        assertFalse(verifyAppPassword("654321", verifier))
+    }
+
+    @Test
     fun malformedVerifierIsRejectedBeforeNativeDerivation() {
         val invalid = AppPasswordVerifier("", "", 600_000)
         assertFalse(verifyAppPassword("test-password", invalid))

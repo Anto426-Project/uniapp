@@ -1,6 +1,7 @@
 package com.anto426.uniapp.model.settings
 
 import androidx.compose.ui.graphics.Color
+import org.jetbrains.compose.resources.StringResource
 
 enum class DeviceType { PHONE, PC, TABLET }
 
@@ -22,8 +23,7 @@ data class LanguageInfo(
 )
 
 data class ThemeOption(
-    val name: String,
-    val description: String,
+    val nameRes: StringResource,
     val color: Color?,
     val isCustom: Boolean = false,
 )

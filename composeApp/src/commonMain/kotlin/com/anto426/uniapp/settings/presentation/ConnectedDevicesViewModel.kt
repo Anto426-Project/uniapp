@@ -21,6 +21,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ConnectedDevicesUiState(
@@ -32,6 +33,8 @@ data class ConnectedDevicesUiState(
 ) {
     val currentDevice: DeviceInfo? get() = devices.firstOrNull { it.isCurrent }
     val otherDevices: List<DeviceInfo> get() = devices.filterNot { it.isCurrent }
+    val canManageSessions: Boolean get() = loadState == FeatureLoadState.Content && errorMessage == null && !isMutating
+    val canDisconnectAll: Boolean get() = canManageSessions && devices.any { !it.isCurrent }
 }
 
 class ConnectedDevicesViewModel(
@@ -44,31 +47,32 @@ class ConnectedDevicesViewModel(
     private val sharedData = dataSource.sharedData(viewModelScope)
     private val dataRequests = listOf(UniAppDataRequests.Devices)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
-        try {
-            val devices = snapshot.require(UniAppDataRequests.Devices).toDeviceInfo()
-            mutableUiState.value = mutableUiState.value.copy(
-                devices = devices,
-                loadState = if (devices.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-            )
-            snapshot.throwIfFailed()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Throwable) {
-            mutableUiState.value = mutableUiState.value.copy(
-                loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati) },
+        val result = snapshot.state(UniAppDataRequests.Devices)
+        val devices = result.value?.toDeviceInfo()
+        val message = result.error?.userMessage {
+            getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)
+        }
+        mutableUiState.update { state ->
+            state.copy(
+                devices = devices ?: state.devices,
+                loadState = when {
+                    devices == null -> state.loadState.onRefreshFailure()
+                    devices.isEmpty() -> FeatureLoadState.Empty
+                    else -> FeatureLoadState.Content
+                },
+                errorMessage = message,
             )
         }
-
     }
 
     fun refresh(force: Boolean = false) {
+        mutableUiState.update { it.copy(loadState = it.loadState.onRefresh()) }
         sharedData.refresh(dataRequests, force)
     }
 
     fun requestRevocation(device: DeviceInfo) {
-        if (device.isCurrent || device !in mutableUiState.value.devices) return
+        val state = mutableUiState.value
+        if (!state.canManageSessions || device.isCurrent || device !in state.devices) return
         if (device.revocationToken.isNullOrBlank()) {
             viewModelScope.launch {
                 toastSink.warning(getString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile))
@@ -83,7 +87,12 @@ class ConnectedDevicesViewModel(
     }
 
     fun confirmRevocation() {
-        val pending = mutableUiState.value.devicePendingRevocation ?: return
+        val state = mutableUiState.value
+        val pending = state.devicePendingRevocation ?: return
+        if (!state.canManageSessions || pending !in state.devices) {
+            dismissRevocation()
+            return
+        }
         val token = pending.revocationToken
         if (token.isNullOrBlank()) {
             viewModelScope.launch { toastSink.warning(getString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile)) }

@@ -124,10 +124,10 @@ private fun AcademicIdentityFrontFace(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f).padding(end = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f).padding(end = 6.dp),
             ) {
-                UniAppBrandLogo(modifier = Modifier.size(40.dp))
+                UniAppBrandLogo(modifier = Modifier.size(36.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
@@ -137,9 +137,9 @@ private fun AcademicIdentityFrontFace(
                         Text(
                             text = stringResource(Res.string.ui_unipass_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
+                            fontWeight = FontWeight.SemiBold,
                             color = colorScheme.onSurface,
-                            letterSpacing = (-0.3).sp,
+                            letterSpacing = (-0.2).sp,
                         )
                         Text(
                             text = if (uiState.isProfessor) stringResource(Res.string.ui_role_teacher_upper) else stringResource(Res.string.ui_role_student_upper),
@@ -151,9 +151,11 @@ private fun AcademicIdentityFrontFace(
                     Text(
                         text = stringResource(Res.string.ui_university),
                         style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.80f),
                         fontWeight = FontWeight.Medium,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -162,11 +164,14 @@ private fun AcademicIdentityFrontFace(
             // Quick Flip Indicator Pill
             Box(
                 modifier = Modifier
-                    .background(
-                        color = colorScheme.surface.copy(alpha = 0.22f),
+                    .clip(RoundedRectangle(16.dp))
+                    .background(color = colorScheme.surface.copy(alpha = 0.24f))
+                    .border(
+                        width = 0.6.dp,
+                        color = Color.White.copy(alpha = 0.22f),
                         shape = RoundedRectangle(16.dp),
                     )
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
@@ -309,10 +314,10 @@ private fun AcademicIdentityBackFace(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f).padding(end = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f).padding(end = 6.dp),
             ) {
-                UniAppBrandLogo(modifier = Modifier.size(40.dp))
+                UniAppBrandLogo(modifier = Modifier.size(36.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
@@ -322,9 +327,9 @@ private fun AcademicIdentityBackFace(
                         Text(
                             text = stringResource(Res.string.ui_unipass_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
+                            fontWeight = FontWeight.SemiBold,
                             color = colorScheme.onSurface,
-                            letterSpacing = (-0.3).sp,
+                            letterSpacing = (-0.2).sp,
                         )
                         Text(
                             text = if (uiState.isProfessor) stringResource(Res.string.ui_role_teacher_upper) else stringResource(Res.string.ui_role_student_upper),
@@ -336,9 +341,11 @@ private fun AcademicIdentityBackFace(
                     Text(
                         text = stringResource(Res.string.ui_badge_scan_gates_hint),
                         style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.80f),
                         fontWeight = FontWeight.Medium,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -347,11 +354,14 @@ private fun AcademicIdentityBackFace(
             // Flip Back Pill
             Box(
                 modifier = Modifier
-                    .background(
-                        color = colorScheme.surface.copy(alpha = 0.22f),
+                    .clip(RoundedRectangle(16.dp))
+                    .background(color = colorScheme.surface.copy(alpha = 0.24f))
+                    .border(
+                        width = 0.6.dp,
+                        color = Color.White.copy(alpha = 0.22f),
                         shape = RoundedRectangle(16.dp),
                     )
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
@@ -393,7 +403,7 @@ private fun AcademicIdentityBackFace(
             Text(
                 text = stringResource(Res.string.ui_badge_tap_to_flip_back_hint),
                 style = MaterialTheme.typography.labelSmall,
-                color = colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                color = colorScheme.onSurface.copy(alpha = 0.78f),
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
             )
@@ -471,11 +481,27 @@ fun UniAppBrandLogo(modifier: Modifier = Modifier) {
 fun QrCodeMatrixCanvas(
     codeValue: String,
     modifier: Modifier = Modifier,
-    @Suppress("UNUSED_PARAMETER") color: Color = Color.Black,
+    color: Color = Color.Black,
     style: QrCodeStyle = QrCodeStyle.Classic,
+    accentColor: Color = color,
+    backgroundColor: Color = Color.White,
 ) {
-    val painter = remember(codeValue, style) {
-        if (codeValue.isBlank()) null else runCatching { CodeGenerator().qrCode(codeValue, style) }.getOrNull()
+    val resolvedModule = if (style == QrCodeStyle.Classic && color == Color.Black) null else color
+    val resolvedAccent = if (style == QrCodeStyle.Classic && accentColor == Color.Black) null else accentColor
+    val painter = remember(codeValue, style, resolvedModule, resolvedAccent, backgroundColor) {
+        if (codeValue.isBlank()) {
+            null
+        } else {
+            runCatching {
+                CodeGenerator().qrCode(
+                    value = codeValue,
+                    style = style,
+                    moduleColor = resolvedModule,
+                    accentColor = resolvedAccent,
+                    backgroundColor = backgroundColor,
+                )
+            }.getOrNull()
+        }
     }
     if (painter != null) {
         Image(painter = painter, contentDescription = null, modifier = modifier)

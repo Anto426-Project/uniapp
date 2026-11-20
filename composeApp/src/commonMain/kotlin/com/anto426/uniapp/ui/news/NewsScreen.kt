@@ -3,7 +3,7 @@ package com.anto426.uniapp.ui.news
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
+import androidx.compose.runtime.remember
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -13,16 +13,35 @@ import com.anto426.uniapp.news.presentation.NewsUiState
 import com.anto426.uniapp.ui.components.items.UniNewsCard
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun NewsScreen(
     uiState: NewsUiState,
+    searchQuery: String = "",
     onTabSelected: (Int) -> Unit,
     onNewsSelected: (NewsItem) -> Unit,
 ) {
-    val visibleNews = uiState.visibleNews
+    val baseNews = uiState.visibleNews
+    val trimmedQuery = searchQuery.trim()
+    val filteredNews = remember(baseNews, trimmedQuery) {
+        if (trimmedQuery.isBlank()) {
+            baseNews
+        } else {
+            baseNews.filter { item ->
+                item.title.contains(trimmedQuery, ignoreCase = true) ||
+                    item.description.contains(trimmedQuery, ignoreCase = true) ||
+                    item.fullContent.contains(trimmedQuery, ignoreCase = true) ||
+                    item.category.contains(trimmedQuery, ignoreCase = true)
+            }
+        }
+    }
+
+    val showFeaturedLead = trimmedQuery.isBlank() && filteredNews.size >= 2
+    val featuredNews = if (showFeaturedLead) filteredNews.first() else null
+    val listNews = if (showFeaturedLead) filteredNews.drop(1) else filteredNews
 
     UniScreenLazyColumn {
         if (uiState.filters.size > 1) {
@@ -41,7 +60,8 @@ fun NewsScreen(
                                 uiState.feed.byCategory[category.lowercase()]?.size ?: 0
                             } ?: uiState.news.size
                             LiquidChip(
-                                label = "$label ($count)",
+                                label = label,
+                                badge = count.toString(),
                                 selected = selected,
                                 leadingIcon = if (selected) LiquidIcons.Check else null,
                                 onClick = { onTabSelected(index) },
@@ -52,43 +72,62 @@ fun NewsScreen(
             }
         }
 
-        if (visibleNews.isEmpty()) {
-            item(key = "news-empty-${uiState.selectedTab}") {
-                LiquidEmptyState(
+        if (filteredNews.isEmpty()) {
+            item(key = "news-empty-${uiState.selectedTab}-$trimmedQuery") {
+                UniExpressiveStatusState(
                     title = stringResource(Res.string.ui_news_empty_title),
-                    description = stringResource(Res.string.ui_news_empty_desc),
+                    description = if (trimmedQuery.isNotBlank()) {
+                        stringResource(Res.string.ui_contacts_empty_desc)
+                    } else {
+                        stringResource(Res.string.ui_news_empty_desc)
+                    },
+                    inline = true,
+                    mainIcon = if (trimmedQuery.isNotBlank()) LiquidIcons.Search else LiquidIcons.Notifications,
                 )
             }
         } else {
-            val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
-            item(key = "news-section-header-${uiState.selectedTab}") {
-                val activeLabel = when (activeFilter) {
-                    NewsFilter.University -> stringResource(Res.string.ui_news_university)
-                    NewsFilter.Department -> stringResource(Res.string.ui_news_department)
-                    NewsFilter.Course -> stringResource(Res.string.ui_news_course)
-                    NewsFilter.All, null -> stringResource(Res.string.ui_news_latest_header)
+            if (featuredNews != null) {
+                item(key = "news-featured-${featuredNews.key}") {
+                    UniNewsCard(
+                        news = featuredNews,
+                        onClick = { onNewsSelected(featuredNews) },
+                        featured = true,
+                    )
                 }
-                val countLabel = if (visibleNews.size == 1) {
-                    stringResource(Res.string.ui_news_count_one)
-                } else {
-                    stringResource(Res.string.ui_news_count_format, visibleNews.size)
-                }
-                LiquidSectionHeader(
-                    title = activeLabel,
-                    subtitle = countLabel,
-                )
             }
 
-            itemsIndexed(
-                items = visibleNews,
-                contentType = { _, _ -> "news-card" },
-                key = { index, news -> news.key.ifBlank { "${news.title}|$index" } },
-            ) { _, news ->
-                UniNewsCard(
-                    news = news,
-                    onClick = { onNewsSelected(news) },
-                    homeCard = true,
-                )
+            if (listNews.isNotEmpty()) {
+                val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
+                item(key = "news-section-header-${uiState.selectedTab}-$showFeaturedLead") {
+                    val activeLabel = when (activeFilter) {
+                        NewsFilter.University -> stringResource(Res.string.ui_news_university)
+                        NewsFilter.Department -> stringResource(Res.string.ui_news_department)
+                        NewsFilter.Course -> stringResource(Res.string.ui_news_course)
+                        NewsFilter.All, null -> stringResource(Res.string.ui_news_latest_header)
+                    }
+                    val countLabel = if (filteredNews.size == 1) {
+                        stringResource(Res.string.ui_news_count_one)
+                    } else {
+                        stringResource(Res.string.ui_news_count_format, filteredNews.size)
+                    }
+                    LiquidSectionHeader(
+                        title = activeLabel,
+                        subtitle = countLabel,
+                    )
+                }
+
+                itemsIndexed(
+                    items = listNews,
+                    contentType = { _, _ -> "news-card" },
+                    key = { index, news -> news.key.ifBlank { "${news.title}|$index" } },
+                ) { _, news ->
+                    UniNewsCard(
+                        news = news,
+                        onClick = { onNewsSelected(news) },
+                        homeCard = false,
+                        featured = false,
+                    )
+                }
             }
         }
     }

@@ -116,6 +116,11 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
             subtitleRes = Res.string.nav_route_settings_subtitle,
             icon = LiquidIcons.Settings,
         )
+        AppRoute.BiometricPinSetup -> AppRoutePresentation(
+            titleRes = Res.string.ui_app_password_setup_title,
+            subtitleRes = Res.string.ui_app_password_setup_description,
+            icon = LiquidIcons.Lock,
+        )
         AppRoute.Info -> AppRoutePresentation(
             titleRes = Res.string.nav_route_info_title,
             subtitleRes = Res.string.nav_route_info_subtitle,

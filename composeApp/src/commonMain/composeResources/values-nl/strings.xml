@@ -366,6 +366,7 @@
     <string name="ui_news_summary_heading">Samenvatting</string>
     <string name="ui_news_article_heading">Nieuws</string>
     <string name="ui_news_open_original">Origineel bericht openen</string>
+    <string name="ui_news_share">Bericht delen</string>
     <string name="ui_home_news_page_notice">Bericht %1$d van %2$d • veeg om te bladeren</string>
 
 
@@ -448,7 +449,7 @@
     <string name="ui_revoke_access">Toegang intrekken</string>
     <string name="ui_revoke">Intrekken</string>
     <string name="ui_revoke_question">Weet je zeker dat je %1$s wilt loskoppelen? Je moet op dat apparaat opnieuw inloggen.</string>
-    <string name="ui_devices_security_note">Actieve sessies houden je universiteitsaccount op elk apparaat ingelogd. Als je een aanmelding niet herkent, sluit je de overige sessies via de knop hierboven.</string>
+    <string name="ui_devices_security_note">Aanmeldingen die je niet herkent, kun je beëindigen onder ‘Overige sessies’.</string>
     <string name="ui_push_notifications">Pushmeldingen</string>
     <string name="ui_academic_alerts">Academische meldingen en deadlines</string>
     <string name="ui_biometric_security">Biometrische beveiliging</string>
@@ -457,6 +458,7 @@
     <string name="ui_biometric_not_enrolled">Stel eerst vingerafdruk, gezichtsherkenning of apparaatpincode in</string>
     <string name="ui_biometric_unavailable">Apparaatauthenticatie niet beschikbaar</string>
     <string name="ui_unlock_title">UniApp ontgrendelen</string>
+    <string name="ui_unlock_welcome_back">Welkom terug</string>
     <string name="ui_unlock_protected_access">Beveiligde toegang</string>
     <string name="ui_unlock_security_badge">Systeem</string>
     <string name="ui_unlock_methods">Ontgrendel UniApp met je apparaat of je app-wachtwoord.</string>
@@ -877,6 +879,9 @@
     <string name="ui_grades_cfu_chart_detail">Geregistreerde / gesimuleerde studiepunten (CFU)</string>
     <string name="ui_grades_no_cfu_data">Geen CFU-gegevens beschikbaar</string>
     <string name="ui_grades_tier_band_format">Klasse %1$s</string>
+    <string name="ui_grades_decrease_value">%1$s verlagen</string>
+    <string name="ui_grades_increase_value">%1$s verhogen</string>
+    <string name="ui_grades_remove_custom_exam">Gesimuleerd tentamen verwijderen</string>
     <string name="ui_grades_add_custom_exam_title">Aangepast tentamen toevoegen</string>
     <string name="ui_grades_custom_exam_name">Naam van het vak</string>
     <string name="ui_grades_custom_exam_name_placeholder">Bijv. stage / keuzevak</string>
@@ -1247,6 +1252,7 @@
     <string name="msg_impossibile_caricare_il_piano_di_studi">Kan studieplan niet laden.</string>
     <string name="msg_impossibile_caricare_gli_appelli">Kan tentamens niet laden.</string>
     <string name="msg_operazione_sull_appello_non_riuscita">Handeling op tentamen mislukt.</string>
+    <string name="msg_impossibile_salvare_la_simulazione">De simulatie kon niet worden opgeslagen.</string>
     <string name="msg_impossibile_caricare_voti_e_simulazione">Kan cijfers en simulatie niet laden.</string>
     <string name="msg_impossibile_caricare_le_presenze">Kan aanwezigheid niet laden.</string>
     <string name="msg_inserisci_o_inquadra_un_codice_qr_valido">Voer een geldige QR-code in of scan deze.</string>
@@ -1703,4 +1709,43 @@
     <string name="ui_library_booking_step_2">2. Datum &amp; tijdvak</string>
     <string name="ui_library_booking_step_3">3. Controleren &amp; bevestigen</string>
     <string name="ui_library_booking_selected_slots">%1$d tijdvakken geselecteerd</string>
+    <string name="ui_new_badge">Nieuw</string>
+    <string name="ui_version_number">Versie %1$s</string>
+    <string name="ui_project_contribute_group">Bijdragen aan het project</string>
+    <string name="ui_project_report_ideas">Deel ideeën of meld problemen</string>
+    <string name="ui_search_close">Zoeken sluiten</string>
+    <string name="ui_monet_palette">Monet-palet</string>
+    <string name="ui_project_syncing">Profiel en bijdragen synchroniseren met GitHub…</string>
+    <string name="ui_sdk_liquid_description">Optische weergave en glascomponenten</string>
+    <string name="ui_sdk_uni_description">Esse3-diensten en universiteitsintegratie</string>
+    <string name="ui_sdk_storage_description">Hardwarebeveiligde versleutelde opslag</string>
+    <string name="ui_sdk_firebase_description">Meldingen en cloudconnector</string>
+    <string name="ui_sdk_internal_description">Interne module</string>
+    <string name="ui_biometric_prompt_title">UniApp beveiligen</string>
+    <string name="msg_sign_out_in_progress">Bezig met uitloggen…</string>
+    <string name="msg_login_succeeded">Ingelogd.</string>
+    <string name="msg_account_activated">Account geactiveerd.</string>
+    <string name="msg_academic_profile_activated">Universiteitsprofiel geactiveerd.</string>
+    <string name="msg_custom_color_applied">Aangepaste kleur toegepast.</string>
+    <string name="msg_theme_reset">Thema hersteld.</string>
+    <string name="msg_theme_updated">Thema bijgewerkt.</string>
+    <string name="msg_update_started">Update gestart…</string>
+    <string name="msg_survey_answer_required">Beantwoord alle verplichte vragen.</string>
+    <string name="msg_transport_booking_cancelled">Boeking geannuleerd.</string>
+    <string name="ui_brand_motto_first">NEEM GEEN</string>
+    <string name="ui_brand_motto_second">GENOEGEN</string>
+    <string name="ui_brand_experience">UniApp-beleving ✨</string>
+    <string name="ui_theme_palette_dynamic">Material You</string>
+    <string name="ui_theme_palette_sapphire">Saffier</string>
+    <string name="ui_theme_palette_emerald">Smaragd</string>
+    <string name="ui_theme_palette_sunset">Zonsondergang</string>
+    <string name="ui_theme_palette_violet">Violet</string>
+    <string name="ui_theme_palette_custom">Aangepast</string>
+    <string name="msg_biometric_enabled">Biometrisch inloggen ingeschakeld.</string>
+    <string name="msg_biometric_disabled">Biometrisch inloggen uitgeschakeld.</string>
+    <string name="msg_update_finish_in_app_store">Voltooi de update in de App Store.</string>
+    <string name="ui_news_attachment_document">Document</string>
+    <string name="ui_library_document_available">Exemplaar beschikbaar</string>
+    <string name="ui_library_requestable_copies">Aanvraagbare exemplaren: %1$d</string>
+    <string name="ui_library_active_request">Lopende aanvraag</string>
 </resources>

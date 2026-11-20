@@ -13,7 +13,7 @@ import platform.Security.errSecSuccess
 import platform.Security.kSecRandomDefault
 
 internal actual fun createAppPasswordVerifier(password: String): AppPasswordVerifier {
-    require(password.length in 8..128 && password.isNotBlank()) { "Invalid app password length" }
+    require(password.length in 6..128 && password.isNotBlank()) { "Invalid app password length" }
     val salt = ByteArray(SALT_SIZE_BYTES)
     val randomStatus = salt.usePinned { pinned ->
         SecRandomCopyBytes(kSecRandomDefault, salt.size.toULong(), pinned.addressOf(0))

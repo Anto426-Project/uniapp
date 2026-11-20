@@ -98,12 +98,16 @@ fun LibraryBookDetailScreen(
                         containerColor = colorScheme.primary.copy(alpha = 0.14f),
                         contentColor = colorScheme.primary,
                     )
-                    if (!book.availabilitySummary.isNullOrBlank()) {
-                        val badgeColor = if (book.isAvailable) glassColors.success else colorScheme.onSurfaceVariant
+                    if (book.isAvailable) {
+                        val availabilityLabel = if (book.hasAvailableDocument) {
+                            stringResource(Res.string.ui_library_document_available)
+                        } else {
+                            stringResource(Res.string.ui_library_requestable_copies, book.actions.size)
+                        }
                         LiquidBadge(
-                            text = book.availabilitySummary,
-                            containerColor = badgeColor.copy(alpha = 0.14f),
-                            contentColor = badgeColor,
+                            text = availabilityLabel,
+                            containerColor = glassColors.success.copy(alpha = 0.14f),
+                            contentColor = glassColors.success,
                         )
                     }
                 }

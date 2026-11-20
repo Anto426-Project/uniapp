@@ -24,11 +24,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.button.LiquidButton
-import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
-import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
+import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
+import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.settings.DeviceInfo
 import com.anto426.uniapp.model.settings.DeviceType
@@ -220,7 +220,7 @@ fun ConnectedDevicesSecurityHero(
 @Composable
 fun DevicePreferenceItem(
     device: DeviceInfo,
-    onRevoke: () -> Unit,
+    onRevoke: (() -> Unit)?,
     showDivider: Boolean = false,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -234,22 +234,27 @@ fun DevicePreferenceItem(
         icon = deviceIcon,
         iconTint = if (device.isCurrent) glassColors.success else colorScheme.primary,
         showDivider = showDivider,
-        trailingContent = {
-            if (!device.isCurrent) {
-                LiquidButton(
-                    text = stringResource(Res.string.ui_revoke),
-                    onClick = onRevoke,
-                    variant = LiquidButtonVariant.Tonal,
-                    size = LiquidButtonSize.Small,
-                )
-            } else {
+        titleMaxLines = 2,
+        trailingContent = when {
+            device.isCurrent -> ({
                 Text(
                     text = stringResource(Res.string.ui_online),
                     style = MaterialTheme.typography.labelSmall,
                     color = glassColors.success,
                     fontWeight = FontWeight.Bold,
                 )
-            }
+            })
+            onRevoke != null -> ({
+                LiquidIconButton(
+                    icon = LiquidIcons.Close,
+                    onClick = onRevoke,
+                    variant = LiquidIconButtonVariant.Ghost,
+                    size = 48.dp,
+                    iconSize = 18.dp,
+                    contentDescription = stringResource(Res.string.ui_revoke_access),
+                )
+            })
+            else -> null
         },
     )
 }

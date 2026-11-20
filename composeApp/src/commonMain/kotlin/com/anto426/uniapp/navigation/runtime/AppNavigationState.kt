@@ -85,14 +85,16 @@ internal fun rememberAppNavigationState(sessionState: AppSessionState): AppNavig
             mutableStateOf<AppRoute>(AppRoute.Bootstrap)
         }
     val authenticatedOwnerState = rememberSaveable { mutableStateOf<String?>(null) }
+    val changelogOpen = rememberSaveable { mutableStateOf(false) }
     val routeGuard = remember { AppRouteGuard() }
     val navigator =
-        remember(authBackStack, topLevelBackStacks, activeRootState, authenticatedOwnerState, routeGuard) {
+        remember(authBackStack, topLevelBackStacks, activeRootState, authenticatedOwnerState, changelogOpen, routeGuard) {
             AppNavigator(
                 authBackStack = authBackStack,
                 topLevelBackStacks = topLevelBackStacks,
                 activeRootState = activeRootState,
                 authenticatedOwnerState = authenticatedOwnerState,
+                changelogOpen = changelogOpen,
                 sessionState = { currentSessionState.value },
                 routeGuard = routeGuard,
             )

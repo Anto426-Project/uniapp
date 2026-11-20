@@ -63,6 +63,7 @@ data class UniHeroCardPalette(
     val violet: Color,
     val warm: Color,
     val glow: Color,
+    val accent: Color = warm.heroStrongAccent(),
 )
 
 /**
@@ -165,6 +166,7 @@ fun generateUniHeroCardPalette(seed: Color): UniHeroCardPalette {
         violet = violet,
         warm = warm,
         glow = glow,
+        accent = seed.heroStrongAccent(),
     )
 }
 
@@ -181,13 +183,26 @@ private fun Color.limitLuminance(maxLuminance: Float): Color {
 }
 
 /** A pale accent for text and controls, separate from the darker artwork pigment. */
-internal fun Color.heroTextAccent(): Color {
-    if (luminance() >= 0.72f) return this
+internal fun Color.heroTextAccent(): Color = ensureMinLuminance(0.72f)
+
+/** Rich, saturated theme accent for focal display digits while remaining legible on dark hero surfaces. */
+internal fun Color.heroStrongAccent(): Color {
+    val (h, s, _) = toHsv()
+    if (s < 0.08f) return Color(0xFFB4C5E4)
+    return hsvToColor(
+        hue = h,
+        saturation = maxOf(s, 0.78f).coerceAtMost(0.95f),
+        value = 1.0f,
+    ).ensureMinLuminance(0.24f)
+}
+
+private fun Color.ensureMinLuminance(minLuminance: Float): Color {
+    if (luminance() >= minLuminance) return this
     var low = 0f
     var high = 1f
     repeat(10) {
         val mid = (low + high) * 0.5f
-        if (lerp(this, Color.White, mid).luminance() < 0.72f) low = mid else high = mid
+        if (lerp(this, Color.White, mid).luminance() < minLuminance) low = mid else high = mid
     }
     return lerp(this, Color.White, high)
 }
@@ -216,13 +231,10 @@ layout(color) uniform float4 tertiaryColor;
 layout(color) uniform float4 glowColor;
 layout(color) uniform float4 baseColor;
 
-float softField(float2 point, float2 center, float radius) {
-    return 1.0 - smoothstep(0.0, radius, length(point - center));
-}
-
 half4 main(float2 p) {
-    float2 uv = p / resolution;
-    float drift = sin(time * 0.42) * 0.018;
+    float2 uv = p / max(resolution, float2(1.0));
+    float aspect = resolution.x / max(resolution.y, 1.0);
+    float drift = sin(time * 0.42) * 0.012;
 
     float3 primary = primaryColor.rgb;
     float3 secondary = secondaryColor.rgb;
@@ -230,52 +242,38 @@ half4 main(float2 p) {
     float3 glow = glowColor.rgb;
     float3 deepBase = baseColor.rgb;
 
-    float3 container = mix(deepBase, mix(primary, tertiary, 0.34), 0.78);
-    float3 primaryTone = mix(deepBase, primary, 0.92);
-    float3 secondaryTone = mix(deepBase, secondary, 0.90);
-    float3 tertiaryTone = mix(deepBase, tertiary, 0.92);
-    float3 glowTone = mix(deepBase, glow, 0.86);
-    float3 base = mix(deepBase, mix(tertiary, primary, 0.44), 0.36);
+    float3 upperTop = mix(deepBase, secondary, 0.28);
+    float3 upperMid = mix(deepBase, primary, 0.72);
+    float3 upperEdge = mix(mix(primary, glow, 0.72), float3(1.0), 0.14);
+    float3 lowerDeep = mix(deepBase, secondary, 0.42);
 
-    base = mix(base, tertiaryTone, softField(uv, float2(-0.20 + drift, 0.52), 1.04) * 0.88);
-    base = mix(base, primaryTone, softField(uv, float2(1.10 - drift, 0.16), 1.00) * 0.86);
-    base = mix(base, secondaryTone, softField(uv, float2(0.70 + drift, 1.12), 0.90) * 0.82);
-    base = mix(base, glowTone, softField(uv, float2(0.02, 0.88 + drift), 0.42) * 0.58);
+    // 1. Piano diagonale bicolore: parte alta calma verso taglio netto luminoso in tinta tema
+    float diagY = 0.56 + 0.34 * uv.x + drift * 0.5;
+    float gradT = clamp(uv.y / max(diagY, 0.05), 0.0, 1.0);
+    float3 upperSky = mix(upperTop, upperMid, smoothstep(0.0, 0.58, gradT));
+    upperSky = mix(upperSky, upperEdge, pow(gradT, 1.85));
 
-    float2 lowerCenter = float2(0.72 + drift, 1.19);
-    float lowerDistance = length(uv - lowerCenter);
-    float lowerBody = 1.0 - smoothstep(0.48, 0.76, lowerDistance);
-    float3 lowerColor = mix(container, primaryTone, 0.78);
-    base = mix(base, lowerColor, lowerBody * 0.78);
-    float lowerRim = 1.0 - smoothstep(0.0, 0.012, abs(lowerDistance - 0.55));
-    base = mix(base, primaryTone, lowerRim * 0.28);
+    float diagMask = smoothstep(-0.004, 0.004, uv.y - diagY);
+    float3 base = mix(upperSky, lowerDeep, diagMask);
 
-    float ribbonY = 0.67 - 0.11 * sin(uv.x * 2.75 + 0.32 + time * 0.035) - uv.x * 0.07;
-    float ribbonDistance = abs(uv.y - ribbonY);
-    float ribbonGlow = 1.0 - smoothstep(0.018, 0.095, ribbonDistance);
-    float ribbonCore = 1.0 - smoothstep(0.002, 0.016, ribbonDistance);
-    float3 ribbonColor = mix(tertiaryTone, primaryTone, 0.42);
-    base = mix(base, ribbonColor, ribbonGlow * 0.52);
-    base = mix(base, ribbonColor, ribbonCore * 0.45);
+    // 2. Singola cupola morbida in basso a sinistra coerente con la palette
+    float2 domeDelta = (uv - float2(0.16 + drift, 1.02)) * float2(aspect, 1.0);
+    float domeR = 0.50;
+    float dDome = length(domeDelta) / domeR;
+    float domeMask = 1.0 - smoothstep(0.985, 1.012, dDome);
+    float3 domeCore = mix(deepBase, tertiary, 0.84);
+    float3 domeRim = mix(mix(tertiary, glow, 0.68), float3(1.0), 0.16);
+    float3 domeBody = mix(domeCore, domeRim, smoothstep(0.45, 0.98, dDome));
+    base = mix(base, domeBody, domeMask);
 
-    float2 lensCenter = float2(0.86 + drift * 0.35, 0.52);
-    float lensDistance = length(uv - lensCenter);
-    float lensSignedDistance = lensDistance - 0.72;
-    float lensHalo = 1.0 - smoothstep(0.006, 0.032, abs(lensSignedDistance));
-    float lensCore = 1.0 - smoothstep(0.0, 0.0045, abs(lensSignedDistance));
-    float lensInterior = 1.0 - smoothstep(-0.035, 0.035, lensSignedDistance);
-    base = mix(base, tertiaryTone, lensHalo * 0.32);
-    base = mix(base, tertiaryTone, lensCore * 0.40);
-    base = mix(base, container, lensInterior * 0.18);
+    float domeHalo = (1.0 - smoothstep(1.0, 1.12, dDome)) * smoothstep(0.97, 1.0, dDome);
+    base = mix(base, domeRim, domeHalo * 0.24);
 
-    float2 centered = (uv - 0.5) * float2(resolution.x / resolution.y, 1.0);
-    float vignette = smoothstep(0.35, 0.86, length(centered));
-    base = mix(base, deepBase, vignette * 0.16);
+    // Leggero oscuramento superiore per leggibilità ottimale di titoli e numeri
+    float headerShade = 1.0 - smoothstep(0.06, 0.44, uv.y);
+    base = mix(base, deepBase, headerShade * 0.32);
 
-    float header = 1.0 - smoothstep(0.10, 0.48, uv.y);
-    base = mix(base, deepBase, header * 0.42);
-
-    return half4(clamp(base, 0.0, 1.0), 0.88);
+    return half4(clamp(base, 0.0, 1.0), 0.92);
 }
 """
 
@@ -329,19 +327,41 @@ fun UniHeroFluidBackground(
         } ?: false
 
         if (!shaderDrawn) {
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(lerp(palette.cool, baseColor, 0.42f), palette.violet, baseColor),
-                    center = Offset(size.width * 0.3f, size.height * 0.2f),
-                    radius = size.maxDimension * 0.9f,
+            val upperTop = lerp(baseColor, palette.violet, 0.28f)
+            val upperEdge = lerp(lerp(palette.cool, palette.glow, 0.72f), Color.White, 0.14f)
+            drawRect(color = lerp(baseColor, palette.violet, 0.42f))
+            val upperDiag = androidx.compose.ui.graphics.Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width, 0f)
+                lineTo(size.width, size.height * 0.90f)
+                lineTo(0f, size.height * 0.56f)
+                close()
+            }
+            drawPath(
+                path = upperDiag,
+                brush = Brush.verticalGradient(
+                    colors = listOf(upperTop, lerp(baseColor, palette.cool, 0.72f), upperEdge),
+                    startY = 0f,
+                    endY = size.height * 0.90f,
                 ),
+            )
+            val domeCenter = Offset(size.width * 0.16f, size.height * 1.02f)
+            val domeRadius = size.minDimension * 0.50f
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(lerp(baseColor, palette.warm, 0.84f), lerp(palette.glow, Color.White, 0.16f)),
+                    center = domeCenter,
+                    radius = domeRadius,
+                ),
+                radius = domeRadius,
+                center = domeCenter,
             )
         }
     }
 }
 
 /**
- * Lenti di vetro ottico (Bubbles) per rifrazione fluida ad alta fedeltà.
+ * Singola lente di vetro ottico per rifrazione minimale ad alta fedeltà.
  */
 @Composable
 fun BoxScope.UniHeroGlassLenses(
@@ -351,16 +371,9 @@ fun BoxScope.UniHeroGlassLenses(
     UniHeroPureGlassLens(
         artworkBackdrop = artworkBackdrop,
         modifier = modifier
-            .size(390.dp)
-            .align(Alignment.TopStart)
-            .offset(x = (-146).dp, y = (-76).dp),
-    )
-    UniHeroPureGlassLens(
-        artworkBackdrop = artworkBackdrop,
-        modifier = modifier
-            .size(470.dp)
-            .align(Alignment.BottomCenter)
-            .offset(x = 112.dp, y = 228.dp),
+            .size(340.dp)
+            .align(Alignment.BottomEnd)
+            .offset(x = 88.dp, y = 104.dp),
     )
 }
 

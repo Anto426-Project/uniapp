@@ -27,6 +27,7 @@ class AppNavigator internal constructor(
     private val topLevelBackStacks: Map<AppRoute, NavBackStack<NavKey>>,
     private val activeRootState: MutableState<AppRoute>,
     private val authenticatedOwnerState: MutableState<String?>,
+    private val changelogOpen: MutableState<Boolean>,
     private val sessionState: () -> AppSessionState,
     private val routeGuard: AppRouteGuard,
 ) {
@@ -41,20 +42,30 @@ class AppNavigator internal constructor(
                 authBackStack
             }
 
-    val currentRoute: AppRoute
+    internal val sessionRoute: AppRoute
         get() = activeBackStack.lastOrNull() as? AppRoute ?: activeRoot
+
+    val currentRoute: AppRoute
+        get() = if (changelogOpen.value) AppRoute.Changelog else sessionRoute
+
+    internal fun visibleRoute(isMandatoryUpdate: Boolean): AppRoute =
+        when {
+            currentRoute == AppRoute.Changelog -> AppRoute.Changelog
+            isMandatoryUpdate -> AppRoute.Updates
+            else -> sessionRoute
+        }
 
     /** Top-level tab that owns the currently visible contextual back stack. */
     val currentTopLevelRoute: AppRoute?
-        get() = activeRoot.takeIf(AppRoute::isTopLevel)
+        get() = activeRoot.takeIf { !changelogOpen.value && it.isTopLevel }
 
     /** System Back can also return a secondary top-level flow to Home. */
     val canGoBack: Boolean
-        get() = activeBackStack.size > 1 || (activeRoot.isTopLevel && activeRoot != AppRoute.Home)
+        get() = canNavigateUp || (activeRoot.isTopLevel && activeRoot != AppRoute.Home)
 
     /** Up is hierarchical and therefore is not shown on a top-level navigation-bar destination. */
     val canNavigateUp: Boolean
-        get() = activeBackStack.size > 1
+        get() = changelogOpen.value || activeBackStack.size > 1
 
     fun canRender(route: AppRoute): Boolean = routeGuard.canRender(route, sessionState())
 
@@ -65,6 +76,10 @@ class AppNavigator internal constructor(
             return NavigationResult.Redirected(requested, destination)
         }
         if (currentRoute == destination) return NavigationResult.Ignored
+        if (destination == AppRoute.Changelog) {
+            changelogOpen.value = true
+            return NavigationResult.Navigated(destination)
+        }
         if (destination.isTopLevel) return selectTopLevel(destination)
 
         if (activeRoot.isTopLevel) {
@@ -98,6 +113,11 @@ class AppNavigator internal constructor(
     }
 
     fun goBack(): Boolean {
+        if (changelogOpen.value) {
+            reconcile()
+            changelogOpen.value = false
+            return true
+        }
         val stack = activeBackStack
         if (stack.size > 1) {
             stack.removeAt(stack.lastIndex)
@@ -113,6 +133,13 @@ class AppNavigator internal constructor(
 
     /** Revalidates restored destinations and reacts atomically to authentication changes. */
     fun reconcile(): AppRoute {
+        // Previous builds could restore release notes inside a session stack.
+        if (sessionRoute == AppRoute.Changelog && activeBackStack.size > 1) {
+            Snapshot.withMutableSnapshot {
+                activeBackStack.removeAt(activeBackStack.lastIndex)
+                changelogOpen.value = true
+            }
+        }
         val authenticated = sessionState() as? AppSessionState.Authenticated
         if (authenticated != null) {
             val account = authenticated.account
@@ -125,7 +152,7 @@ class AppNavigator internal constructor(
                 }
             }
         }
-        val current = currentRoute
+        val current = sessionRoute
         val allowed = routeGuard.resolve(current, sessionState())
         if (allowed != current) {
             activate(
@@ -133,7 +160,7 @@ class AppNavigator internal constructor(
                 clearAuthenticatedState = allowed == AppRoute.Login || allowed == AppRoute.Home,
             )
         }
-        return allowed
+        return currentRoute
     }
 
     private fun activate(

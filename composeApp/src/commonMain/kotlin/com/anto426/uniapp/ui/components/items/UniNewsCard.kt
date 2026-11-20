@@ -38,6 +38,7 @@ import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContai
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.news.NewsItem
+import com.anto426.uniapp.ui.news.NewsContentFormatter
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource
@@ -130,11 +131,14 @@ fun UniNewsCard(
         publishedAt = news.publishedAt,
         categoryLabel = categoryLabel,
     )
-    val showSummary = remember(news.title, news.description) {
-        val desc = news.description.trim()
-        val title = news.title.trim()
-        desc.isNotBlank() && !desc.startsWith(title.take(24), ignoreCase = true)
+    val plainSummary = remember(news.title, news.description, news.fullContent) {
+        NewsContentFormatter.toPlainText(news.description)
+            .takeIf { desc ->
+                desc.isNotBlank() && !desc.startsWith(news.title.trim().take(24), ignoreCase = true)
+            }
+            .orEmpty()
     }
+    val showSummary = plainSummary.isNotBlank()
 
     if (homeCard) {
         val shortDate = remember(news.publishedAt) {
@@ -156,43 +160,48 @@ fun UniNewsCard(
                     .defaultMinSize(minHeight = 92.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.weight(1f, fill = false),
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.weight(1f, fill = false),
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(7.dp)
-                                    .clip(CircleShape)
-                                    .background(visuals.color),
-                            )
-                            Text(
-                                text = visuals.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = visuals.color,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-
-                        Spacer(Modifier.width(8.dp))
-
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .clip(CircleShape)
+                                .background(visuals.color),
+                        )
                         Text(
-                            text = shortDate,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
+                            text = visuals.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = visuals.color,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
 
+                    Spacer(Modifier.width(8.dp))
+
+                    Text(
+                        text = shortDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
                         text = news.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -201,17 +210,15 @@ fun UniNewsCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-
-                if (showSummary) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = news.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    if (showSummary) {
+                        Text(
+                            text = plainSummary,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
         }
@@ -289,7 +296,7 @@ fun UniNewsCard(
                 Text(
                     text = news.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
@@ -297,7 +304,7 @@ fun UniNewsCard(
 
                 if (showSummary) {
                     Text(
-                        text = news.description,
+                        text = plainSummary,
                         style = MaterialTheme.typography.bodyMedium,
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 3,
@@ -394,7 +401,7 @@ fun UniNewsCard(
 
                 if (showSummary) {
                     Text(
-                        text = news.description,
+                        text = plainSummary,
                         style = MaterialTheme.typography.bodySmall,
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 2,

@@ -29,6 +29,7 @@ data class TaxesUiState(
     val paidPayments: List<TaxPaymentData> = emptyList(),
     val dueAmountLabel: String = "€ 0.00",
     val paidTotalLabel: String = "€ 0.00",
+    val paidProgress: Float = 0f,
     val nextDueDate: String? = null,
     val filter: TaxesFilter = TaxesFilter.ALL,
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
@@ -60,11 +61,19 @@ class TaxesViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
                 payment.date.trim().takeIf { it.isNotBlank() && it != "-" }
             }
 
+            val totalVolume = paidSum + effectiveDue
+            val paidProgress = when {
+                totalVolume > 0.0 -> (paidSum / totalVolume).toFloat().coerceIn(0f, 1f)
+                pending.isEmpty() && paid.isNotEmpty() -> 1f
+                else -> 0f
+            }
+
             mutableUiState.value = TaxesUiState(
                 pendingPayments = pending,
                 paidPayments = paid,
                 dueAmountLabel = formatEuroAmount(effectiveDue),
                 paidTotalLabel = formatEuroAmount(paidSum),
+                paidProgress = paidProgress,
                 nextDueDate = nextDue,
                 filter = mutableUiState.value.filter,
                 loadState = if (payments.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,

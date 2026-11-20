@@ -1,7 +1,6 @@
 package com.anto426.uniapp.ui.didactics.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,10 +16,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.key
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,8 +30,10 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.didactics.presentation.ALL_ACADEMIC_YEARS
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
@@ -57,11 +61,12 @@ internal fun CareerSummaryHeroCard(
 
     LiquidCard(
         contentPadding = PaddingValues(0.dp),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
         shape = RoundedRectangle(24.dp),
         border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
+        clipContent = false,
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,6 +148,7 @@ internal fun CareerSummaryHeroCard(
             }
 
             if (footerLabel != null && onFooterClick != null) {
+                val footerShape = remember { RoundedRectangle(16.dp) }
                 LiquidHorizontalDivider(
                     modifier = Modifier.padding(horizontal = 18.dp),
                     color = colorScheme.outlineVariant.copy(alpha = 0.28f),
@@ -151,7 +157,8 @@ internal fun CareerSummaryHeroCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .defaultMinSize(minHeight = 48.dp)
-                        .clickable(role = Role.Button, onClick = onFooterClick)
+                        .liquidClickable(shape = footerShape, role = Role.Button, onClick = onFooterClick)
+                        .semantics(mergeDescendants = true) {}
                         .padding(horizontal = 18.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -193,9 +200,21 @@ internal fun CareerYearChipRow(
     years: List<Int>,
     selectedYear: Int,
     onYearSelected: (Int) -> Unit,
+    includeAllChip: Boolean = false,
 ) {
     if (years.isEmpty()) return
     UniHorizontalChipRow {
+        if (includeAllChip && years.size > 1) {
+            key(ALL_ACADEMIC_YEARS) {
+                val selected = selectedYear == ALL_ACADEMIC_YEARS
+                LiquidChip(
+                    label = stringResource(Res.string.ui_career_all_statuses),
+                    selected = selected,
+                    leadingIcon = if (selected) LiquidIcons.Check else null,
+                    onClick = { onYearSelected(ALL_ACADEMIC_YEARS) },
+                )
+            }
+        }
         years.forEach { year ->
             key(year) {
                 val selected = year == selectedYear

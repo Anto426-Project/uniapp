@@ -43,7 +43,8 @@ class DeviceSessionsActionViewModel(
     }
 
     fun confirmDisconnectAll() {
-        if (mutableUiState.value.isDisconnecting) return
+        val state = mutableUiState.value
+        if (!state.isConfirmationVisible || state.isDisconnecting) return
         viewModelScope.launch {
             mutableUiState.update { it.copy(isDisconnecting = true) }
             try {

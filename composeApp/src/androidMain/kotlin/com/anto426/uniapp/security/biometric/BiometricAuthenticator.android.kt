@@ -1,5 +1,6 @@
 package com.anto426.uniapp.security.biometric
 
+import com.anto426.uniapp.localization.readAppString
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -61,6 +62,7 @@ private class AndroidBiometricAuthenticator(
             return BiometricAuthenticationResult.Failed(getString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
         }
 
+        val promptTitle = readAppString(Res.string.ui_biometric_prompt_title)
         return suspendCancellableCoroutine { continuation ->
             val cancellationSignal = CancellationSignal()
             val completed = AtomicBoolean(false)
@@ -72,7 +74,7 @@ private class AndroidBiometricAuthenticator(
 
             val prompt =
                 BiometricPrompt.Builder(currentActivity)
-                    .setTitle("Proteggi UniApp")
+                    .setTitle(promptTitle)
                     .setSubtitle(reason)
                     .apply {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

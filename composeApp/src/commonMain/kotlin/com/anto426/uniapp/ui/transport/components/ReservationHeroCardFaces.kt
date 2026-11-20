@@ -1,6 +1,7 @@
 package com.anto426.uniapp.ui.transport.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,77 +57,21 @@ fun ReservationHeroFrontFace(
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         // Top Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f, fill = false),
-            ) {
-                UniAppBrandLogo(modifier = Modifier.size(40.dp))
-
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.ui_transport_brand_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = colorScheme.onSurface,
-                            letterSpacing = (-0.3).sp,
-                        )
-                        Text(
-                            text = if (isAndata) stringResource(Res.string.ui_transport_direction_andata) else stringResource(Res.string.ui_transport_direction_ritorno),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
-                        )
-                    }
-                    Text(
-                        text = if (reservation.busNumber.isNotBlank()) stringResource(Res.string.ui_transport_shuttle_confirmed, reservation.busNumber) else stringResource(Res.string.ui_transport_ride_booked),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                    )
-                }
-            }
-
-            // Quick Flip Indicator Pill
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = colorScheme.surface.copy(alpha = 0.22f),
-                        shape = RoundedRectangle(16.dp),
-                    )
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.QrCode,
-                        contentDescription = stringResource(Res.string.ui_qr_code),
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Text(
-                        text = stringResource(Res.string.ui_transport_quick_qr),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                        fontSize = 11.sp,
-                    )
-                }
-            }
-        }
+        ReservationHeroHeader(
+            badgeText = if (isAndata) {
+                stringResource(Res.string.ui_transport_direction_andata)
+            } else {
+                stringResource(Res.string.ui_transport_direction_ritorno)
+            },
+            subtitle = if (reservation.busNumber.isNotBlank()) {
+                stringResource(Res.string.ui_transport_shuttle_confirmed, reservation.busNumber)
+            } else {
+                stringResource(Res.string.ui_transport_ride_booked)
+            },
+            pillIcon = LiquidIcons.QrCode,
+            pillIconDescription = stringResource(Res.string.ui_qr_code),
+            pillText = stringResource(Res.string.ui_transport_quick_qr),
+        )
 
         // Center Content
         Column(
@@ -214,102 +162,33 @@ fun ReservationHeroBackFace(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(22.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         // Top Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f, fill = false),
-            ) {
-                UniAppBrandLogo(modifier = Modifier.size(40.dp))
+        ReservationHeroHeader(
+            badgeText = stringResource(Res.string.ui_transport_validation_badge),
+            subtitle = stringResource(Res.string.ui_transport_scan_turnstile_hint),
+            pillIcon = LiquidIcons.Info,
+            pillIconDescription = stringResource(Res.string.ui_info),
+            pillText = stringResource(Res.string.ui_transport_quick_front),
+        )
 
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.ui_transport_brand_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = colorScheme.onSurface,
-                            letterSpacing = (-0.3).sp,
-                        )
-                        Text(
-                            text = stringResource(Res.string.ui_transport_validation_badge),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
-                        )
-                    }
-                    Text(
-                        text = stringResource(Res.string.ui_transport_scan_turnstile_hint),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                    )
-                }
-            }
-
-            // Flip Back Pill
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = colorScheme.surface.copy(alpha = 0.22f),
-                        shape = RoundedRectangle(16.dp),
-                    )
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.Info,
-                        contentDescription = stringResource(Res.string.ui_info),
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Text(
-                        text = stringResource(Res.string.ui_transport_quick_front),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                        fontSize = 11.sp,
-                    )
-                }
-            }
-        }
-
-        // Center: Scannable Vector QR Code Canvas in rounded container + Monospace Code
+        // Center: Scannable Theme-Tinted Ticket Code + Ticket Number
         Column(
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = colorScheme.surface.copy(alpha = 0.35f),
-                        shape = RoundedRectangle(20.dp),
-                    )
-                    .padding(14.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                TicketCodeImage(
-                    code = code,
-                    modifier = if (code?.format == CodeFormat.Qr) Modifier.size(156.dp) else Modifier.fillMaxWidth().height(140.dp),
-                )
-            }
+            TicketCodeImage(
+                code = code,
+                modifier = if (code?.format == CodeFormat.Qr) {
+                    Modifier.size(156.dp)
+                } else {
+                    Modifier.fillMaxWidth().height(108.dp)
+                },
+            )
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -318,18 +197,20 @@ fun ReservationHeroBackFace(
                 Text(
                     text = reservation.ticketNumber.ifBlank { reservation.id },
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
                     color = colorScheme.onSurface,
-                    letterSpacing = 1.8.sp,
+                    letterSpacing = 1.6.sp,
                 )
 
                 Text(
                     text = stringResource(Res.string.ui_transport_reservation_back_instruction),
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
+                    textAlign = TextAlign.Center,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -350,10 +231,106 @@ fun ReservationHeroBackFace(
             Text(
                 text = stringResource(Res.string.ui_transport_tap_return_front),
                 style = MaterialTheme.typography.labelSmall,
-                color = colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                color = colorScheme.onSurface.copy(alpha = 0.78f),
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
             )
+        }
+    }
+}
+
+@Composable
+private fun ReservationHeroHeader(
+    badgeText: String,
+    subtitle: String,
+    pillIcon: ImageVector,
+    pillIconDescription: String,
+    pillText: String,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.weight(1f).padding(end = 8.dp),
+        ) {
+            UniAppBrandLogo(modifier = Modifier.size(34.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_transport_brand_name),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        letterSpacing = (-0.2).sp,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                    Text(
+                        text = badgeText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.primary,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    color = colorScheme.onSurfaceVariant.copy(alpha = 0.80f),
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .clip(RoundedRectangle(16.dp))
+                .background(color = colorScheme.surface.copy(alpha = 0.24f))
+                .border(
+                    width = 0.6.dp,
+                    color = Color.White.copy(alpha = 0.22f),
+                    shape = RoundedRectangle(16.dp),
+                )
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = pillIcon,
+                    contentDescription = pillIconDescription,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = pillText,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.primary,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+            }
         }
     }
 }

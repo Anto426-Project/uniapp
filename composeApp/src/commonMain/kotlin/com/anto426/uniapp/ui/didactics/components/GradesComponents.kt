@@ -1,19 +1,17 @@
 package com.anto426.uniapp.ui.didactics.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,21 +20,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
-import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
-import com.anto426.liquidmonet.components.cards.accordion.LiquidAccordionItem
+import com.anto426.liquidmonet.components.cards.accordion.LiquidExpandableCard
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.charts.barchart.LiquidBarChart
 import com.anto426.liquidmonet.components.charts.donutchart.LiquidDonutChart
@@ -44,7 +45,6 @@ import com.anto426.liquidmonet.components.charts.linechart.LiquidLineChart
 import com.anto426.liquidmonet.components.charts.model.LiquidPieEntry
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
@@ -58,8 +58,9 @@ import com.anto426.uniapp.didactics.presentation.TargetFeasibility
 import com.anto426.uniapp.model.didactics.SimulationItem
 import com.anto426.uniapp.model.didactics.toFixedTwoDecimals
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
-import com.kyant.shapes.Capsule
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.kyant.shapes.RoundedRectangle
+import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -78,241 +79,107 @@ fun SimulationTab(
     onApplyCurrentAverage: () -> Unit,
     onResetSimulation: () -> Unit,
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val glassColors = LiquidGlassTheme.colors
-    var isAddDialogOpen by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
+    var isAddDialogOpen by rememberSaveable { mutableStateOf(false) }
+    val hasScenario = uiState.activeSimulatedCount > 0
 
-    val delta = uiState.deltaAverage
-    val deltaString = if (delta >= 0.0) "+${delta.toFixedTwoDecimals()}" else delta.toFixedTwoDecimals()
-    val hasActiveSimulation = uiState.activeSimulatedCount > 0
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        // 1. Hero Card: Live Projections & Quick Presets
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
+            contentPadding = PaddingValues(16.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(
-                            if (hasActiveSimulation) Res.string.ui_grades_active_projection
-                            else Res.string.ui_grades_current_state,
-                        ).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LiquidSectionHeader(
+                    title = stringResource(
+                        if (hasScenario) Res.string.ui_grades_simulation_result else Res.string.ui_grades_current,
+                    ),
+                )
+                GradesMetricGrid(columns = 2) {
+                    GradesMetricTile(
+                        label = stringResource(if (hasScenario) Res.string.ui_grades_simulation_estimated else Res.string.ui_weighted_average),
+                        value = gradeMetric(uiState.projectedAverage),
+                        unit = "/30",
+                        valueColor = colors.onSurface,
+                        prominent = true,
                         modifier = Modifier.weight(1f),
                     )
+                    GradesMetricTile(
+                        label = stringResource(if (hasScenario) Res.string.ui_grades_projected_degree_base else Res.string.ui_grades_base_degree),
+                        value = gradeMetric(uiState.projectedGraduationBase),
+                        unit = "/110",
+                        valueColor = colors.primary,
+                        prominent = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (hasScenario) {
+                    val delta = uiState.deltaAverage
+                    val tint = if (delta >= 0.0) LiquidGlassTheme.colors.success else colors.error
                     LiquidBadge(
-                        text = if (hasActiveSimulation) {
-                            val examWord = stringResource(
-                                if (uiState.activeSimulatedCount == 1) Res.string.ui_stats_exam_singular
-                                else Res.string.ui_stats_exams_plural,
-                            )
-                            stringResource(
-                                Res.string.ui_grades_simulation_summary_badge,
-                                deltaString,
-                                uiState.activeSimulatedCount,
-                                examWord,
-                            )
-                        } else {
-                            stringResource(Res.string.ui_grades_no_simulation)
-                        },
-                        containerColor = if (hasActiveSimulation) {
-                            (if (delta >= 0.0) glassColors.success else colorScheme.error).copy(alpha = 0.14f)
-                        } else {
-                            colorScheme.primary.copy(alpha = 0.10f)
-                        },
-                        contentColor = if (hasActiveSimulation) {
-                            if (delta >= 0.0) glassColors.success else colorScheme.error
-                        } else {
-                            colorScheme.primary
-                        },
+                        text = stringResource(Res.string.ui_grades_simulation_delta, signedGradeMetric(delta)),
+                        containerColor = tint.copy(alpha = 0.14f),
+                        contentColor = colors.onSurface,
+                    )
+                    Text(
+                        text = stringResource(Res.string.ui_grades_simulation_summary, uiState.activeSimulatedCount, uiState.activeSimulatedCfu),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onSurfaceVariant,
                     )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = stringResource(
-                                if (hasActiveSimulation) Res.string.ui_grades_projected
-                                else Res.string.ui_weighted_average,
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = if (uiState.projectedAverage > 0.0) uiState.projectedAverage.toFixedTwoDecimals() else "—",
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.Black,
-                                color = colorScheme.onSurface,
-                                maxLines = 1,
-                            )
-                            Text(
-                                text = " / 30",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 5.dp),
-                            )
-                        }
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            text = stringResource(
-                                if (hasActiveSimulation) Res.string.ui_grades_projected_degree_base
-                                else Res.string.ui_grades_base_degree,
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = if (uiState.projectedGraduationBase > 0.0) uiState.projectedGraduationBase.toFixedTwoDecimals() else "—",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Black,
-                                color = colorScheme.primary,
-                                maxLines = 1,
-                            )
-                            Text(
-                                text = " / 110",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 4.dp),
-                            )
-                        }
-                    }
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(
-                                if (hasActiveSimulation) Res.string.ui_grades_cfu_progress_projected
-                                else Res.string.ui_stats_study_plan_progress,
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "${(uiState.careerProgress * 100).toInt()}% • ${uiState.totalProjectedCfu}/${uiState.degreeCfuTarget} CFU",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
-                        )
-                    }
-                    LiquidLinearProgressIndicator(
-                        progress = uiState.careerProgress,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-
-                LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-
-                UniHorizontalChipRow(bleed = 16.dp, spacing = 8.dp, clipToBounds = true) {
-                    LiquidChip(
-                        label = stringResource(Res.string.ui_grades_preset_all_30),
-                        onClick = { onSetAllGrades(30) },
-                    )
-                    LiquidChip(
-                        label = stringResource(Res.string.ui_grades_preset_all_28),
-                        onClick = { onSetAllGrades(28) },
-                    )
-                    LiquidChip(
-                        label = stringResource(Res.string.ui_grades_preset_all_24),
-                        onClick = { onSetAllGrades(24) },
-                    )
-                    LiquidChip(
-                        label = stringResource(Res.string.ui_grades_preset_current_average),
-                        onClick = onApplyCurrentAverage,
-                    )
-                    if (hasActiveSimulation) {
-                        LiquidChip(
-                            label = stringResource(Res.string.ui_grades_preset_reset),
-                            onClick = onResetSimulation,
-                        )
-                    }
-                }
+                val progressLabel = stringResource(
+                    if (hasScenario) Res.string.ui_grades_cfu_progress_projected
+                    else Res.string.ui_stats_study_plan_progress,
+                )
+                Text(
+                    text = "$progressLabel · ${uiState.totalProjectedCfu}/${uiState.degreeCfuTarget} CFU",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.onSurfaceVariant,
+                )
+                LiquidLinearProgressIndicator(progress = uiState.careerProgress, modifier = Modifier.fillMaxWidth())
             }
         }
 
-        // 2. Exams Header + Add Custom Exam CTA
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = stringResource(Res.string.ui_grades_exams_to_simulate_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(
-                        Res.string.ui_grades_exams_to_simulate_subtitle,
-                        uiState.simulationItems.size,
-                        stringResource(
-                            if (uiState.activeSimulatedCount == 1) Res.string.ui_grades_active_singular
-                            else Res.string.ui_grades_active_plural,
-                            uiState.activeSimulatedCount,
-                        ),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Spacer(Modifier.width(8.dp))
-
-            LiquidChip(
-                label = stringResource(Res.string.ui_add),
-                leadingIcon = LiquidIcons.Add,
-                selected = false,
-                onClick = { isAddDialogOpen = true },
-            )
-        }
-
-        // 3. Simulation Exam Cards
+        val activeLabel = stringResource(
+            if (uiState.activeSimulatedCount == 1) Res.string.ui_grades_active_singular
+            else Res.string.ui_grades_active_plural,
+            uiState.activeSimulatedCount,
+        )
+        LiquidSectionHeader(
+            title = stringResource(Res.string.ui_grades_simulation_to_simulate),
+            subtitle = if (uiState.simulationItems.isNotEmpty()) stringResource(
+                Res.string.ui_grades_exams_to_simulate_subtitle,
+                uiState.simulationItems.size,
+                activeLabel,
+            ) else null,
+        )
         if (uiState.simulationItems.isEmpty()) {
-            LiquidEmptyState(
+            UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_grades_no_residual_exams),
-                description = stringResource(Res.string.ui_grades_custom_exam_name_placeholder),
-                icon = LiquidIcons.MenuBook,
-                actionButtonText = stringResource(Res.string.ui_grades_add_custom_exam_title),
+                description = stringResource(Res.string.ui_grades_simulation_empty),
+                actionLabel = stringResource(Res.string.ui_grades_add_custom_exam_title),
                 onActionClick = { isAddDialogOpen = true },
+                inline = true,
             )
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LiquidButton(
+                text = stringResource(Res.string.ui_grades_add_custom_exam_title),
+                onClick = { isAddDialogOpen = true },
+                leadingIcon = { Icon(LiquidIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                modifier = Modifier.fillMaxWidth(),
+                variant = LiquidButtonVariant.Primary,
+            )
+            UniHorizontalChipRow {
+                LiquidChip(label = stringResource(Res.string.ui_grades_preset_all_30), onClick = { onSetAllGrades(30) })
+                LiquidChip(label = stringResource(Res.string.ui_grades_preset_all_28), onClick = { onSetAllGrades(28) })
+                LiquidChip(label = stringResource(Res.string.ui_grades_preset_all_24), onClick = { onSetAllGrades(24) })
+                LiquidChip(label = stringResource(Res.string.ui_grades_preset_current_average), onClick = onApplyCurrentAverage)
+                if (hasScenario) {
+                    LiquidChip(label = stringResource(Res.string.ui_grades_preset_reset), onClick = onResetSimulation)
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 uiState.simulationItems.forEach { item ->
                     key(item.id) {
                         SimulationExamCard(
@@ -320,8 +187,8 @@ fun SimulationTab(
                             currentWeightedAverage = uiState.currentAverage,
                             currentTotalCfu = uiState.totalCurrentCfu,
                             onToggle = { onToggleItem(item.id) },
-                            onGradeChange = { newGrade -> onGradeChange(item.id, newGrade) },
-                            onCfuChange = { newCfu -> onCfuChange(item.id, newCfu) },
+                            onGradeChange = { onGradeChange(item.id, it) },
+                            onCfuChange = { onCfuChange(item.id, it) },
                             onRemove = if (item.isCustom) { { onRemoveCustomExam(item.id) } } else null,
                         )
                     }
@@ -337,11 +204,25 @@ fun SimulationTab(
                 onAddCustomExam(name, cfu, grade)
                 isAddDialogOpen = false
             },
+            baseAverage = uiState.projectedAverage,
+            baseCfu = uiState.totalProjectedCfu,
+            baseGraduation = uiState.projectedGraduationBase,
         )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+private fun projectWeightedAverage(
+    baseAverage: Double,
+    baseCfu: Int,
+    addedCfu: Int,
+    addedGrade: Int,
+): Double {
+    val gradeToUse = addedGrade.coerceAtMost(30)
+    if (baseCfu <= 0 || baseAverage <= 0.0) return gradeToUse.toDouble()
+    val totalCfu = baseCfu + addedCfu
+    return if (totalCfu <= 0) baseAverage else ((baseAverage * baseCfu) + (gradeToUse * addedCfu)) / totalCfu
+}
+
 @Composable
 private fun SimulationExamCard(
     item: SimulationItem,
@@ -352,44 +233,31 @@ private fun SimulationExamCard(
     onCfuChange: (Int) -> Unit,
     onRemove: (() -> Unit)?,
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val glassColors = LiquidGlassTheme.colors
-    val isIncluded = item.isEnabled
+    val included = item.isEnabled
+    val impact = projectWeightedAverage(currentWeightedAverage, currentTotalCfu, item.cfu, item.grade) - currentWeightedAverage
+    val subtitle = buildList {
+        add("${item.cfu} CFU")
+        if (included) {
+            add(simulationGradeLabel(item.grade))
+            if (currentTotalCfu > 0) {
+                add(stringResource(Res.string.ui_grades_simulation_delta, signedGradeMetric(impact)))
+            }
+        } else {
+            add(stringResource(Res.string.ui_grades_simulate_badge))
+        }
+    }.joinToString(" · ")
 
-    val itemImpact = if (currentTotalCfu > 0) {
-        val gradeToUse = if (item.grade >= 31) 30 else item.grade
-        val newAvg = ((currentWeightedAverage * currentTotalCfu) + (gradeToUse * item.cfu)) / (currentTotalCfu + item.cfu)
-        newAvg - currentWeightedAverage
-    } else 0.0
-
-    val impactColor = if (itemImpact >= 0.0) glassColors.success else colorScheme.error
-    val gradeLabel = if (item.grade >= 31) "30L" else "${item.grade}"
-    val impactLabel = stringResource(
-        Res.string.ui_grades_impact_format,
-        if (itemImpact >= 0) "+" else "",
-        itemImpact.toFixedTwoDecimals(),
-    )
-    val accordionSubtitle = if (isIncluded) {
-        buildList {
-            add("${item.cfu} CFU")
-            add(gradeLabel)
-            if (currentTotalCfu > 0) add(impactLabel)
-        }.joinToString(" • ")
-    } else {
-        "${item.cfu} CFU • ${stringResource(Res.string.ui_grades_simulate_badge)}"
-    }
-
-    LiquidAccordionItem(
+    LiquidExpandableCard(
         title = item.name,
-        subtitle = accordionSubtitle,
+        subtitle = subtitle,
         leadingIcon = when {
             item.isCustom -> LiquidIcons.Star
-            isIncluded -> LiquidIcons.Check
+            included -> LiquidIcons.Check
             else -> LiquidIcons.MenuBook
         },
-        isExpanded = isIncluded,
+        isExpanded = included,
         onExpandedChange = { expanded ->
-            if (expanded != isIncluded) onToggle()
+            if (expanded != included) onToggle()
         },
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -397,125 +265,42 @@ private fun SimulationExamCard(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    LiquidBadge(
-                        text = "${item.cfu} CFU",
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                        contentColor = colorScheme.primary,
-                    )
-                    if (currentTotalCfu > 0) {
-                        LiquidBadge(
-                            text = impactLabel,
-                            containerColor = impactColor.copy(alpha = 0.14f),
-                            contentColor = impactColor,
-                        )
-                    }
-                }
-
-                if (onRemove != null) {
-                    Spacer(Modifier.width(8.dp))
-                    LiquidIconButton(
-                        icon = LiquidIcons.Delete,
-                        onClick = onRemove,
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(Res.string.ui_grades_adjust_grade),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorScheme.onSurfaceVariant,
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    LiquidIconButton(
-                        icon = LiquidIcons.Remove,
-                        onClick = { if (item.grade > 18) onGradeChange(item.grade - 1) },
-                        enabled = item.grade > 18,
-                    )
-                    Text(
-                        text = gradeLabel,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.width(42.dp),
-                    )
-                    LiquidIconButton(
-                        icon = LiquidIcons.Add,
-                        onClick = { if (item.grade < 31) onGradeChange(item.grade + 1) },
-                        enabled = item.grade < 31,
-                    )
-                }
-            }
-
-            UniHorizontalChipRow(bleed = 14.dp, spacing = 6.dp, clipToBounds = true) {
-                listOf(18, 20, 22, 24, 26, 27, 28, 30, 31).forEach { gradeOption ->
-                    key(gradeOption) {
-                        val selected = item.grade == gradeOption
+            LiquidStepper(
+                value = item.grade,
+                onValueChange = onGradeChange,
+                label = stringResource(Res.string.ui_grades_adjust_grade),
+                minValue = 18,
+                maxValue = 31,
+            )
+            UniHorizontalChipRow(bleed = 14.dp, clipToBounds = true) {
+                listOf(18, 20, 22, 24, 26, 27, 28, 30, 31).forEach { option ->
+                    key(option) {
                         LiquidChip(
-                            label = if (gradeOption == 31) "30L" else "$gradeOption",
-                            selected = selected,
-                            onClick = { onGradeChange(gradeOption) },
+                            label = simulationGradeLabel(option),
+                            selected = item.grade == option,
+                            onClick = { onGradeChange(option) },
                         )
                     }
                 }
             }
-
             if (item.isCustom) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_grades_custom_exam_cfu),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorScheme.onSurfaceVariant,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        LiquidIconButton(
-                            icon = LiquidIcons.Remove,
-                            onClick = { if (item.cfu > 1) onCfuChange(item.cfu - 1) },
-                            enabled = item.cfu > 1,
-                        )
-                        Text(
-                            text = "${item.cfu}",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.width(32.dp),
-                        )
-                        LiquidIconButton(
-                            icon = LiquidIcons.Add,
-                            onClick = { if (item.cfu < 30) onCfuChange(item.cfu + 1) },
-                            enabled = item.cfu < 30,
-                        )
-                    }
-                }
+                LiquidStepper(
+                    value = item.cfu,
+                    onValueChange = onCfuChange,
+                    label = stringResource(Res.string.ui_grades_custom_exam_cfu),
+                    minValue = 1,
+                    maxValue = 30,
+                    unit = "CFU",
+                )
+            }
+            if (onRemove != null) {
+                LiquidButton(
+                    text = stringResource(Res.string.ui_grades_remove_custom_exam),
+                    onClick = onRemove,
+                    variant = LiquidButtonVariant.Glass,
+                    size = LiquidButtonSize.Medium,
+                    leadingIcon = { Icon(LiquidIcons.Delete, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                )
             }
         }
     }
@@ -534,9 +319,15 @@ fun GraduationTargetTab(
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
 
-    val isFeasible = uiState.isTargetFeasible
-    val feasibility = uiState.feasibilityLevel
     val remainingCfu = uiState.remainingDegreeCfu
+    val addedPoints = uiState.thesisPoints + uiState.bonusPoints
+    val finalEstimate = uiState.currentGraduationBase + addedPoints
+    val targetReached = finalEstimate >= uiState.targetScoreEffective
+    val feasibility = when {
+        remainingCfu > 0 -> uiState.feasibilityLevel
+        targetReached -> TargetFeasibility.EASY
+        else -> TargetFeasibility.IMPOSSIBLE
+    }
     val feasibilityColor = when (feasibility) {
         TargetFeasibility.EASY -> glassColors.success
         TargetFeasibility.FEASIBLE -> colorScheme.primary
@@ -553,12 +344,10 @@ fun GraduationTargetTab(
 
     val statusText = when {
         remainingCfu == 0 -> {
-            val totalBonus = uiState.thesisPoints + uiState.bonusPoints
-            val currentFinal = uiState.currentGraduationBase + totalBonus
-            if (currentFinal >= uiState.targetScoreEffective) {
-                stringResource(Res.string.ui_grades_target_done_reached, totalBonus, uiState.targetDegree)
+            if (targetReached) {
+                stringResource(Res.string.ui_grades_target_done_reached, addedPoints, uiState.targetDegree.coerceAtMost(110))
             } else {
-                stringResource(Res.string.ui_grades_target_done_estimate, totalBonus, currentFinal.toFixedTwoDecimals())
+                stringResource(Res.string.ui_grades_target_done_estimate, addedPoints, finalEstimate.toFixedTwoDecimals())
             }
         }
         feasibility == TargetFeasibility.EASY -> stringResource(
@@ -579,252 +368,124 @@ fun GraduationTargetTab(
         else -> stringResource(Res.string.msg_obiettivo_non_matematicamente_possibile_con_i_parametri_correnti)
     }
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        // 1. Hero Calculation Card
+    val targetLabel = graduationGradeLabel(uiState.targetDegree)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
+            contentPadding = PaddingValues(16.dp),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_grades_graduation_target_header).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = feasibilityColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LiquidBadge(
+                    text = feasibilityLabel,
+                    containerColor = feasibilityColor.copy(alpha = 0.16f),
+                    contentColor = colorScheme.onSurface,
+                )
+                GradesMetricGrid(columns = 2) {
+                    GradesMetricTile(
+                        label = stringResource(if (remainingCfu > 0) Res.string.ui_grades_required_average else Res.string.ui_grades_current_estimate),
+                        value = when {
+                            remainingCfu == 0 -> gradeMetric(finalEstimate)
+                            uiState.requiredRemainingAverage > 30.0 -> ">30"
+                            else -> gradeMetric(uiState.requiredRemainingAverage)
+                        },
+                        unit = if (remainingCfu > 0) "/30" else "/110",
+                        valueColor = colorScheme.onSurface,
+                        prominent = true,
                         modifier = Modifier.weight(1f),
                     )
-                    LiquidBadge(
-                        text = feasibilityLabel,
-                        containerColor = feasibilityColor.copy(alpha = 0.14f),
-                        contentColor = feasibilityColor,
+                    GradesMetricTile(
+                        label = stringResource(Res.string.ui_grades_final_target),
+                        value = targetLabel,
+                        unit = if (uiState.targetDegree < 111) "/110" else null,
+                        valueColor = colorScheme.primary,
+                        prominent = true,
+                        modifier = Modifier.weight(1f),
                     )
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = stringResource(Res.string.ui_grades_required_average),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = if (uiState.requiredRemainingAverage > 30.0) "> 30" else uiState.requiredRemainingAverage.toFixedTwoDecimals(),
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.Black,
-                                color = if (isFeasible) colorScheme.onSurface else colorScheme.error,
-                                maxLines = 1,
-                            )
-                            Text(
-                                text = " / 30",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 5.dp),
-                            )
-                        }
-                        Text(
-                            text = stringResource(Res.string.ui_grades_cfu_remaining_format, remainingCfu),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.ui_grades_final_target),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = if (uiState.targetDegree >= 111) "110L" else "${uiState.targetDegree}",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Black,
-                                color = colorScheme.primary,
-                                maxLines = 1,
-                            )
-                            if (uiState.targetDegree < 111) {
-                                Text(
-                                    text = " / 110",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(bottom = 4.dp),
-                                )
-                            }
-                        }
-                        Text(
-                            text = stringResource(Res.string.ui_grades_needed_base_format, uiState.neededGraduationBase.toFixedTwoDecimals()),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = if (isFeasible) LiquidIcons.Check else LiquidIcons.Warning,
-                        contentDescription = null,
-                        tint = feasibilityColor,
-                        modifier = Modifier.size(18.dp),
-                    )
+                Text(statusText, style = MaterialTheme.typography.bodyMedium, color = colorScheme.onSurfaceVariant)
+                if (remainingCfu > 0) {
                     Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = stringResource(Res.string.ui_grades_needed_base_format, uiState.neededGraduationBase.toFixedTwoDecimals()),
+                        style = MaterialTheme.typography.labelMedium,
                         color = colorScheme.onSurfaceVariant,
                     )
                 }
-
-                LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
+                LiquidHorizontalDivider(color = colorScheme.outlineVariant)
+                GradesMetricGrid(columns = 3) {
                     GradesMetricTile(
                         label = stringResource(Res.string.ui_grades_current_base),
-                        value = uiState.currentGraduationBase.toFixedTwoDecimals(),
+                        value = gradeMetric(uiState.currentGraduationBase),
                         valueColor = colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                     )
                     GradesMetricTile(
                         label = stringResource(Res.string.ui_grades_thesis_bonus),
-                        value = "+${uiState.thesisPoints + uiState.bonusPoints} pt",
-                        valueColor = colorScheme.primary,
+                        value = "+$addedPoints",
+                        unit = "pt",
+                        valueColor = colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                     )
                     GradesMetricTile(
                         label = stringResource(Res.string.ui_grades_current_estimate),
-                        value = (uiState.currentGraduationBase + uiState.thesisPoints + uiState.bonusPoints).toFixedTwoDecimals(),
-                        valueColor = feasibilityColor,
+                        value = gradeMetric(finalEstimate),
+                        unit = "/110",
+                        valueColor = colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                     )
                 }
             }
         }
 
-        // 2. Interactive Target Configuration
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_grades_customize_params_title),
             subtitle = stringResource(Res.string.ui_grades_customize_params_sub),
         )
-
         LiquidCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedRectangle(22.dp),
             contentPadding = PaddingValues(16.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = stringResource(Res.string.ui_grades_target_degree_vote),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
+                LiquidStepper(
+                    value = uiState.targetDegree,
+                    onValueChange = onTargetDegreeChange,
+                    label = stringResource(Res.string.ui_grades_target_degree_vote),
+                    minValue = 66,
+                    maxValue = 111,
                 )
-
-                UniHorizontalChipRow(bleed = 14.dp, spacing = 8.dp, clipToBounds = true) {
-                    listOf(
-                        100 to "100 / 110",
-                        105 to "105 / 110",
-                        110 to "110 / 110",
-                        111 to "110 e Lode",
-                    ).forEach { (targetVal, label) ->
-                        key(targetVal) {
-                            val selected = uiState.targetDegree == targetVal
+                GradesActions {
+                    listOf(100, 105, 110, 111).forEach { target ->
+                        key(target) {
+                            val selected = target == uiState.targetDegree
                             LiquidChip(
-                                label = label,
+                                label = if (target == 111) graduationGradeLabel(target) else "$target / 110",
                                 selected = selected,
                                 leadingIcon = if (selected) LiquidIcons.Check else null,
-                                onClick = { onTargetDegreeChange(targetVal) },
+                                onClick = { onTargetDegreeChange(target) },
                             )
                         }
                     }
                 }
-
-                LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_grades_custom_target),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorScheme.onSurfaceVariant,
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        LiquidIconButton(
-                            icon = LiquidIcons.Remove,
-                            onClick = { if (uiState.targetDegree > 66) onTargetDegreeChange(uiState.targetDegree - 1) },
-                            enabled = uiState.targetDegree > 66,
-                        )
-                        Text(
-                            text = if (uiState.targetDegree >= 111) "110L" else "${uiState.targetDegree}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.width(52.dp),
-                        )
-                        LiquidIconButton(
-                            icon = LiquidIcons.Add,
-                            onClick = { if (uiState.targetDegree < 111) onTargetDegreeChange(uiState.targetDegree + 1) },
-                            enabled = uiState.targetDegree < 111,
-                        )
-                    }
-                }
+                LiquidHorizontalDivider(color = colorScheme.outlineVariant)
+                LiquidStepper(
+                    value = uiState.thesisPoints,
+                    onValueChange = onThesisPointsChange,
+                    label = stringResource(Res.string.ui_grades_thesis_points_label),
+                    minValue = 0,
+                    maxValue = 15,
+                    unit = "pt",
+                )
+                LiquidStepper(
+                    value = uiState.bonusPoints,
+                    onValueChange = onBonusPointsChange,
+                    label = stringResource(Res.string.ui_grades_career_bonus_label),
+                    minValue = 0,
+                    maxValue = 10,
+                    unit = "pt",
+                )
             }
         }
-
-        LiquidStepper(
-            value = uiState.thesisPoints,
-            onValueChange = onThesisPointsChange,
-            minValue = 0,
-            maxValue = 15,
-            label = stringResource(Res.string.ui_grades_thesis_points_label),
-            unit = "pt",
-        )
-
-        LiquidStepper(
-            value = uiState.bonusPoints,
-            onValueChange = onBonusPointsChange,
-            minValue = 0,
-            maxValue = 10,
-            label = stringResource(Res.string.ui_grades_career_bonus_label),
-            unit = "pt",
-        )
     }
 }
 
@@ -845,7 +506,11 @@ fun SimulationChartTab(
     )
 
     val donutEntries = uiState.gradeTiers.mapIndexed { index, tier ->
-        LiquidPieEntry(tier.label, tier.examCount, color = tierColors[index % tierColors.size])
+        LiquidPieEntry(
+            label = stringResource(Res.string.ui_grades_tier_band_format, tier.label),
+            value = tier.examCount,
+            color = tierColors[index % tierColors.size],
+        )
     }
 
     Column(
@@ -905,7 +570,7 @@ fun SimulationChartTab(
                     LiquidBarChart(
                         entries = uiState.cfuEntries,
                         height = 190.dp,
-                        maxValue = (uiState.cfuMax * 1.15f).coerceAtLeast(1f),
+                        maxValue = (kotlin.math.ceil(uiState.cfuMax * 1.15f / 2f) * 2f).coerceAtLeast(2f),
                         valueFormatter = { value ->
                             val count = value.toInt()
                             "$count ${if (count == 1) examSingular else examsPlural}"
@@ -952,10 +617,7 @@ fun SimulationChartTab(
                     }
 
                     LiquidBadge(
-                        text = stringResource(
-                            if (uiState.totalCurrentCfu >= 60) Res.string.ui_status_in_order
-                            else Res.string.ui_status_in_progress,
-                        ),
+                        text = "${(uiState.careerProgress * 100).roundToInt()}%",
                         containerColor = colorScheme.primary.copy(alpha = 0.14f),
                         contentColor = colorScheme.primary,
                     )
@@ -975,111 +637,47 @@ fun SimulationChartTab(
                 shape = RoundedRectangle(24.dp),
                 contentPadding = PaddingValues(18.dp),
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    LiquidDonutChart(
-                        entries = donutEntries,
-                        size = 186.dp,
-                        centerLabel = stringResource(Res.string.ui_exams),
-                        centerValue = uiState.currentExams.size.toString(),
-                        showLegend = false,
-                    )
-
-                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        donutEntries.forEach { entry ->
-                            val tierRatio = if (uiState.currentExams.isNotEmpty()) entry.value / uiState.currentExams.size else 0f
-                            val tierPercentage = (tierRatio * 100).toInt()
-                            val tierColor = entry.color ?: colorScheme.primary
-
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(10.dp)
-                                                .clip(Capsule())
-                                                .background(tierColor),
-                                        )
-                                        Text(
-                                            text = stringResource(Res.string.ui_grades_tier_band_format, entry.label),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = colorScheme.onSurface,
-                                        )
-                                    }
-
-                                    Text(
-                                        text = stringResource(
-                                            Res.string.ui_grades_tier_exams_percent,
-                                            entry.value.toInt(),
-                                            tierPercentage,
-                                        ),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = tierColor,
-                                    )
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(5.dp)
-                                        .clip(Capsule())
-                                        .background(colorScheme.onSurface.copy(alpha = 0.08f)),
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth(tierRatio.coerceIn(0f, 1f))
-                                            .height(5.dp)
-                                            .clip(Capsule())
-                                            .background(tierColor),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                LiquidDonutChart(
+                    entries = donutEntries,
+                    size = 186.dp,
+                    centerLabel = stringResource(Res.string.ui_stats_exams_plural),
+                    centerValue = uiState.currentExams.size.toString(),
+                )
             }
         }
     }
 }
 
 /**
- * Dialog per aggiungere un esame ipotetico personalizzato nella simulazione.
+ * Dialog per aggiungere un esame ipotetico personalizzato nella simulazione con anteprima live.
  */
 @Composable
 fun AddCustomExamDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, Int, Int) -> Unit,
+    baseAverage: Double = 0.0,
+    baseCfu: Int = 0,
+    baseGraduation: Double = baseAverage * 110.0 / 30.0,
 ) {
-    var name by remember { mutableStateOf("") }
-    var cfu by remember { mutableIntStateOf(6) }
-    var grade by remember { mutableIntStateOf(28) }
+    val colors = MaterialTheme.colorScheme
+    var name by rememberSaveable { mutableStateOf("") }
+    var cfu by rememberSaveable { mutableIntStateOf(6) }
+    var grade by rememberSaveable { mutableIntStateOf(28) }
 
-    val defaultExamName = stringResource(Res.string.ui_grades_custom_exam_default)
+    val defaultName = stringResource(Res.string.ui_grades_custom_exam_default)
+    val nameLabel = stringResource(Res.string.ui_grades_custom_exam_name)
+    val previewAverage = projectWeightedAverage(baseAverage, baseCfu, cfu, grade)
+    val delta = previewAverage - baseAverage
+    val previewBase = baseGraduation + delta * 110.0 / 30.0
 
     LiquidDialog(
         onDismissRequest = onDismiss,
         title = stringResource(Res.string.ui_grades_add_custom_exam_title),
+        modifier = Modifier.imePadding(),
         confirmButton = {
             LiquidButton(
                 text = stringResource(Res.string.ui_add),
-                onClick = { onConfirm(name.trim().ifBlank { defaultExamName }, cfu, grade) },
+                onClick = { onConfirm(name.trim().ifBlank { defaultName }, cfu, grade) },
                 variant = LiquidButtonVariant.Primary,
                 size = LiquidButtonSize.Medium,
                 modifier = Modifier.fillMaxWidth(),
@@ -1097,33 +695,108 @@ fun AddCustomExamDialog(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LiquidTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = stringResource(Res.string.ui_grades_custom_exam_name),
+                label = nameLabel,
                 placeholder = stringResource(Res.string.ui_grades_custom_exam_name_placeholder),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = nameLabel },
             )
-
-            LiquidStepper(
-                value = cfu,
-                onValueChange = { cfu = it },
-                minValue = 1,
-                maxValue = 30,
-                label = stringResource(Res.string.ui_grades_custom_exam_cfu),
-                unit = "CFU",
-            )
-
-            LiquidStepper(
-                value = grade,
-                onValueChange = { grade = it },
-                minValue = 18,
-                maxValue = 30,
-                label = stringResource(Res.string.ui_grades_custom_exam_grade),
-                unit = "/30",
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.ui_grades_custom_exam_cfu),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onSurface,
+                )
+                LiquidStepper(
+                    value = cfu,
+                    onValueChange = { cfu = it },
+                    minValue = 1,
+                    maxValue = 30,
+                )
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.ui_grades_custom_exam_grade),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onSurface,
+                )
+                LiquidStepper(
+                    value = grade,
+                    onValueChange = { grade = it },
+                    minValue = 18,
+                    maxValue = 31,
+                )
+            }
+            LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(18.dp),
+                contentPadding = PaddingValues(12.dp),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GradesMetricGrid(columns = 2) {
+                        GradesMetricTile(
+                            label = stringResource(Res.string.ui_grades_simulation_estimated),
+                            value = gradeMetric(previewAverage),
+                            unit = "/30",
+                            valueColor = colors.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                        GradesMetricTile(
+                            label = stringResource(Res.string.ui_grades_projected_degree_base),
+                            value = gradeMetric(previewBase),
+                            unit = "/110",
+                            valueColor = colors.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    if (baseCfu > 0 && baseAverage > 0.0) {
+                        Text(
+                            stringResource(Res.string.ui_grades_simulation_delta, signedGradeMetric(delta)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun GradesActions(content: @Composable FlowRowScope.() -> Unit) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        content = content,
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun GradesMetricGrid(columns: Int, content: @Composable FlowRowScope.() -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val minCellWidth = 96.dp * LocalDensity.current.fontScale
+        val availableColumns = (maxWidth / minCellWidth).toInt().coerceIn(1, columns)
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            maxItemsInEachRow = availableColumns,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            content = content,
+        )
     }
 }
 
@@ -1133,26 +806,36 @@ internal fun GradesMetricTile(
     value: String,
     valueColor: Color,
     modifier: Modifier = Modifier,
+    unit: String? = null,
+    prominent: Boolean = false,
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
+    val typography = MaterialTheme.typography
+    val scheme = MaterialTheme.colorScheme
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, style = typography.labelMedium, color = scheme.onSurfaceVariant)
         Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            minLines = 2,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+            text = buildAnnotatedString {
+                append(value)
+                if (unit != null && value != "—") {
+                    withStyle(SpanStyle(fontSize = typography.labelMedium.fontSize, color = scheme.onSurfaceVariant)) {
+                        append(" $unit")
+                    }
+                }
+            },
+            style = (if (prominent) typography.headlineMedium else typography.titleLarge).copy(
+                fontWeight = FontWeight.Bold,
+                fontFeatureSettings = "tnum",
+            ),
             color = valueColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }
+
+internal fun gradeMetric(value: Double): String = if (value > 0.0) value.toFixedTwoDecimals() else "—"
+
+internal fun signedGradeMetric(value: Double): String =
+    if (value > 0.0) "+${value.toFixedTwoDecimals()}" else value.toFixedTwoDecimals()
+
+private fun simulationGradeLabel(value: Int): String = if (value >= 31) "30L" else value.toString()
+
+private fun graduationGradeLabel(value: Int): String = if (value >= 111) "110L" else value.toString()

@@ -67,13 +67,62 @@ class AppNavigatorTest {
     }
 
     @Test
-    fun lockedAccountCanOnlyRenderBootstrap() {
+    fun lockedAccountCanRenderBootstrapAndReleaseNotes() {
         val locked =
             AppSessionState.UnlockRequired(authenticatedSession.account)
         val guard = AppRouteGuard()
 
         assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Home, locked))
         assertEquals(AppRoute.Bootstrap, guard.resolve(AppRoute.Login, locked))
+        assertEquals(AppRoute.Changelog, guard.resolve(AppRoute.Changelog, locked))
+    }
+
+    @Test
+    fun releaseNotesAreIndependentOfTheMandatoryUpdateAndSessionStacks() {
+        val locked = AppSessionState.UnlockRequired(authenticatedSession.account)
+        val fixture = Fixture(activeRoot = AppRoute.Bootstrap, sessionState = locked)
+        val navigator = fixture.navigator
+
+        assertEquals(AppRoute.Updates, navigator.visibleRoute(isMandatoryUpdate = true))
+        assertEquals(NavigationResult.Navigated(AppRoute.Changelog), navigator.navigate(AppRoute.Changelog))
+        assertEquals(AppRoute.Changelog, navigator.visibleRoute(isMandatoryUpdate = true))
+        assertEquals(AppRoute.Changelog, navigator.visibleRoute(isMandatoryUpdate = false))
+        assertEquals(listOf<NavKey>(AppRoute.Bootstrap), fixture.authStack.toList())
+
+        assertEquals(true, navigator.goBack())
+        assertEquals(AppRoute.Updates, navigator.visibleRoute(isMandatoryUpdate = true))
+        assertEquals(AppRoute.Bootstrap, navigator.visibleRoute(isMandatoryUpdate = false))
+    }
+
+    @Test
+    fun lockingTheSessionKeepsReleaseNotesOpenAndBackReturnsToUnlock() {
+        val fixture = Fixture(activeRoot = AppRoute.Home)
+        val navigator = fixture.navigator
+        navigator.reconcile()
+        navigator.navigate(AppRoute.Taxes)
+        navigator.navigate(AppRoute.Changelog)
+
+        fixture.currentSession = AppSessionState.UnlockRequired(authenticatedSession.account)
+        assertEquals(AppRoute.Changelog, navigator.reconcile())
+        assertEquals(AppRoute.Bootstrap, navigator.sessionRoute)
+        assertEquals(false, navigator.canRender(AppRoute.Taxes))
+        assertEquals(null, navigator.currentTopLevelRoute)
+        assertEquals(true, navigator.canNavigateUp)
+
+        assertEquals(true, navigator.goBack())
+        assertEquals(AppRoute.Bootstrap, navigator.currentRoute)
+    }
+
+    @Test
+    fun restoredReleaseNotesMoveOutOfTheLoginStack() {
+        val fixture = Fixture(activeRoot = AppRoute.Login, sessionState = AppSessionState.SignedOut())
+        fixture.authStack.clear()
+        fixture.authStack.addAll(listOf(AppRoute.Login, AppRoute.Changelog))
+
+        assertEquals(AppRoute.Changelog, fixture.navigator.reconcile())
+        assertEquals(listOf<NavKey>(AppRoute.Login), fixture.authStack.toList())
+        assertEquals(true, fixture.navigator.goBack())
+        assertEquals(AppRoute.Login, fixture.navigator.currentRoute)
     }
 
     @Test
@@ -194,6 +243,7 @@ class AppNavigatorTest {
                 topLevelBackStacks = stacks,
                 activeRootState = this.activeRoot,
                 authenticatedOwnerState = authenticatedOwner,
+                changelogOpen = mutableStateOf(false),
                 sessionState = { currentSession },
                 routeGuard = AppRouteGuard(),
             )

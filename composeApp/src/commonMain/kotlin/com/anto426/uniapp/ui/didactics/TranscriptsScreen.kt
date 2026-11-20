@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.uniapp.didactics.presentation.TranscriptsUiState
 import com.anto426.uniapp.model.didactics.ExamRecord
@@ -15,6 +15,7 @@ import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.items.ExamRecordItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.anto426.uniapp.ui.didactics.components.CareerSummaryHeroCard
 import com.anto426.uniapp.ui.didactics.components.CareerYearChipRow
 import com.anto426.uniapp.ui.didactics.components.careerYearLabel
@@ -59,7 +60,7 @@ fun TranscriptsContent(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         CareerSummaryHeroCard(
@@ -78,9 +79,12 @@ fun TranscriptsContent(
                 years = years,
                 selectedYear = uiState.selectedYear,
                 onYearSelected = onYearSelected,
+                includeAllChip = years.size > 1,
             )
         }
 
+        val showSingleEmptyYear = uiState.displayedYears.size == 1 ||
+            uiState.displayedYears.none { uiState.examsByYear[it].orEmpty().isNotEmpty() }
         uiState.displayedYears.forEach { year ->
             val examsForYear = uiState.examsByYear[year].orEmpty()
             val yearTitle = careerYearLabel(year)
@@ -101,14 +105,15 @@ fun TranscriptsContent(
                         )
                     }
                 }
-            } else {
+            } else if (showSingleEmptyYear) {
                 LiquidSectionHeader(
                     title = yearTitle,
                     subtitle = stringResource(Res.string.ui_transcripts_year_summary, 0, 0),
                 )
-                LiquidEmptyState(
+                UniExpressiveStatusState(
                     title = stringResource(Res.string.ui_grades_verbalized_empty),
                     description = stringResource(Res.string.ui_history_empty_desc),
+                    inline = true,
                 )
             }
         }

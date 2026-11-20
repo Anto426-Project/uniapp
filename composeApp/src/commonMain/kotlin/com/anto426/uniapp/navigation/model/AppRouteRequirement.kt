@@ -17,6 +17,7 @@ val AppRoute.requirement: AppRouteRequirement
             AppRoute.Terms,
             AppRoute.Cookies,
             AppRoute.Author,
+            AppRoute.Changelog,
             -> AppRouteRequirement.Public
 
             else -> AppRouteRequirement.Authenticated

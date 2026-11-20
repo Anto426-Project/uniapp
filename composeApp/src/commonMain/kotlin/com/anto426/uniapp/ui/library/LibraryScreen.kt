@@ -609,10 +609,11 @@ private fun LibraryLoansTab(
                                     )
                                 }
                             }
-                            if (!movement.statusBadge.isNullOrBlank()) {
+                            if (movement.canRenew || movement.canCancel) {
+                                val statusResource = if (movement.canRenew) Res.string.ui_library_loans_in_progress else Res.string.ui_library_active_request
                                 val badgeColor = if (movement.canRenew) glassColors.success else colorScheme.tertiary
                                 LiquidBadge(
-                                    text = movement.statusBadge,
+                                    text = stringResource(statusResource),
                                     containerColor = badgeColor.copy(alpha = 0.14f),
                                     contentColor = badgeColor,
                                 )

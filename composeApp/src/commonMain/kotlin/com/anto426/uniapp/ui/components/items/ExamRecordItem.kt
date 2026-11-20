@@ -1,6 +1,5 @@
 package com.anto426.uniapp.ui.components.items
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,15 +11,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.didactics.ExamRecord
@@ -34,6 +37,7 @@ fun ExamRecordItem(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
+    val rowShape = remember { RoundedRectangle(16.dp) }
     val numericGrade = exam.grade.trim().toIntOrNull()
     val hasDetails = exam.code.isNotBlank()
 
@@ -54,15 +58,17 @@ fun ExamRecordItem(
         exam.code.takeIf { it.isNotBlank() },
     ).joinToString(" • ")
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = 60.dp)
-                .then(
-                    if (hasDetails) Modifier.clickable(role = Role.Button, onClick = onClick)
-                    else Modifier
+                .liquidClickable(
+                    shape = rowShape,
+                    role = Role.Button,
+                    onClick = if (hasDetails) onClick else null,
                 )
+                .semantics(mergeDescendants = true) {}
                 .padding(horizontal = 16.dp, vertical = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),

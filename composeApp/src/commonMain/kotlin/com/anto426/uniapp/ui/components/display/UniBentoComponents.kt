@@ -262,6 +262,7 @@ fun UniInsetRow(
     iconTint: Color = MaterialTheme.colorScheme.primary,
     onClick: (() -> Unit)? = null,
     showDivider: Boolean = true,
+    titleMaxLines: Int = 1,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -303,7 +304,7 @@ fun UniInsetRow(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = colorScheme.onSurface,
-                    maxLines = 1,
+                    maxLines = titleMaxLines,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!subtitle.isNullOrBlank()) {

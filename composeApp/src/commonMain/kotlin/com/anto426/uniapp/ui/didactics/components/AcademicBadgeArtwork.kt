@@ -1,18 +1,15 @@
 package com.anto426.uniapp.ui.didactics.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,9 +23,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.uniapp.codes.QrCodeStyle
@@ -66,24 +67,101 @@ internal fun AcademicBadgeArtwork(modifier: Modifier = Modifier) {
     })
 }
 
-/** Pearl inset with a colored rim; the square QR fits entirely inside the rounded white surface. */
+internal data class UniQrThemePalette(
+    val plate: Color,
+    val module: Color,
+    val accent: Color,
+)
+
+/**
+ * Derives distinctly colored Material You tokens for QR plates & ink while
+ * preserving >= 5:1–7:1 optical contrast across light, dark, and custom seeds.
+ */
+@Composable
+internal fun rememberUniQrThemePalette(): UniQrThemePalette {
+    val scheme = MaterialTheme.colorScheme
+    return remember(
+        scheme.primary,
+        scheme.primaryContainer,
+        scheme.onPrimary,
+        scheme.onPrimaryContainer,
+        scheme.tertiary,
+        scheme.tertiaryContainer,
+        scheme.onTertiary,
+        scheme.onTertiaryContainer,
+    ) {
+        val lightContainer = if (scheme.primaryContainer.luminance() >= scheme.onPrimaryContainer.luminance()) {
+            scheme.primaryContainer
+        } else {
+            scheme.onPrimaryContainer
+        }
+        val plate = lerp(lightContainer, Color.White, 0.08f).ensureMinLuminance(0.76f)
+
+        val deepPrimary = if (scheme.onPrimaryContainer.luminance() < scheme.primaryContainer.luminance()) {
+            lerp(scheme.onPrimaryContainer, scheme.primary, 0.35f)
+        } else {
+            lerp(scheme.onPrimary, scheme.primaryContainer, 0.45f)
+        }
+        val module = deepPrimary.ensureMaxLuminance(0.085f)
+
+        val deepTertiary = if (scheme.onTertiaryContainer.luminance() < scheme.tertiaryContainer.luminance()) {
+            lerp(scheme.onTertiaryContainer, scheme.tertiary, 0.35f)
+        } else {
+            lerp(scheme.onTertiary, scheme.tertiaryContainer, 0.45f)
+        }
+        val accent = deepTertiary.ensureMaxLuminance(0.10f)
+
+        UniQrThemePalette(
+            plate = plate,
+            module = module,
+            accent = accent,
+        )
+    }
+}
+
+private fun Color.ensureMinLuminance(minLuminance: Float): Color {
+    if (luminance() >= minLuminance) return this
+    var low = 0f
+    var high = 1f
+    repeat(14) {
+        val mid = (low + high) * 0.5f
+        if (lerp(this, Color.White, mid).luminance() < minLuminance) low = mid else high = mid
+    }
+    return lerp(this, Color.White, high)
+}
+
+private fun Color.ensureMaxLuminance(maxLuminance: Float): Color {
+    if (luminance() <= maxLuminance) return this
+    val fallbackInk = lerp(Color(0xFF0A080C), this, 0.18f)
+    var low = 0f
+    var high = 1f
+    repeat(14) {
+        val mid = (low + high) * 0.5f
+        if (lerp(this, Color.Black, mid).luminance() > maxLuminance) low = mid else high = mid
+    }
+    return lerp(this, Color.Black, high).takeIf { it.luminance() > 0.004f } ?: fallbackInk
+}
+
+/** Single soft Material You squircle plate with theme-colored high-contrast QR ink. */
 @Composable
 internal fun AcademicBadgeQr(value: String, modifier: Modifier = Modifier) {
-    val palette = MaterialTheme.colorScheme
-    Box(modifier.size(208.dp)
-        .border(1.dp, Brush.linearGradient(listOf(
-            palette.primary.copy(alpha = .68f),
-            Color.White.copy(alpha = .9f),
-            palette.tertiary.copy(alpha = .55f),
-        )), RoundedRectangle(32.dp))
-        .padding(4.dp)
-        .background(Color.White.copy(alpha = .34f), RoundedRectangle(28.dp))
-        .padding(4.dp)
-        .background(Color.White, RoundedRectangle(24.dp))
-        // Keep the full 176.dp painter and its quiet zone, clear of the rounded corners.
-        .padding(8.dp)
+    val qrPalette = rememberUniQrThemePalette()
+
+    Box(
+        modifier
+            .size(190.dp)
+            .clip(RoundedRectangle(28.dp))
+            .background(qrPalette.plate)
+            .padding(6.dp),
     ) {
-        QrCodeMatrixCanvas(value, Modifier.fillMaxSize(), style = QrCodeStyle.Artistic)
+        QrCodeMatrixCanvas(
+            codeValue = value,
+            modifier = Modifier.fillMaxSize(),
+            color = qrPalette.module,
+            accentColor = qrPalette.accent,
+            backgroundColor = qrPalette.plate,
+            style = QrCodeStyle.Artistic,
+        )
     }
 }
 
@@ -93,115 +171,72 @@ internal fun AcademicBadgeBarcode(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    val palette = MaterialTheme.colorScheme
-    val barcodePainter = remember(value) {
+    val qrPalette = rememberUniQrThemePalette()
+    val barcodePainter = remember(value, qrPalette) {
         value.takeIf(String::isNotBlank)?.let { encoded ->
-            runCatching { CodeGenerator().barcode(encoded) }.getOrNull()
+            runCatching {
+                CodeGenerator().barcode(
+                    value = encoded,
+                    barColor = qrPalette.module,
+                    backgroundColor = qrPalette.plate,
+                )
+            }.getOrNull()
         }
-    }
-    if (barcodePainter == null) return
+    } ?: return
 
+    UniThemedBarcodePlate(
+        codeValue = value,
+        painter = barcodePainter,
+        contentDescription = stringResource(Res.string.ui_badge_barcode),
+        qrPalette = qrPalette,
+        modifier = modifier.fillMaxWidth(),
+        barcodeHeight = 46.dp,
+    )
+}
+
+/** Soft, clutter-free theme-tinted barcode plate with plain monospace code underneath. */
+@Composable
+internal fun UniThemedBarcodePlate(
+    codeValue: String,
+    painter: Painter,
+    contentDescription: String,
+    qrPalette: UniQrThemePalette = rememberUniQrThemePalette(),
+    modifier: Modifier = Modifier,
+    barcodeHeight: androidx.compose.ui.unit.Dp? = null,
+    codeLetterSpacing: TextUnit = 2.sp,
+) {
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .border(
-                1.dp,
-                Brush.linearGradient(
-                    listOf(
-                        palette.primary.copy(alpha = 0.65f),
-                        Color.White.copy(alpha = 0.90f),
-                        palette.tertiary.copy(alpha = 0.50f),
-                    ),
-                ),
-                RoundedRectangle(22.dp),
-            )
-            .padding(3.dp)
-            .background(Color.White.copy(alpha = 0.35f), RoundedRectangle(19.dp))
-            .padding(3.dp)
-            .background(Color.White, RoundedRectangle(16.dp))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .clip(RoundedRectangle(24.dp))
+            .background(qrPalette.plate)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            // Header Ottico con indicatore di stato attivo
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF94A3B8)),
-                    )
-                    Text(
-                        text = stringResource(Res.string.ui_badge_barcode_short),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF64748B),
-                        fontSize = 9.sp,
-                        letterSpacing = 1.sp,
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(palette.primary),
-                    )
-                    Text(
-                        text = stringResource(Res.string.ui_account_active),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = palette.primary,
-                        fontSize = 8.5.sp,
-                        letterSpacing = 0.8.sp,
-                    )
-                }
-            }
-
-            // Codice a barre vettoriale scansionabile ad alto contrasto
             Image(
-                painter = barcodePainter,
-                contentDescription = stringResource(Res.string.ui_badge_barcode),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
+                painter = painter,
+                contentDescription = contentDescription,
+                modifier = if (barcodeHeight != null) {
+                    Modifier.fillMaxWidth().height(barcodeHeight)
+                } else {
+                    Modifier.fillMaxWidth().weight(1f)
+                },
             )
 
-            // Capsule badge monospace elegante per il codice
-            Box(
-                modifier = Modifier
-                    .clip(RoundedRectangle(8.dp))
-                    .background(Color(0xFFF1F5F9))
-                    .border(0.5.dp, Color(0xFFCBD5E1), RoundedRectangle(8.dp))
-                    .padding(horizontal = 12.dp, vertical = 2.5.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = value.uppercase(),
-                    color = Color(0xFF0F172A),
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 13.sp,
-                    letterSpacing = 2.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                )
-            }
+            Text(
+                text = codeValue.uppercase(),
+                color = qrPalette.module.copy(alpha = 0.82f),
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                letterSpacing = codeLetterSpacing,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
         }
     }
 }

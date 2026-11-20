@@ -2,7 +2,6 @@ package com.anto426.uniapp.library.model
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class LibraryTextParserTest {
@@ -39,7 +38,6 @@ class LibraryTextParserTest {
             actionToken = "tok-1",
         )
         assertEquals("Pesche", cancelable.branchName)
-        assertEquals("Richiesta attiva", cancelable.statusBadge)
         assertEquals("Libro richiesto Da ritirare entro il 22/10/2026", cancelable.title)
 
         val renewable = LibraryTextParser.parseMovement(
@@ -50,8 +48,6 @@ class LibraryTextParserTest {
             actionToken = "tok-2",
         )
         assertEquals("Campobasso", renewable.branchName)
-        assertEquals("In prestito", renewable.statusBadge)
-        assertNull(LibraryTextParser.parseMovement(null, "Solo storico", false, false, null).statusBadge)
     }
 
     @Test

@@ -245,8 +245,14 @@ class PortalDataSource(
 
     override suspend fun loadUniversityNews(forceRefresh: Boolean): List<UniversityNews> =
         cached(
-            "university-news", UniAppCachePolicies.News,
-            ListSerializer(UniversityNews.serializer()), forceRefresh,
+            "university-news-v3",
+            UniAppCachePolicies.News,
+            ListSerializer(UniversityNews.serializer()),
+            forceRefresh,
+            onSaved = { context, _, _ ->
+                invalidate(context.accountId, context.profileScopedKey("university-news"))
+                invalidate(context.accountId, context.profileScopedKey("university-news-v2"))
+            },
         ) { context -> context.backend { session, credentials -> loadUniversityNews(session, credentials) } }
 
     override suspend fun loadUniversityContacts(forceRefresh: Boolean): List<UniversityContact> =

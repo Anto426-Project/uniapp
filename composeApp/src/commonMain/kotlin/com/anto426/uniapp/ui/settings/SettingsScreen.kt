@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
@@ -35,24 +36,19 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
-import com.anto426.liquidmonet.components.feedback.sheet.LiquidSheet
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
-import com.anto426.uniapp.ui.components.account.UniAccountCard
+import com.anto426.uniapp.ui.components.account.UniSavedAccountsSheet
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.settings.presentation.SettingsUiState
-import com.anto426.uniapp.settings.presentation.AppPasswordSetupError
-import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
-import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
 import com.anto426.uniapp.security.biometric.BiometricAvailability
 import com.anto426.unisdk.platform.AppInfoProvider
 
@@ -76,8 +72,6 @@ fun SettingsScreen(
     onSignOut: () -> Unit = onOpenLogin,
     onNotificationsEnabledChange: (Boolean) -> Unit,
     onBiometricEnabledChange: (Boolean) -> Unit,
-    onSubmitBiometricPassword: (String, String) -> Unit,
-    onDismissBiometricPassword: () -> Unit,
     onRequestSignOut: () -> Unit,
     onDismissSignOut: () -> Unit,
 ) {
@@ -104,7 +98,7 @@ fun SettingsScreen(
     val appInfo by AppInfoProvider.info.collectAsState()
     val realVersion = installedVersion.ifBlank { appInfo.versionName.ifBlank { "2.0" } }
     val hasUpdateAvailable = !updateSubtitle.isNullOrBlank()
-    val effectiveUpdateSubtitle = "Versione $realVersion"
+    val effectiveUpdateSubtitle = stringResource(Res.string.ui_version_number, realVersion)
 
     UniScreenColumn {
         // 0. Active Account Hero Card (pieno spazio al nome completo + cambio account rapido)
@@ -294,7 +288,7 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             LiquidBadge(
-                                text = "Nuovo",
+                                text = stringResource(Res.string.ui_new_badge),
                                 containerColor = glassColors.warning.copy(alpha = 0.18f),
                                 contentColor = glassColors.warning,
                             )
@@ -319,7 +313,7 @@ fun SettingsScreen(
         }
 
         // 4. Partecipa al progetto
-        UniInsetGroup(title = "Partecipa al progetto") {
+        UniInsetGroup(title = stringResource(Res.string.ui_project_contribute_group)) {
             UniInsetRow(
                 title = stringResource(Res.string.msg_diventa_un_collaboratore),
                 subtitle = stringResource(Res.string.msg_invia_una_pull_request_con_correzioni_traduzioni_o),
@@ -329,7 +323,7 @@ fun SettingsScreen(
                 showDivider = true,
             )
             UniInsetRow(
-                title = "Segnala idee o anomalie",
+                title = stringResource(Res.string.ui_project_report_ideas),
                 subtitle = stringResource(Res.string.msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una),
                 icon = LiquidIcons.Feedback,
                 iconTint = colorScheme.tertiary,
@@ -338,155 +332,115 @@ fun SettingsScreen(
             )
         }
 
-        // 5. Sessione
-        UniInsetGroup {
+        UniInsetGroup(title = stringResource(Res.string.ui_session_title)) {
             UniInsetRow(
                 title = stringResource(Res.string.ui_sign_out),
                 icon = LiquidIcons.Close,
-                iconTint = colorScheme.error,
                 onClick = onRequestSignOut,
                 showDivider = false,
+                titleMaxLines = 2,
             )
         }
     }
 
-    if (uiState.isPasswordSetupVisible) {
-        var password by remember { mutableStateOf("") }
-        var confirmation by remember { mutableStateOf("") }
+    if (uiState.isSignOutConfirmationVisible) {
+        val signOutLabel = stringResource(Res.string.ui_sign_out)
+        val cancelLabel = stringResource(Res.string.ui_cancel)
         LiquidDialog(
-            title = stringResource(Res.string.ui_app_password_setup_title),
-            onDismissRequest = onDismissBiometricPassword,
-            content = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(Res.string.ui_app_password_setup_description))
-                    LiquidTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        type = LiquidTextFieldType.Password,
-                        label = stringResource(Res.string.ui_app_password_label),
-                        enabled = !uiState.isBiometricAuthenticating,
-                    )
-                    LiquidTextField(
-                        value = confirmation,
-                        onValueChange = { confirmation = it },
-                        type = LiquidTextFieldType.Password,
-                        label = stringResource(Res.string.ui_app_password_confirm),
-                        enabled = !uiState.isBiometricAuthenticating,
-                    )
-                    uiState.passwordSetupError?.let { error ->
+            onDismissRequest = onDismissSignOut,
+            title = signOutLabel,
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    LiquidButton(
+                        onClick = {
+                            onDismissSignOut()
+                            onSignOut()
+                        },
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
                         Text(
-                            stringResource(when (error) {
-                                AppPasswordSetupError.TooShort -> Res.string.ui_app_password_too_short
-                                AppPasswordSetupError.TooLong -> Res.string.ui_app_password_too_long
-                                AppPasswordSetupError.Mismatch -> Res.string.ui_app_password_mismatch
-                            }),
-                            color = MaterialTheme.colorScheme.error,
+                            text = signOutLabel,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    LiquidButton(
+                        onClick = onDismissSignOut,
+                        variant = LiquidButtonVariant.Text,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = cancelLabel,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }
             },
-            confirmButton = {
-                LiquidButton(
-                    text = stringResource(Res.string.ui_app_password_enable),
-                    onClick = { onSubmitBiometricPassword(password, confirmation) },
-                    enabled = !uiState.isBiometricAuthenticating,
+            content = {
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                )
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val sessionAccount = activeAccount?.takeIf { it.accountId == accountUiState.activeAccountId }
+                    if (sessionAccount != null) {
+                        val initials = remember(sessionAccount.displayName) {
+                            sessionAccount.displayName.split(' ')
+                                .filter(String::isNotBlank)
+                                .take(2)
+                                .joinToString("") { it.first().toString() }
+                        }
+                        UniAccountAvatar(
+                            imageData = accountUiState.profileImages[sessionAccount.accountId],
+                            initials = initials,
+                            size = 48.dp,
+                        )
+                        Text(
+                            text = sessionAccount.displayName,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = LiquidIcons.AccountCircle,
+                            contentDescription = null,
+                            tint = colorScheme.primary,
+                            modifier = Modifier.size(44.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.ui_sign_out_confirm_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             },
-            dismissButton = {
-                LiquidButton(
-                    text = stringResource(Res.string.ui_cancel),
-                    onClick = onDismissBiometricPassword,
-                    enabled = !uiState.isBiometricAuthenticating,
-                    variant = LiquidButtonVariant.Text,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-        )
-    }
-
-    if (uiState.isSignOutConfirmationVisible) {
-        LiquidDialog(
-            onDismissRequest = onDismissSignOut,
-            title = stringResource(Res.string.ui_sign_out),
-            text = stringResource(Res.string.ui_sign_out_confirm_message),
-            confirmButton = {
-                LiquidButton(
-                    text = stringResource(Res.string.ui_sign_out),
-                    onClick = {
-                        onDismissSignOut()
-                        onSignOut()
-                    },
-                    variant = LiquidButtonVariant.Primary,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            dismissButton = {
-                LiquidButton(
-                    text = stringResource(Res.string.ui_cancel),
-                    onClick = onDismissSignOut,
-                    variant = LiquidButtonVariant.Text,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         )
     }
 
     if (isAccountSheetVisible) {
-        LiquidSheet(
-            onDismissRequest = { isAccountSheetVisible = false },
-            title = stringResource(Res.string.ui_accounts_saved_title),
-            subtitle = stringResource(Res.string.ui_accounts_saved_sub),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                if (accountUiState.accounts.isEmpty()) {
-                    LiquidEmptyState(
-                        title = stringResource(Res.string.ui_accounts_empty_title),
-                        description = accountUiState.errorMessage ?: stringResource(Res.string.ui_accounts_empty_desc),
-                        actionButtonText = stringResource(Res.string.ui_accounts_add),
-                        onActionClick = {
-                            isAccountSheetVisible = false
-                            onAddAccount()
-                        },
-                    )
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        accountUiState.accounts.forEach { account ->
-                            UniAccountCard(
-                                account = account,
-                                isActive = account.accountId == accountUiState.activeAccountId,
-                                isActivating = account.accountId == accountUiState.activatingAccountId,
-                                isSwitching = accountUiState.activatingAccountId != null,
-                                profileImage = accountUiState.profileImages[account.accountId],
-                                onSelect = {
-                                    requestedAccountId = account.accountId
-                                    onSelectAccount(account.accountId)
-                                },
-                                onRemove = {
-                                    isAccountSheetVisible = false
-                                    onRemoveAccount(account.accountId)
-                                },
-                                canRemove = accountUiState.activatingAccountId == null && !accountUiState.isRemovingAccount,
-                            )
-                        }
-                    }
-
-                    LiquidButton(
-                        text = stringResource(Res.string.ui_accounts_add),
-                        onClick = {
-                            isAccountSheetVisible = false
-                            onAddAccount()
-                        },
-                        variant = LiquidButtonVariant.Primary,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-        }
+        UniSavedAccountsSheet(
+            state = accountUiState,
+            onDismiss = { isAccountSheetVisible = false },
+            onSelectAccount = { accountId ->
+                requestedAccountId = accountId
+                onSelectAccount(accountId)
+            },
+            onRemoveAccount = { accountId ->
+                isAccountSheetVisible = false
+                onRemoveAccount(accountId)
+            },
+            onAddAccount = {
+                isAccountSheetVisible = false
+                onAddAccount()
+            },
+        )
     }
 }

@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
@@ -37,6 +36,7 @@ import com.anto426.uniapp.model.didactics.PastExamStatus
 import com.anto426.uniapp.ui.components.items.PastExamItem
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -76,9 +76,11 @@ fun LazyListScope.examsHistoryContentItems(
 
     if (uiState.exams.isEmpty()) {
         item(key = "history-empty") {
-            LiquidEmptyState(
+            UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_history_empty_title),
                 description = stringResource(Res.string.ui_history_empty_desc),
+                inline = true,
+                mainIcon = LiquidIcons.Time,
             )
         }
     } else {

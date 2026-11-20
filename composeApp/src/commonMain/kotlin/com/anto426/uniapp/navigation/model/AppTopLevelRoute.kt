@@ -49,6 +49,7 @@ fun AppRoute.topLevelParent(): AppRoute =
         -> AppRoute.Didactics
 
         AppRoute.Settings,
+        AppRoute.BiometricPinSetup,
         AppRoute.Info,
         AppRoute.AboutUniApp,
         AppRoute.Theme,

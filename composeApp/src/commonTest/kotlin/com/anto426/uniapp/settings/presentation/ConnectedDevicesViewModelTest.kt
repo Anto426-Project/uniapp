@@ -31,6 +31,27 @@ class ConnectedDevicesViewModelTest {
     }
 
     @Test
+    fun disconnectAllRequiresASuccessfulListWithOtherSessions() = runViewModelTest {
+        var connectionFailed = false
+        val viewModel = ConnectedDevicesViewModel(devicesSource { connectionFailed })
+        assertFalse(viewModel.uiState.value.canDisconnectAll)
+        advanceUntilIdle()
+
+        val loaded = viewModel.uiState.value
+        assertTrue(loaded.canDisconnectAll)
+        assertFalse(loaded.copy(devices = listOfNotNull(loaded.currentDevice)).canDisconnectAll)
+
+        connectionFailed = true
+        viewModel.refresh(force = true)
+        advanceUntilIdle()
+
+        val failed = viewModel.uiState.value
+        assertEquals(loaded.devices, failed.devices)
+        assertNotNull(failed.errorMessage)
+        assertFalse(failed.canDisconnectAll)
+    }
+
+    @Test
     fun revocationKeepsContentAndPublishesToast() = runViewModelTest {
         val messages = mutableListOf<AppToastMessage>()
         val source = devicesSource()
@@ -46,10 +67,11 @@ class ConnectedDevicesViewModelTest {
         assertEquals("Sessione revocata", messages.single().text)
     }
 
-    private fun devicesSource() =
+    private fun devicesSource(shouldFail: () -> Boolean = { false }) =
         object : FakeUniAppDataSource() {
-            override suspend fun loadConnectedDevices(forceRefresh: Boolean) =
-                listOf(
+            override suspend fun loadConnectedDevices(forceRefresh: Boolean): List<ConnectedDevice> {
+                check(!shouldFail()) { "Test device list unavailable" }
+                return listOf(
                     ConnectedDevice(
                         lastLogin = "adesso",
                         model = "OnePlus",
@@ -62,6 +84,7 @@ class ConnectedDevicesViewModelTest {
                         token = "other-token",
                     ),
                 )
+            }
 
             override suspend fun disconnectDevice(targetToken: String): String {
                 assertEquals("other-token", targetToken)

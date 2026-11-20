@@ -34,15 +34,16 @@ data class LibraryBookDetail(
     val title: String,
     val author: String? = null,
     val year: String? = null,
-    val availabilitySummary: String? = null,
-    val isAvailable: Boolean = false,
+    val hasAvailableDocument: Boolean = false,
     val branches: List<String> = emptyList(),
     val inventory: String? = null,
     val shelfmark: String? = null,
     val notes: String? = null,
     val description: String = "",
     val actions: List<LibraryBookCopyAction> = emptyList(),
-)
+) {
+    val isAvailable: Boolean get() = hasAvailableDocument || actions.isNotEmpty()
+}
 
 data class LibraryBookLoanDraft(
     val draftId: String,
@@ -59,7 +60,6 @@ data class LibraryMovementItem(
     val title: String,
     val detail: String,
     val branchName: String? = null,
-    val statusBadge: String? = null,
     val dueDateLabel: String? = null,
     val canCancel: Boolean = false,
     val canRenew: Boolean = false,

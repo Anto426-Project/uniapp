@@ -121,6 +121,15 @@ kotlin {
 val sdkManifest = rootProject.file(".sdk-binaries/resolved.properties")
 require(sdkManifest.isFile) { "SDK binaries are missing. Run: python3 scripts/fetch_sdk_binaries.py" }
 val sdkProperties = Properties().apply { sdkManifest.inputStream().use(::load) }
+fun loadLocalSdkManifest(path: String): Properties? = providers.fileContents(
+    rootProject.layout.projectDirectory.file(path),
+).asText.orNull?.let { manifest ->
+    Properties().apply { manifest.reader().use(::load) }
+}
+val localSdkManifests = mapOf(
+    "liquid-monet" to loadLocalSdkManifest(".sdk-binaries/local-liquid-monet.properties"),
+    "uni-sdk" to loadLocalSdkManifest(".sdk-binaries/local-uni-sdk.properties"),
+)
 val sdkDependencies = mapOf(
     "liquid-monet" to libs.liquid.monet.sdk.get(),
     "uni-sdk" to libs.unisdk.get(),
@@ -129,13 +138,15 @@ val sdkDependencies = mapOf(
 )
 val moduleMetadata = sdkDependencies.map { (name, dependency) ->
     val version = dependency.versionConstraint.requiredVersion
-    require(sdkProperties.getProperty("$name.version") == version &&
-        sdkProperties.getProperty("$name.coordinate") == "${dependency.module.group}:${dependency.module.name}") {
+    val local = localSdkManifests[name]
+    val manifest = local ?: sdkProperties
+    require(manifest.getProperty("$name.version") == version &&
+        manifest.getProperty("$name.coordinate") == "${dependency.module.group}:${dependency.module.name}") {
         "$name binaries do not match the declared dependency ($version). Run: python3 scripts/fetch_sdk_binaries.py"
     }
-    val revision = sdkProperties.getProperty("$name.revision").orEmpty()
+    val revision = manifest.getProperty("$name.revision").orEmpty()
     require(revision.matches(Regex("[a-f0-9]{40}"))) { "Missing source revision for $name. Fetch SDK binaries again." }
-    listOf(name, version, revision, "false")
+    listOf(name, version, revision, (local != null).toString())
 }
 val sourceRevision = providers.exec {
     commandLine("git", "-C", rootProject.projectDir.absolutePath, "rev-parse", "HEAD")

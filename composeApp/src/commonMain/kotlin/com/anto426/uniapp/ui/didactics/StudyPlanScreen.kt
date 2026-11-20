@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
+import com.anto426.uniapp.didactics.presentation.ALL_ACADEMIC_YEARS
 import com.anto426.uniapp.didactics.presentation.StudyPlanUiState
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
@@ -16,6 +17,7 @@ import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.items.StudyCourseItem
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.anto426.uniapp.ui.didactics.components.CareerStatusFilterRow
 import com.anto426.uniapp.ui.didactics.components.CareerSummaryHeroCard
 import com.anto426.uniapp.ui.didactics.components.CareerYearChipRow
@@ -49,7 +51,11 @@ fun StudyPlanContent(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val yearNumbers = uiState.years.map { it.yearNumber }
-    val selectedYearNumber = uiState.years.getOrNull(uiState.selectedYearIndex)?.yearNumber ?: 0
+    val selectedYearNumber = if (uiState.selectedYearIndex == ALL_ACADEMIC_YEARS) {
+        ALL_ACADEMIC_YEARS
+    } else {
+        uiState.years.getOrNull(uiState.selectedYearIndex)?.yearNumber ?: 0
+    }
     val remainingCount = (uiState.totalCoursesCount - uiState.completedCount).coerceAtLeast(0)
 
     val metaPills = buildList {
@@ -60,7 +66,7 @@ fun StudyPlanContent(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         CareerSummaryHeroCard(
@@ -76,9 +82,14 @@ fun StudyPlanContent(
             CareerYearChipRow(
                 years = yearNumbers,
                 selectedYear = selectedYearNumber,
+                includeAllChip = yearNumbers.size > 1,
                 onYearSelected = { targetYear ->
-                    val index = uiState.years.indexOfFirst { it.yearNumber == targetYear }
-                    if (index >= 0) onYearSelected(index)
+                    if (targetYear == ALL_ACADEMIC_YEARS) {
+                        onYearSelected(ALL_ACADEMIC_YEARS)
+                    } else {
+                        val index = uiState.years.indexOfFirst { it.yearNumber == targetYear }
+                        if (index >= 0) onYearSelected(index)
+                    }
                 },
             )
         }
@@ -88,14 +99,22 @@ fun StudyPlanContent(
             onStatusSelected = onStatusFilterChanged,
         )
 
-        uiState.displayedYears.forEach { yearGroup ->
-            val totalYearCfu = yearGroup.courses.sumOf { course -> course.cfu.firstAcademicIntegerOrNull() ?: 0 }
-            val completedCount = yearGroup.courses.count { it.status == CourseStatus.COMPLETED }
+        val yearResults = uiState.displayedYears.map { yearGroup ->
             val filteredCourses = when (uiState.statusFilter) {
                 null -> yearGroup.courses
                 CourseStatus.COMPLETED -> yearGroup.courses.filter { it.status == CourseStatus.COMPLETED }
                 CourseStatus.ACTIVE, CourseStatus.PLANNED -> yearGroup.courses.filter { it.status != CourseStatus.COMPLETED }
             }
+            yearGroup to filteredCourses
+        }
+        val anyYearHasMatches = yearResults.any { it.second.isNotEmpty() }
+
+        yearResults.forEach { (yearGroup, filteredCourses) ->
+            if (uiState.displayedYears.size > 1 && anyYearHasMatches && filteredCourses.isEmpty()) {
+                return@forEach
+            }
+            val totalYearCfu = yearGroup.courses.sumOf { course -> course.cfu.firstAcademicIntegerOrNull() ?: 0 }
+            val completedCount = yearGroup.courses.count { it.status == CourseStatus.COMPLETED }
 
             LiquidSectionHeader(
                 title = careerYearLabel(yearGroup.yearNumber),
@@ -118,9 +137,10 @@ fun StudyPlanContent(
                     }
                 }
             } else {
-                LiquidEmptyState(
+                UniExpressiveStatusState(
                     title = stringResource(Res.string.ui_career_filter_empty),
                     description = stringResource(Res.string.ui_career_filter_empty_desc),
+                    inline = true,
                 )
             }
         }

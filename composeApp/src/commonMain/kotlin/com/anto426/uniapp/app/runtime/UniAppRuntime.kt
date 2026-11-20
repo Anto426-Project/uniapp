@@ -11,6 +11,7 @@ import com.anto426.uniapp.data.local.EncryptedUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniAppDataKeys
 import com.anto426.uniapp.data.local.UniLocalDataStore
+import com.anto426.uniapp.didactics.data.GradeSimulationRepository
 import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.notifications.platform.rememberPlatformNotificationPermissionController
 import com.anto426.uniapp.notifications.runtime.AppNotificationManager
@@ -50,6 +51,7 @@ class UniAppRuntime internal constructor(
 
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val dataScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    internal val gradeSimulations = GradeSimulationRepository(localDataStore, dataScope)
     internal val applicationImages = com.anto426.uniapp.data.images.ApplicationImageStore(localDataStore, dataScope)
     internal val projectData = com.anto426.uniapp.project.data.ProjectDataStore(dataScope, localDataStore)
     private val lifecycleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)

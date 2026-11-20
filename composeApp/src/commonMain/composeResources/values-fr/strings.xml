@@ -366,6 +366,7 @@
     <string name="ui_news_summary_heading">En bref</string>
     <string name="ui_news_article_heading">Actualité</string>
     <string name="ui_news_open_original">Ouvrir l’annonce originale</string>
+    <string name="ui_news_share">Partager l’annonce</string>
     <string name="ui_home_news_page_notice">Actualité %1$d sur %2$d • balayez pour parcourir</string>
 
 
@@ -448,7 +449,7 @@
     <string name="ui_revoke_access">Révoquer l’accès</string>
     <string name="ui_revoke">Révoquer</string>
     <string name="ui_revoke_question">Voulez-vous vraiment déconnecter %1$s ? Vous devrez vous reconnecter sur cet appareil.</string>
-    <string name="ui_devices_security_note">Les sessions actives maintiennent votre compte universitaire connecté sur chaque appareil. Si vous ne reconnaissez pas une connexion, fermez les autres sessions avec le bouton ci-dessus.</string>
+    <string name="ui_devices_security_note">Vous pouvez révoquer les connexions que vous ne reconnaissez pas dans « Autres sessions ».</string>
     <string name="ui_push_notifications">Notifications push</string>
     <string name="ui_academic_alerts">Alertes académiques et échéances</string>
     <string name="ui_biometric_security">Sécurité biométrique</string>
@@ -457,6 +458,7 @@
     <string name="ui_biometric_not_enrolled">Configurez d’abord l’empreinte, le visage ou le code de l’appareil</string>
     <string name="ui_biometric_unavailable">Authentification de l’appareil indisponible</string>
     <string name="ui_unlock_title">Déverrouiller UniApp</string>
+    <string name="ui_unlock_welcome_back">Bon retour</string>
     <string name="ui_unlock_protected_access">Accès protégé</string>
     <string name="ui_unlock_security_badge">Système</string>
     <string name="ui_unlock_methods">Déverrouillez UniApp avec votre appareil ou votre mot de passe d’application.</string>
@@ -877,6 +879,9 @@
     <string name="ui_grades_cfu_chart_detail">Crédits (CFU) enregistrés / simulés</string>
     <string name="ui_grades_no_cfu_data">Aucune donnée CFU disponible</string>
     <string name="ui_grades_tier_band_format">Tranche %1$s</string>
+    <string name="ui_grades_decrease_value">Diminuer %1$s</string>
+    <string name="ui_grades_increase_value">Augmenter %1$s</string>
+    <string name="ui_grades_remove_custom_exam">Supprimer l’examen simulé</string>
     <string name="ui_grades_add_custom_exam_title">Ajouter un examen personnalisé</string>
     <string name="ui_grades_custom_exam_name">Nom de l’enseignement</string>
     <string name="ui_grades_custom_exam_name_placeholder">Ex. stage / examen au choix</string>
@@ -1247,6 +1252,7 @@
     <string name="msg_impossibile_caricare_il_piano_di_studi">Impossible de charger le plan d’études.</string>
     <string name="msg_impossibile_caricare_gli_appelli">Impossible de charger les sessions d’examen.</string>
     <string name="msg_operazione_sull_appello_non_riuscita">Échec de l’opération sur la session d’examen.</string>
+    <string name="msg_impossibile_salvare_la_simulazione">Impossible d’enregistrer la simulation.</string>
     <string name="msg_impossibile_caricare_voti_e_simulazione">Impossible de charger les notes et la simulation.</string>
     <string name="msg_impossibile_caricare_le_presenze">Impossible de charger les présences.</string>
     <string name="msg_inserisci_o_inquadra_un_codice_qr_valido">Saisissez ou cadrez un QR code valide.</string>
@@ -1703,4 +1709,43 @@
     <string name="ui_library_booking_step_2">2. Date et créneau</string>
     <string name="ui_library_booking_step_3">3. Vérifier et confirmer</string>
     <string name="ui_library_booking_selected_slots">%1$d créneaux sélectionnés</string>
+    <string name="ui_new_badge">Nouveau</string>
+    <string name="ui_version_number">Version %1$s</string>
+    <string name="ui_project_contribute_group">Participer au projet</string>
+    <string name="ui_project_report_ideas">Proposer des idées ou signaler des problèmes</string>
+    <string name="ui_search_close">Fermer la recherche</string>
+    <string name="ui_monet_palette">Palette Monet</string>
+    <string name="ui_project_syncing">Synchronisation du profil et des crédits depuis GitHub…</string>
+    <string name="ui_sdk_liquid_description">Rendu optique et composants en verre</string>
+    <string name="ui_sdk_uni_description">Services Esse3 et intégration universitaire</string>
+    <string name="ui_sdk_storage_description">Stockage chiffré protégé par le matériel</string>
+    <string name="ui_sdk_firebase_description">Notifications et connecteur cloud</string>
+    <string name="ui_sdk_internal_description">Module interne</string>
+    <string name="ui_biometric_prompt_title">Protéger UniApp</string>
+    <string name="msg_sign_out_in_progress">Déconnexion en cours…</string>
+    <string name="msg_login_succeeded">Connexion réussie.</string>
+    <string name="msg_account_activated">Compte activé.</string>
+    <string name="msg_academic_profile_activated">Profil universitaire activé.</string>
+    <string name="msg_custom_color_applied">Couleur personnalisée appliquée.</string>
+    <string name="msg_theme_reset">Thème réinitialisé.</string>
+    <string name="msg_theme_updated">Thème mis à jour.</string>
+    <string name="msg_update_started">Mise à jour lancée…</string>
+    <string name="msg_survey_answer_required">Répondez à toutes les questions obligatoires.</string>
+    <string name="msg_transport_booking_cancelled">Réservation annulée.</string>
+    <string name="ui_brand_motto_first">NE VOUS</string>
+    <string name="ui_brand_motto_second">CONTENTEZ PAS</string>
+    <string name="ui_brand_experience">Expérience UniApp ✨</string>
+    <string name="ui_theme_palette_dynamic">Material You</string>
+    <string name="ui_theme_palette_sapphire">Saphir</string>
+    <string name="ui_theme_palette_emerald">Émeraude</string>
+    <string name="ui_theme_palette_sunset">Coucher de soleil</string>
+    <string name="ui_theme_palette_violet">Violet</string>
+    <string name="ui_theme_palette_custom">Personnalisée</string>
+    <string name="msg_biometric_enabled">Connexion biométrique activée.</string>
+    <string name="msg_biometric_disabled">Connexion biométrique désactivée.</string>
+    <string name="msg_update_finish_in_app_store">Terminez la mise à jour dans l’App Store.</string>
+    <string name="ui_news_attachment_document">Document</string>
+    <string name="ui_library_document_available">Document disponible</string>
+    <string name="ui_library_requestable_copies">Exemplaires à demander : %1$d</string>
+    <string name="ui_library_active_request">Demande en cours</string>
 </resources>

@@ -421,10 +421,9 @@ fun ThemeScreen(
         AppThemeMode.Dark -> stringResource(Res.string.ui_theme_mode_dark)
     }
     val paletteLabel = when {
-        uiState.selectedThemeIndex == 0 -> "Material You"
         uiState.selectedThemeIndex == 5 || (uiState.themes.getOrNull(uiState.selectedThemeIndex)?.isCustom == true) ->
             (uiState.customColor ?: Color(0xFF0B57D0)).toHexString()
-        else -> uiState.themes.getOrNull(uiState.selectedThemeIndex)?.name ?: "Material You"
+        else -> stringResource(uiState.themes.getOrNull(uiState.selectedThemeIndex)?.nameRes ?: Res.string.ui_theme_palette_dynamic)
     }
 
     UniScreenColumn {
@@ -607,7 +606,7 @@ private fun LiveThemePreviewCard(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
-                            text = "Media",
+                            text = stringResource(Res.string.ui_average),
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant,
                         )
@@ -635,7 +634,7 @@ private fun LiveThemePreviewCard(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Palette Monet",
+                            text = stringResource(Res.string.ui_monet_palette),
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant,
                         )
@@ -683,7 +682,7 @@ private fun ThemeColorGroup(
     val customColor = uiState.customColor ?: Color(0xFF0B57D0)
     val fixedThemes = uiState.themes.mapIndexedNotNull { index, option ->
         if (index > 0 && !option.isCustom && option.color != null) {
-            index to (option.name to option.color)
+            index to (stringResource(option.nameRes) to option.color)
         } else {
             null
         }

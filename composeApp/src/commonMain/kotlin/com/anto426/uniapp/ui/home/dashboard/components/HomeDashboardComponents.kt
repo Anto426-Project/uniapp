@@ -53,7 +53,6 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -65,6 +64,7 @@ import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
 import com.anto426.uniapp.ui.components.items.UniNewsCard
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -477,9 +477,8 @@ fun HomeSpotlightRow(
     val formattedTaxAmount = remember(uiState.dueAmount, uiState.isProfessor) {
         if (uiState.isProfessor) "${uiState.thesisCount}" else formatCompactCurrency(uiState.dueAmount)
     }
-    val formattedTaxSub = remember(uiState.nextTaxLabel, uiState.isProfessor) {
+    val formattedTaxSub =
         if (uiState.isProfessor) "" else formatTaxDeadlineSubtitle(uiState.nextTaxLabel)
-    }
 
     Row(
         modifier = modifier
@@ -623,12 +622,13 @@ private fun formatCompactCurrency(raw: String): String {
     }
 }
 
+@Composable
 private fun formatTaxDeadlineSubtitle(raw: String): String {
     val trimmed = raw.trim()
     if (trimmed.isEmpty()) return ""
     val parts = trimmed.split("•").map(String::trim).filter(String::isNotBlank)
     return when {
-        parts.size >= 2 -> "Scadenza ${parts.last()}"
+        parts.size >= 2 -> stringResource(Res.string.ui_taxes_due_on, parts.last())
         else -> trimmed
     }
 }
@@ -701,10 +701,11 @@ fun HomeNewsSection(
         }
 
         if (homeNews.isEmpty()) {
-            LiquidEmptyState(
+            UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_news_empty_title),
                 description = stringResource(Res.string.ui_news_empty_desc),
-                modifier = Modifier.padding(horizontal = 18.dp),
+                inline = true,
+                mainIcon = LiquidIcons.Notifications,
             )
         } else {
             val pagerState = rememberPagerState(

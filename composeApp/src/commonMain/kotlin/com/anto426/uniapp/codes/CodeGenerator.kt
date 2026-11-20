@@ -1,9 +1,15 @@
 package com.anto426.uniapp.codes
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.painter.Painter
 import io.github.alexzhirkevich.qrose.QrCodePainter
 import io.github.alexzhirkevich.qrose.oned.BarcodePainter
@@ -28,17 +34,46 @@ import io.github.alexzhirkevich.qrose.options.solid
  * Invalid/oversized data throws IllegalArgumentException. Remember the returned painter in UI.
  */
 class CodeGenerator {
-    fun generate(code: DecodedCode): Painter {
+    fun generate(
+        code: DecodedCode,
+        moduleColor: Color? = null,
+        accentColor: Color? = null,
+        backgroundColor: Color = Color.White,
+    ): Painter {
         require(code.canRegenerate) { "Use the original image for this code" }
         return when (code.format) {
-            CodeFormat.Qr -> qrCode(code.value)
+            CodeFormat.Qr -> qrCode(
+                value = code.value,
+                moduleColor = moduleColor,
+                accentColor = accentColor,
+                backgroundColor = backgroundColor,
+            )
             CodeFormat.Unsupported -> throw IllegalArgumentException("Unsupported code format")
-            else -> barcode(code.value, BarcodeFormat.valueOf(code.format.name))
+            else -> barcode(
+                value = code.value,
+                format = BarcodeFormat.valueOf(code.format.name),
+                barColor = moduleColor,
+                backgroundColor = backgroundColor,
+            )
         }
     }
 
-    fun qrCode(value: String, style: QrCodeStyle = QrCodeStyle.Classic): Painter {
+    fun qrCode(
+        value: String,
+        style: QrCodeStyle = QrCodeStyle.Classic,
+        moduleColor: Color? = null,
+        accentColor: Color? = null,
+        backgroundColor: Color = Color.White,
+    ): Painter {
         require(value.isNotEmpty()) { "QR code data cannot be empty" }
+        val resolvedModule = moduleColor ?: when (style) {
+            QrCodeStyle.Classic -> Color.Black
+            QrCodeStyle.Artistic -> Color(0xFF142B3A)
+        }
+        val resolvedAccent = accentColor ?: when (style) {
+            QrCodeStyle.Classic -> resolvedModule
+            QrCodeStyle.Artistic -> if (moduleColor != null) resolvedModule else Color(0xFF164C50)
+        }
         return QrCodePainter(
             data = value,
             options = QrOptions(
@@ -47,25 +82,38 @@ class CodeGenerator {
                     QrCodeStyle.Artistic -> QrShapes(
                         code = QrQuietZone(),
                         darkPixel = QrPixelShape.roundCorners(.42f),
-                        frame = QrFrameShape.roundCorners(.24f, bottomRight = false),
-                        ball = QrBallShape.roundCorners(.28f, bottomRight = false),
+                        frame = QrFrameShape.roundCorners(.26f, bottomRight = false),
+                        ball = QrBallShape.roundCorners(.30f, bottomRight = false),
                     )
                 },
                 colors = when (style) {
-                    QrCodeStyle.Classic -> QrColors()
+                    QrCodeStyle.Classic -> if (moduleColor == null && accentColor == null) {
+                        QrColors()
+                    } else {
+                        QrColors(
+                            dark = QrBrush.solid(resolvedModule),
+                            frame = QrBrush.solid(resolvedAccent),
+                            ball = QrBrush.solid(resolvedModule),
+                        )
+                    }
                     QrCodeStyle.Artistic -> QrColors(
-                        dark = QrBrush.solid(Color(0xFF142B3A)),
-                        frame = QrBrush.solid(Color(0xFF164C50)),
-                        ball = QrBrush.solid(Color(0xFF142B3A)),
+                        dark = QrBrush.solid(resolvedModule),
+                        frame = QrBrush.solid(resolvedAccent),
+                        ball = QrBrush.solid(resolvedModule),
                     )
                 },
-                background = QrBackground(fill = SolidColor(Color.White)),
+                background = QrBackground(fill = SolidColor(backgroundColor)),
                 errorCorrectionLevel = QrErrorCorrectionLevel.Medium,
             ),
         )
     }
 
-    fun barcode(value: String, format: BarcodeFormat = BarcodeFormat.Code128): Painter {
+    fun barcode(
+        value: String,
+        format: BarcodeFormat = BarcodeFormat.Code128,
+        barColor: Color? = null,
+        backgroundColor: Color = Color.White,
+    ): Painter {
         require(value.isNotEmpty()) { "Barcode data cannot be empty" }
         val type = when (format) {
             BarcodeFormat.Code128 -> {
@@ -93,7 +141,11 @@ class CodeGenerator {
         // Eleven blank modules on each side cover both Code 128 and EAN-13 quiet zones.
         val padded = BooleanArray(bars.size + 22)
         bars.copyInto(padded, destinationOffset = 11)
-        return WhiteBackgroundPainter(BarcodePainter(padded))
+        return WhiteBackgroundPainter(
+            content = BarcodePainter(padded),
+            backgroundColor = backgroundColor,
+            barColor = barColor,
+        )
     }
 }
 
@@ -114,11 +166,27 @@ private class QrQuietZone : QrCodeShape {
     }
 }
 
-private class WhiteBackgroundPainter(private val content: Painter) : Painter() {
+private class WhiteBackgroundPainter(
+    private val content: Painter,
+    private val backgroundColor: Color = Color.White,
+    private val barColor: Color? = null,
+) : Painter() {
     override val intrinsicSize: Size get() = content.intrinsicSize
 
     override fun DrawScope.onDraw() {
-        drawRect(Color.White)
-        with(content) { draw(size) }
+        drawRect(backgroundColor)
+        if (barColor == null) {
+            with(content) { draw(size) }
+        } else {
+            val bounds = Rect(Offset.Zero, size)
+            val paint = Paint().apply {
+                colorFilter = ColorFilter.tint(barColor, BlendMode.SrcIn)
+            }
+            drawIntoCanvas { canvas ->
+                canvas.saveLayer(bounds, paint)
+                with(content) { draw(size) }
+                canvas.restore()
+            }
+        }
     }
 }

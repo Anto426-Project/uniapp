@@ -1,6 +1,7 @@
 package com.anto426.uniapp.model.didactics
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.serialization.Serializable
 
 data class SingleAttendanceEntry(
     val id: String = "",
@@ -116,6 +117,7 @@ data class GradeExam(val name: String, val grade: Int, val cfu: Int)
 
 data class GradeSimulationPreset(val name: String, val cfu: Int, val initialGrade: Int)
 
+@Serializable
 data class SimulationItem(
     val id: String,
     val name: String,

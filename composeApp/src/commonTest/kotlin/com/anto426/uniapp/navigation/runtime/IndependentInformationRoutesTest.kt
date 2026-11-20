@@ -18,7 +18,7 @@ class IndependentInformationRoutesTest {
     @Test
     fun releaseNotesKeepTheirOwnDestination() {
         assertEquals(AppRouteRequirement.Authenticated, AppRoute.Updates.requirement)
-        assertEquals(AppRouteRequirement.Authenticated, AppRoute.Changelog.requirement)
+        assertEquals(AppRouteRequirement.Public, AppRoute.Changelog.requirement)
         assertNull(legacyAppRoute("com.anto426.uniapp.navigation.model.AppRoute.Changelog"))
     }
 }

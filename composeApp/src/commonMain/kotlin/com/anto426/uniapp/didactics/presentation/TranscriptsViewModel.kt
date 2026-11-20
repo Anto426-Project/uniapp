@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
+const val ALL_ACADEMIC_YEARS = -1
+
 data class TranscriptsUiState(
     val selectedYear: Int = 1,
     val examsByYear: Map<Int, List<ExamRecord>> = emptyMap(),
@@ -38,7 +40,11 @@ data class TranscriptsUiState(
             .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
 
     val displayedYears: List<Int>
-        get() = listOfNotNull(selectedYear.takeIf { it in availableYears })
+        get() = if (selectedYear == ALL_ACADEMIC_YEARS) {
+            availableYears
+        } else {
+            listOfNotNull(selectedYear.takeIf { it in availableYears })
+        }
 }
 
 class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
@@ -64,7 +70,11 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
             val availableYears = (planYears + examsByYear.keys).distinct()
                 .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
             val currentYear = mutableUiState.value.selectedYear
-            val selectedYear = currentYear.takeIf { it in availableYears } ?: availableYears.firstOrNull() ?: 0
+            val selectedYear = when {
+                currentYear == ALL_ACADEMIC_YEARS && availableYears.size > 1 -> ALL_ACADEMIC_YEARS
+                currentYear in availableYears -> currentYear
+                else -> availableYears.firstOrNull() ?: 0
+            }
 
             val gradeExams = career.toGradeExams()
             val totalGradedCfu = gradeExams.sumOf { it.cfu }
@@ -112,7 +122,11 @@ class TranscriptsViewModel(private val dataSource: UniAppDataSource) : ViewModel
     fun selectYear(year: Int) {
         val available = mutableUiState.value.availableYears
         mutableUiState.value = mutableUiState.value.copy(
-            selectedYear = if (year in available) year else available.firstOrNull() ?: 0,
+            selectedYear = when {
+                year == ALL_ACADEMIC_YEARS && available.size > 1 -> ALL_ACADEMIC_YEARS
+                year in available -> year
+                else -> available.firstOrNull() ?: 0
+            },
         )
     }
 }

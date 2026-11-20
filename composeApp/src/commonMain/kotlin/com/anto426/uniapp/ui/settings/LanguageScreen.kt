@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -208,7 +209,7 @@ fun LanguageScreen(
             subtitle = stringResource(Res.string.ui_language_subtitle),
         )
 
-        UniInsetGroup {
+        UniInsetGroup(modifier = Modifier.selectableGroup()) {
             uiState.languages.forEachIndexed { index, language ->
                 LanguageItem(
                     language = language,

@@ -52,6 +52,9 @@ sealed interface AppRoute : NavKey {
     data object Settings : AppRoute
 
     @Serializable
+    data object BiometricPinSetup : AppRoute
+
+    @Serializable
     data object Info : AppRoute
 
     @Serializable

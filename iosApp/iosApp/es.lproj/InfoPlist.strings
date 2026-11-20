@@ -1,0 +1,3 @@
+NSFaceIDUsageDescription = "UniApp usa Face ID para autorizar el acceso a las credenciales universitarias guardadas.";
+NSCameraUsageDescription = "UniApp usa la cámara para escanear códigos QR de asistencia y servicios universitarios.";
+NSPhotoLibraryUsageDescription = "UniApp accede a tus fotos para leer códigos QR en imágenes guardadas.";

@@ -1,0 +1,3 @@
+NSFaceIDUsageDescription = "UniAppは、保存した大学のログイン情報へのアクセスを許可するためにFace IDを使用します。";
+NSCameraUsageDescription = "UniAppは、出席や大学サービスのQRコードを読み取るためにカメラを使用します。";
+NSPhotoLibraryUsageDescription = "UniAppは、保存した画像のQRコードを読み取るために写真にアクセスします。";

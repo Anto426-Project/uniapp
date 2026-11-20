@@ -4,8 +4,7 @@ package com.anto426.uniapp.navigation.ui
 
 import androidx.compose.runtime.Composable
 import com.anto426.uniapp.ui.settings.AboutUniAppScreen
-import com.anto426.uniapp.ui.updates.ChangelogScreen
-import com.anto426.uniapp.updates.presentation.ChangelogViewModel
+import com.anto426.uniapp.ui.updates.ChangelogRoute
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,7 +35,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniLocalDataStore
+import com.anto426.uniapp.didactics.data.GradeSimulationRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.auth.presentation.LoginViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsViewModel
@@ -70,6 +71,7 @@ import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.session.presentation.AppUnlockUiState
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesViewModel
+import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
 import com.anto426.uniapp.settings.presentation.ColorLabViewModel
 import com.anto426.uniapp.settings.presentation.LanguageUiState
 import com.anto426.uniapp.settings.presentation.SettingsViewModel
@@ -77,11 +79,13 @@ import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
+import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
 import com.anto426.uniapp.transport.presentation.ReservationDetailViewModel
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import com.anto426.uniapp.ui.account.AccountRemovalDialog
+import com.anto426.uniapp.ui.auth.AppPasswordSetupScreen
 import com.anto426.uniapp.ui.auth.LoginScreen
 import com.anto426.uniapp.ui.bootstrap.AppBootstrapScreen
 import com.anto426.uniapp.data.UniAppInitialData
@@ -127,12 +131,15 @@ import uniapp.composeapp.generated.resources.*
 internal fun AppRouteContent(
     route: AppRoute,
     reservationDeleteActionHost: ReservationDeleteActionHost,
+    attendanceScannerActionHost: AttendanceScannerActionHost,
+    newsDetailActionHost: NewsDetailActionHost? = null,
     navigator: AppNavigator,
     sessionController: SessionManager,
     accountSwitcherViewModel: AccountSwitcherViewModel,
     accountSwitcherUiState: AccountSwitcherUiState,
     dataSource: UniAppDataSource,
     localDataStore: UniLocalDataStore,
+    gradeSimulations: GradeSimulationRepository,
     projectData: com.anto426.uniapp.project.data.ProjectDataStore,
     accountId: String,
     searchQuery: String,
@@ -163,6 +170,7 @@ internal fun AppRouteContent(
     onCustomColorSelected: (Color) -> Unit = {},
     languageUiState: LanguageUiState,
     onLanguageSelected: (String) -> Unit,
+    settingsViewModel: SettingsViewModel? = null,
     onSignOut: () -> Unit,
 ) {
     val activeProfileId = (sessionState as? AppSessionState.Authenticated)?.account?.activeProfileId
@@ -365,8 +373,8 @@ internal fun AppRouteContent(
             )
 
         AppRoute.Settings -> {
-            val settingsViewModel =
-                viewModel(key = viewModelKey) {
+            val resolvedSettingsViewModel =
+                settingsViewModel ?: viewModel(key = viewModelKey) {
                     SettingsViewModel(
                         localDataStore = localDataStore,
                         accountId = accountId,
@@ -375,7 +383,7 @@ internal fun AppRouteContent(
                         notificationController = notificationController,
                     )
                 }
-            val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            val settingsUiState by resolvedSettingsViewModel.uiState.collectAsStateWithLifecycle()
             AccountRemovalDialog(
                 state = accountSwitcherUiState,
                 onConfirm = { accountSwitcherViewModel.confirmAccountRemoval(biometricAuthenticator) },
@@ -402,12 +410,53 @@ internal fun AppRouteContent(
                 onOpenReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.issuesUrl) },
                 onOpenLogin = accountSwitcherViewModel::addAccount,
                 onSignOut = onSignOut,
-                onNotificationsEnabledChange = settingsViewModel::setNotificationsEnabled,
-                onBiometricEnabledChange = settingsViewModel::setBiometricEnabled,
-                onSubmitBiometricPassword = settingsViewModel::submitBiometricPassword,
-                onDismissBiometricPassword = settingsViewModel::dismissBiometricPasswordSetup,
-                onRequestSignOut = settingsViewModel::requestSignOut,
-                onDismissSignOut = settingsViewModel::dismissSignOut,
+                onNotificationsEnabledChange = resolvedSettingsViewModel::setNotificationsEnabled,
+                onBiometricEnabledChange = { enabled ->
+                    if (enabled && !settingsUiState.biometricEnabled && !settingsUiState.isBiometricAuthenticating) {
+                        resolvedSettingsViewModel.setBiometricEnabled(true)
+                        navigator.navigate(AppRoute.BiometricPinSetup)
+                    } else {
+                        resolvedSettingsViewModel.setBiometricEnabled(enabled)
+                    }
+                },
+                onRequestSignOut = resolvedSettingsViewModel::requestSignOut,
+                onDismissSignOut = resolvedSettingsViewModel::dismissSignOut,
+            )
+        }
+
+        AppRoute.BiometricPinSetup -> {
+            val resolvedSettingsViewModel =
+                settingsViewModel ?: viewModel(key = viewModelKey) {
+                    SettingsViewModel(
+                        localDataStore = localDataStore,
+                        accountId = accountId,
+                        toastSink = toastSink,
+                        biometricAuthenticator = biometricAuthenticator,
+                        notificationController = notificationController,
+                    )
+                }
+            val settingsUiState by resolvedSettingsViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(settingsUiState.isPasswordSetupVisible, settingsUiState.biometricEnabled) {
+                if ((settingsUiState.biometricEnabled || !settingsUiState.isPasswordSetupVisible) &&
+                    navigator.currentRoute == AppRoute.BiometricPinSetup
+                ) {
+                    navigator.goBack()
+                }
+            }
+            DisposableEffect(resolvedSettingsViewModel) {
+                onDispose {
+                    resolvedSettingsViewModel.dismissBiometricPasswordSetup()
+                }
+            }
+            AppPasswordSetupScreen(
+                isAuthenticating = settingsUiState.isBiometricAuthenticating,
+                error = settingsUiState.passwordSetupError,
+                onSubmit = resolvedSettingsViewModel::submitBiometricPassword,
+                onDismiss = {
+                    resolvedSettingsViewModel.dismissBiometricPasswordSetup()
+                    navigator.goBack()
+                },
+                handleBack = false,
             )
         }
 
@@ -430,7 +479,10 @@ internal fun AppRouteContent(
                         state = state.loadState,
                         errorMessage = state.errorMessage,
                         onRetry = { model.refresh(force = true) },
+                        emptyTitle = stringResource(Res.string.ui_grades_verbalized_empty),
                         emptyMessage = stringResource(Res.string.ui_state_empty_transcripts),
+                        emptyActionLabel = stringResource(Res.string.ui_career_plan),
+                        onEmptyActionClick = { selectedPane = 1 },
                         inline = true,
                     ) {
                         TranscriptsContent(
@@ -524,10 +576,13 @@ internal fun AppRouteContent(
             }
         }
         AppRoute.Grades -> {
-            val gradesViewModel =
-                viewModel(key = viewModelKey) {
-                    GradesViewModel(dataSource)
-                }
+            val account = (sessionState as? AppSessionState.Authenticated)?.account ?: return
+            val simulationOwner = account.activeProfileId?.let { profileId ->
+                LocalDataScope.Profile(account.accountId, profileId)
+            } ?: LocalDataScope.Account(account.accountId)
+            val gradesViewModel = viewModel(key = viewModelKey) {
+                GradesViewModel(dataSource, gradeSimulations, simulationOwner, toastSink)
+            }
             val gradesUiState by gradesViewModel.uiState.collectAsStateWithLifecycle()
             FeatureStateContent(
                 gradesUiState.loadState,
@@ -803,6 +858,8 @@ internal fun AppRouteContent(
                                     state = historyState.loadState,
                                     errorMessage = historyState.errorMessage,
                                     onRetry = { history.refresh(force = true) },
+                                    emptyTitle = stringResource(Res.string.ui_history_empty_title),
+                                    emptyMessage = stringResource(Res.string.ui_history_empty_desc),
                                     inline = true,
                                 ) {}
                             }
@@ -923,9 +980,25 @@ internal fun AppRouteContent(
         AppRoute.Attendance -> {
             val attendanceViewModel = viewModel(key = viewModelKey) { AttendanceViewModel(dataSource) }
             val attendanceUiState by attendanceViewModel.uiState.collectAsStateWithLifecycle()
+            var showCameraScanner by rememberSaveable { mutableStateOf(false) }
+            val openScanner = remember(attendanceViewModel) {
+                {
+                    attendanceViewModel.clearRegistrationStatus()
+                    showCameraScanner = true
+                }
+            }
+            DisposableEffect(attendanceScannerActionHost, openScanner) {
+                attendanceScannerActionHost.register(openScanner)
+                onDispose { attendanceScannerActionHost.unregister(openScanner) }
+            }
             AttendanceScreen(
                 uiState = attendanceUiState,
+                showCameraScanner = showCameraScanner,
+                onOpenCameraScanner = openScanner,
+                onDismissCameraScanner = { showCameraScanner = false },
+                onRetry = { attendanceViewModel.refresh(force = true) },
                 onRegisterAttendance = { code ->
+                    showCameraScanner = false
                     attendanceViewModel.registerAttendance(code)
                 },
                 onClearRegistrationStatus = {
@@ -950,24 +1023,7 @@ internal fun AppRouteContent(
                 onOpenChangelog = { navigator.navigate(AppRoute.Changelog) },
             )
 
-        AppRoute.Changelog -> {
-            val changelogViewModel = viewModel(key = viewModelKey) { ChangelogViewModel(updateUiState) }
-            LaunchedEffect(
-                changelogViewModel,
-                updateUiState.releaseNotes,
-                updateUiState.displayedVersion,
-                updateUiState.installedVersion,
-                updateUiState.publishedAt,
-                updateUiState.channel,
-            ) {
-                changelogViewModel.update(updateUiState)
-            }
-            val changelogUiState by changelogViewModel.uiState.collectAsStateWithLifecycle()
-            ChangelogScreen(
-                uiState = changelogUiState,
-                onExpansionChanged = changelogViewModel::setExpanded,
-            )
-        }
+        AppRoute.Changelog -> ChangelogRoute(updateUiState, viewModelKey)
         AppRoute.News -> {
             val newsViewModel = viewModel(key = viewModelKey) { NewsViewModel(dataSource) }
             val newsUiState by newsViewModel.uiState.collectAsStateWithLifecycle()
@@ -975,10 +1031,13 @@ internal fun AppRouteContent(
                 newsUiState.loadState,
                 newsUiState.errorMessage,
                 onRetry = { newsViewModel.refresh(force = true) },
+                emptyTitle = stringResource(Res.string.ui_news_empty_title),
                 emptyMessage = stringResource(Res.string.ui_news_empty_desc),
+                emptyIcon = LiquidIcons.Notifications,
             ) {
                 NewsScreen(
                     uiState = newsUiState,
+                    searchQuery = searchQuery.takeIf { isSearchActive }.orEmpty(),
                     onTabSelected = newsViewModel::selectTab,
                     onNewsSelected = { news ->
                         navigator.navigate(
@@ -1008,13 +1067,16 @@ internal fun AppRouteContent(
                     type = news.type,
                     onOpenSource = { url -> uriHandler.openUri(url) },
                     onBack = { navigator.goBack() },
+                    newsDetailActionHost = newsDetailActionHost,
                 )
             } else {
                 FeatureStateContent(
                     state = if (newsUiState.loadState == FeatureLoadState.Content) FeatureLoadState.Empty else newsUiState.loadState,
                     errorMessage = newsUiState.errorMessage,
                     onRetry = { newsViewModel.refresh(force = true) },
+                    emptyTitle = stringResource(Res.string.ui_news_empty_title),
                     emptyMessage = stringResource(Res.string.ui_news_empty_desc),
+                    emptyIcon = LiquidIcons.Notifications,
                 ) {}
             }
         }
@@ -1023,6 +1085,14 @@ internal fun AppRouteContent(
             val devicesViewModel =
                 viewModel(key = viewModelKey) { ConnectedDevicesViewModel(dataSource, toastSink) }
             val devicesUiState by devicesViewModel.uiState.collectAsStateWithLifecycle()
+            val disconnectAllViewModel =
+                viewModel(key = "disconnect-all|$viewModelKey") { DeviceSessionsActionViewModel(dataSource, toastSink) }
+            val disconnectAllUiState by disconnectAllViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(devicesUiState.canDisconnectAll, disconnectAllUiState.isDisconnecting) {
+                if (!devicesUiState.canDisconnectAll && !disconnectAllUiState.isDisconnecting) {
+                    disconnectAllViewModel.dismissConfirmation()
+                }
+            }
             FeatureStateContent(
                 devicesUiState.loadState,
                 devicesUiState.errorMessage,
@@ -1033,6 +1103,20 @@ internal fun AppRouteContent(
                     onRequestRevocation = devicesViewModel::requestRevocation,
                     onDismissRevocation = devicesViewModel::dismissRevocation,
                     onConfirmRevocation = devicesViewModel::confirmRevocation,
+                    disconnectAllUiState = disconnectAllUiState,
+                    onRequestDisconnectAll = {
+                        if (devicesViewModel.uiState.value.canDisconnectAll) {
+                            disconnectAllViewModel.requestDisconnectAll()
+                        }
+                    },
+                    onDismissDisconnectAll = disconnectAllViewModel::dismissConfirmation,
+                    onConfirmDisconnectAll = {
+                        if (devicesViewModel.uiState.value.canDisconnectAll) {
+                            disconnectAllViewModel.confirmDisconnectAll()
+                        } else {
+                            disconnectAllViewModel.dismissConfirmation()
+                        }
+                    },
                 )
             }
         }

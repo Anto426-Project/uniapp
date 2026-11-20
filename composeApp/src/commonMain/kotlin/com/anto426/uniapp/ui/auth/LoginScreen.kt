@@ -2,9 +2,6 @@ package com.anto426.uniapp.ui.auth
 
 
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -40,21 +37,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
-import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
-import com.anto426.liquidmonet.components.feedback.sheet.LiquidSheet
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
+import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.auth.presentation.LoginUiState
-import com.anto426.uniapp.ui.components.account.UniAccountAvatar
-import com.anto426.uniapp.ui.components.account.UniAccountCard
+import com.anto426.uniapp.ui.components.account.UniSavedAccountsSheet
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.unisdk.model.LoginCareerOption
 import org.jetbrains.compose.resources.stringResource
@@ -132,53 +130,30 @@ fun LoginScreen(
             }
         }
 
-        // 2. Saved Accounts Switcher Shortcut Card (if any saved accounts exist)
         if (accountUiState.accounts.isNotEmpty()) {
-            LiquidCard(
-                shape = RoundedRectangle(22.dp),
-                contentPadding = PaddingValues(14.dp),
-                border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
-                onClick = { isAccountSheetVisible = true },
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.SwitchAccount,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(Res.string.ui_login_quick_switch),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
+            UniInsetGroup {
+                UniInsetRow(
+                    title = stringResource(Res.string.ui_login_quick_switch),
+                    subtitle = stringResource(Res.string.ui_accounts_saved_sub),
+                    icon = LiquidIcons.SwitchAccount,
+                    onClick = { isAccountSheetVisible = true },
+                    showDivider = false,
+                    titleMaxLines = 2,
+                    trailingContent = {
+                        LiquidBadge(
+                            text = accountUiState.accounts.size.toString(),
+                            containerColor = colorScheme.primaryContainer,
+                            contentColor = colorScheme.onPrimaryContainer,
                         )
-                        Text(
-                            text = stringResource(Res.string.ui_accounts_saved_sub),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                    LiquidBadge(
-                        text = "${accountUiState.accounts.size}",
-                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.5f),
-                        contentColor = colorScheme.primary,
-                    )
-                }
+                    },
+                )
             }
         }
 
         // 3. Master Glass Authentication Form Card
         LiquidCard(
-            shape = RoundedRectangle(26.dp),
-            contentPadding = PaddingValues(20.dp),
-            border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.22f)),
+            shape = RoundedRectangle(28.dp),
+            contentPadding = PaddingValues(22.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -198,7 +173,7 @@ fun LoginScreen(
                     )
                     LiquidBadge(
                         text = stringResource(Res.string.ui_login_title),
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                        containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
                         contentColor = colorScheme.primary,
                     )
                 }
@@ -210,6 +185,7 @@ fun LoginScreen(
                     label = stringResource(Res.string.ui_login_username_label),
                     placeholder = stringResource(Res.string.ui_login_username_placeholder),
                     leadingIcon = LiquidIcons.AccountCircle,
+                    enabled = !uiState.isLoading,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 )
 
@@ -220,6 +196,7 @@ fun LoginScreen(
                     label = stringResource(Res.string.ui_login_password_label),
                     placeholder = stringResource(Res.string.ui_login_password_placeholder),
                     leadingIcon = LiquidIcons.Lock,
+                    enabled = !uiState.isLoading,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done,
@@ -227,15 +204,19 @@ fun LoginScreen(
                     keyboardActions = KeyboardActions(onDone = { onSubmit() }),
                 )
 
+                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
+
                 // Remember Credentials Switch Row (weight(1f) prevents squeezing the switch)
+                val rememberRowShape = remember { RoundedRectangle(14.dp) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .defaultMinSize(minHeight = 48.dp)
-                        .clickable(role = Role.Switch) {
+                        .graphicsLayer(clip = false)
+                        .liquidClickable(shape = rememberRowShape, role = Role.Switch) {
                             onRememberCredentialsChange(!uiState.rememberCredentials)
                         }
-                        .padding(horizontal = 2.dp, vertical = 4.dp),
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -264,25 +245,32 @@ fun LoginScreen(
                     )
                 }
 
-                LiquidButton(
-                    text = stringResource(Res.string.ui_login_button),
-                    onClick = onSubmit,
-                    isLoading = uiState.isLoading,
-                    variant = LiquidButtonVariant.Primary,
-                    size = LiquidButtonSize.Large,
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(LiquidIcons.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
-                    },
-                )
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    LiquidButton(
+                        text = stringResource(Res.string.ui_login_button),
+                        onClick = onSubmit,
+                        enabled = !uiState.isLoading,
+                        isLoading = uiState.isLoading,
+                        containerColor = colorScheme.primaryContainer,
+                        contentColor = colorScheme.onPrimaryContainer,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = {
+                            Icon(LiquidIcons.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+                        },
+                    )
 
-                LiquidButton(
-                    text = stringResource(Res.string.ui_login_forgot_password),
-                    onClick = onShowForgotPassword,
-                    variant = LiquidButtonVariant.Text,
-                    size = LiquidButtonSize.Small,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                    LiquidButton(
+                        text = stringResource(Res.string.ui_login_forgot_password),
+                        onClick = onShowForgotPassword,
+                        enabled = !uiState.isLoading,
+                        variant = LiquidButtonVariant.Text,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
 
@@ -310,38 +298,20 @@ fun LoginScreen(
         }
     }
 
-    // Saved Accounts Bottom Sheet
     if (isAccountSheetVisible) {
-        LiquidSheet(
-            onDismissRequest = { isAccountSheetVisible = false },
-            title = stringResource(Res.string.ui_accounts_saved_title),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                accountUiState.accounts.forEach { account ->
-                    UniAccountCard(
-                        account = account,
-                        isActive = false,
-                        isActivating = account.accountId == accountUiState.activatingAccountId,
-                        isSwitching = accountUiState.activatingAccountId != null,
-                        profileImage = accountUiState.profileImages[account.accountId],
-                        onSelect = {
-                            isAccountSheetVisible = false
-                            onSelectAccount(account.accountId)
-                        },
-                        onRemove = {
-                            isAccountSheetVisible = false
-                            onRemoveAccount(account.accountId)
-                        },
-                        canRemove = accountUiState.activatingAccountId == null && !accountUiState.isRemovingAccount,
-                    )
-                }
-            }
-        }
+        UniSavedAccountsSheet(
+            state = accountUiState,
+            activeAccountId = null,
+            onDismiss = { isAccountSheetVisible = false },
+            onSelectAccount = { accountId ->
+                isAccountSheetVisible = false
+                onSelectAccount(accountId)
+            },
+            onRemoveAccount = { accountId ->
+                isAccountSheetVisible = false
+                onRemoveAccount(accountId)
+            },
+        )
     }
 
     // Forgot Password Dialog
@@ -443,42 +413,20 @@ internal fun UniAuthLabeledField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val fieldShape = RoundedRectangle(16.dp)
-    Column(
+    val fieldShape = remember { RoundedRectangle(16.dp) }
+    LiquidTextField(
+        value = value,
+        onValueChange = onValueChange,
+        type = type,
+        label = label,
+        placeholder = placeholder,
+        leadingIcon = leadingIcon,
+        enabled = enabled,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        shape = fieldShape,
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 4.dp),
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = colorScheme.outlineVariant.copy(alpha = 0.34f),
-                    shape = fieldShape,
-                ),
-        ) {
-            LiquidTextField(
-                value = value,
-                onValueChange = onValueChange,
-                type = type,
-                label = label,
-                placeholder = placeholder,
-                leadingIcon = leadingIcon,
-                enabled = enabled,
-                keyboardOptions = keyboardOptions,
-                keyboardActions = keyboardActions,
-                shape = fieldShape,
-            )
-        }
-    }
+    )
 }
 
 @Composable
@@ -486,12 +434,12 @@ private fun AuthFooterLink(
     label: String,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedRectangle(12.dp)
+    val shape = remember { RoundedRectangle(12.dp) }
     Box(
         modifier = Modifier
             .defaultMinSize(minHeight = 48.dp)
-            .clip(shape)
-            .clickable(role = Role.Button, onClick = onClick)
+            .graphicsLayer(clip = false)
+            .liquidClickable(shape = shape, role = Role.Button, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {

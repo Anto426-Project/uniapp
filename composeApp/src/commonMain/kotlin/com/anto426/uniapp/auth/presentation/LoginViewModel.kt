@@ -1,5 +1,6 @@
 package com.anto426.uniapp.auth.presentation
 
+import com.anto426.uniapp.localization.readAppString
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -80,7 +81,7 @@ class LoginViewModel(
         }
     }
 
-    private fun applySessionState(sessionState: AppSessionState) {
+    private suspend fun applySessionState(sessionState: AppSessionState) {
         mutableUiState.update { current ->
             when (sessionState) {
                 AppSessionState.Initializing -> current.copy(isLoading = true)
@@ -115,9 +116,11 @@ class LoginViewModel(
                         careers = emptyList(),
                     ).also {
                         reauthenticationAccountId = null
-                        toastSink.success("Accesso effettuato.")
                     }
             }
+        }
+        if (sessionState is AppSessionState.Authenticated) {
+            toastSink.success(readAppString(Res.string.msg_login_succeeded))
         }
     }
 }

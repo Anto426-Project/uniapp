@@ -402,8 +402,8 @@ class UniAccountStore(
     }
 
     private companion object {
-        const val RELEASE_STORAGE_RESET_KEY = "storage-reset-20260929"
-        const val REGISTRY_SCHEMA_VERSION = 1
+        const val RELEASE_STORAGE_RESET_KEY = "storage-reset-20261120"
+        const val REGISTRY_SCHEMA_VERSION = 2
         const val REGISTRY_KEY = "account-registry"
         const val USERNAME_KEY = "credentials.username"
         const val PASSWORD_KEY = "credentials.password"

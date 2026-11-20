@@ -1,5 +1,6 @@
 package com.anto426.uniapp.updates.runtime
 
+import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.userMessage
 
 import org.jetbrains.compose.resources.getString
@@ -96,8 +97,8 @@ internal class AppUpdateController(
                     true
                 }
                 PlatformUpdateLaunchResult.OpenedExternalStore -> {
-                    mutableState.update { it.copy(phase = AppUpdatePhase.Available,
-                        message = "Completa l’aggiornamento dall’App Store.") }
+                    val message = readAppString(Res.string.msg_update_finish_in_app_store)
+                    mutableState.update { it.copy(phase = AppUpdatePhase.Available, message = message) }
                     true
                 }
                 is PlatformUpdateLaunchResult.Failed -> {

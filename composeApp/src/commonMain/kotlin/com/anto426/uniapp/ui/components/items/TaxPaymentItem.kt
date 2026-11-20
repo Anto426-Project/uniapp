@@ -1,6 +1,8 @@
 package com.anto426.uniapp.ui.components.items
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -16,7 +18,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -90,36 +91,34 @@ fun TaxPaymentItem(
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (data.iuv.isNotBlank()) {
-                    Text(
-                        text = stringResource(Res.string.ui_iuv_prefix, data.iuv),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .background(
+                                color = colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                                shape = RoundedRectangle(6.dp),
+                            )
+                            .padding(horizontal = 7.dp, vertical = 2.dp),
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.ui_iuv_prefix, data.iuv),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontFamily = FontFamily.Monospace,
+                            color = colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
 
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = formatTaxCurrencyLabel(data.amount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    color = colorScheme.onSurface,
-                    maxLines = 1,
-                )
-                LiquidBadge(
-                    text = stringResource(
-                        if (data.isPaid) Res.string.ui_tax_paid_badge else Res.string.ui_tax_pending_badge,
-                    ),
-                    containerColor = statusColor.copy(alpha = 0.14f),
-                    contentColor = statusColor,
-                )
-            }
+            Text(
+                text = formatTaxCurrencyLabel(data.amount),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = if (data.isPaid) colorScheme.onSurface else statusColor,
+                maxLines = 1,
+            )
         }
 
         if (showDivider) {

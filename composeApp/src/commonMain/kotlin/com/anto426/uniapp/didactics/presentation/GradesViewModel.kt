@@ -9,6 +9,10 @@ import com.anto426.liquidmonet.components.charts.model.LiquidChartEntry
 import com.anto426.uniapp.data.runtime.*
 import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.data.toGradeExams
+import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.didactics.data.GradeSimulationRepository
+import com.anto426.uniapp.feedback.runtime.AppToastSink
+import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.model.didactics.GradeExam
 import com.anto426.uniapp.model.didactics.SimulationItem
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -19,6 +23,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.round
 
@@ -233,10 +238,15 @@ data class GradesUiState(
         }
 }
 
-class GradesViewModel(
-    private val dataSource: UniAppDataSource,
+internal class GradesViewModel(
+    dataSource: UniAppDataSource,
+    private val simulationRepository: GradeSimulationRepository,
+    private val simulationOwner: LocalDataScope,
+    private val toastSink: AppToastSink,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(GradesUiState())
+    private var simulationDraft: Map<String, SimulationItem>? = null
+    private var simulationWriteRevision = 0L
     val uiState: StateFlow<GradesUiState> = mutableUiState.asStateFlow()
 
     private val sharedData = dataSource.sharedData(viewModelScope)
@@ -251,53 +261,37 @@ class GradesViewModel(
             val currentExams = career.toGradeExams()
             val targetCfu = career.cfuTarget ?: 180
 
-            val existingItemsById = mutableUiState.value.simulationItems.associateBy { it.id }
-            val existingCustomItems = mutableUiState.value.simulationItems.filter { it.isCustom }
-            val passedTitles = currentExams.map { it.name.trim().lowercase() }.toSet()
+            val draft = simulationDraft ?: simulationRepository.load(simulationOwner)
+                .associateBy { it.id }.also { simulationDraft = it }
+            val passedTitles = currentExams.map { it.name.normalizedTitle() }.toSet()
 
-            val planSimulationItems = studyPlan?.courses
-                ?.filterNot { it.completed || it.title.trim().lowercase() in passedTitles }
-                ?.map { course ->
-                    val id = course.adsceId?.takeIf { it.isNotBlank() } ?: "plan_${course.title.hashCode()}"
-                    val existing = existingItemsById[id]
-                    val cfuVal = course.cfu ?: 6
-                    SimulationItem(
-                        id = id,
-                        name = course.title,
-                        cfu = existing?.cfu ?: cfuVal,
-                        grade = existing?.grade ?: 28,
-                        isEnabled = existing?.isEnabled ?: false,
-                        isCustom = false,
-                    )
-                }.orEmpty()
+            val planItems = studyPlan?.courses.orEmpty()
+                .filterNot { it.completed || it.title.normalizedTitle() in passedTitles }
+                .map { course ->
+                    val id = course.adsceId?.takeIf { it.isNotBlank() }?.let { "plan-id:$it" }
+                        ?: "plan-title:${course.title.normalizedTitle()}"
+                    suggestedSimulation(id, course.title, course.cfu ?: 6, draft)
+                }
+                .distinctBy { it.id }
 
-            val fallbackItems = if (planSimulationItems.isEmpty()) {
-                examRounds.filterNot { it.booked || it.courseName.trim().lowercase() in passedTitles }
-                    .distinctBy { it.courseName }
+            val suggested = planItems.ifEmpty {
+                examRounds.filterNot { it.booked || it.courseName.normalizedTitle() in passedTitles }
                     .map { round ->
-                        val id = "round_${round.courseName.hashCode()}"
-                        val existing = existingItemsById[id]
-                        SimulationItem(
-                            id = id,
-                            name = round.courseName,
-                            cfu = existing?.cfu ?: 6,
-                            grade = existing?.grade ?: 28,
-                            isEnabled = existing?.isEnabled ?: false,
-                            isCustom = false,
-                        )
+                        suggestedSimulation("round:${round.courseName.normalizedTitle()}", round.courseName, 6, draft)
                     }
-            } else emptyList()
+                    .distinctBy { it.id }
+            }
 
-            val combinedSimulationItems = (planSimulationItems.ifEmpty { fallbackItems }) + existingCustomItems
-
-            mutableUiState.value = mutableUiState.value.copy(
-                currentExams = currentExams,
-                officialAverage = career.average.academicNumber(),
-                officialDegreeBase = career.degreeBase.academicNumber(),
-                simulationItems = combinedSimulationItems,
-                degreeCfuTarget = targetCfu,
-                loadState = FeatureLoadState.Content,
-            )
+            mutableUiState.update { state ->
+                state.copy(
+                    currentExams = currentExams,
+                    officialAverage = career.average.academicNumber(),
+                    officialDegreeBase = career.degreeBase.academicNumber(),
+                    simulationItems = suggested + draft.values.filter { it.isCustom },
+                    degreeCfuTarget = targetCfu,
+                    loadState = FeatureLoadState.Content,
+                )
+            }
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
             throw error
@@ -318,60 +312,65 @@ class GradesViewModel(
         mutableUiState.value = mutableUiState.value.copy(selectedTab = index.coerceIn(0, 3))
     }
 
-    fun toggleSimulationItem(id: String) {
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems.map { item ->
-                if (item.id == id) item.copy(isEnabled = !item.isEnabled) else item
+    private fun editSimulation(transform: (List<SimulationItem>) -> List<SimulationItem>) {
+        val draft = simulationDraft ?: return
+        val previous = mutableUiState.value.simulationItems
+        val updated = transform(previous)
+        if (previous == updated) return
+
+        val previousById = previous.associateBy { it.id }
+        val removedIds = previousById.keys - updated.map { it.id }.toSet()
+        val edits = updated.filter { previousById[it.id] != it }.associateBy { it.id }
+        val nextDraft = (draft - removedIds) + edits
+        simulationDraft = nextDraft
+        mutableUiState.update { it.copy(simulationItems = updated) }
+
+        val revision = ++simulationWriteRevision
+        val write = simulationRepository.save(simulationOwner, nextDraft.values.toList())
+        viewModelScope.launch {
+            try {
+                write.await()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                val message = getString(Res.string.msg_impossibile_salvare_la_simulazione)
+                if (revision == simulationWriteRevision) toastSink.error(message)
             }
-        )
+        }
     }
 
-    fun updateSimulatedGrade(id: String, grade: Int) {
+    fun toggleSimulationItem(id: String) = editSimulation { items ->
+        items.map { if (it.id == id) it.copy(isEnabled = !it.isEnabled) else it }
+    }
+
+    fun updateSimulatedGrade(id: String, grade: Int) = editSimulation { items ->
         val safeGrade = grade.coerceIn(18, 31)
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems.map { item ->
-                if (item.id == id) item.copy(grade = safeGrade, isEnabled = true) else item
-            }
-        )
+        items.map { if (it.id == id) it.copy(grade = safeGrade, isEnabled = true) else it }
     }
 
-    fun updateSimulatedCfu(id: String, cfu: Int) {
+    fun updateSimulatedCfu(id: String, cfu: Int) = editSimulation { items ->
         val safeCfu = cfu.coerceIn(1, 30)
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems.map { item ->
-                if (item.id == id) item.copy(cfu = safeCfu) else item
-            }
-        )
+        items.map { if (it.id == id) it.copy(cfu = safeCfu) else it }
     }
 
-    fun addCustomExam(name: String, cfu: Int, grade: Int) {
-        val cleanName = name.trim().ifBlank { "Esame Personalizzato" }
-        val newItem = SimulationItem(
-            id = "custom_${cleanName.hashCode()}_${kotlin.random.Random.nextInt(1000, 9999)}",
-            name = cleanName,
+    fun addCustomExam(name: String, cfu: Int, grade: Int) = editSimulation { items ->
+        items + SimulationItem(
+            id = "custom:${kotlin.random.Random.nextLong()}",
+            name = name.trim().ifBlank { "Esame Personalizzato" },
             cfu = cfu.coerceIn(1, 30),
             grade = grade.coerceIn(18, 31),
             isEnabled = true,
             isCustom = true,
         )
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems + newItem,
-        )
     }
 
-    fun removeCustomExam(id: String) {
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems.filterNot { it.id == id },
-        )
+    fun removeCustomExam(id: String) = editSimulation { items ->
+        items.filterNot { it.id == id && it.isCustom }
     }
 
-    fun setAllSimulatedGrades(grade: Int) {
+    fun setAllSimulatedGrades(grade: Int) = editSimulation { items ->
         val safeGrade = grade.coerceIn(18, 31)
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems.map { item ->
-                item.copy(grade = safeGrade, isEnabled = true)
-            }
-        )
+        items.map { it.copy(grade = safeGrade, isEnabled = true) }
     }
 
     fun applyCurrentAveragePreset() {
@@ -380,12 +379,8 @@ class GradesViewModel(
         setAllSimulatedGrades(nearestGrade)
     }
 
-    fun resetSimulation() {
-        mutableUiState.value = mutableUiState.value.copy(
-            simulationItems = mutableUiState.value.simulationItems.map { item ->
-                item.copy(isEnabled = false)
-            }
-        )
+    fun resetSimulation() = editSimulation { items ->
+        items.map { it.copy(isEnabled = false) }
     }
 
     fun updateTargetDegree(target: Int) {
@@ -400,6 +395,24 @@ class GradesViewModel(
         mutableUiState.value = mutableUiState.value.copy(bonusPoints = points.coerceIn(0, 10))
     }
 }
+
+private fun suggestedSimulation(
+    id: String,
+    name: String,
+    credits: Int,
+    draft: Map<String, SimulationItem>,
+): SimulationItem {
+    val saved = draft[id]
+    return SimulationItem(
+        id = id,
+        name = name,
+        cfu = saved?.cfu ?: credits,
+        grade = saved?.grade ?: 28,
+        isEnabled = saved?.isEnabled ?: false,
+    )
+}
+
+private fun String.normalizedTitle(): String = trim().lowercase()
 
 private fun String?.academicNumber(): Double? = this?.trim()?.replace(',', '.')
     ?.substringBefore('/')?.trim()?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }

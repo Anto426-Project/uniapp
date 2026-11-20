@@ -25,15 +25,30 @@ fun UpdatesScreen(
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
 
+    val channel = when {
+        uiState.channel.isNullOrBlank() -> stringResource(Res.string.ui_update_channel_unknown)
+        uiState.channel.equals("stable", ignoreCase = true) -> stringResource(Res.string.ui_update_stable_channel)
+        else -> uiState.channel.orEmpty()
+    }
+    val channelBadge = if (uiState.channel.isNullOrBlank()) null else channel
+
     UniScreenColumn {
+        if (uiState.isMandatory) {
+            UniInsetGroup {
+                ChangelogLink(onOpenChangelog)
+            }
+        }
+
         // 1. Banner Aggiornamento Software
         UniAppUpdateBanner(
-            height = 480.dp,
+            height = 370.dp,
             state = uiState.bannerState,
             version = uiState.displayedVersion,
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
             statusText = uiState.statusText?.let { stringResource(it) },
+            channelLabel = channelBadge,
+            isMandatory = uiState.isMandatory,
             onDownload = onOpenUpdate,
             canDownload = uiState.canOpenUpdate,
             progress = uiState.progress,
@@ -45,18 +60,13 @@ fun UpdatesScreen(
 
         // 2. Canale, Integrità & Note di Rilascio
         UniInsetGroup(title = stringResource(Res.string.ui_update_system_information)) {
-            val channel = when {
-                uiState.channel.isNullOrBlank() -> stringResource(Res.string.ui_update_channel_unknown)
-                uiState.channel.equals("stable", ignoreCase = true) -> stringResource(Res.string.ui_update_stable_channel)
-                else -> uiState.channel.orEmpty()
-            }
             val isUpToDate = uiState.bannerState == UpdateState.UP_TO_DATE
             UniInsetRow(
                 title = stringResource(Res.string.ui_update_installed_version),
                 subtitle = "${uiState.installedVersion} • $channel",
                 icon = LiquidIcons.Check,
                 iconTint = if (isUpToDate) glassColors.success else colorScheme.primary,
-                showDivider = true,
+                showDivider = uiState.supportsPackageVerification || !uiState.isMandatory,
                 trailingContent = {
                     val accent = if (isUpToDate) glassColors.success else colorScheme.primary
                     LiquidBadge(
@@ -71,17 +81,25 @@ fun UpdatesScreen(
             )
 
             if (uiState.supportsPackageVerification) {
-                UpdatePackageVerificationItem(uiState.bannerState, showDivider = true)
+                UpdatePackageVerificationItem(uiState.bannerState, showDivider = !uiState.isMandatory)
             }
 
-            UniInsetRow(
-                title = stringResource(Res.string.ui_changelog),
-                subtitle = stringResource(Res.string.ui_changelog_subtitle),
-                icon = LiquidIcons.MenuBook,
-                iconTint = colorScheme.secondary,
-                onClick = onOpenChangelog,
-                showDivider = false,
-            )
+            if (!uiState.isMandatory) {
+                ChangelogLink(onOpenChangelog)
+            }
         }
     }
+}
+
+@Composable
+private fun ChangelogLink(onOpenChangelog: () -> Unit) {
+    UniInsetRow(
+        title = stringResource(Res.string.nav_route_changelog_title),
+        subtitle = stringResource(Res.string.ui_changelog_subtitle),
+        icon = LiquidIcons.MenuBook,
+        iconTint = MaterialTheme.colorScheme.secondary,
+        onClick = onOpenChangelog,
+        showDivider = false,
+        titleMaxLines = 2,
+    )
 }

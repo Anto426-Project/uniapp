@@ -1,5 +1,6 @@
 package com.anto426.uniapp.settings.presentation
 
+import com.anto426.uniapp.localization.readAppString
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -59,12 +60,12 @@ data class ThemeUiState(
         val defaultThemes = buildThemes(null)
 
         fun buildThemes(customColor: Color?): List<ThemeOption> = listOf(
-            ThemeOption("Material You", "Dinamico", null),
-            ThemeOption("Sapphire", "Cristallo", Color(0xFF4A90D9)),
-            ThemeOption("Emerald", "Natura", Color(0xFF2ECC71)),
-            ThemeOption("Sunset", "Caldo", Color(0xFFE67E22)),
-            ThemeOption("Violet", "Ametista", Color(0xFF9B59B6)),
-            ThemeOption("Personalizzato", "Colore su misura", customColor ?: Color(0xFF2979FF), isCustom = true),
+            ThemeOption(Res.string.ui_theme_palette_dynamic, null),
+            ThemeOption(Res.string.ui_theme_palette_sapphire, Color(0xFF4A90D9)),
+            ThemeOption(Res.string.ui_theme_palette_emerald, Color(0xFF2ECC71)),
+            ThemeOption(Res.string.ui_theme_palette_sunset, Color(0xFFE67E22)),
+            ThemeOption(Res.string.ui_theme_palette_violet, Color(0xFF9B59B6)),
+            ThemeOption(Res.string.ui_theme_palette_custom, customColor ?: Color(0xFF2979FF), isCustom = true),
         )
     }
 
@@ -175,7 +176,7 @@ class ThemeViewModel(
                     color.value.toString(),
                 )
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeSelection, customIndex)
-                toastSink.success("Colore personalizzato applicato.")
+                toastSink.success(readAppString(Res.string.msg_custom_color_applied))
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -267,7 +268,7 @@ class ThemeViewModel(
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundSpeed, defaults.backgroundSpeedFactor)
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundVignette, defaults.showBackgroundVignette)
                 localDataStore.remove(LocalDataScope.Application, UniAppDataKeys.ThemeCustomColor)
-                toastSink.success("Tema ripristinato.")
+                toastSink.success(readAppString(Res.string.msg_theme_reset))
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -294,7 +295,7 @@ class ThemeViewModel(
         viewModelScope.launch {
             try {
                 localDataStore.write(LocalDataScope.Application, key, value)
-                if (showSuccess) toastSink.success("Tema aggiornato.")
+                if (showSuccess) toastSink.success(readAppString(Res.string.msg_theme_updated))
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {

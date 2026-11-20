@@ -5,7 +5,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
 internal actual fun createAppPasswordVerifier(password: String): AppPasswordVerifier {
-    require(password.length in 8..128 && password.isNotBlank()) { "Invalid app password length" }
+    require(password.length in 6..128 && password.isNotBlank()) { "Invalid app password length" }
     val salt = ByteArray(SALT_SIZE_BYTES).also(SecureRandom()::nextBytes)
     return try {
         val derivedKey = derivePasswordKey(password, salt, DEFAULT_ITERATIONS)

@@ -32,6 +32,7 @@ import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.displayFor
 import com.anto426.unisdk.transport.parseTransportTravelDate
+import com.anto426.uniapp.ui.news.NewsContentFormatter
 
 internal fun Career.toExamRecords(studyPlan: StudyPlan? = null): List<ExamRecord> {
     val validExams = exams.filter { it.grade.isValidExamGrade() || (it.date.isNotBlank() && it.date != "-") }
@@ -241,7 +242,9 @@ internal fun List<AttendanceRecord>.toAttendanceData(): List<AttendanceData> =
         )
     }
 
-private val NewsDatePattern = Regex("(\\d{4})-(\\d{1,2})-(\\d{1,2})|(\\d{1,2})/(\\d{1,2})/(\\d{4})")
+private val NewsDatePattern = Regex(
+    """(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{1,2})/(\d{1,2})/(\d{4}))(?:\s*[T\s•\-]\s*(\d{1,2}):(\d{2}))?""",
+)
 
 internal fun List<UniversityNews>.toNewsItems(): List<NewsItem> {
     val occurrences = mutableMapOf<String, Int>()
@@ -254,15 +257,26 @@ internal fun List<UniversityNews>.toNewsItems(): List<NewsItem> {
         val identity = identityParts.joinToString("|") { "${it.length}:$it" }
         val occurrence = occurrences.getOrElse(identity) { 0 }
         occurrences[identity] = occurrence + 1
+
+        val cleanTitle = NewsContentFormatter.formatTitle(news.title)
+        val rawSummary = news.summary.orEmpty()
+        val rawBody = news.content.orEmpty()
+        val formatted = NewsContentFormatter.formatArticle(
+            title = cleanTitle,
+            rawDescription = rawSummary,
+            rawContent = rawBody,
+            sourceUrl = news.sourceUrl,
+        )
         val item = NewsItem(
-            title = news.title,
-            description = news.summary ?: news.content.orEmpty().take(160),
-            fullContent = news.content ?: news.summary.orEmpty(),
+            title = cleanTitle,
+            description = formatted.summaryText,
+            fullContent = rawBody.ifBlank { rawSummary },
             type = news.category.toNewsType(),
             category = category,
             publishedAt = publishedAt,
             key = "${datasetCacheKey("news", identity)}#$occurrence",
-            sourceUrl = news.sourceUrl?.trim()?.takeIf(String::isNotBlank),
+            sourceUrl = NewsContentFormatter.resolveAssetUrl(news.sourceUrl)
+                ?: news.sourceUrl?.trim()?.takeIf(String::isNotBlank),
         )
         item to publishedAt.newsDateSortKey()
     }.sortedWith(compareByDescending<Pair<NewsItem, Long>> { it.second }.thenBy { it.first.title })
@@ -270,12 +284,18 @@ internal fun List<UniversityNews>.toNewsItems(): List<NewsItem> {
 }
 
 private fun String.newsDateSortKey(): Long {
-    val date = NewsDatePattern.find(this)?.value ?: return Long.MIN_VALUE
-    val parts = date.split('-', '/')
-    val (year, month, day) = if ('-' in date) Triple(parts[0], parts[1], parts[2])
-    else Triple(parts[2], parts[1], parts[0])
-    return year.toLongOrNull()?.times(10_000L)?.plus((month.toLongOrNull() ?: 0L) * 100L)
-        ?.plus(day.toLongOrNull() ?: 0L) ?: Long.MIN_VALUE
+    val match = NewsDatePattern.find(this) ?: return Long.MIN_VALUE
+    val (year, month, day) = if (match.groupValues[1].isNotEmpty()) {
+        Triple(match.groupValues[1], match.groupValues[2], match.groupValues[3])
+    } else {
+        Triple(match.groupValues[6], match.groupValues[5], match.groupValues[4])
+    }
+    val dateKey = year.toLongOrNull()?.times(10_000L)
+        ?.plus((month.toLongOrNull() ?: 0L) * 100L)
+        ?.plus(day.toLongOrNull() ?: 0L) ?: return Long.MIN_VALUE
+    val hour = match.groupValues[7].toLongOrNull()?.coerceIn(0L, 23L) ?: 0L
+    val minute = match.groupValues[8].toLongOrNull()?.coerceIn(0L, 59L) ?: 0L
+    return dateKey * 10_000L + hour * 100L + minute
 }
 
 internal fun List<ConnectedDevice>.toDeviceInfo(): List<DeviceInfo> =

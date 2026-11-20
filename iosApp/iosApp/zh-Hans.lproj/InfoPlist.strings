@@ -1,0 +1,3 @@
+NSFaceIDUsageDescription = "UniApp 使用面容 ID 授权访问已保存的大学账户凭据。";
+NSCameraUsageDescription = "UniApp 使用相机扫描考勤和大学服务的二维码。";
+NSPhotoLibraryUsageDescription = "UniApp 访问照片以读取已保存图片中的二维码。";

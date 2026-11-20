@@ -31,7 +31,11 @@ data class StudyPlanUiState(
     val statusFilter: CourseStatus? = null,
 ) {
     val displayedYears: List<StudyYear>
-        get() = listOfNotNull(years.getOrNull(selectedYearIndex))
+        get() = if (selectedYearIndex == ALL_ACADEMIC_YEARS) {
+            years
+        } else {
+            listOfNotNull(years.getOrNull(selectedYearIndex))
+        }
 }
 
 class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
@@ -55,9 +59,14 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
 
             val previous = mutableUiState.value
             val selectedYear = previous.years.getOrNull(previous.selectedYearIndex)?.yearNumber
+            val restoredIndex = if (previous.selectedYearIndex == ALL_ACADEMIC_YEARS && years.size > 1) {
+                ALL_ACADEMIC_YEARS
+            } else {
+                years.indexOfFirst { it.yearNumber == selectedYear }.coerceAtLeast(0)
+            }
             mutableUiState.value = mutableUiState.value.copy(
                 years = years,
-                selectedYearIndex = years.indexOfFirst { it.yearNumber == selectedYear }.coerceAtLeast(0),
+                selectedYearIndex = restoredIndex,
                 acquiredCfu = effectiveAcquiredCfu,
                 totalCfu = effectiveTargetCfu,
                 completedCount = completedCourses.size,
@@ -80,9 +89,14 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
     }
 
     fun selectYear(index: Int) {
-        val maxIndex = (mutableUiState.value.years.size - 1).coerceAtLeast(0)
-        mutableUiState.value = mutableUiState.value.copy(
-            selectedYearIndex = index.coerceIn(0, maxIndex),
+        val state = mutableUiState.value
+        val maxIndex = (state.years.size - 1).coerceAtLeast(0)
+        mutableUiState.value = state.copy(
+            selectedYearIndex = if (index == ALL_ACADEMIC_YEARS && state.years.size > 1) {
+                ALL_ACADEMIC_YEARS
+            } else {
+                index.coerceIn(0, maxIndex)
+            },
         )
     }
 

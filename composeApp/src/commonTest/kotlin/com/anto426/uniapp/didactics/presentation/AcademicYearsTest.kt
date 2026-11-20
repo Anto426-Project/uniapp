@@ -213,6 +213,25 @@ class AcademicYearsTest {
         assertNull(fisica.grade)
     }
 
+    @Test
+    fun allYearsFilterShowsEveryYearInTranscriptsAndStudyPlan() = runViewModelTest {
+        val source = AcademicSource(listOf(1, 2, 3))
+        val transcripts = TranscriptsViewModel(source)
+        val studyPlan = StudyPlanViewModel(source)
+        advanceUntilIdle()
+
+        transcripts.selectYear(ALL_ACADEMIC_YEARS)
+        studyPlan.selectYear(ALL_ACADEMIC_YEARS)
+
+        assertEquals(listOf(1, 2, 3), transcripts.uiState.value.displayedYears)
+        assertEquals(listOf(1, 2, 3), studyPlan.uiState.value.displayedYears.map { it.yearNumber })
+
+        transcripts.selectYear(2)
+        studyPlan.selectYear(1)
+        assertEquals(listOf(2), transcripts.uiState.value.displayedYears)
+        assertEquals(listOf(2), studyPlan.uiState.value.displayedYears.map { it.yearNumber })
+    }
+
     private class AcademicSource(years: List<Int>) : FakeUniAppDataSource() {
         var plan = plan(years)
         var career = career()

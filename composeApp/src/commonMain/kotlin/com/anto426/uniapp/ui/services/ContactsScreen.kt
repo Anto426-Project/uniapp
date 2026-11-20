@@ -2,7 +2,6 @@ package com.anto426.uniapp.ui.services
 
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -11,6 +10,7 @@ import com.anto426.uniapp.services.presentation.ContactsUiState
 import com.anto426.uniapp.ui.components.items.ContactItem
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -53,9 +53,11 @@ fun ContactsScreen(
         // Contact Sections
         if (categoryFiltered.isEmpty()) {
             item(key = "contacts-empty") {
-                LiquidEmptyState(
+                UniExpressiveStatusState(
                     title = stringResource(Res.string.ui_contacts_empty_title),
                     description = stringResource(Res.string.ui_contacts_empty_desc),
+                    inline = true,
+                    mainIcon = LiquidIcons.AccountCircle,
                 )
             }
         } else {

@@ -366,6 +366,7 @@
     <string name="ui_news_summary_heading">W skrócie</string>
     <string name="ui_news_article_heading">Wiadomość</string>
     <string name="ui_news_open_original">Otwórz oryginalny komunikat</string>
+    <string name="ui_news_share">Udostępnij komunikat</string>
     <string name="ui_home_news_page_notice">Wiadomość %1$d z %2$d • przesuń, aby przeglądać</string>
 
 
@@ -448,7 +449,7 @@
     <string name="ui_revoke_access">Odbierz dostęp</string>
     <string name="ui_revoke">Odbierz</string>
     <string name="ui_revoke_question">Czy na pewno chcesz rozłączyć urządzenie %1$s? Konieczne będzie ponowne zalogowanie się na tym urządzeniu.</string>
-    <string name="ui_devices_security_note">Aktywne sesje utrzymują zalogowanie na koncie uczelnianym na każdym urządzeniu. Jeśli nie rozpoznajesz logowania, zamknij inne sesje przyciskiem powyżej.</string>
+    <string name="ui_devices_security_note">Jeśli nie rozpoznajesz logowania, możesz zakończyć tę sesję w sekcji „Inne sesje”.</string>
     <string name="ui_push_notifications">Powiadomienia push</string>
     <string name="ui_academic_alerts">Alerty akademickie i terminy</string>
     <string name="ui_biometric_security">Zabezpieczenia biometryczne</string>
@@ -457,6 +458,7 @@
     <string name="ui_biometric_not_enrolled">Najpierw skonfiguruj odcisk palca, twarz lub kod PIN urządzenia</string>
     <string name="ui_biometric_unavailable">Uwierzytelnianie urządzenia niedostępne</string>
     <string name="ui_unlock_title">Odblokuj UniApp</string>
+    <string name="ui_unlock_welcome_back">Witaj ponownie</string>
     <string name="ui_unlock_protected_access">Dostęp chroniony</string>
     <string name="ui_unlock_security_badge">System</string>
     <string name="ui_unlock_methods">Odblokuj UniApp za pomocą urządzenia lub hasła aplikacji.</string>
@@ -877,6 +879,9 @@
     <string name="ui_grades_cfu_chart_detail">Punkty CFU wpisane / symulowane</string>
     <string name="ui_grades_no_cfu_data">Brak dostępnych danych CFU</string>
     <string name="ui_grades_tier_band_format">Przedział %1$s</string>
+    <string name="ui_grades_decrease_value">Zmniejsz %1$s</string>
+    <string name="ui_grades_increase_value">Zwiększ %1$s</string>
+    <string name="ui_grades_remove_custom_exam">Usuń symulowany egzamin</string>
     <string name="ui_grades_add_custom_exam_title">Dodaj własny egzamin</string>
     <string name="ui_grades_custom_exam_name">Nazwa przedmiotu</string>
     <string name="ui_grades_custom_exam_name_placeholder">Np. praktyki / przedmiot obieralny</string>
@@ -1247,6 +1252,7 @@
     <string name="msg_impossibile_caricare_il_piano_di_studi">Nie można wczytać planu studiów.</string>
     <string name="msg_impossibile_caricare_gli_appelli">Nie można wczytać terminów egzaminów.</string>
     <string name="msg_operazione_sull_appello_non_riuscita">Operacja na terminie egzaminu nie powiodła się.</string>
+    <string name="msg_impossibile_salvare_la_simulazione">Nie udało się zapisać symulacji.</string>
     <string name="msg_impossibile_caricare_voti_e_simulazione">Nie można wczytać ocen i symulacji.</string>
     <string name="msg_impossibile_caricare_le_presenze">Nie można wczytać obecności.</string>
     <string name="msg_inserisci_o_inquadra_un_codice_qr_valido">Wpisz lub zeskanuj prawidłowy kod QR.</string>
@@ -1703,4 +1709,43 @@
     <string name="ui_library_booking_step_2">2. Data i przedział</string>
     <string name="ui_library_booking_step_3">3. Podsumowanie i potwierdzenie</string>
     <string name="ui_library_booking_selected_slots">%1$d wybrane terminy</string>
+    <string name="ui_new_badge">Nowość</string>
+    <string name="ui_version_number">Wersja %1$s</string>
+    <string name="ui_project_contribute_group">Współtwórz projekt</string>
+    <string name="ui_project_report_ideas">Zgłoś pomysł lub problem</string>
+    <string name="ui_search_close">Zamknij wyszukiwanie</string>
+    <string name="ui_monet_palette">Paleta Monet</string>
+    <string name="ui_project_syncing">Synchronizowanie profilu i listy współtwórców z GitHub…</string>
+    <string name="ui_sdk_liquid_description">Renderowanie optyczne i komponenty szklane</string>
+    <string name="ui_sdk_uni_description">Usługi Esse3 i integracja z uczelnią</string>
+    <string name="ui_sdk_storage_description">Pamięć szyfrowana z ochroną sprzętową</string>
+    <string name="ui_sdk_firebase_description">Powiadomienia i połączenie z chmurą</string>
+    <string name="ui_sdk_internal_description">Moduł wewnętrzny</string>
+    <string name="ui_biometric_prompt_title">Chroń UniApp</string>
+    <string name="msg_sign_out_in_progress">Wylogowywanie…</string>
+    <string name="msg_login_succeeded">Zalogowano.</string>
+    <string name="msg_account_activated">Konto aktywowane.</string>
+    <string name="msg_academic_profile_activated">Profil uczelniany aktywowany.</string>
+    <string name="msg_custom_color_applied">Zastosowano własny kolor.</string>
+    <string name="msg_theme_reset">Motyw zresetowany.</string>
+    <string name="msg_theme_updated">Motyw zaktualizowany.</string>
+    <string name="msg_update_started">Rozpoczęto aktualizację…</string>
+    <string name="msg_survey_answer_required">Odpowiedz na wszystkie obowiązkowe pytania.</string>
+    <string name="msg_transport_booking_cancelled">Anulowano rezerwację.</string>
+    <string name="ui_brand_motto_first">NIE</string>
+    <string name="ui_brand_motto_second">ZADOWALAJ SIĘ</string>
+    <string name="ui_brand_experience">Doświadczenie UniApp ✨</string>
+    <string name="ui_theme_palette_dynamic">Material You</string>
+    <string name="ui_theme_palette_sapphire">Szafir</string>
+    <string name="ui_theme_palette_emerald">Szmaragd</string>
+    <string name="ui_theme_palette_sunset">Zachód słońca</string>
+    <string name="ui_theme_palette_violet">Fiolet</string>
+    <string name="ui_theme_palette_custom">Własna</string>
+    <string name="msg_biometric_enabled">Włączono logowanie biometryczne.</string>
+    <string name="msg_biometric_disabled">Wyłączono logowanie biometryczne.</string>
+    <string name="msg_update_finish_in_app_store">Dokończ aktualizację w App Store.</string>
+    <string name="ui_news_attachment_document">Dokument</string>
+    <string name="ui_library_document_available">Pozycja dostępna</string>
+    <string name="ui_library_requestable_copies">Egzemplarze do zamówienia: %1$d</string>
+    <string name="ui_library_active_request">Aktywne zamówienie</string>
 </resources>

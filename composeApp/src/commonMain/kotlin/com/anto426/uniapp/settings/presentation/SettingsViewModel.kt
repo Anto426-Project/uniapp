@@ -1,5 +1,6 @@
 package com.anto426.uniapp.settings.presentation
 
+import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.userMessage
 
 import org.jetbrains.compose.resources.getString
@@ -126,8 +127,8 @@ class SettingsViewModel(
         if (!mutableUiState.value.isPasswordSetupVisible || mutableUiState.value.isBiometricAuthenticating) return
         val validationError =
             when {
-                password.isBlank() || password.length < MIN_APP_PASSWORD_LENGTH -> AppPasswordSetupError.TooShort
-                password.length > 128 -> AppPasswordSetupError.TooLong
+                password.length < APP_PIN_LENGTH || !password.all(Char::isDigit) -> AppPasswordSetupError.TooShort
+                password.length > APP_PIN_LENGTH -> AppPasswordSetupError.TooLong
                 password != confirmation -> AppPasswordSetupError.Mismatch
                 else -> null
             }
@@ -181,7 +182,7 @@ class SettingsViewModel(
                         }
                         if (!enabled) localDataStore.remove(dataScope, UniAppDataKeys.PasswordVerifier)
                         toastSink.success(
-                            if (enabled) "Accesso biometrico attivato." else "Accesso biometrico disattivato.",
+                            readAppString(if (enabled) Res.string.msg_biometric_enabled else Res.string.msg_biometric_disabled),
                         )
                     }
 
@@ -231,7 +232,7 @@ class SettingsViewModel(
         }
     }
 
-    private companion object {
-        const val MIN_APP_PASSWORD_LENGTH = 8
+    companion object {
+        const val APP_PIN_LENGTH = 6
     }
 }

@@ -19,8 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
-import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
@@ -28,10 +28,13 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.services.presentation.TaxesFilter
 import com.anto426.uniapp.services.presentation.TaxesUiState
+import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.items.TaxPaymentList
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.kyant.shapes.RoundedRectangle
+import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -47,6 +50,7 @@ fun TaxesScreen(
 
     val showPending = uiState.filter != TaxesFilter.PAID && uiState.pendingPayments.isNotEmpty()
     val showPaid = uiState.filter != TaxesFilter.PENDING && uiState.paidPayments.isNotEmpty()
+    val totalInstallments = uiState.pendingPayments.size + uiState.paidPayments.size
 
     UniScreenColumn {
         // 1. Situazione Contribuzione Hero Card
@@ -82,35 +86,70 @@ fun TaxesScreen(
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    LiquidBadge(
+                        text = if (hasPending) {
+                            stringResource(Res.string.ui_taxes_status_pending, uiState.pendingPayments.size)
+                        } else {
+                            stringResource(Res.string.ui_taxes_status_regular)
+                        },
+                        containerColor = statusColor.copy(alpha = 0.14f),
+                        contentColor = statusColor,
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = stringResource(Res.string.ui_taxes_amount_due_label),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = uiState.dueAmountLabel,
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black,
-                        color = statusColor,
-                        maxLines = 1,
-                    )
-                    Text(
-                        text = if (hasPending && !uiState.nextDueDate.isNullOrBlank()) {
-                            stringResource(Res.string.ui_taxes_next_deadline, uiState.nextDueDate)
-                        } else if (hasPending) {
-                            stringResource(Res.string.ui_pending_section_subtitle)
-                        } else {
-                            stringResource(Res.string.ui_taxes_all_paid_desc)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (hasPending) {
+                                    Res.string.ui_taxes_amount_due_label
+                                } else {
+                                    Res.string.ui_taxes_amount_paid_label
+                                },
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = if (hasPending) uiState.dueAmountLabel else uiState.paidTotalLabel,
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Black,
+                            color = if (hasPending) statusColor else colorScheme.onSurface,
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = if (hasPending && !uiState.nextDueDate.isNullOrBlank()) {
+                                stringResource(Res.string.ui_taxes_next_deadline, uiState.nextDueDate)
+                            } else if (hasPending) {
+                                stringResource(Res.string.ui_pending_section_subtitle)
+                            } else {
+                                stringResource(Res.string.ui_taxes_all_paid_desc)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    UniCircularProgressRing(
+                        progress = uiState.paidProgress,
+                        centerText = "${(uiState.paidProgress * 100f).roundToInt()}%",
+                        subtitleText = "${uiState.paidPayments.size}/$totalInstallments",
+                        size = 74.dp,
+                        strokeWidth = 7.dp,
+                        primaryColor = statusColor,
+                        secondaryColor = statusColor.copy(alpha = 0.65f),
                     )
                 }
 
@@ -134,9 +173,15 @@ fun TaxesScreen(
                         modifier = Modifier.weight(1f),
                     )
                     TaxesHeroMetric(
-                        label = stringResource(Res.string.ui_taxes_amount_paid_label),
-                        value = uiState.paidTotalLabel,
-                        valueColor = colorScheme.onSurface,
+                        label = stringResource(
+                            if (hasPending) {
+                                Res.string.ui_taxes_amount_paid_label
+                            } else {
+                                Res.string.ui_taxes_amount_due_label
+                            },
+                        ),
+                        value = if (hasPending) uiState.paidTotalLabel else uiState.dueAmountLabel,
+                        valueColor = if (hasPending) colorScheme.onSurface else glassColors.success,
                         modifier = Modifier.weight(1.35f),
                     )
                 }
@@ -145,17 +190,18 @@ fun TaxesScreen(
 
         // 2. Filter Chips (unclipped)
         val filterOptions = listOf(
-            TaxesFilter.ALL to stringResource(Res.string.ui_taxes_all_filter),
-            TaxesFilter.PENDING to stringResource(Res.string.ui_pending_section),
-            TaxesFilter.PAID to stringResource(Res.string.ui_paid_section),
+            Triple(TaxesFilter.ALL, stringResource(Res.string.ui_taxes_all_filter), totalInstallments),
+            Triple(TaxesFilter.PENDING, stringResource(Res.string.ui_pending_section), uiState.pendingPayments.size),
+            Triple(TaxesFilter.PAID, stringResource(Res.string.ui_paid_section), uiState.paidPayments.size),
         )
         UniHorizontalChipRow {
-            filterOptions.forEach { (filterOption, label) ->
+            filterOptions.forEach { (filterOption, label, count) ->
                 key(filterOption) {
                     val selected = uiState.filter == filterOption
                     LiquidChip(
                         label = label,
                         selected = selected,
+                        badge = count.toString(),
                         leadingIcon = if (selected) LiquidIcons.Check else null,
                         onClick = { onFilterSelected(filterOption) },
                     )
@@ -181,9 +227,11 @@ fun TaxesScreen(
         }
 
         if (!showPending && !showPaid) {
-            LiquidEmptyState(
+            UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_taxes_filter_empty),
                 description = stringResource(Res.string.ui_taxes_filter_empty_desc),
+                inline = true,
+                mainIcon = LiquidIcons.CreditCard,
             )
         }
 

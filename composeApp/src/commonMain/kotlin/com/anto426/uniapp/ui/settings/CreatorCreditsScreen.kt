@@ -1,24 +1,29 @@
 package com.anto426.uniapp.ui.settings
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
-import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
+import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.project.presentation.ProjectInfoUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
@@ -39,14 +44,16 @@ internal fun CreatorCreditsScreen(
     val colorScheme = MaterialTheme.colorScheme
     val author = state.data?.author
     val creatorName = author?.name?.takeIf(String::isNotBlank) ?: ProjectInfo.authorLogin
+    val creatorHandle = "@${author?.login ?: ProjectInfo.authorLogin}"
     val creator = state.data?.contributors.orEmpty().firstOrNull { it.login.equals(ProjectInfo.authorLogin, true) }
     val contributors = state.data?.contributors.orEmpty().filterNot { it.login.equals(ProjectInfo.authorLogin, true) }
+    val rowShape = remember { RoundedRectangle(16.dp) }
 
     UniScreenColumn(modifier = modifier) {
         if (state.loading || state.stale || state.error) {
             val statusIcon = if (state.loading) LiquidIcons.Refresh else LiquidIcons.Info
             val statusText = when {
-                state.loading -> "Sincronizzazione profilo e crediti da GitHub…"
+                state.loading -> stringResource(Res.string.ui_project_syncing)
                 state.stale -> stringResource(Res.string.ui_project_cached)
                 else -> stringResource(Res.string.ui_project_load_failed)
             }
@@ -55,7 +62,6 @@ internal fun CreatorCreditsScreen(
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedRectangle(16.dp),
-                border = BorderStroke(1.dp, statusTint.copy(alpha = 0.20f)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -80,90 +86,111 @@ internal fun CreatorCreditsScreen(
 
         // 1. Creatore & Lead Developer Hero Card
         LiquidCard(
-            contentPadding = PaddingValues(20.dp),
+            contentPadding = PaddingValues(22.dp),
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
+            shape = RoundedRectangle(28.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    UniRemoteAvatar(
-                        imageUrl = author?.avatarUrl ?: creator?.avatarUrl,
-                        name = creatorName,
-                        size = 68.dp,
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .border(2.dp, colorScheme.primary.copy(alpha = 0.28f), CircleShape),
+                    ) {
+                        UniRemoteAvatar(
+                            imageUrl = author?.avatarUrl ?: creator?.avatarUrl,
+                            name = creatorName,
+                            size = 84.dp,
+                        )
+                    }
 
                     Column(
-                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         LiquidBadge(
                             text = stringResource(Res.string.ui_project_creator).uppercase(),
-                            containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
                             contentColor = colorScheme.primary,
                         )
                         Text(
                             text = creatorName,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-0.4).sp,
+                            ),
                             color = colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = "@${author?.login ?: ProjectInfo.authorLogin}",
+                            text = creatorHandle,
                             style = MaterialTheme.typography.bodySmall,
                             color = colorScheme.primary,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
+
+                    val bioText = author?.bio?.takeIf(String::isNotBlank)
+                        ?: stringResource(Res.string.msg_ideatore_e_sviluppatore_principale_dell_ecosistema_uniapp_per)
+                    Text(
+                        text = bioText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp,
+                    )
                 }
 
-                val bioText = author?.bio?.takeIf(String::isNotBlank)
-                    ?: stringResource(Res.string.msg_ideatore_e_sviluppatore_principale_dell_ecosistema_uniapp_per)
-                Text(
-                    text = bioText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
-                )
+                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
+
+                // Unified Metrics Strip (senza card annidate)
+                val repos = author?.publicRepositories?.takeIf { it > 0 }?.toString() ?: "12+"
+                val contribs = creator?.contributions?.takeIf { it > 0 }?.toString() ?: "Core"
+                val followers = author?.followers?.takeIf { it > 0 }?.toString() ?: "—"
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val repos = author?.publicRepositories?.takeIf { it > 0 }?.toString() ?: "12+"
-                    val contribs = creator?.contributions?.takeIf { it > 0 }?.toString() ?: "Core"
-                    val followers = author?.followers?.takeIf { it > 0 }?.toString() ?: "—"
-
                     listOf(
                         "Progetti" to repos,
                         "Contributi" to contribs,
                         "Follower" to followers,
                     ).forEach { (label, value) ->
-                        LiquidCard(
-                            contentPadding = PaddingValues(vertical = 12.dp, horizontal = 8.dp),
+                        Column(
                             modifier = Modifier.weight(1f),
-                            shape = RoundedRectangle(16.dp),
-                            border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                            ) {
-                                Text(
-                                    text = value,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = colorScheme.primary,
-                                )
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                                    color = colorScheme.onSurfaceVariant,
-                                )
-                            }
+                            Text(
+                                text = value,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontFeatureSettings = "tnum",
+                                ),
+                                color = colorScheme.primary,
+                                maxLines = 1,
+                            )
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Medium,
+                                ),
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                            )
                         }
                     }
                 }
@@ -171,7 +198,16 @@ internal fun CreatorCreditsScreen(
                 LiquidButton(
                     text = stringResource(Res.string.ui_project_github_profile),
                     onClick = { onOpenLink(ProjectInfo.authorUrl) },
-                    variant = LiquidButtonVariant.Secondary,
+                    containerColor = colorScheme.primaryContainer,
+                    contentColor = colorScheme.onPrimaryContainer,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = LiquidIcons.AccountCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -189,18 +225,21 @@ internal fun CreatorCreditsScreen(
 
             contributors.forEach { person ->
                 LiquidHorizontalDivider(
-                    modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                    modifier = Modifier.padding(start = 68.dp, end = 16.dp),
                     color = colorScheme.outlineVariant.copy(alpha = 0.25f),
                 )
                 val name = person.login ?: person.name ?: stringResource(Res.string.ui_project_unlinked_contributor)
                 val link = person.url
+                val isBot = person.type == "Bot"
+                val badgeTint = if (isBot) colorScheme.tertiary else colorScheme.primary
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = 54.dp)
+                        .defaultMinSize(minHeight = 56.dp)
+                        .graphicsLayer(clip = false)
                         .then(
                             if (link != null) {
-                                Modifier.clickable(role = Role.Button) { onOpenLink(link) }
+                                Modifier.liquidClickable(shape = rowShape, role = Role.Button) { onOpenLink(link) }
                             } else {
                                 Modifier
                             },
@@ -210,7 +249,17 @@ internal fun CreatorCreditsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    UniRemoteAvatar(person.avatarUrl, name, size = 36.dp)
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .border(1.dp, badgeTint.copy(alpha = 0.24f), CircleShape),
+                    ) {
+                        UniRemoteAvatar(
+                            imageUrl = person.avatarUrl,
+                            name = name,
+                            size = 40.dp,
+                        )
+                    }
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -220,17 +269,21 @@ internal fun CreatorCreditsScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = stringResource(Res.string.ui_project_contributions, person.contributions),
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                     LiquidBadge(
-                        text = if (person.type == "Bot") "Bot" else "Contributor",
-                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                        contentColor = colorScheme.primary,
+                        text = if (isBot) "Bot" else "Contributor",
+                        containerColor = badgeTint.copy(alpha = 0.14f),
+                        contentColor = badgeTint,
                     )
                     if (link != null) {
                         Icon(

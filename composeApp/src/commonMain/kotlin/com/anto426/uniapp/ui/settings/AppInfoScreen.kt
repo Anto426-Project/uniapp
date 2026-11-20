@@ -40,10 +40,10 @@ fun AppInfoScreen(
     val displayVersion = appInfo.versionName.substringBefore('-').substringBefore('+')
 
     UniScreenColumn {
-        // 1. Hero Brand Card (260dp con flip 3D)
+        // 1. Hero Brand Card (310dp con flip 3D)
         UniAppInfoBanner(
             modifier = Modifier.fillMaxWidth(),
-            height = 260.dp,
+            height = 310.dp,
             version = displayVersion,
             title = stringResource(Res.string.ui_app_name),
             subtitle = stringResource(Res.string.ui_university),
@@ -75,7 +75,7 @@ fun AppInfoScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             LiquidBadge(
-                                text = "Nuovo",
+                                text = stringResource(Res.string.ui_new_badge),
                                 containerColor = glassColors.warning.copy(alpha = 0.18f),
                                 contentColor = glassColors.warning,
                             )
@@ -162,11 +162,11 @@ fun AppInfoScreen(
                         else -> module.name
                     },
                     subtitle = when (module.name) {
-                        "liquid-monet" -> "Motore ottico e componenti glass"
-                        "uni-sdk" -> "Servizi Esse3 e logica d'Ateneo"
-                        "secure-storage-sdk" -> "Archiviazione cifrata hardware"
-                        "firebase-connector-sdk" -> "Notifiche e connettore cloud"
-                        else -> "Modulo interno"
+                        "liquid-monet" -> stringResource(Res.string.ui_sdk_liquid_description)
+                        "uni-sdk" -> stringResource(Res.string.ui_sdk_uni_description)
+                        "secure-storage-sdk" -> stringResource(Res.string.ui_sdk_storage_description)
+                        "firebase-connector-sdk" -> stringResource(Res.string.ui_sdk_firebase_description)
+                        else -> stringResource(Res.string.ui_sdk_internal_description)
                     },
                     icon = when (module.name) {
                         "liquid-monet" -> LiquidIcons.Star

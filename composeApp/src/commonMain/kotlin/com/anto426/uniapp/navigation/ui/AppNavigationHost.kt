@@ -59,6 +59,7 @@ import com.anto426.liquidmonet.glass.LiquidBackground
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
 import com.anto426.liquidmonet.glass.LiquidGlassScene
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.UniBackHandler
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.app.runtime.UniAppRuntime
@@ -78,15 +79,15 @@ import com.anto426.uniapp.localization.BindAppLanguage
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.session.presentation.AppSessionViewModel
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
-import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
-import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
 import com.anto426.uniapp.settings.presentation.LanguageViewModel
+import com.anto426.uniapp.settings.presentation.SettingsViewModel
 import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.components.state.AppLoadingState
 import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import com.anto426.uniapp.ui.theme.UniTheme
+import com.anto426.uniapp.ui.updates.ChangelogRoute
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
 import com.anto426.unisdk.model.CareerType
@@ -117,6 +118,8 @@ internal fun AppNavigationHost(
         ?: runtime.dataSource
     val dataGeneration = (accountDataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.generation ?: 0L
     val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
+    val attendanceScannerActionHost = remember(accountId, profileId, dataGeneration) { AttendanceScannerActionHost() }
+    val newsDetailActionHost = remember(accountId, profileId, dataGeneration) { NewsDetailActionHost() }
     val themeViewModel =
         viewModel(key = "app-theme") {
             ThemeViewModel(runtime.localDataStore, toastManager)
@@ -130,11 +133,21 @@ internal fun AppNavigationHost(
     if (languageUiState.isLoaded) {
         BindAppLanguage(languageUiState.selectedLanguageCode)
     }
-    val deviceSessionsViewModel =
-        viewModel(key = "device-sessions-actions|$accountId|$profileId|$dataGeneration") {
-            DeviceSessionsActionViewModel(accountDataSource, toastManager)
+    val signOutInProgress = stringResource(Res.string.msg_sign_out_in_progress)
+    val settingsViewModel =
+        if (accountId.isNotBlank()) {
+            viewModel(key = "app-settings|$accountId") {
+                SettingsViewModel(
+                    localDataStore = runtime.localDataStore,
+                    accountId = accountId,
+                    toastSink = toastManager,
+                    biometricAuthenticator = biometricAuthenticator,
+                    notificationController = runtime.notificationManager,
+                )
+            }
+        } else {
+            null
         }
-    val deviceSessionsUiState by deviceSessionsViewModel.uiState.collectAsStateWithLifecycle()
     val updateViewModel = viewModel { AppUpdateViewModel(runtime.updateController, toastManager) }
     val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
     val notificationState by runtime.notificationManager.state.collectAsStateWithLifecycle()
@@ -158,20 +171,25 @@ internal fun AppNavigationHost(
     LaunchedEffect(runtime) {
         runtime.notificationManager.messages.collect { runtime.updateController.refresh() }
     }
-    val navigationRoute = navigator.currentRoute
-    // Restored navigation state can still point to Login (or a previous account) while the
-    // session is being restored. Keep one loading surface until the guard and route agree.
+    val sessionRoute = navigator.sessionRoute
+    // Wait for reconciliation before rendering restored session content.
     val isResolvingSessionRoute =
-        sessionState == AppSessionState.Initializing || !navigator.canRender(navigationRoute)
+        sessionState == AppSessionState.Initializing || !navigator.canRender(sessionRoute)
     val isMandatoryUpdate = updateUiState.isMandatory && !runtime.appInfo.isDebuggable
-    val route = if (isMandatoryUpdate) AppRoute.Updates else navigationRoute
+    val route = navigator.visibleRoute(isMandatoryUpdate)
+    val isChangelog = route == AppRoute.Changelog
+    val showSessionDialogs = !isChangelog && !isMandatoryUpdate
+    val canShowSessionContent = !isResolvingSessionRoute && !isMandatoryUpdate
+    val openChangelog: () -> Unit = { navigator.navigate(AppRoute.Changelog) }
+    val goBack: () -> Unit = { navigator.goBack() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val isAuthenticated = sessionState is AppSessionState.Authenticated
     val isProfessor = authenticatedAccount?.isProfessor == true
-    val showTopBar = !isResolvingSessionRoute && route != AppRoute.Bootstrap && route != AppRoute.Login
+    val isFullscreenRoute =
+        route == AppRoute.Bootstrap || route == AppRoute.Login || route == AppRoute.BiometricPinSetup
+    val showTopBar = !isFullscreenRoute && (isChangelog || isMandatoryUpdate || canShowSessionContent)
     val showBottomBar =
-        !isResolvingSessionRoute && isAuthenticated && !isMandatoryUpdate &&
-            route != AppRoute.Bootstrap && route != AppRoute.Login
+        canShowSessionContent && isAuthenticated && !isFullscreenRoute && !isChangelog
     var topBarHeight by remember { mutableStateOf(136.dp) }
     val topLevelRoutes = appTopLevelRoutes
     val topLevelNavigationItems = topLevelRoutes.map { item ->
@@ -236,8 +254,8 @@ internal fun AppNavigationHost(
                     title = presentation.title,
                     subtitle = presentation.subtitle,
                     scrollBehavior = scrollBehavior,
-                    showNavigationIcon = !isMandatoryUpdate && navigator.canNavigateUp,
-                    onNavigationClick = navigator::goBack,
+                    showNavigationIcon = isChangelog || (!isMandatoryUpdate && navigator.canNavigateUp),
+                    onNavigationClick = goBack,
                     isSearchActive = shellUiState.isSearchActive,
                     searchQuery = shellUiState.searchQuery,
                     onQueryChange = shellViewModel::updateSearchQuery,
@@ -252,7 +270,8 @@ internal fun AppNavigationHost(
                         isSearchActive = shellUiState.isSearchActive,
                         isUpdateBusy = updateUiState.isBusy,
                         onRefreshUpdate = updateViewModel::refresh,
-                        onRequestDisconnectAll = deviceSessionsViewModel::requestDisconnectAll,
+                        onOpenAttendanceScanner = { attendanceScannerActionHost.onOpenScanner?.invoke() },
+                        newsDetailActionHost = newsDetailActionHost,
                         account = authenticatedAccount,
                         onSelectProfile = accountSwitcherViewModel::selectProfile,
                     ),
@@ -345,28 +364,22 @@ internal fun AppNavigationHost(
                 LocalUniScreenPadding provides screenPadding,
                 LocalNavigationBarVisible provides shellUiState.isNavigationBarVisible,
             ) {
-                if (isResolvingSessionRoute) {
-                    AppLoadingState()
-                } else if (isMandatoryUpdate) {
-                    UpdatesScreen(
-                        uiState = updateUiState,
-                        onRetry = updateViewModel::refresh,
-                        onOpenUpdate = updateViewModel::openUpdate,
-                        onOpenChangelog = {},
-                    )
-                } else {
+                val sessionEntries = if (canShowSessionContent) {
                     // Navigation 3 may retain this entry while initialization changes the session.
                     val currentSessionState = rememberUpdatedState(sessionState)
                     val routeContent: @Composable (AppRoute) -> Unit = { entryRoute ->
                         AppRouteContent(
                             route = entryRoute,
                             reservationDeleteActionHost = reservationDeleteActionHost,
+                            attendanceScannerActionHost = attendanceScannerActionHost,
+                            newsDetailActionHost = newsDetailActionHost,
                             navigator = navigator,
                             sessionController = runtime.sessionController,
                             accountSwitcherViewModel = accountSwitcherViewModel,
                             accountSwitcherUiState = accountSwitcherState,
                             dataSource = accountDataSource,
                             localDataStore = runtime.localDataStore,
+                            gradeSimulations = runtime.gradeSimulations,
                             projectData = runtime.projectData,
                             accountId = accountId,
                             searchQuery = shellUiState.searchQuery,
@@ -397,50 +410,68 @@ internal fun AppNavigationHost(
                             onCustomColorSelected = themeViewModel::selectCustomColor,
                             languageUiState = languageUiState,
                             onLanguageSelected = languageViewModel::selectLanguage,
+                            settingsViewModel = settingsViewModel,
                             onSignOut = {
-                                toastManager.info("Disconnessione in corso…")
+                                toastManager.info(signOutInProgress)
                                 sessionViewModel.signOut()
                             },
                         )
                     }
                     val currentRouteContent = rememberUpdatedState(routeContent)
-                    val entries =
-                        navigationState.rememberDecoratedEntries { key ->
-                            val entryRoute = key as AppRoute
-                            NavEntry(key = key, metadata = mapOf(AppScreenTransitions.RouteMetadataKey to entryRoute)) {
-                                Box(Modifier.fillMaxSize().graphicsLayer(clip = false)) {
-                                    if (navigator.canRender(entryRoute)) {
-                                        currentRouteContent.value(entryRoute)
-                                    } else {
-                                        LaunchedEffect(entryRoute, currentSessionState.value) { navigator.reconcile() }
-                                    }
+                    navigationState.rememberDecoratedEntries { key ->
+                        val entryRoute = key as AppRoute
+                        NavEntry(key = key, metadata = mapOf(AppScreenTransitions.RouteMetadataKey to entryRoute)) {
+                            Box(Modifier.fillMaxSize().graphicsLayer(clip = false)) {
+                                if (navigator.canRender(entryRoute)) {
+                                    currentRouteContent.value(entryRoute)
+                                } else {
+                                    LaunchedEffect(entryRoute, currentSessionState.value) { navigator.reconcile() }
                                 }
                             }
                         }
-                    val selectedTransition = LocalUniContentTransition.current
-                    val forwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
-                        transition = selectedTransition,
-                        isForward = { from, to -> AppScreenTransitions.isForward(from, to, isPop = false) },
-                        transitionFor = { from, to -> AppScreenTransitions.preset(from, to, selectedTransition) },
+                    }
+                } else {
+                    emptyList()
+                }
+
+                when {
+                    isChangelog -> {
+                        UniBackHandler(enabled = true, onBack = goBack)
+                        ChangelogRoute(updateUiState, viewModelKey = "public-changelog")
+                    }
+                    isMandatoryUpdate -> UpdatesScreen(
+                        uiState = updateUiState,
+                        onRetry = updateViewModel::refresh,
+                        onOpenUpdate = updateViewModel::openUpdate,
+                        onOpenChangelog = openChangelog,
                     )
-                    val backwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
-                        transition = selectedTransition,
-                        isForward = { from, to -> AppScreenTransitions.isForward(from, to, isPop = true) },
-                        transitionFor = { from, to -> AppScreenTransitions.preset(from, to, selectedTransition) },
-                    )
-                    NavDisplay(
-                        modifier = Modifier.fillMaxSize(),
-                        entries = entries,
-                        onBack = { navigator.goBack() },
-                        transitionSpec = forwardTransition,
-                        popTransitionSpec = backwardTransition,
-                        predictivePopTransitionSpec = { backwardTransition(this) },
-                    )
+                    isResolvingSessionRoute -> AppLoadingState()
+                    else -> {
+                        val selectedTransition = LocalUniContentTransition.current
+                        val forwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
+                            transition = selectedTransition,
+                            isForward = { from, to -> AppScreenTransitions.isForward(from, to, isPop = false) },
+                            transitionFor = { from, to -> AppScreenTransitions.preset(from, to, selectedTransition) },
+                        )
+                        val backwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
+                            transition = selectedTransition,
+                            isForward = { from, to -> AppScreenTransitions.isForward(from, to, isPop = true) },
+                            transitionFor = { from, to -> AppScreenTransitions.preset(from, to, selectedTransition) },
+                        )
+                        NavDisplay(
+                            modifier = Modifier.fillMaxSize(),
+                            entries = sessionEntries,
+                            onBack = goBack,
+                            transitionSpec = forwardTransition,
+                            popTransitionSpec = backwardTransition,
+                            predictivePopTransitionSpec = { backwardTransition(this) },
+                        )
+                    }
                 }
             }
         }
 
-        if (storageResetNotice && sessionState !is AppSessionState.Initializing) {
+        if (showSessionDialogs && storageResetNotice && sessionState !is AppSessionState.Initializing) {
             LiquidDialog(
                 title = stringResource(Res.string.ui_storage_reset_title),
                 text = stringResource(Res.string.ui_storage_reset_message),
@@ -455,7 +486,7 @@ internal fun AppNavigationHost(
                 },
             )
         }
-        if (!storageResetNotice && accountSwitcherState.activatingProfileId != null) {
+        if (showSessionDialogs && !storageResetNotice && accountSwitcherState.activatingProfileId != null) {
             LiquidDialog(
                 title = stringResource(Res.string.ui_home_switch_career),
                 onDismissRequest = {},
@@ -467,7 +498,7 @@ internal fun AppNavigationHost(
                     )
                 },
             )
-        } else if (!storageResetNotice && isAuthenticated && accountSwitcherState.profileErrorMessage != null) {
+        } else if (showSessionDialogs && !storageResetNotice && isAuthenticated && accountSwitcherState.profileErrorMessage != null) {
             LiquidDialog(
                 title = stringResource(Res.string.msg_impossibile_attivare_il_profilo),
                 text = accountSwitcherState.profileErrorMessage,
@@ -481,18 +512,15 @@ internal fun AppNavigationHost(
                     )
                 },
             )
-        } else if (!storageResetNotice && updateUiState.showUpdateSheet) {
+        } else if (showSessionDialogs && !storageResetNotice && updateUiState.showUpdateSheet) {
             com.anto426.uniapp.ui.updates.AppUpdateSheet(
                 state = updateUiState,
                 onDismiss = updateViewModel::dismissUpdateSheet,
                 onUpdate = updateViewModel::openUpdate,
-            )
-        }
-        if (!isMandatoryUpdate && deviceSessionsUiState.isConfirmationVisible) {
-            DisconnectAllDialog(
-                state = deviceSessionsUiState,
-                onDismiss = deviceSessionsViewModel::dismissConfirmation,
-                onConfirm = deviceSessionsViewModel::confirmDisconnectAll,
+                onOpenChangelog = {
+                    updateViewModel.dismissUpdateSheet()
+                    openChangelog()
+                },
             )
         }
     }
@@ -525,37 +553,6 @@ private fun com.anto426.uniapp.navigation.runtime.AppNavigationState.rememberDec
 }
 
 @Composable
-private fun DisconnectAllDialog(
-    state: DeviceSessionsActionUiState,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    LiquidDialog(
-        onDismissRequest = onDismiss,
-        title = stringResource(Res.string.ui_device_disconnect_all_title),
-        text = stringResource(Res.string.ui_device_disconnect_all_confirm),
-        confirmButton = {
-            LiquidButton(
-                text = stringResource(Res.string.ui_device_disconnect_all_action),
-                onClick = onConfirm,
-                enabled = !state.isDisconnecting,
-                variant = LiquidButtonVariant.Primary,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        dismissButton = {
-            LiquidButton(
-                text = stringResource(Res.string.ui_cancel),
-                onClick = onDismiss,
-                enabled = !state.isDisconnecting,
-                variant = LiquidButtonVariant.Text,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-    )
-}
-
-@Composable
 private fun topBarActions(
     route: AppRoute,
     isProfessor: Boolean,
@@ -564,12 +561,36 @@ private fun topBarActions(
     isSearchActive: Boolean,
     isUpdateBusy: Boolean,
     onRefreshUpdate: () -> Unit,
-    onRequestDisconnectAll: () -> Unit,
+    onOpenAttendanceScanner: () -> Unit,
+    newsDetailActionHost: NewsDetailActionHost,
     account: UniAccountSummary?,
     onSelectProfile: (String) -> Unit,
 ): List<LiquidTopBarAction> {
     val contextualActions = when (route) {
+        is AppRoute.NewsDetail -> {
+            val detailActions: NewsDetailActions? = newsDetailActionHost.actions
+            val openOriginal = detailActions?.onOpenOriginal
+            val share = detailActions?.onShare
+            listOfNotNull(
+                if (openOriginal != null) {
+                    LiquidTopBarAction(
+                        icon = NewsOpenInNewIcon,
+                        label = stringResource(Res.string.ui_news_open_original),
+                        onClick = openOriginal,
+                    )
+                } else null,
+                if (share != null) {
+                    LiquidTopBarAction(
+                        icon = LiquidIcons.Share,
+                        label = stringResource(Res.string.ui_news_share),
+                        onClick = share,
+                    )
+                } else null,
+            )
+        }
+
         AppRoute.Contacts,
+        AppRoute.News,
         AppRoute.Teachings,
         AppRoute.Theses,
         AppRoute.Reports,
@@ -577,7 +598,7 @@ private fun topBarActions(
             listOf(
                 LiquidTopBarAction(
                     icon = if (isSearchActive) LiquidIcons.Close else LiquidIcons.Search,
-                    label = if (isSearchActive) "Chiudi ricerca" else stringResource(Res.string.msg_cerca_2),
+                    label = if (isSearchActive) stringResource(Res.string.ui_search_close) else stringResource(Res.string.msg_cerca_2),
                     onClick = {
                         if (isSearchActive) {
                             shellViewModel.setSearchActive(false)
@@ -598,21 +619,12 @@ private fun topBarActions(
                 ),
             )
 
-        is AppRoute.Transcripts ->
+        AppRoute.Attendance ->
             listOf(
                 LiquidTopBarAction(
-                    icon = LiquidIcons.Analytics,
-                    label = stringResource(Res.string.ui_career_open_stats),
-                    onClick = { navigator.navigate(AppRoute.Grades) },
-                ),
-            )
-
-        AppRoute.Devices ->
-            listOf(
-                LiquidTopBarAction(
-                    icon = LiquidIcons.Close,
-                    label = "Disconnetti tutti",
-                    onClick = onRequestDisconnectAll,
+                    icon = LiquidIcons.QrCode,
+                    label = stringResource(Res.string.ui_attendance_action_scan),
+                    onClick = onOpenAttendanceScanner,
                 ),
             )
 

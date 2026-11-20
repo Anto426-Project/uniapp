@@ -366,6 +366,7 @@
     <string name="ui_news_summary_heading">En resumen</string>
     <string name="ui_news_article_heading">Noticia</string>
     <string name="ui_news_open_original">Abrir comunicado original</string>
+    <string name="ui_news_share">Compartir comunicado</string>
     <string name="ui_home_news_page_notice">Noticia %1$d de %2$d • desliza para explorar</string>
 
 
@@ -448,7 +449,7 @@
     <string name="ui_revoke_access">Revocar acceso</string>
     <string name="ui_revoke">Revocar</string>
     <string name="ui_revoke_question">¿Seguro que quieres desconectar %1$s? Tendrás que volver a iniciar sesión en ese dispositivo.</string>
-    <string name="ui_devices_security_note">Las sesiones activas mantienen conectada tu cuenta universitaria en cada dispositivo. Si no reconoces un acceso, cierra las demás sesiones con el botón superior.</string>
+    <string name="ui_devices_security_note">Puedes revocar los accesos que no reconozcas en Otras sesiones.</string>
     <string name="ui_push_notifications">Notificaciones push</string>
     <string name="ui_academic_alerts">Avisos académicos y plazos</string>
     <string name="ui_biometric_security">Seguridad biométrica</string>
@@ -457,6 +458,7 @@
     <string name="ui_biometric_not_enrolled">Configura primero la huella, el rostro o el PIN del dispositivo</string>
     <string name="ui_biometric_unavailable">Autenticación del dispositivo no disponible</string>
     <string name="ui_unlock_title">Desbloquear UniApp</string>
+    <string name="ui_unlock_welcome_back">Bienvenido de nuevo</string>
     <string name="ui_unlock_protected_access">Acceso protegido</string>
     <string name="ui_unlock_security_badge">Sistema</string>
     <string name="ui_unlock_methods">Desbloquea UniApp con el dispositivo o con la contraseña de la app.</string>
@@ -877,6 +879,9 @@
     <string name="ui_grades_cfu_chart_detail">Créditos formativos registrados/simulados</string>
     <string name="ui_grades_no_cfu_data">No hay datos de CFU disponibles</string>
     <string name="ui_grades_tier_band_format">Franja %1$s</string>
+    <string name="ui_grades_decrease_value">Reducir %1$s</string>
+    <string name="ui_grades_increase_value">Aumentar %1$s</string>
+    <string name="ui_grades_remove_custom_exam">Quitar examen simulado</string>
     <string name="ui_grades_add_custom_exam_title">Añadir examen personalizado</string>
     <string name="ui_grades_custom_exam_name">Nombre de la asignatura</string>
     <string name="ui_grades_custom_exam_name_placeholder">Ej. prácticas / optativa</string>
@@ -1247,6 +1252,7 @@
     <string name="msg_impossibile_caricare_il_piano_di_studi">No se pudo cargar el plan de estudios.</string>
     <string name="msg_impossibile_caricare_gli_appelli">No se pudieron cargar las convocatorias.</string>
     <string name="msg_operazione_sull_appello_non_riuscita">No se pudo completar la operación en la convocatoria.</string>
+    <string name="msg_impossibile_salvare_la_simulazione">No se pudo guardar la simulación.</string>
     <string name="msg_impossibile_caricare_voti_e_simulazione">No se pudieron cargar las notas y la simulación.</string>
     <string name="msg_impossibile_caricare_le_presenze">No se pudo cargar la asistencia.</string>
     <string name="msg_inserisci_o_inquadra_un_codice_qr_valido">Introduce o escanea un código QR válido.</string>
@@ -1703,4 +1709,43 @@
     <string name="ui_library_booking_step_2">2. Fecha y franja</string>
     <string name="ui_library_booking_step_3">3. Revisar y confirmar</string>
     <string name="ui_library_booking_selected_slots">%1$d franjas seleccionadas</string>
+    <string name="ui_new_badge">Nuevo</string>
+    <string name="ui_version_number">Versión %1$s</string>
+    <string name="ui_project_contribute_group">Participa en el proyecto</string>
+    <string name="ui_project_report_ideas">Comparte ideas o informa de problemas</string>
+    <string name="ui_search_close">Cerrar búsqueda</string>
+    <string name="ui_monet_palette">Paleta Monet</string>
+    <string name="ui_project_syncing">Sincronizando el perfil y los créditos desde GitHub…</string>
+    <string name="ui_sdk_liquid_description">Renderizado óptico y componentes de vidrio</string>
+    <string name="ui_sdk_uni_description">Servicios Esse3 e integración universitaria</string>
+    <string name="ui_sdk_storage_description">Almacenamiento cifrado protegido por hardware</string>
+    <string name="ui_sdk_firebase_description">Notificaciones y conector en la nube</string>
+    <string name="ui_sdk_internal_description">Módulo interno</string>
+    <string name="ui_biometric_prompt_title">Protege UniApp</string>
+    <string name="msg_sign_out_in_progress">Cerrando sesión…</string>
+    <string name="msg_login_succeeded">Sesión iniciada.</string>
+    <string name="msg_account_activated">Cuenta activada.</string>
+    <string name="msg_academic_profile_activated">Perfil universitario activado.</string>
+    <string name="msg_custom_color_applied">Color personalizado aplicado.</string>
+    <string name="msg_theme_reset">Tema restablecido.</string>
+    <string name="msg_theme_updated">Tema actualizado.</string>
+    <string name="msg_update_started">Actualización iniciada…</string>
+    <string name="msg_survey_answer_required">Responde a todas las preguntas obligatorias.</string>
+    <string name="msg_transport_booking_cancelled">Reserva cancelada.</string>
+    <string name="ui_brand_motto_first">NO TE</string>
+    <string name="ui_brand_motto_second">CONFORMES</string>
+    <string name="ui_brand_experience">Experiencia UniApp ✨</string>
+    <string name="ui_theme_palette_dynamic">Material You</string>
+    <string name="ui_theme_palette_sapphire">Zafiro</string>
+    <string name="ui_theme_palette_emerald">Esmeralda</string>
+    <string name="ui_theme_palette_sunset">Atardecer</string>
+    <string name="ui_theme_palette_violet">Violeta</string>
+    <string name="ui_theme_palette_custom">Personalizada</string>
+    <string name="msg_biometric_enabled">Acceso biométrico activado.</string>
+    <string name="msg_biometric_disabled">Acceso biométrico desactivado.</string>
+    <string name="msg_update_finish_in_app_store">Completa la actualización en el App Store.</string>
+    <string name="ui_news_attachment_document">Documento</string>
+    <string name="ui_library_document_available">Documento disponible</string>
+    <string name="ui_library_requestable_copies">Ejemplares que puedes solicitar: %1$d</string>
+    <string name="ui_library_active_request">Solicitud activa</string>
 </resources>

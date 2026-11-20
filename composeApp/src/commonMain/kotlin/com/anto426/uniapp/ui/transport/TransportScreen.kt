@@ -1,16 +1,11 @@
 package com.anto426.uniapp.ui.transport
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
@@ -18,7 +13,8 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.model.transport.TripDirection
 import com.anto426.uniapp.transport.presentation.TransportUiState
-import com.anto426.uniapp.ui.components.items.TransportReservationContent
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.items.TransportReservationItem
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import org.jetbrains.compose.resources.stringResource
@@ -114,14 +110,14 @@ fun TransportScreen(
                             subtitle = filteredSummary,
                         )
 
-                        day.reservations.forEach { reservation ->
-                            key(reservation.id, reservation.direction, reservation.time, reservation.route) {
-                                LiquidCard(
-                                    modifier = Modifier.defaultMinSize(minHeight = 64.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                                    onClick = onReservationClick?.let { open -> { open(reservation) } },
-                                ) {
-                                    TransportReservationContent(reservation)
+                        UniInsetGroup {
+                            day.reservations.forEachIndexed { index, reservation ->
+                                key(reservation.id, reservation.direction, reservation.time, reservation.route) {
+                                    TransportReservationItem(
+                                        reservation = reservation,
+                                        onClick = onReservationClick?.let { open -> { open(reservation) } },
+                                        showDivider = index < day.reservations.lastIndex,
+                                    )
                                 }
                             }
                         }

@@ -5,6 +5,9 @@ import com.anto426.uniapp.didactics.presentation.GradesViewModel
 import com.anto426.uniapp.account.model.UniAccountProfileSummary
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.local.FakeUniLocalDataStore
+import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.didactics.data.GradeSimulationRepository
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.didactics.presentation.QuestionnairesViewModel
@@ -330,7 +333,12 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 ),
             )
         }
-        val viewModel = GradesViewModel(source)
+        val viewModel = GradesViewModel(
+            dataSource = source,
+            simulationRepository = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope),
+            simulationOwner = LocalDataScope.Profile("account", "career"),
+            toastSink = AppToastSink.None,
+        )
         advanceUntilIdle()
         val initial = viewModel.uiState.value.singleGradeEntries
 
@@ -363,10 +371,15 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 ),
             )
         }
-        val viewModel = GradesViewModel(source)
+        val viewModel = GradesViewModel(
+            dataSource = source,
+            simulationRepository = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope),
+            simulationOwner = LocalDataScope.Profile("account", "career"),
+            toastSink = AppToastSink.None,
+        )
         advanceUntilIdle()
 
-        viewModel.updateSimulatedGrade("course-reti", 30)
+        viewModel.updateSimulatedGrade(viewModel.uiState.value.simulationItems.single().id, 30)
         viewModel.refresh(force = true)
         advanceUntilIdle()
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,7 +50,11 @@ fun FeatureStateContent(
     state: FeatureLoadState,
     errorMessage: String?,
     onRetry: () -> Unit,
+    emptyTitle: String? = null,
     emptyMessage: String = "",
+    emptyActionLabel: String? = null,
+    onEmptyActionClick: (() -> Unit)? = null,
+    emptyIcon: ImageVector? = null,
     inline: Boolean = false,
     content: @Composable () -> Unit,
 ) {
@@ -77,7 +82,7 @@ fun FeatureStateContent(
             }
         }
 
-        FeatureLoadState.Error -> UniFeatureStatusState(
+        FeatureLoadState.Error -> UniExpressiveStatusState(
             isError = true,
             title = stringResource(Res.string.ui_state_error_title),
             description = errorMessage ?: stringResource(Res.string.ui_state_error_desc),
@@ -86,13 +91,14 @@ fun FeatureStateContent(
             inline = inline,
         )
 
-        FeatureLoadState.Empty -> UniFeatureStatusState(
+        FeatureLoadState.Empty -> UniExpressiveStatusState(
             isError = false,
-            title = stringResource(Res.string.ui_state_empty_content),
+            title = emptyTitle?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.ui_state_empty_content),
             description = errorMessage ?: emptyMessage.ifBlank { stringResource(Res.string.ui_state_no_data) },
-            actionLabel = if (errorMessage != null) stringResource(Res.string.ui_retry) else null,
-            onActionClick = if (errorMessage != null) onRetry else null,
+            actionLabel = if (errorMessage != null) stringResource(Res.string.ui_retry) else emptyActionLabel,
+            onActionClick = if (errorMessage != null) onRetry else onEmptyActionClick,
             inline = inline,
+            mainIcon = emptyIcon,
         )
 
         FeatureLoadState.Content -> content()
@@ -100,13 +106,15 @@ fun FeatureStateContent(
 }
 
 @Composable
-private fun UniFeatureStatusState(
-    isError: Boolean,
+fun UniExpressiveStatusState(
+    isError: Boolean = false,
     title: String,
     description: String,
-    actionLabel: String?,
-    onActionClick: (() -> Unit)?,
-    inline: Boolean,
+    actionLabel: String? = null,
+    onActionClick: (() -> Unit)? = null,
+    inline: Boolean = false,
+    mainIcon: ImageVector? = null,
+    badgeIcon: ImageVector? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val accentTint = colorScheme.primary
@@ -141,7 +149,7 @@ private fun UniFeatureStatusState(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = if (isError) LiquidIcons.Warning else LiquidIcons.MenuBook,
+                            imageVector = mainIcon ?: if (isError) LiquidIcons.Warning else LiquidIcons.MenuBook,
                             contentDescription = null,
                             tint = accentTint,
                             modifier = Modifier.size(18.dp),
@@ -190,7 +198,7 @@ private fun UniFeatureStatusState(
                 },
                 badgeContent = {
                     Icon(
-                        imageVector = if (isError) LiquidIcons.Refresh else LiquidIcons.Info,
+                        imageVector = badgeIcon ?: if (isError) LiquidIcons.Refresh else LiquidIcons.Info,
                         contentDescription = null,
                         tint = accentTint,
                         modifier = Modifier.size(21.dp),
