@@ -1,6 +1,5 @@
 package com.anto426.uniapp.settings.presentation
 
-import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.userMessage
 
 import org.jetbrains.compose.resources.getString
@@ -182,7 +181,7 @@ class SettingsViewModel(
                         }
                         if (!enabled) localDataStore.remove(dataScope, UniAppDataKeys.PasswordVerifier)
                         toastSink.success(
-                            readAppString(if (enabled) Res.string.msg_biometric_enabled else Res.string.msg_biometric_disabled),
+                            if (enabled) Res.string.msg_biometric_enabled else Res.string.msg_biometric_disabled,
                         )
                     }
 

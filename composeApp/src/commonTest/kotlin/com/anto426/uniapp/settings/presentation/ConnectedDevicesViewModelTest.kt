@@ -64,7 +64,7 @@ class ConnectedDevicesViewModelTest {
 
         assertFalse(viewModel.uiState.value.isMutating)
         assertNull(viewModel.uiState.value.devicePendingRevocation)
-        assertEquals("Sessione revocata", messages.single().text)
+        assertEquals("Sessione revocata", messages.single().resolveText())
     }
 
     private fun devicesSource(shouldFail: () -> Boolean = { false }) =

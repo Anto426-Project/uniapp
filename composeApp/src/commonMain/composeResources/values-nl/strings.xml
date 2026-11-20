@@ -1732,8 +1732,6 @@
     <string name="msg_update_started">Update gestart…</string>
     <string name="msg_survey_answer_required">Beantwoord alle verplichte vragen.</string>
     <string name="msg_transport_booking_cancelled">Boeking geannuleerd.</string>
-    <string name="ui_brand_motto_first">NEEM GEEN</string>
-    <string name="ui_brand_motto_second">GENOEGEN</string>
     <string name="ui_brand_experience">UniApp-beleving ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">Saffier</string>

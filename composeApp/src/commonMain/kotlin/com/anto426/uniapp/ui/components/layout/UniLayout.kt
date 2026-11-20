@@ -49,7 +49,8 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.icons.LiquidIcons
 import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
+import uniapp.composeapp.generated.resources.Res
+import uniapp.composeapp.generated.resources.ui_brand_experience
 
 val LocalUniScreenPadding = compositionLocalOf { PaddingValues(0.dp) }
 val LocalNavigationBarVisible = compositionLocalOf { true }
@@ -219,7 +220,7 @@ fun UniNeverSettleCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(Res.string.ui_brand_motto_first),
+                        text = "NEVER",
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontWeight = FontWeight.Black,
                             fontSize = 32.sp,
@@ -233,7 +234,7 @@ fun UniNeverSettleCard(
                         shape = RoundedRectangle(12.dp)
                     ) {
                         Text(
-                            text = stringResource(Res.string.ui_brand_motto_second),
+                            text = "SETTLE",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 0.5.sp

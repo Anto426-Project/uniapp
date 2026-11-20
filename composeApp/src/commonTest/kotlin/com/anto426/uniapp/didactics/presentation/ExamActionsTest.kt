@@ -3,6 +3,7 @@ package com.anto426.uniapp.didactics.presentation
 import androidx.lifecycle.ViewModelStore
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.stableUiId
+import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.testing.ResourceTest
 import com.anto426.unisdk.model.ExamRound
@@ -51,7 +52,7 @@ class ExamActionsTest : ResourceTest() {
             val rounds = listOf(round(booked = false), round(booked = false).copy(adId = "43", courseName = "Fisica"))
             val finish = CompletableDeferred<Unit>()
             val booked = mutableListOf<ExamRound>()
-            val messages = Channel<String>(Channel.UNLIMITED)
+            val messages = Channel<AppToastMessage>(Channel.UNLIMITED)
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadExamRounds(forceRefresh: Boolean) = rounds
                 override suspend fun bookExamRound(round: ExamRound): String {
@@ -60,7 +61,7 @@ class ExamActionsTest : ResourceTest() {
                     error("appello ancora non prenotabile")
                 }
             }
-            val vm = ExamsViewModel(source, AppToastSink { messages.trySend(it.text) }, today = { LocalDate(2026, 9, 10) })
+            val vm = ExamsViewModel(source, AppToastSink { messages.trySend(it) }, today = { LocalDate(2026, 9, 10) })
             store.put("exams", vm)
             vm.uiState.first { it.exams.size == rounds.size }
             assertEquals(2, vm.uiState.value.exams.map { it.id }.distinct().size)
@@ -77,7 +78,7 @@ class ExamActionsTest : ResourceTest() {
             assertEquals(1, booked.size)
             finish.complete(Unit)
             // Resource loading may resume on a real IO dispatcher, outside runCurrent's scheduler.
-            assertEquals("appello ancora non prenotabile", messages.receive())
+            assertEquals("appello ancora non prenotabile", messages.receive().resolveText())
             vm.uiState.first { it.mutatingExamId == null }
             assertTrue(messages.tryReceive().isFailure)
             assertFalse(vm.uiState.value.exams.any { it.isBooked })
@@ -91,17 +92,17 @@ class ExamActionsTest : ResourceTest() {
         try {
             val booked = round()
             val undated = round("data da definire").copy(adId = "43")
-            val errors = Channel<String>(Channel.UNLIMITED)
+            val errors = Channel<AppToastMessage>(Channel.UNLIMITED)
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadExamRounds(forceRefresh: Boolean) = listOf(booked, undated)
             }
-            val vm = ExamsViewModel(source, AppToastSink { errors.trySend(it.text) }, today = { LocalDate(2026, 9, 10) })
+            val vm = ExamsViewModel(source, AppToastSink { errors.trySend(it) }, today = { LocalDate(2026, 9, 10) })
             store.put("exams", vm)
             vm.uiState.first { it.exams.size == 2 }
             val opened = mutableListOf<String>()
             vm.openCalendar(booked.stableUiId()) { opened += it }
             vm.openCalendar(undated.stableUiId()) { opened += it }
-            val missingDateMessage = errors.receive()
+            val missingDateMessage = errors.receive().resolveText()
             assertEquals(getString(Res.string.ui_exam_calendar_date_missing), missingDateMessage)
             assertEquals(listOf(booked.calendarUrlOrNull()), opened)
             assertTrue(errors.tryReceive().isFailure)

@@ -153,7 +153,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
 
         assertEquals(1, viewModel.uiState.value.refreshRevision)
         assertEquals(false, viewModel.uiState.value.isConfirmationVisible)
-        assertEquals("Altre sessioni disconnesse", messages.single().text)
+        assertEquals("Altre sessioni disconnesse", messages.single().resolveText())
     }
 
     @Test
@@ -294,7 +294,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         advanceUntilIdle()
 
         assertEquals("answer-1", savedRequest?.surveyPageDtos?.single()?.ansBodyDto?.single()?.answerId)
-        assertEquals("Salvato", messages.single().text)
+        assertEquals("Salvato", messages.single().resolveText())
         assertEquals(true, viewModel.uiState.value.submitted)
     }
 

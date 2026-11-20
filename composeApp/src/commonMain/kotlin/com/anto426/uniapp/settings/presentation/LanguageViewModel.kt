@@ -1,6 +1,5 @@
 package com.anto426.uniapp.settings.presentation
 
-import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
@@ -63,12 +62,12 @@ class LanguageViewModel(
         viewModelScope.launch {
             try {
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.LanguageCode, code)
-                toastSink.success(getString(Res.string.ui_language_updated))
+                toastSink.success(Res.string.ui_language_updated)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
                 selectLanguageLocally(previous)
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_lingua))
+                toastSink.error(Res.string.msg_impossibile_salvare_la_lingua)
             }
         }
     }

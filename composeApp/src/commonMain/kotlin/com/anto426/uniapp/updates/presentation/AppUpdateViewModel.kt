@@ -1,6 +1,5 @@
 package com.anto426.uniapp.updates.presentation
 
-import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.sdkFailureMessage
 
 import org.jetbrains.compose.resources.getString
@@ -101,7 +100,7 @@ internal class AppUpdateViewModel(
         dismissUpdateSheet()
         viewModelScope.launch {
             if (controller.startUpdate()) {
-                toastSink.info(readAppString(Res.string.msg_update_started))
+                toastSink.info(Res.string.msg_update_started)
             } else {
                 toastSink.error(
                     sdkFailureMessage(controller.state.value.message) { getString(Res.string.msg_impossibile_avviare_laggiornamento) },

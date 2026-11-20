@@ -1,6 +1,5 @@
 package com.anto426.uniapp.settings.presentation
 
-import com.anto426.uniapp.localization.readAppString
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -176,7 +175,7 @@ class ThemeViewModel(
                     color.value.toString(),
                 )
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeSelection, customIndex)
-                toastSink.success(readAppString(Res.string.msg_custom_color_applied))
+                toastSink.success(Res.string.msg_custom_color_applied)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -268,7 +267,7 @@ class ThemeViewModel(
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundSpeed, defaults.backgroundSpeedFactor)
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundVignette, defaults.showBackgroundVignette)
                 localDataStore.remove(LocalDataScope.Application, UniAppDataKeys.ThemeCustomColor)
-                toastSink.success(readAppString(Res.string.msg_theme_reset))
+                toastSink.success(Res.string.msg_theme_reset)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
@@ -295,7 +294,7 @@ class ThemeViewModel(
         viewModelScope.launch {
             try {
                 localDataStore.write(LocalDataScope.Application, key, value)
-                if (showSuccess) toastSink.success(readAppString(Res.string.msg_theme_updated))
+                if (showSuccess) toastSink.success(Res.string.msg_theme_updated)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {

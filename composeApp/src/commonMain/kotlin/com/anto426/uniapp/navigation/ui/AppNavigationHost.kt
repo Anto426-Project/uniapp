@@ -64,7 +64,6 @@ import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.app.runtime.UniAppRuntime
 import com.anto426.uniapp.data.UniAppInitialData
-import com.anto426.uniapp.feedback.runtime.AppToastHost
 import com.anto426.uniapp.feedback.runtime.AppToastManager
 import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.info
@@ -81,12 +80,12 @@ import com.anto426.uniapp.session.presentation.AppSessionViewModel
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
 import com.anto426.uniapp.settings.presentation.LanguageViewModel
 import com.anto426.uniapp.settings.presentation.SettingsViewModel
+import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.components.state.AppLoadingState
 import com.anto426.uniapp.ui.motion.LocalUniContentTransition
-import com.anto426.uniapp.ui.theme.UniTheme
 import com.anto426.uniapp.ui.updates.ChangelogRoute
 import com.anto426.uniapp.ui.updates.UpdatesScreen
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
@@ -103,6 +102,8 @@ internal fun AppNavigationHost(
     biometricAuthenticator: BiometricAuthenticator,
     accountSwitcherViewModel: AccountSwitcherViewModel,
     toastManager: AppToastManager,
+    themeViewModel: ThemeViewModel,
+    themeUiState: ThemeUiState,
 ) {
     val navigationState = rememberAppNavigationState(sessionState)
     val navigator = navigationState.navigator
@@ -120,11 +121,6 @@ internal fun AppNavigationHost(
     val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
     val attendanceScannerActionHost = remember(accountId, profileId, dataGeneration) { AttendanceScannerActionHost() }
     val newsDetailActionHost = remember(accountId, profileId, dataGeneration) { NewsDetailActionHost() }
-    val themeViewModel =
-        viewModel(key = "app-theme") {
-            ThemeViewModel(runtime.localDataStore, toastManager)
-        }
-    val themeUiState by themeViewModel.uiState.collectAsStateWithLifecycle()
     val languageViewModel =
         viewModel(key = "app-language") {
             LanguageViewModel(UniAppInitialData.languages, runtime.localDataStore, toastManager)
@@ -133,7 +129,6 @@ internal fun AppNavigationHost(
     if (languageUiState.isLoaded) {
         BindAppLanguage(languageUiState.selectedLanguageCode)
     }
-    val signOutInProgress = stringResource(Res.string.msg_sign_out_in_progress)
     val settingsViewModel =
         if (accountId.isNotBlank()) {
             viewModel(key = "app-settings|$accountId") {
@@ -222,7 +217,6 @@ internal fun AppNavigationHost(
         com.anto426.uniapp.ui.components.account.LocalAccountAvatars provides accountAvatars,
         com.anto426.uniapp.ui.components.display.LocalApplicationImages provides runtime.applicationImages,
     ) {
-    UniTheme(state = themeUiState) {
     LiquidGlassScene(
         modifier = Modifier.fillMaxSize(),
         scrollBehavior = if (showTopBar) scrollBehavior else null,
@@ -323,10 +317,6 @@ internal fun AppNavigationHost(
 
                 else -> Unit
             }
-            AppToastHost(
-                manager = toastManager,
-                modifier = Modifier.fillMaxSize(),
-            )
         },
     ) {
         Scaffold(
@@ -412,7 +402,7 @@ internal fun AppNavigationHost(
                             onLanguageSelected = languageViewModel::selectLanguage,
                             settingsViewModel = settingsViewModel,
                             onSignOut = {
-                                toastManager.info(signOutInProgress)
+                                toastManager.info(Res.string.msg_sign_out_in_progress)
                                 sessionViewModel.signOut()
                             },
                         )
@@ -523,7 +513,6 @@ internal fun AppNavigationHost(
                 },
             )
         }
-    }
     }
     }
 }

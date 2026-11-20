@@ -1732,8 +1732,6 @@
     <string name="msg_update_started">Aggiornamento avviato…</string>
     <string name="msg_survey_answer_required">Completa tutte le domande obbligatorie.</string>
     <string name="msg_transport_booking_cancelled">Prenotazione annullata.</string>
-    <string name="ui_brand_motto_first">NON</string>
-    <string name="ui_brand_motto_second">ACCONTENTARTI</string>
     <string name="ui_brand_experience">Esperienza UniApp ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">Zaffiro</string>

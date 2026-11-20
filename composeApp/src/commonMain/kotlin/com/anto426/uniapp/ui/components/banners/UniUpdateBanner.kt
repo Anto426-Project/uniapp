@@ -605,30 +605,19 @@ internal fun UpdateBannerNeverSettleBackFace() {
     ) {
         val density = LocalDensity.current
         val maxWidthPx = constraints.maxWidth.toFloat()
-        val maxLineHeightPx = with(density) { 86.dp.toPx() }
-        val firstLine = stringResource(Res.string.ui_brand_motto_first)
-        val secondLine = stringResource(Res.string.ui_brand_motto_second)
-        val firstFittedSp = rememberFittedSingleLineSp(
-            text = firstLine,
-            targetSp = 54f,
+        val maxLineHeightPx = with(density) { 100.dp.toPx() }
+        val fittedSp = rememberFittedSingleLineSp(
+            text = "SETTLE",
+            targetSp = 56f,
             minSp = 22f,
             maxWidthPx = maxWidthPx,
             maxHeightPx = maxLineHeightPx,
             fontWeight = FontWeight.Black,
             letterSpacing = 7f,
         )
-        val secondFittedSp = rememberFittedSingleLineSp(
-            text = secondLine,
-            targetSp = 54f,
-            minSp = 22f,
-            maxWidthPx = maxWidthPx,
-            maxHeightPx = maxLineHeightPx,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 7f,
-        )
-        val fittedSp = minOf(firstFittedSp, secondFittedSp)
-        val letterSpacingSp = (fittedSp / 54f) * 7f
+        val letterSpacingSp = (fittedSp / 56f) * 7f
 
+        // Alone di luce posteriore
         Canvas(modifier = Modifier.matchParentSize()) {
             drawCircle(
                 brush = Brush.radialGradient(
@@ -648,7 +637,7 @@ internal fun UpdateBannerNeverSettleBackFace() {
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
-                text = firstLine,
+                text = "NEVER",
                 fontSize = fittedSp.sp,
                 lineHeight = (fittedSp * 1.02f).sp,
                 fontWeight = FontWeight.Bold,
@@ -660,7 +649,7 @@ internal fun UpdateBannerNeverSettleBackFace() {
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = secondLine,
+                text = "SETTLE",
                 fontSize = fittedSp.sp,
                 lineHeight = (fittedSp * 1.02f).sp,
                 fontWeight = FontWeight.Bold,

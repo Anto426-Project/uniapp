@@ -1732,8 +1732,6 @@
     <string name="msg_update_started">アップデートを開始しました…</string>
     <string name="msg_survey_answer_required">必須の質問にすべて回答してください。</string>
     <string name="msg_transport_booking_cancelled">予約を取り消しました。</string>
-    <string name="ui_brand_motto_first">決して</string>
-    <string name="ui_brand_motto_second">妥協しない</string>
     <string name="ui_brand_experience">UniApp 体験 ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">サファイア</string>

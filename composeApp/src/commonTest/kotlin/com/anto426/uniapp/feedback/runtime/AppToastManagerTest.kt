@@ -15,7 +15,7 @@ class AppToastManagerTest {
 
         val messages = manager.messages.take(2).toList()
 
-        assertEquals(listOf("Salvato", "Errore"), messages.map { it.text })
+        assertEquals(listOf("Salvato", "Errore"), messages.map { it.resolveText() })
         assertEquals(listOf(AppToastKind.Success, AppToastKind.Error), messages.map { it.kind })
     }
 }

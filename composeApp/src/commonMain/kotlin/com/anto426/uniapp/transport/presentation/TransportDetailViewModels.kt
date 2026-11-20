@@ -1,6 +1,5 @@
 package com.anto426.uniapp.transport.presentation
 
-import com.anto426.uniapp.localization.readAppString
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -120,7 +119,7 @@ class ReservationDetailViewModel(
                 imageJob?.cancel()
                 sharedData.deleteTransportBooking(reservationId)
                 mutableUiState.value = mutableUiState.value.copy(isDeleting = false, deleted = true, image = TicketImageUiState())
-                toastSink.success(readAppString(Res.string.msg_transport_booking_cancelled))
+                toastSink.success(Res.string.msg_transport_booking_cancelled)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {

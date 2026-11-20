@@ -1,6 +1,5 @@
 package com.anto426.uniapp.didactics.presentation
 
-import com.anto426.uniapp.localization.readAppString
 import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
@@ -122,7 +121,7 @@ class QuestionnaireDetailViewModel(
                 question.required && state.selectedAnswers[question.questionId].isNullOrEmpty()
             }
         if (missingRequired) {
-            viewModelScope.launch { toastSink.warning(readAppString(Res.string.msg_survey_answer_required)) }
+            toastSink.warning(Res.string.msg_survey_answer_required)
             return
         }
 

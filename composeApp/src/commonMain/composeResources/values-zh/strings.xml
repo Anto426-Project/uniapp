@@ -1732,8 +1732,6 @@
     <string name="msg_update_started">已开始更新…</string>
     <string name="msg_survey_answer_required">请回答所有必答题。</string>
     <string name="msg_transport_booking_cancelled">预订已取消。</string>
-    <string name="ui_brand_motto_first">永不</string>
-    <string name="ui_brand_motto_second">妥协</string>
     <string name="ui_brand_experience">UniApp 使用体验 ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">蓝宝石</string>

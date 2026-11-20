@@ -1,6 +1,5 @@
 package com.anto426.uniapp.account.presentation
 
-import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.userMessage
 
 import org.jetbrains.compose.resources.getString
@@ -108,7 +107,7 @@ class AccountSwitcherViewModel(
                                 activatingAccountId = null,
                             )
                         }
-                        toastSink.success(readAppString(Res.string.msg_account_activated))
+                        toastSink.success(Res.string.msg_account_activated)
                         refresh()
                     }
 
@@ -164,7 +163,7 @@ class AccountSwitcherViewModel(
                                 },
                             )
                         }
-                        toastSink.success(readAppString(Res.string.msg_academic_profile_activated))
+                        toastSink.success(Res.string.msg_academic_profile_activated)
                     }
 
                     else -> {

@@ -6,6 +6,7 @@ import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniAppDataKeys
 import com.anto426.uniapp.feedback.runtime.AppToastKind
 import com.anto426.uniapp.feedback.runtime.AppToastManager
+import com.anto426.uniapp.feedback.runtime.AppToastText
 import com.anto426.uniapp.testing.ResourceTest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -56,7 +57,7 @@ class LanguageViewModelTest : ResourceTest() {
             }
             val toast = toastManager.messages.first()
             assertEquals(AppToastKind.Success, toast.kind)
-            assertTrue(toast.text.isNotBlank())
+            assertTrue(toast.text is AppToastText.Localized)
         } finally {
             Dispatchers.resetMain()
         }

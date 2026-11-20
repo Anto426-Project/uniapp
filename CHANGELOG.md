@@ -6,7 +6,7 @@
 - **Le novità sono sempre raggiungibili.** La nuova scheda degli aggiornamenti mostra versione e canale. Puoi aprire le note di rilascio prima di accedere o dalla schermata di un aggiornamento obbligatorio.
 - **Carriera e presenze.** È più facile consultare gli esami per anno accademico e leggere i dettagli delle presenze. Lo scanner QR si apre direttamente da Presenze. Il badge universitario ha un nuovo disegno.
 - **Prenotazioni dei trasporti.** Le corse prenotate sono raggruppate per data e ogni riga apre il dettaglio. È stata rivista la presentazione del titolo di viaggio e del suo codice.
-- **Testi localizzati in tutte e dieci le lingue.** Aggiornate le etichette delle Impostazioni, le descrizioni degli SDK e i messaggi di accesso e aggiornamento.
+- **Testi localizzati in tutte e dieci le lingue.** Aggiornate le etichette delle Impostazioni, le descrizioni degli SDK e i messaggi di accesso e aggiornamento. I messaggi di conferma restano visibili durante i cambi di schermata.
 - **Dopo l’aggiornamento accedi di nuovo.** UniApp reimposta gli account salvati, le sessioni, le preferenze e i dati memorizzati sul dispositivo. I dati sul portale universitario restano disponibili.
 
 ## [2.0.20] - 2026-11-19 (build set by CI)

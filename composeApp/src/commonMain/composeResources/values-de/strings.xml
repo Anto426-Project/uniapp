@@ -1732,8 +1732,6 @@
     <string name="msg_update_started">Update wird gestartet…</string>
     <string name="msg_survey_answer_required">Beantworte alle Pflichtfragen.</string>
     <string name="msg_transport_booking_cancelled">Buchung storniert.</string>
-    <string name="ui_brand_motto_first">GIB DICH</string>
-    <string name="ui_brand_motto_second">ZUFRIEDEN</string>
     <string name="ui_brand_experience">UniApp-Erlebnis ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">Saphir</string>
