@@ -1,6 +1,7 @@
 package com.anto426.uniapp.ui.didactics.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -446,44 +449,99 @@ fun GraduationTargetTab(
             shape = RoundedRectangle(22.dp),
             contentPadding = PaddingValues(16.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                LiquidStepper(
-                    value = uiState.targetDegree,
-                    onValueChange = onTargetDegreeChange,
-                    label = stringResource(Res.string.ui_grades_target_degree_vote),
-                    minValue = 66,
-                    maxValue = 111,
-                )
-                GradesActions {
-                    listOf(100, 105, 110, 111).forEach { target ->
-                        key(target) {
-                            val selected = target == uiState.targetDegree
-                            LiquidChip(
-                                label = if (target == 111) graduationGradeLabel(target) else "$target / 110",
-                                selected = selected,
-                                leadingIcon = if (selected) LiquidIcons.Check else null,
-                                onClick = { onTargetDegreeChange(target) },
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_grades_target_degree_vote),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(modifier = Modifier.widthIn(max = 220.dp)) {
+                            LiquidStepper(
+                                value = uiState.targetDegree,
+                                onValueChange = onTargetDegreeChange,
+                                minValue = 66,
+                                maxValue = 111,
                             )
                         }
                     }
                 }
                 LiquidHorizontalDivider(color = colorScheme.outlineVariant)
-                LiquidStepper(
-                    value = uiState.thesisPoints,
-                    onValueChange = onThesisPointsChange,
-                    label = stringResource(Res.string.ui_grades_thesis_points_label),
-                    minValue = 0,
-                    maxValue = 15,
-                    unit = "pt",
-                )
-                LiquidStepper(
-                    value = uiState.bonusPoints,
-                    onValueChange = onBonusPointsChange,
-                    label = stringResource(Res.string.ui_grades_career_bonus_label),
-                    minValue = 0,
-                    maxValue = 10,
-                    unit = "pt",
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_grades_thesis_points_label),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(modifier = Modifier.widthIn(max = 220.dp)) {
+                            LiquidStepper(
+                                value = uiState.thesisPoints,
+                                onValueChange = onThesisPointsChange,
+                                minValue = 0,
+                                maxValue = 15,
+                                unit = "pt",
+                            )
+                        }
+                    }
+                }
+                LiquidHorizontalDivider(color = colorScheme.outlineVariant)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_grades_career_bonus_label),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(modifier = Modifier.widthIn(max = 220.dp)) {
+                            LiquidStepper(
+                                value = uiState.bonusPoints,
+                                onValueChange = onBonusPointsChange,
+                                minValue = 0,
+                                maxValue = 10,
+                                unit = "pt",
+                            )
+                        }
+                    }
+                }
             }
         }
     }

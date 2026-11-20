@@ -18,6 +18,7 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
@@ -151,11 +152,6 @@ private fun GradesAnalyticsHeroCard(
     val colors = MaterialTheme.colorScheme
     val glass = LiquidGlassTheme.colors
     val trend = chart.recentTrend.toDouble()
-    val highest = when {
-        chart.highestGrade >= 31 -> "30L"
-        chart.highestGrade > 0 -> chart.highestGrade.toString()
-        else -> "—"
-    }
     val badgeText = if (projected) {
         stringResource(Res.string.ui_grades_simulation_delta, signedGradeMetric(deltaAverage))
     } else {
@@ -202,16 +198,10 @@ private fun GradesAnalyticsHeroCard(
                 )
             }
             LiquidHorizontalDivider(color = colors.outlineVariant)
-            GradesMetricGrid(columns = 3) {
+            GradesMetricGrid(columns = 2) {
                 GradesMetricTile(
                     label = stringResource(Res.string.ui_stats_arithmetic_average),
                     value = gradeMetric(chart.currentArithmeticAverage),
-                    valueColor = colors.onSurface,
-                    modifier = Modifier.weight(1f),
-                )
-                GradesMetricTile(
-                    label = stringResource(Res.string.ui_stats_highest_grade),
-                    value = highest,
                     valueColor = colors.onSurface,
                     modifier = Modifier.weight(1f),
                 )
@@ -222,13 +212,17 @@ private fun GradesAnalyticsHeroCard(
                     modifier = Modifier.weight(1f),
                 )
             }
-            if (chart.highestGradeCourses.isNotBlank()) {
-                Text(
-                    text = stringResource(Res.string.ui_grades_highest_grade_courses_format, chart.highestGradeCourses),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.onSurfaceVariant,
-                )
-            }
+            LiquidHorizontalDivider(color = colors.outlineVariant)
+            val progressLabel = stringResource(
+                if (projected) Res.string.ui_grades_cfu_progress_projected
+                else Res.string.ui_stats_study_plan_progress,
+            )
+            Text(
+                text = "$progressLabel · ${chart.totalProjectedCfu}/${chart.degreeCfuTarget} CFU",
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+            )
+            LiquidLinearProgressIndicator(progress = chart.careerProgress, modifier = Modifier.fillMaxWidth())
         }
     }
 }
