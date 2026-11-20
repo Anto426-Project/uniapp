@@ -359,16 +359,15 @@ internal object NewsContentFormatter {
                     } else {
                         rawLabel
                     }
-                    result.putIfAbsent(url, FormattedNewsAttachment(label = label, url = url, isDocument = true))
+                    result.getOrPut(url) { FormattedNewsAttachment(label = label, url = url, isDocument = true) }
                 }
             }
             for (match in bareUrlRegex.findAll(source)) {
                 val url = resolveAssetUrl(match.value.trimEnd('.', ',', ';', ')')) ?: continue
                 if (isDocumentUrl(url)) {
-                    result.putIfAbsent(
-                        url,
-                        FormattedNewsAttachment(label = cleanFilenameFromUrl(url, fallbackLabel), url = url, isDocument = true),
-                    )
+                    result.getOrPut(url) {
+                        FormattedNewsAttachment(label = cleanFilenameFromUrl(url, fallbackLabel), url = url, isDocument = true)
+                    }
                 }
             }
         }
