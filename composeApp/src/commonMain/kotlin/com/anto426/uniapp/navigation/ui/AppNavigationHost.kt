@@ -184,7 +184,7 @@ internal fun AppNavigationHost(
         route == AppRoute.Bootstrap || route == AppRoute.Login || route == AppRoute.BiometricPinSetup
     val showTopBar = !isFullscreenRoute && (isChangelog || isMandatoryUpdate || canShowSessionContent)
     val showBottomBar =
-        canShowSessionContent && isAuthenticated && !isFullscreenRoute && !isChangelog
+        canShowSessionContent && isAuthenticated && !isFullscreenRoute
     var topBarHeight by remember { mutableStateOf(136.dp) }
     val topLevelRoutes = appTopLevelRoutes
     val topLevelNavigationItems = topLevelRoutes.map { item ->
@@ -425,7 +425,7 @@ internal fun AppNavigationHost(
                 }
 
                 when {
-                    isChangelog -> {
+                    !canShowSessionContent && isChangelog -> {
                         UniBackHandler(enabled = true, onBack = goBack)
                         ChangelogRoute(updateUiState, viewModelKey = "public-changelog")
                     }
@@ -437,6 +437,19 @@ internal fun AppNavigationHost(
                     )
                     isResolvingSessionRoute -> AppLoadingState()
                     else -> {
+                        val displayEntries: List<NavEntry<NavKey>> =
+                            if (isChangelog && sessionEntries.lastOrNull()?.metadata?.get(AppScreenTransitions.RouteMetadataKey) != AppRoute.Changelog) {
+                                sessionEntries + NavEntry<NavKey>(
+                                    key = AppRoute.Changelog,
+                                    metadata = mapOf(AppScreenTransitions.RouteMetadataKey to AppRoute.Changelog),
+                                ) {
+                                    Box(Modifier.fillMaxSize().graphicsLayer(clip = false)) {
+                                        ChangelogRoute(updateUiState, viewModelKey = "public-changelog")
+                                    }
+                                }
+                            } else {
+                                sessionEntries
+                            }
                         val selectedTransition = LocalUniContentTransition.current
                         val forwardTransition = rememberLiquidContentTransition<Scene<NavKey>>(
                             transition = selectedTransition,
@@ -450,7 +463,7 @@ internal fun AppNavigationHost(
                         )
                         NavDisplay(
                             modifier = Modifier.fillMaxSize(),
-                            entries = sessionEntries,
+                            entries = displayEntries,
                             onBack = goBack,
                             transitionSpec = forwardTransition,
                             popTransitionSpec = backwardTransition,
