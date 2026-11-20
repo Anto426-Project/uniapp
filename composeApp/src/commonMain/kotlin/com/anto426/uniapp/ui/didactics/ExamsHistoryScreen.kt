@@ -66,7 +66,6 @@ fun LazyListScope.examsHistoryContentItems(
 ) {
     val verbalizedCount = uiState.exams.count { it.status == PastExamStatus.VERBALIZED }
     val pastBookedCount = uiState.exams.count { it.status == PastExamStatus.BOOKED_PAST }
-    val earnedCfu = uiState.exams.mapNotNull { it.cfu }.sum()
 
     val displayedExams = when (filter) {
         ExamHistoryFilter.ALL -> uiState.exams
@@ -84,15 +83,6 @@ fun LazyListScope.examsHistoryContentItems(
             )
         }
     } else {
-        item(key = "history-hero") {
-            ExamsHistoryHeroCard(
-                totalCount = uiState.exams.size,
-                verbalizedCount = verbalizedCount,
-                pastBookedCount = pastBookedCount,
-                earnedCfu = earnedCfu,
-            )
-        }
-
         if (verbalizedCount > 0 && pastBookedCount > 0) {
             item(key = "history-filters") {
                 val options = listOf(
@@ -131,122 +121,5 @@ fun LazyListScope.examsHistoryContentItems(
         ) { _, exam ->
             PastExamItem(exam)
         }
-    }
-}
-
-@Composable
-private fun ExamsHistoryHeroCard(
-    totalCount: Int,
-    verbalizedCount: Int,
-    pastBookedCount: Int,
-    earnedCfu: Int,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    val glassColors = LiquidGlassTheme.colors
-
-    LiquidCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedRectangle(24.dp),
-        contentPadding = PaddingValues(18.dp),
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.Check,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.liquidIconContainer(
-                            containerSize = 36.dp,
-                            iconSize = 18.dp,
-                            containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                            shape = RoundedRectangle(11.dp),
-                        ),
-                    )
-                    Text(
-                        text = stringResource(Res.string.ui_exams_history_kicker).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-
-                LiquidBadge(
-                    text = stringResource(Res.string.ui_professor_rounds_count, totalCount),
-                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                    contentColor = colorScheme.primary,
-                )
-            }
-
-            LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HistoryHeroMetric(
-                    label = stringResource(Res.string.ui_exams_history_verbalized_count),
-                    value = "$verbalizedCount",
-                    valueColor = glassColors.success,
-                    modifier = Modifier.weight(1f),
-                )
-                HistoryHeroMetric(
-                    label = stringResource(Res.string.ui_exams_history_past_bookings_count),
-                    value = "$pastBookedCount",
-                    valueColor = colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
-                )
-                HistoryHeroMetric(
-                    label = stringResource(Res.string.ui_exams_history_cfu_total),
-                    value = "$earnedCfu",
-                    valueColor = colorScheme.primary,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HistoryHeroMetric(
-    label: String,
-    value: String,
-    valueColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = valueColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }

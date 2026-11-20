@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 data class StudyPlanUiState(
-    val selectedYearIndex: Int = 0,
+    val selectedYearIndex: Int = ALL_ACADEMIC_YEARS,
     val years: List<StudyYear> = emptyList(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
@@ -61,8 +61,10 @@ class StudyPlanViewModel(private val dataSource: UniAppDataSource) : ViewModel()
             val selectedYear = previous.years.getOrNull(previous.selectedYearIndex)?.yearNumber
             val restoredIndex = if (previous.selectedYearIndex == ALL_ACADEMIC_YEARS && years.size > 1) {
                 ALL_ACADEMIC_YEARS
+            } else if (previous.selectedYearIndex != ALL_ACADEMIC_YEARS && selectedYear != null) {
+                years.indexOfFirst { it.yearNumber == selectedYear }.takeIf { it >= 0 } ?: if (years.size > 1) ALL_ACADEMIC_YEARS else 0
             } else {
-                years.indexOfFirst { it.yearNumber == selectedYear }.coerceAtLeast(0)
+                if (years.size > 1) ALL_ACADEMIC_YEARS else 0
             }
             mutableUiState.value = mutableUiState.value.copy(
                 years = years,

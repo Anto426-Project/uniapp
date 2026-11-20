@@ -43,6 +43,7 @@ internal fun NewsDetailScreen(
     title: String,
     description: String,
     fullContent: String,
+    newsKey: String = "",
     onBack: () -> Unit = {},
     category: String = "",
     publishedAt: String = "",

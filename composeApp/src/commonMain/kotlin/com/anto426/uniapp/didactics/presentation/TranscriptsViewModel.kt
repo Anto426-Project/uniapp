@@ -23,7 +23,7 @@ import uniapp.composeapp.generated.resources.*
 const val ALL_ACADEMIC_YEARS = -1
 
 data class TranscriptsUiState(
-    val selectedYear: Int = 1,
+    val selectedYear: Int = ALL_ACADEMIC_YEARS,
     val examsByYear: Map<Int, List<ExamRecord>> = emptyMap(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
