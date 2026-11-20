@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/ios-marketing-1024@1x.png" alt="UniApp icon" width="120" height="120">
+  <img src=".\assets\uniapp-icon.png" alt="UniApp icon" width="120" height="120">
 </p>
 
 <h1 align="center">UniApp</h1>
