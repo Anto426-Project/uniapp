@@ -121,7 +121,7 @@ fun LibraryBookDetailScreen(
                         letterSpacing = (-0.3).sp,
                     )
 
-                    if (!book.author.isNullOrBlank()) {
+                    book.author?.takeIf(String::isNotBlank)?.let { author ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -133,7 +133,7 @@ fun LibraryBookDetailScreen(
                                 modifier = Modifier.size(15.dp),
                             )
                             Text(
-                                text = book.author,
+                                text = author,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colorScheme.onSurfaceVariant,
                                 maxLines = 2,

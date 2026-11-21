@@ -1,18 +1,18 @@
 package com.anto426.uniapp.auth.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountCredentials
+import com.anto426.uniapp.account.model.UniLoginProfileOption
+import com.anto426.uniapp.data.UniSessionController
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.model.AppSessionState
-import com.anto426.unisdk.model.LoginCareerOption
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val sessionController: SessionManager,
+    private val sessionController: UniSessionController,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(LoginUiState())
@@ -49,7 +49,7 @@ class LoginViewModel(
         authenticate(career = null)
     }
 
-    fun selectCareer(career: LoginCareerOption) {
+    fun selectCareer(career: UniLoginProfileOption) {
         authenticate(career)
     }
 
@@ -65,10 +65,10 @@ class LoginViewModel(
         mutableUiState.update { it.copy(isForgotPasswordDialogVisible = false) }
     }
 
-    private fun authenticate(career: LoginCareerOption?) {
+    private fun authenticate(career: UniLoginProfileOption?) {
         val state = mutableUiState.value
         if (state.username.isBlank() || state.password.isBlank()) {
-            viewModelScope.launch { toastSink.warning(getString(Res.string.ui_login_error_empty)) }
+            viewModelScope.launch { toastSink.warning(readAppString(Res.string.ui_login_error_empty)) }
             return
         }
         viewModelScope.launch {

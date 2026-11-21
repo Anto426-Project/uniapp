@@ -1,6 +1,54 @@
 package com.anto426.uniapp.account.model
 
-import com.anto426.unisdk.model.CareerType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/** Role of an academic career/profile belonging to a university account. */
+@Serializable
+enum class UniProfileRole {
+    @SerialName("STUDENT")
+    STUDENT,
+
+    @SerialName("PROFESSOR")
+    PROFESSOR,
+}
+
+/** Career/profile choice presented during multi-career authentication. */
+data class UniLoginProfileOption(
+    val displayName: String,
+    val degreeName: String,
+    val matricola: String? = null,
+    val matId: String? = null,
+    val stuId: String? = null,
+    val anaId: String? = null,
+    val cdsId: String? = null,
+    val dipId: String? = null,
+    val departmentName: String? = null,
+    val teacherId: String? = null,
+    val type: UniProfileRole = UniProfileRole.STUDENT,
+) {
+    val profileId: String
+        get() =
+            when (type) {
+                UniProfileRole.PROFESSOR ->
+                    listOfNotNull(
+                        "prof",
+                        teacherId?.trim()?.takeIf(String::isNotBlank),
+                        dipId?.trim()?.takeIf(String::isNotBlank),
+                        displayName.trim().lowercase().takeIf(String::isNotBlank),
+                    ).joinToString(":")
+
+                UniProfileRole.STUDENT ->
+                    listOfNotNull(
+                        "stu",
+                        matId?.trim()?.takeIf(String::isNotBlank),
+                        stuId?.trim()?.takeIf(String::isNotBlank),
+                        matricola?.trim()?.takeIf(String::isNotBlank),
+                        cdsId?.trim()?.takeIf(String::isNotBlank),
+                        degreeName.trim().lowercase().takeIf(String::isNotBlank),
+                    ).joinToString(":")
+            }
+}
 
 /** Credentials owned by UniApp. They are never included in the SDK session ticket. */
 class UniAccountCredentials(
@@ -29,10 +77,10 @@ data class UniAccountSummary(
     val isGuest: Boolean,
     val activeProfileId: String? = null,
     val profiles: List<UniAccountProfileSummary> = emptyList(),
-    val activeProfileType: CareerType = CareerType.STUDENT,
+    val activeProfileType: UniProfileRole = UniProfileRole.STUDENT,
 ) {
     val isProfessor: Boolean
-        get() = activeProfileType == CareerType.PROFESSOR
+        get() = activeProfileType == UniProfileRole.PROFESSOR
 }
 
 data class UniAccountProfileSummary(
@@ -47,7 +95,7 @@ data class UniAccountProfileSummary(
     val dipId: String? = null,
     val departmentName: String? = null,
     val teacherId: String? = null,
-    val type: CareerType = CareerType.STUDENT,
+    val type: UniProfileRole = UniProfileRole.STUDENT,
 )
 
 data class UniAccountRegistrySnapshot(

@@ -53,7 +53,29 @@ internal object UpdateInstallStatus {
             versionCode = installed.longVersionCode.takeIf { it in 1..Int.MAX_VALUE }?.toInt(),
         )
         com.anto426.unisdk.platform.AppInfoProvider.initialize(info)
-        progress.value = PlatformUpdateProgress(AppUpdatePhase.UpToDate, installedBuild = info)
+        progress.value = PlatformUpdateProgress(
+            AppUpdatePhase.UpToDate,
+            installedBuild = com.anto426.uniapp.updates.model.InstalledAppBuild(
+                versionName = info.versionName,
+                versionCode = info.versionCode,
+                isDebuggable = info.isDebuggable,
+                applicationId = info.applicationId,
+                name = info.name,
+                platform = info.platform,
+                osVersion = info.osVersion,
+                deviceModel = info.deviceModel,
+                sourceRevision = info.sourceRevision,
+                appStoreUrl = info.appStoreUrl,
+                modules = info.modules.map {
+                    com.anto426.uniapp.updates.model.UniAppModuleBuildInfo(
+                        name = it.name,
+                        version = it.version,
+                        revision = it.revision,
+                        hasLocalChanges = it.hasLocalChanges,
+                    )
+                },
+            ),
+        )
     }
 
     fun restore(context: Context) {

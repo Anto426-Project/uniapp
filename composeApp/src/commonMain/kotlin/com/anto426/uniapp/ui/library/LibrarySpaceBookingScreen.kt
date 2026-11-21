@@ -271,9 +271,9 @@ fun LibrarySpaceBookingScreen(
                                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                                                     color = if (selected) colorScheme.primary else colorScheme.onSurface,
                                                 )
-                                                if (!slot.dateLabel.isNullOrBlank()) {
+                                                slot.dateLabel?.takeIf(String::isNotBlank)?.let { dateLabel ->
                                                     LiquidBadge(
-                                                        text = slot.dateLabel,
+                                                        text = dateLabel,
                                                         containerColor = colorScheme.secondary.copy(alpha = 0.14f),
                                                         contentColor = colorScheme.secondary,
                                                     )

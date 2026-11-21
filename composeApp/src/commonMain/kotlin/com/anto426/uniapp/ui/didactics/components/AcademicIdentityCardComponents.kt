@@ -412,31 +412,6 @@ private fun AcademicIdentityBackFace(
 }
 
 /**
- * Optical accents derived from Material tokens (delegated to UniHeroCardPalette).
- */
-typealias AcademicIdentityCardPalette = UniHeroCardPalette
-
-@Composable
-fun academicIdentityCardPalette(): AcademicIdentityCardPalette = rememberUniHeroCardPalette()
-
-const val AcademicIdentityCardShader = UniHeroCardShader
-
-@Composable
-fun AcademicIdentityFluidBackground(
-    alpha: Float = 1f,
-) {
-    UniHeroFluidBackground(alpha = alpha)
-}
-
-/**
- * Bubble Glass Lenses for Card refraction (delegated to UniHeroGlassLenses).
- */
-@Composable
-fun BoxScope.AcademicIdentityGlassLenses(artworkBackdrop: Backdrop) {
-    UniHeroGlassLenses(artworkBackdrop = artworkBackdrop)
-}
-
-/**
  * Procedural UniApp Modern Brand Logo (Stylized glass U emblem).
  */
 @Composable

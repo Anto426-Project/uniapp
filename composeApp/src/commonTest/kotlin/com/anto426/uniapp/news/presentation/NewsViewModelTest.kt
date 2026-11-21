@@ -1,8 +1,9 @@
 package com.anto426.uniapp.news.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.UniCacheEngine
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.toNewsItems
-import com.anto426.uniapp.data.runtime.ScopedDataRepository
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.model.UniversityNews
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,7 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadUniversityNews(forceRefresh: Boolean) = items
             }
-            val viewModel = NewsViewModel(source, preparationDispatcher = Dispatchers.Main)
+            val viewModel = NewsViewModel(source.asUniRepository(backgroundScope), preparationDispatcher = Dispatchers.Main)
             advanceUntilIdle()
 
             assertEquals(
@@ -54,7 +55,7 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadUniversityNews(forceRefresh: Boolean) = listOf(news("a", "Ateneo", "2026-09-25"))
             }
-            val viewModel = NewsViewModel(source, preparationDispatcher = Dispatchers.Main)
+            val viewModel = NewsViewModel(source.asUniRepository(backgroundScope), preparationDispatcher = Dispatchers.Main)
             advanceUntilIdle()
             assertEquals(listOf(NewsFilter.All, NewsFilter.University), viewModel.uiState.value.filters)
         } finally {
@@ -78,10 +79,10 @@ class NewsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadUniversityNews(forceRefresh: Boolean) = input
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         try {
             val prepared = data.prepareNews(input, StandardTestDispatcher(testScheduler))
-            val viewModel = NewsViewModel(data, preparationDispatcher = Dispatchers.Main)
+            val viewModel = NewsViewModel(data.asUniRepository(backgroundScope), preparationDispatcher = Dispatchers.Main)
             // No coroutine or loading frame is needed to expose the feed already used by Home.
             assertEquals(FeatureLoadState.Content, viewModel.uiState.value.loadState)
             assertSame(prepared.items, viewModel.uiState.value.visibleNews)

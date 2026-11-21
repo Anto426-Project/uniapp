@@ -2,6 +2,7 @@ package com.anto426.uniapp.didactics.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.local.FakeUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataKey
 import com.anto426.uniapp.data.local.LocalDataScope
@@ -106,10 +107,10 @@ class GradeSimulationPersistenceTest {
         }
     }
 
-    private fun model(
+    private fun kotlinx.coroutines.test.TestScope.model(
         repository: GradeSimulationRepository,
         scope: LocalDataScope = owner,
-    ) = GradesViewModel(source, repository, scope, AppToastSink.None)
+    ) = GradesViewModel(source.asUniRepository(backgroundScope, simulations = repository), repository, scope, AppToastSink.None)
 
     private suspend fun GradesViewModel.awaitContent(): GradesUiState =
         uiState.first { it.loadState == FeatureLoadState.Content }

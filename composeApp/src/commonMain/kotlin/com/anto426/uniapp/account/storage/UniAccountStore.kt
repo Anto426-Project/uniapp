@@ -10,6 +10,7 @@ import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountRegistrySnapshot
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.model.UniAccountProfileSummary
+import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.unisdk.model.CareerType
 import com.anto426.uniapp.account.platform.generateAccountStorageIdentifier
 import com.anto426.unisdk.session.UniCredentials
@@ -402,7 +403,7 @@ class UniAccountStore(
     }
 
     private companion object {
-        const val RELEASE_STORAGE_RESET_KEY = "storage-reset-20261120"
+        const val RELEASE_STORAGE_RESET_KEY = "storage-reset-20261121"
         const val REGISTRY_SCHEMA_VERSION = 2
         const val REGISTRY_KEY = "account-registry"
         const val USERNAME_KEY = "credentials.username"
@@ -461,7 +462,7 @@ private data class StoredAccount(
     val isGuest: Boolean,
     val activeProfileId: String? = null,
     val profiles: List<StoredAccountProfile> = emptyList(),
-    val activeProfileType: CareerType = CareerType.STUDENT,
+    val activeProfileType: UniProfileRole = UniProfileRole.STUDENT,
 ) {
     fun toSummary(): UniAccountSummary =
         UniAccountSummary(
@@ -492,7 +493,7 @@ private data class StoredAccountProfile(
     val dipId: String? = null,
     val departmentName: String? = null,
     val teacherId: String? = null,
-    val type: CareerType = CareerType.STUDENT,
+    val type: UniProfileRole = UniProfileRole.STUDENT,
 ) {
     fun toSummary(): UniAccountProfileSummary =
         UniAccountProfileSummary(
@@ -510,6 +511,12 @@ private data class StoredAccountProfile(
             type = type,
         )
 }
+
+private fun CareerType.toUniProfileRole(): UniProfileRole =
+    when (this) {
+        CareerType.STUDENT -> UniProfileRole.STUDENT
+        CareerType.PROFESSOR -> UniProfileRole.PROFESSOR
+    }
 
 private fun UniUserProfile.toStoredAccount(
     accountId: String,
@@ -529,7 +536,7 @@ private fun UniUserProfile.toStoredAccount(
                 dipId = profile.dipId,
                 departmentName = profile.departmentName,
                 teacherId = profile.teacherId,
-                type = profile.type,
+                type = profile.type.toUniProfileRole(),
             )
         }
     val mergedProfiles =
@@ -548,7 +555,7 @@ private fun UniUserProfile.toStoredAccount(
         isGuest = isGuest,
         activeProfileId = activeProfileId,
         profiles = mergedProfiles,
-        activeProfileType = activeProfileType,
+        activeProfileType = activeProfileType.toUniProfileRole(),
     )
 }
 

@@ -438,6 +438,31 @@
     <string name="ui_colors_subtitle">Experiment with the Liquid color spectrum</string>
     <string name="ui_advanced_controls">Advanced controls</string>
     <string name="ui_colors_info">The selected color is used as the seed to generate the entire Monet palette when Material You is turned off.</string>
+    <string name="ui_colors_tab_spectrum">Spectrum</string>
+    <string name="ui_colors_tab_adjust">Adjust</string>
+    <string name="ui_colors_tab_presets">Presets</string>
+    <string name="ui_colors_monet_preview">Monet palette preview</string>
+    <string name="ui_colors_token_primary">Primary</string>
+    <string name="ui_colors_token_surface">Surface</string>
+    <string name="ui_colors_token_secondary">Secondary</string>
+    <string name="ui_colors_token_tertiary">Tertiary</string>
+    <string name="ui_colors_action_random">Random</string>
+    <string name="ui_colors_action_reset">Reset</string>
+    <string name="ui_colors_sat_bright">Saturation and brightness</string>
+    <string name="ui_colors_hue">Hue</string>
+    <string name="ui_colors_saturation">Saturation</string>
+    <string name="ui_colors_brightness">Brightness</string>
+    <string name="ui_colors_red">Red</string>
+    <string name="ui_colors_green">Green</string>
+    <string name="ui_colors_blue">Blue</string>
+    <string name="ui_colors_cat_uniapp">UniApp</string>
+    <string name="ui_colors_cat_vibrant">Vibrant</string>
+    <string name="ui_colors_cat_pastel">Pastel</string>
+    <string name="ui_colors_cat_elegant">Elegant</string>
+    <string name="ui_colors_hex_and_recents">HEX code and recents</string>
+    <string name="ui_colors_hex_apply">Apply</string>
+    <string name="ui_colors_hex_invalid">Enter a valid hex color (e.g. #2979FF)</string>
+    <string name="ui_colors_recents">Recents</string>
 
 
     <string name="ui_connected_devices">Connected devices</string>
@@ -887,6 +912,9 @@
     <string name="ui_grades_custom_exam_name_placeholder">E.g. internship / elective exam</string>
     <string name="ui_grades_custom_exam_cfu">Credits (CFU)</string>
     <string name="ui_grades_custom_exam_grade">Expected grade</string>
+    <string name="ui_grades_scenarios_title">Scenarios for remaining credits</string>
+    <string name="ui_grades_scenarios_subtitle">Estimated final score based on upcoming exam average</string>
+    <string name="ui_grades_scenario_average">With %1$d/30 average</string>
 
     <!-- Transport & Booking -->
     <string name="ui_transport_route_subtitle">Choose the university shuttle line for your trip</string>
@@ -1577,7 +1605,7 @@
     <string name="ui_grades_target_feasible_msg">Achievable target: you need an average of %1$s across the remaining %2$d CFU.</string>
     <string name="ui_grades_target_hard_msg">Very demanding: a near-perfect average (%1$s) is required. Consider thesis points.</string>
     <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
-    <string name="ui_grades_tier_exams_percent">%1$d exams • %2$d%%</string>
+    <string name="ui_grades_tier_exams_percent">%1$d exams • %2$d%</string>
     <string name="ui_grades_highest_grade_courses_format">Highest: %1$s</string>
     <string name="ui_grades_active_singular">%1$d active</string>
     <string name="ui_grades_active_plural">%1$d active</string>

@@ -1,24 +1,35 @@
 package com.anto426.uniapp.transport.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
+import com.anto426.uniapp.data.resolveTransportRouteStops
+import com.anto426.uniapp.data.toSdkDirection
+import com.anto426.uniapp.data.toSdkRequest
+import com.anto426.uniapp.data.toTransportOverview
+import com.anto426.uniapp.data.toTripBookingRequest
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
+import com.anto426.uniapp.model.transport.TransportRouteOption
+import com.anto426.uniapp.model.transport.TransportRouteStops
+import com.anto426.uniapp.model.transport.TripBookingDirection
+import com.anto426.uniapp.model.transport.TripBookingOutcome
+import com.anto426.uniapp.model.transport.TripBookingRequest
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.transport.TransportActionResult
-import com.anto426.unisdk.transport.TransportBookingRequest
-import com.anto426.unisdk.transport.TransportDirection
-import com.anto426.unisdk.transport.TransportRoute
+import com.anto426.unisdk.transport.TRANSPORT_BOOKING_DAYS_AHEAD as SDK_TRANSPORT_BOOKING_DAYS_AHEAD
+import com.anto426.unisdk.transport.isTransportBookingDateAllowed as sdkIsTransportBookingDateAllowed
+import com.anto426.unisdk.transport.isTransportDateBooked as sdkIsTransportDateBooked
+import com.anto426.unisdk.transport.transportBookingRequests as sdkTransportBookingRequests
+import com.anto426.unisdk.transport.transportBookingWindow as sdkTransportBookingWindow
+import kotlin.time.Clock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,13 +38,14 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import kotlin.time.Clock
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 data class TransportBookingUiState(
     val routes: List<String> = emptyList(),
     val selectedRoute: String = "",
     val selectedRouteCode: String = "",
-    val bookedRequests: Set<TransportBookingRequest> = emptySet(),
+    val bookedRequests: Set<TripBookingRequest> = emptySet(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
     val isSubmitting: Boolean = false,
@@ -41,30 +53,31 @@ data class TransportBookingUiState(
 )
 
 class TransportBookingViewModel(
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
     private val today: () -> LocalDate = { Clock.System.todayIn(TimeZone.currentSystemDefault()) },
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(TransportBookingUiState())
     val uiState: StateFlow<TransportBookingUiState> = mutableUiState.asStateFlow()
-    private var routesByLabel: Map<String, TransportRoute> = emptyMap()
-    private val confirmedBookings = mutableSetOf<TransportBookingRequest>()
+    private var routesByLabel: Map<String, TransportRouteOption> = emptyMap()
+    private val confirmedBookings = mutableSetOf<TripBookingRequest>()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Transport)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Transport)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val transport = snapshot.require(UniAppDataRequests.Transport)
-            val routes = transport.availableRoutes
-            routesByLabel = routes.associateBy(TransportRoute::label)
+            val transport = snapshot.require(UniDatasets.Transport).toTransportOverview()
+            val routes = transport.routes
+            routesByLabel = routes.associateBy(TransportRouteOption::label)
             val selectedRoute = mutableUiState.value.selectedRoute.takeIf { it in routesByLabel }
                 ?: routes.firstOrNull()?.label.orEmpty()
             mutableUiState.value = mutableUiState.value.copy(
-                routes = routes.map(TransportRoute::label),
+                routes = routes.map(TransportRouteOption::label),
                 selectedRoute = selectedRoute,
                 selectedRouteCode = routesByLabel[selectedRoute]?.code.orEmpty(),
-                bookedRequests = bookedTransportRequests(transport.bookings) + confirmedBookings,
+                bookedRequests = transport.bookedRequests + confirmedBookings,
                 loadState = if (routes.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
@@ -73,14 +86,13 @@ class TransportBookingViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_linee) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_linee) },
             )
         }
-
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
+        repository.transport.refresh(force)
     }
 
     fun selectRoute(route: String) {
@@ -91,24 +103,24 @@ class TransportBookingViewModel(
         )
     }
 
-    fun book(date: LocalDate, direction: TransportDirection = TransportDirection.OUTBOUND) {
+    fun book(date: LocalDate, direction: TripBookingDirection = TripBookingDirection.OUTBOUND) {
         book(listOf(date), direction)
     }
 
-    fun book(dates: List<LocalDate>, direction: TransportDirection = TransportDirection.OUTBOUND) {
+    fun book(dates: List<LocalDate>, direction: TripBookingDirection = TripBookingDirection.OUTBOUND) {
         val route = routesByLabel[mutableUiState.value.selectedRoute] ?: return
         if (dates.isEmpty() || mutableUiState.value.isSubmitting) return
         val bookingToday = today()
         if (dates.any { !isTransportBookingDateAllowed(it, bookingToday) }) {
             viewModelScope.launch {
-                toastSink.warning(getString(Res.string.ui_transport_booking_date_policy))
+                toastSink.warning(readAppString(Res.string.ui_transport_booking_date_policy))
             }
             return
         }
         val requests = transportBookingRequests(route.code, dates, direction)
         if (dates.any { isTransportDateBooked(it, route.code, direction, mutableUiState.value.bookedRequests) }) {
             viewModelScope.launch {
-                toastSink.warning(getString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
+                toastSink.warning(readAppString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
             }
             return
         }
@@ -121,10 +133,9 @@ class TransportBookingViewModel(
                 var firstFailure: Throwable? = null
                 for (request in requests) {
                     try {
-                        // Keep the portal's form sequence serial and refresh the shared snapshot once after the batch.
-                        when (dataSource.bookTransport(request)) {
-                            TransportActionResult.Completed -> completed++
-                            TransportActionResult.AlreadyExists -> existing++
+                        when (repository.transport.bookTransport(request)) {
+                            TripBookingOutcome.COMPLETED -> completed++
+                            TripBookingOutcome.ALREADY_EXISTS -> existing++
                         }
                         confirmedBookings += request.copy(routeCode = request.routeCode.trim().uppercase())
                     } catch (error: CancellationException) {
@@ -141,25 +152,58 @@ class TransportBookingViewModel(
                 )
                 when {
                     failed > 0 && completed > 0 -> toastSink.warning(
-                        getString(Res.string.ui_transport_booking_partial, completed, requests.size, existing, failed),
+                        readAppString(Res.string.ui_transport_booking_partial, completed, requests.size, existing, failed),
                     )
                     failed > 0 -> toastSink.error(
-                        firstFailure?.userMessage { getString(Res.string.msg_prenotazione_non_riuscita) }
-                            ?: getString(Res.string.msg_prenotazione_non_riuscita),
+                        firstFailure?.userMessage { readAppString(Res.string.msg_prenotazione_non_riuscita) }
+                            ?: readAppString(Res.string.msg_prenotazione_non_riuscita),
                     )
                     completed > 0 -> toastSink.success(
-                        getString(Res.string.ui_transport_booking_completed, completed),
+                        readAppString(Res.string.ui_transport_booking_completed, completed),
                     )
-                    else -> toastSink.warning(getString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
+                    else -> toastSink.warning(readAppString(Res.string.msg_corse_gia_prenotate_per_le_date_selezionate))
                 }
-                if (completed > 0 || existing > 0) sharedData.refresh(dataRequests, force = true)
+                if (completed > 0 || existing > 0) repository.transport.refresh(force = true)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage { getString(Res.string.msg_prenotazione_non_riuscita) }
+                val message = error.userMessage { readAppString(Res.string.msg_prenotazione_non_riuscita) }
                 mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
                 toastSink.error(message)
             }
         }
     }
 }
+
+internal const val TRANSPORT_BOOKING_DAYS_AHEAD = SDK_TRANSPORT_BOOKING_DAYS_AHEAD
+
+internal fun transportBookingWindow(today: LocalDate): List<LocalDate> =
+    sdkTransportBookingWindow(today)
+
+internal fun isTransportBookingDateAllowed(date: LocalDate, today: LocalDate): Boolean =
+    sdkIsTransportBookingDateAllowed(date, today)
+
+internal fun isTransportDateBooked(
+    date: LocalDate,
+    routeCode: String,
+    direction: TripBookingDirection,
+    bookedRequests: Set<TripBookingRequest>,
+): Boolean = sdkIsTransportDateBooked(
+    date = date,
+    routeCode = routeCode,
+    direction = direction.toSdkDirection(),
+    bookedRequests = bookedRequests.map(TripBookingRequest::toSdkRequest).toSet(),
+)
+
+internal fun transportBookingRequests(
+    routeCode: String,
+    dates: List<LocalDate>,
+    direction: TripBookingDirection,
+): List<TripBookingRequest> =
+    sdkTransportBookingRequests(routeCode, dates, direction.toSdkDirection())
+        .map { it.toTripBookingRequest() }
+
+internal fun transportRouteStopsFor(
+    routeLabel: String,
+    direction: TripBookingDirection,
+): TransportRouteStops = resolveTransportRouteStops(routeLabel, direction)

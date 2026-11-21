@@ -2,8 +2,8 @@ package com.anto426.uniapp.ui.updates
 
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
+import com.anto426.uniapp.updates.model.InstalledAppBuild
 import com.anto426.uniapp.updates.presentation.toUiState
-import com.anto426.unisdk.platform.AppInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 class UpdateVerificationStatusTest {
     @Test
     fun verificationFollowsTheActualAndroidUpdaterPhase() {
-        val build = AppInfo(versionName = "1.0", platform = "android")
+        val build = InstalledAppBuild(versionName = "1.0", versionCode = 1, platform = "android")
         fun status(phase: AppUpdatePhase) = AppUpdateState(build, phase = phase)
             .toUiState().bannerState.packageVerificationStatus()
 

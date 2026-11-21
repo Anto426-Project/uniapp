@@ -2,11 +2,13 @@ package com.anto426.uniapp.news.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.presentation.onRefreshFailure
-import com.anto426.uniapp.data.UniAppDataSource
 import com.anto426.uniapp.model.news.NewsFeed
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -42,22 +44,23 @@ private fun NewsFeed.filters(): List<NewsFilter> =
     }
 
 class NewsViewModel(
-    dataSource: UniAppDataSource,
+    dataSource: UniGateway,
     private val preparationDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
-    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
     private val mutableUiState = MutableStateFlow(
-        sharedData.newsFeed?.let { feed ->
+        repository.services.cachedNewsFeed?.let { feed ->
             NewsUiState(feed = feed, loadState = if (feed.items.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content)
         } ?: NewsUiState(),
     )
     val uiState: StateFlow<NewsUiState> = mutableUiState.asStateFlow()
 
-    private val dataRequests = listOf(UniAppDataRequests.News)
+    private val dataRequests = listOf(UniDatasets.News)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
-            val news = snapshot.require(UniAppDataRequests.News)
-            val feed = sharedData.prepareNews(news, preparationDispatcher)
+            val news = snapshot.require(UniDatasets.News)
+            val feed = repository.services.prepareNews(news, preparationDispatcher)
             val filters = feed.filters()
             val selected = mutableUiState.value.filters.getOrNull(mutableUiState.value.selectedTab)
             mutableUiState.value = mutableUiState.value.copy(
@@ -72,7 +75,7 @@ class NewsViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.ui_news_empty_desc) },
+                errorMessage = error.userMessage { readAppString(Res.string.ui_news_empty_desc) },
             )
         }
     }

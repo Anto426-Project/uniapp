@@ -438,6 +438,31 @@
     <string name="ui_colors_subtitle">Experimenta con el espectro cromático Liquid</string>
     <string name="ui_advanced_controls">Controles avanzados</string>
     <string name="ui_colors_info">El color seleccionado se usará como semilla para generar toda la paleta Monet de la aplicación cuando Material You esté desactivado.</string>
+    <string name="ui_colors_tab_spectrum">Espectro</string>
+    <string name="ui_colors_tab_adjust">Ajuste</string>
+    <string name="ui_colors_tab_presets">Preajustes</string>
+    <string name="ui_colors_monet_preview">Vista previa de paleta Monet</string>
+    <string name="ui_colors_token_primary">Primario</string>
+    <string name="ui_colors_token_surface">Superficie</string>
+    <string name="ui_colors_token_secondary">Secundario</string>
+    <string name="ui_colors_token_tertiary">Terciario</string>
+    <string name="ui_colors_action_random">Aleatorio</string>
+    <string name="ui_colors_action_reset">Restablecer</string>
+    <string name="ui_colors_sat_bright">Saturación y brillo</string>
+    <string name="ui_colors_hue">Tono</string>
+    <string name="ui_colors_saturation">Saturación</string>
+    <string name="ui_colors_brightness">Brillo</string>
+    <string name="ui_colors_red">Rojo</string>
+    <string name="ui_colors_green">Verde</string>
+    <string name="ui_colors_blue">Azul</string>
+    <string name="ui_colors_cat_uniapp">UniApp</string>
+    <string name="ui_colors_cat_vibrant">Vibrantes</string>
+    <string name="ui_colors_cat_pastel">Pastel</string>
+    <string name="ui_colors_cat_elegant">Elegantes</string>
+    <string name="ui_colors_hex_and_recents">Código HEX y recientes</string>
+    <string name="ui_colors_hex_apply">Aplicar</string>
+    <string name="ui_colors_hex_invalid">Introduce un código hexadecimal válido (ej. #2979FF)</string>
+    <string name="ui_colors_recents">Recientes</string>
 
 
     <string name="ui_connected_devices">Dispositivos conectados</string>
@@ -887,6 +912,9 @@
     <string name="ui_grades_custom_exam_name_placeholder">Ej. prácticas / optativa</string>
     <string name="ui_grades_custom_exam_cfu">Créditos formativos (CFU)</string>
     <string name="ui_grades_custom_exam_grade">Nota prevista</string>
+    <string name="ui_grades_scenarios_title">Escenarios para créditos restantes</string>
+    <string name="ui_grades_scenarios_subtitle">Nota final estimada según la media de los próximos exámenes</string>
+    <string name="ui_grades_scenario_average">Con media %1$d/30</string>
 
     <!-- Transport & Booking -->
     <string name="ui_transport_route_subtitle">Elige la línea universitaria para tu desplazamiento</string>
@@ -1577,7 +1605,7 @@
     <string name="ui_grades_target_feasible_msg">Objetivo alcanzable: necesitas una media de %1$s en los %2$d CFU restantes.</string>
     <string name="ui_grades_target_hard_msg">Muy exigente: se requiere una media casi perfecta (%1$s). Ten en cuenta los puntos de TFG.</string>
     <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
-    <string name="ui_grades_tier_exams_percent">%1$d exámenes • %2$d%%</string>
+    <string name="ui_grades_tier_exams_percent">%1$d exámenes • %2$d%</string>
     <string name="ui_grades_highest_grade_courses_format">Máximo: %1$s</string>
     <string name="ui_grades_active_singular">%1$d activo</string>
     <string name="ui_grades_active_plural">%1$d activos</string>

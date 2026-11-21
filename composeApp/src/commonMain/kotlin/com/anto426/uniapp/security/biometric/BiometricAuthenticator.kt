@@ -1,6 +1,6 @@
 package com.anto426.uniapp.security.biometric
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.compose.runtime.Composable
@@ -27,7 +27,7 @@ object UnavailableBiometricAuthenticator : BiometricAuthenticator {
     override fun availability(): BiometricAvailability = BiometricAvailability.Unavailable
 
     override suspend fun authenticate(reason: String): BiometricAuthenticationResult =
-        BiometricAuthenticationResult.Failed(getString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
+        BiometricAuthenticationResult.Failed(readAppString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
 }
 
 @Composable

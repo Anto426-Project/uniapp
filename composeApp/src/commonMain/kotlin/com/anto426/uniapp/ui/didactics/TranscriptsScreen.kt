@@ -11,33 +11,15 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.uniapp.didactics.presentation.TranscriptsUiState
 import com.anto426.uniapp.model.didactics.ExamRecord
-import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
+import com.anto426.unisdk.model.firstAcademicIntegerOrNull
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.items.ExamRecordItem
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.anto426.uniapp.ui.didactics.components.CareerSummaryHeroCard
 import com.anto426.uniapp.ui.didactics.components.CareerYearChipRow
 import com.anto426.uniapp.ui.didactics.components.careerYearLabel
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-
-@Composable
-fun TranscriptsScreen(
-    uiState: TranscriptsUiState,
-    onYearSelected: (Int) -> Unit,
-    onExamClick: (ExamRecord) -> Unit = {},
-    onOpenGrades: () -> Unit = {},
-) {
-    UniScreenColumn {
-        TranscriptsContent(
-            uiState = uiState,
-            onYearSelected = onYearSelected,
-            onExamClick = onExamClick,
-            onOpenGrades = onOpenGrades,
-        )
-    }
-}
 
 @Composable
 fun TranscriptsContent(

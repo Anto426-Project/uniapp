@@ -1,7 +1,7 @@
 package com.anto426.uniapp.session.model
 
 import com.anto426.uniapp.account.model.UniAccountSummary
-import com.anto426.unisdk.model.LoginCareerOption
+import com.anto426.uniapp.account.model.UniLoginProfileOption
 
 sealed interface AppSessionState {
     data object Initializing : AppSessionState
@@ -19,7 +19,7 @@ sealed interface AppSessionState {
     /** A new SDK session is being verified; private routes must show loading. */
     data object Switching : AppSessionState
 
-    data class CareerSelectionRequired(val careers: List<LoginCareerOption>) : AppSessionState
+    data class CareerSelectionRequired(val careers: List<UniLoginProfileOption>) : AppSessionState
 
     data class Authenticated(val account: UniAccountSummary) : AppSessionState
 

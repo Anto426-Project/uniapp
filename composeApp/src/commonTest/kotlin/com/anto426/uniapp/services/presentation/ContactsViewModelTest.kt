@@ -1,6 +1,7 @@
 package com.anto426.uniapp.services.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.model.UniversityContact
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +66,7 @@ class ContactsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                     dummyContacts
             }
 
-            val viewModel = ContactsViewModel(source)
+            val viewModel = ContactsViewModel(source.asUniRepository(backgroundScope))
             advanceUntilIdle()
 
             val state = viewModel.uiState.value

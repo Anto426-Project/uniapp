@@ -1,6 +1,7 @@
 package com.anto426.uniapp.didactics.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.toExamRecords
 import com.anto426.uniapp.data.toStudyYears
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -26,7 +27,7 @@ class AcademicYearsTest {
     @Test
     fun eachAccountUsesItsOwnPlanYearsIncludingYearsWithoutPassedExams() = runViewModelTest {
         for (years in listOf(listOf(1, 2), (1..6).toList(), listOf(2, 5))) {
-            val source = AcademicSource(years)
+            val source = AcademicSource(years).asUniRepository(backgroundScope)
             val transcripts = TranscriptsViewModel(source)
             val studyPlan = StudyPlanViewModel(source)
             advanceUntilIdle()
@@ -40,7 +41,7 @@ class AcademicYearsTest {
 
     @Test
     fun emptyAccountDoesNotInventYearTabs() = runViewModelTest {
-        val source = AcademicSource(emptyList()).apply { career = career(emptyList()) }
+        val source = AcademicSource(emptyList()).apply { career = career(emptyList()) }.asUniRepository(backgroundScope)
         val transcripts = TranscriptsViewModel(source)
         val studyPlan = StudyPlanViewModel(source)
         advanceUntilIdle()
@@ -115,7 +116,7 @@ class AcademicYearsTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadCareer(forceRefresh: Boolean) = career()
             override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlan = error("Offline")
-        }
+        }.asUniRepository(backgroundScope)
         val transcripts = TranscriptsViewModel(source)
         advanceUntilIdle()
 
@@ -215,7 +216,7 @@ class AcademicYearsTest {
 
     @Test
     fun allYearsFilterShowsEveryYearInTranscriptsAndStudyPlan() = runViewModelTest {
-        val source = AcademicSource(listOf(1, 2, 3))
+        val source = AcademicSource(listOf(1, 2, 3)).asUniRepository(backgroundScope)
         val transcripts = TranscriptsViewModel(source)
         val studyPlan = StudyPlanViewModel(source)
         advanceUntilIdle()

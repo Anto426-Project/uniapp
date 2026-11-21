@@ -45,7 +45,7 @@ fun NewsScreen(
 
     UniScreenLazyColumn {
         if (uiState.filters.size > 1) {
-            item(key = "news-filter-chips") {
+            item(key = "news-filter-chips", contentType = "filter-chips") {
                 UniHorizontalChipRow {
                     uiState.filters.forEachIndexed { index, filter ->
                         key(filter) {
@@ -73,7 +73,7 @@ fun NewsScreen(
         }
 
         if (filteredNews.isEmpty()) {
-            item(key = "news-empty-${uiState.selectedTab}-$trimmedQuery") {
+            item(key = "news-empty-${uiState.selectedTab}-$trimmedQuery", contentType = "empty-state") {
                 UniExpressiveStatusState(
                     title = stringResource(Res.string.ui_news_empty_title),
                     description = if (trimmedQuery.isNotBlank()) {
@@ -87,7 +87,7 @@ fun NewsScreen(
             }
         } else {
             if (featuredNews != null) {
-                item(key = "news-featured-${featuredNews.key}") {
+                item(key = "news-featured-${featuredNews.key}", contentType = "featured-news") {
                     UniNewsCard(
                         news = featuredNews,
                         onClick = { onNewsSelected(featuredNews) },
@@ -98,7 +98,7 @@ fun NewsScreen(
 
             if (listNews.isNotEmpty()) {
                 val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
-                item(key = "news-section-header-${uiState.selectedTab}-$showFeaturedLead") {
+                item(key = "news-section-header-${uiState.selectedTab}-$showFeaturedLead", contentType = "section-header") {
                     val activeLabel = when (activeFilter) {
                         NewsFilter.University -> stringResource(Res.string.ui_news_university)
                         NewsFilter.Department -> stringResource(Res.string.ui_news_department)

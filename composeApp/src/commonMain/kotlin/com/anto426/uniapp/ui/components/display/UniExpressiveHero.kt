@@ -1,6 +1,5 @@
 package com.anto426.uniapp.ui.components.display
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -17,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -60,74 +60,69 @@ fun UniExpressiveHeroFrame(
     ) {
         // Offscreen compositing so BlendMode.Clear cleanly erases the ring intersection behind the badge
         // without drawing any opaque circle background over the Liquid Aurora scene.
-        Canvas(
+        Box(
             modifier = Modifier
                 .width(236.dp)
                 .height(164.dp)
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
-        ) {
-            val w = size.width
-            val h = size.height
-            val centerPoint = Offset(w * 0.50f, h * 0.48f)
-            val mainRadius = (ringSize / 2f).toPx()
-            val badgeRadius = (badgeSize / 2f).toPx()
-            val strokePx = 5.dp.toPx()
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithCache {
+                    val w = size.width
+                    val h = size.height
+                    val centerPoint = Offset(w * 0.50f, h * 0.48f)
+                    val mainRadius = (ringSize / 2f).toPx()
+                    val badgeRadius = (badgeSize / 2f).toPx()
+                    val strokePx = 5.dp.toPx()
+                    val ringStroke = Stroke(width = strokePx)
+                    val cloverPath = buildScallopedPath(
+                        center = Offset(w * 0.15f, h * 0.19f),
+                        radius = 18.dp.toPx(),
+                        lobes = 4,
+                        amplitude = 0.13f,
+                        phaseRadians = 0.25f,
+                    )
+                    val starburstPath = buildScallopedPath(
+                        center = Offset(w * 0.15f, h * 0.78f),
+                        radius = 17.dp.toPx(),
+                        lobes = 12,
+                        amplitude = 0.16f,
+                        phaseRadians = 0f,
+                    )
+                    val pebbleCenter = Offset(w * 0.86f, h * 0.28f)
+                    val pebbleTopLeft = Offset(pebbleCenter.x - 15.dp.toPx(), pebbleCenter.y - 11.dp.toPx())
+                    val pebbleSize = Size(30.dp.toPx(), 22.dp.toPx())
+                    val badgeCenter = Offset(
+                        x = centerPoint.x + badgeOffsetX.toPx(),
+                        y = centerPoint.y + badgeOffsetY.toPx(),
+                    )
+                    val clearRadius = badgeRadius + strokePx * 0.45f
 
-            drawPath(
-                path = buildScallopedPath(
-                    center = Offset(w * 0.15f, h * 0.19f),
-                    radius = 18.dp.toPx(),
-                    lobes = 4,
-                    amplitude = 0.13f,
-                    phaseRadians = 0.25f,
-                ),
-                color = cloverTint,
-            )
-
-            drawPath(
-                path = buildScallopedPath(
-                    center = Offset(w * 0.15f, h * 0.78f),
-                    radius = 17.dp.toPx(),
-                    lobes = 12,
-                    amplitude = 0.16f,
-                    phaseRadians = 0f,
-                ),
-                color = starburstTint,
-            )
-
-            val pebbleCenter = Offset(w * 0.86f, h * 0.28f)
-            rotate(degrees = 24f, pivot = pebbleCenter) {
-                drawOval(
-                    color = pebbleTint,
-                    topLeft = Offset(pebbleCenter.x - 15.dp.toPx(), pebbleCenter.y - 11.dp.toPx()),
-                    size = Size(30.dp.toPx(), 22.dp.toPx()),
-                )
-            }
-
-            drawCircle(
-                color = ringColor,
-                radius = mainRadius,
-                center = centerPoint,
-                style = Stroke(width = strokePx),
-            )
-
-            val badgeCenter = Offset(
-                x = centerPoint.x + badgeOffsetX.toPx(),
-                y = centerPoint.y + badgeOffsetY.toPx(),
-            )
-            drawCircle(
-                color = Color.Transparent,
-                radius = badgeRadius + strokePx * 0.45f,
-                center = badgeCenter,
-                blendMode = BlendMode.Clear,
-            )
-            drawCircle(
-                color = ringColor,
-                radius = badgeRadius,
-                center = badgeCenter,
-                style = Stroke(width = strokePx),
-            )
-        }
+                    onDrawBehind {
+                        drawPath(path = cloverPath, color = cloverTint)
+                        drawPath(path = starburstPath, color = starburstTint)
+                        rotate(degrees = 24f, pivot = pebbleCenter) {
+                            drawOval(color = pebbleTint, topLeft = pebbleTopLeft, size = pebbleSize)
+                        }
+                        drawCircle(
+                            color = ringColor,
+                            radius = mainRadius,
+                            center = centerPoint,
+                            style = ringStroke,
+                        )
+                        drawCircle(
+                            color = Color.Transparent,
+                            radius = clearRadius,
+                            center = badgeCenter,
+                            blendMode = BlendMode.Clear,
+                        )
+                        drawCircle(
+                            color = ringColor,
+                            radius = badgeRadius,
+                            center = badgeCenter,
+                            style = ringStroke,
+                        )
+                    }
+                },
+        )
 
         Box(
             modifier = Modifier

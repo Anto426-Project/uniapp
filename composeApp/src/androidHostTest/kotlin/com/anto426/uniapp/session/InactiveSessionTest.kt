@@ -4,6 +4,7 @@ import com.anto426.securestorage.SecureStorageManager
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.storage.MemorySecureStorageFactory
 import com.anto426.uniapp.account.storage.UniAccountStore
+import com.anto426.uniapp.data.UniSessionController
 import com.anto426.uniapp.data.local.EncryptedUniLocalDataStore
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.unisdk.backend.RemoteUniBackendService
@@ -118,7 +119,7 @@ class InactiveSessionTest {
         val accountId: String
             get() = assertIs<AppSessionState.Authenticated>(sessions.state.value).account.accountId
 
-        fun sessionManager() = SessionManager(backend, store, EncryptedUniLocalDataStore(store)) { owner ->
+        fun sessionManager() = UniSessionController(backend, store, EncryptedUniLocalDataStore(store)) { owner ->
             notificationOwner = owner
         }
 

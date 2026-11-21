@@ -1,5 +1,6 @@
 package com.anto426.uniapp.ui.settings
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,13 +28,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -426,6 +433,9 @@ fun ThemeScreen(
         else -> stringResource(uiState.themes.getOrNull(uiState.selectedThemeIndex)?.nameRes ?: Res.string.ui_theme_palette_dynamic)
     }
 
+    val haptics = LocalHapticFeedback.current
+    val colorScheme = MaterialTheme.colorScheme
+
     UniScreenColumn {
         // 1. Live UniApp Monet Preview Card
         LiveThemePreviewCard(
@@ -446,12 +456,15 @@ fun ThemeScreen(
         ) {
             modeEntries.forEach { (mode, title, icon) ->
                 val isSelected = uiState.themeMode == mode
-                val colorScheme = MaterialTheme.colorScheme
                 LiquidCard(
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .semantics(mergeDescendants = true) { selected = isSelected },
+                        .defaultMinSize(minHeight = 48.dp)
+                        .semantics(mergeDescendants = true) {
+                            role = Role.RadioButton
+                            selected = isSelected
+                        },
                     shape = Capsule(),
                     border = BorderStroke(
                         width = if (isSelected) 1.5.dp else 0.75.dp,
@@ -460,7 +473,12 @@ fun ThemeScreen(
                     colors = LiquidCardDefaults.colors(
                         containerColor = if (isSelected) colorScheme.primary.copy(alpha = 0.14f) else Color.Transparent,
                     ),
-                    onClick = { onThemeModeSelected(mode) },
+                    onClick = {
+                        if (!isSelected) {
+                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            onThemeModeSelected(mode)
+                        }
+                    },
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -525,8 +543,11 @@ fun ThemeScreen(
             UniInsetRow(
                 title = stringResource(Res.string.ui_theme_reset_short),
                 icon = LiquidIcons.Refresh,
-                iconTint = MaterialTheme.colorScheme.primary,
-                onClick = onReset,
+                iconTint = colorScheme.primary,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onReset()
+                },
                 showDivider = false,
             )
         }
@@ -540,10 +561,16 @@ private fun LiveThemePreviewCard(
     backgroundTitle: String,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val primaryState = animateColorAsState(targetValue = colorScheme.primary, label = "themePreviewPrimary")
+    val secondaryState = animateColorAsState(targetValue = colorScheme.secondary, label = "themePreviewSecondary")
+    val tertiaryState = animateColorAsState(targetValue = colorScheme.tertiary, label = "themePreviewTertiary")
+    val cardShape = remember { RoundedRectangle(26.dp) }
+    val tileShape = remember { RoundedRectangle(16.dp) }
+
     LiquidCard(
         contentPadding = PaddingValues(18.dp),
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedRectangle(26.dp),
+        shape = cardShape,
         border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.24f)),
     ) {
         Column(
@@ -601,7 +628,7 @@ private fun LiveThemePreviewCard(
                 LiquidCard(
                     contentPadding = PaddingValues(12.dp),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedRectangle(16.dp),
+                    shape = tileShape,
                     border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -621,7 +648,7 @@ private fun LiveThemePreviewCard(
                                 .fillMaxWidth(0.72f)
                                 .height(6.dp)
                                 .clip(Capsule())
-                                .background(colorScheme.primary),
+                                .drawBehind { drawRect(primaryState.value) },
                         )
                     }
                 }
@@ -629,7 +656,7 @@ private fun LiveThemePreviewCard(
                 LiquidCard(
                     contentPadding = PaddingValues(12.dp),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedRectangle(16.dp),
+                    shape = tileShape,
                     border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -642,16 +669,16 @@ private fun LiveThemePreviewCard(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            TokenDot(color = colorScheme.primary)
-                            TokenDot(color = colorScheme.secondary)
-                            TokenDot(color = colorScheme.tertiary)
+                            TokenDot(colorState = primaryState)
+                            TokenDot(colorState = secondaryState)
+                            TokenDot(colorState = tertiaryState)
                         }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(0.55f)
                                 .height(6.dp)
                                 .clip(Capsule())
-                                .background(colorScheme.secondary.copy(alpha = 0.70f)),
+                                .drawBehind { drawRect(secondaryState.value.copy(alpha = 0.70f)) },
                         )
                     }
                 }
@@ -661,12 +688,12 @@ private fun LiveThemePreviewCard(
 }
 
 @Composable
-private fun TokenDot(color: Color) {
+private fun TokenDot(colorState: State<Color>) {
     Box(
         modifier = Modifier
             .size(18.dp)
             .clip(CircleShape)
-            .background(color),
+            .drawBehind { drawRect(colorState.value) },
     )
 }
 
@@ -706,6 +733,7 @@ private fun ThemeColorGroup(
             },
         )
 
+        val haptics = LocalHapticFeedback.current
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -719,8 +747,8 @@ private fun ThemeColorGroup(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
                         .defaultMinSize(minHeight = 48.dp)
+                        .height(48.dp)
                         .clip(Capsule())
                         .background(swatchColor.copy(alpha = if (isSelected) 1f else 0.78f))
                         .border(
@@ -728,14 +756,22 @@ private fun ThemeColorGroup(
                             color = if (isSelected) colorScheme.onSurface else Color.White.copy(alpha = 0.24f),
                             shape = Capsule(),
                         )
-                        .clickable(role = Role.RadioButton) { onThemeSelected(themeIndex) }
-                        .semantics { selected = isSelected },
+                        .clickable(role = Role.RadioButton) {
+                            if (!isSelected) {
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onThemeSelected(themeIndex)
+                            }
+                        }
+                        .semantics {
+                            selected = isSelected
+                            contentDescription = themeName
+                        },
                     contentAlignment = Alignment.Center,
                 ) {
                     if (isSelected) {
                         Icon(
                             imageVector = LiquidIcons.Check,
-                            contentDescription = themeName,
+                            contentDescription = null,
                             tint = if (swatchColor.luminance() > 0.48f) Color.Black else Color.White,
                             modifier = Modifier.size(18.dp),
                         )
@@ -964,6 +1000,7 @@ private fun <T> ThemeDropdownRow(
     onItemSelected: (T) -> Unit,
     showDivider: Boolean,
 ) {
+    val haptics = LocalHapticFeedback.current
     var expanded by remember { mutableStateOf(false) }
     val anchorState = rememberLiquidGlassOverlayAnchorState()
     Box(modifier = Modifier.fillMaxWidth().liquidGlassOverlayAnchor(anchorState)) {
@@ -972,7 +1009,10 @@ private fun <T> ThemeDropdownRow(
             subtitle = selected.title,
             icon = icon,
             iconTint = iconTint,
-            onClick = { expanded = !expanded },
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                expanded = !expanded
+            },
             showDivider = showDivider,
             trailingContent = {
                 Icon(
@@ -995,6 +1035,7 @@ private fun <T> ThemeDropdownRow(
                     supportingText = choice.description,
                     selected = choice.value == selected.value,
                     onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         onItemSelected(choice.value)
                         expanded = false
                     },

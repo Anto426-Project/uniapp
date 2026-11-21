@@ -70,7 +70,26 @@ internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnv
                 )
         AppInfoProvider.initialize(info)
         PlatformAppUpdateEnvironment(
-            installedBuild = info,
+            installedBuild = InstalledAppBuild(
+                versionName = info.versionName,
+                versionCode = info.versionCode,
+                isDebuggable = info.isDebuggable,
+                applicationId = info.applicationId,
+                name = info.name,
+                platform = info.platform,
+                osVersion = info.osVersion,
+                deviceModel = info.deviceModel,
+                sourceRevision = info.sourceRevision,
+                appStoreUrl = info.appStoreUrl,
+                modules = info.modules.map {
+                    com.anto426.uniapp.updates.model.UniAppModuleBuildInfo(
+                        name = it.name,
+                        version = it.version,
+                        revision = it.revision,
+                        hasLocalChanges = it.hasLocalChanges,
+                    )
+                },
+            ),
             launcher = AndroidDirectUpdateLauncher(context),
         )
     }

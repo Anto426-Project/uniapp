@@ -1,6 +1,5 @@
 package com.anto426.uniapp.ui.components.display
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,11 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -63,48 +61,54 @@ fun UniCircularProgressRing(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val performance = LocalLiquidGlassPerformance.current
-    val animatedProgress by animateLiquidFloatAsState(
+    val animatedProgressState = animateLiquidFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
         animationSpec = remember(performance) { LiquidMotion.spatialSpring<Float>(performance) },
         label = "uniCircularProgress",
     )
+    val trackColor = colorScheme.onSurface.copy(alpha = 0.09f)
 
     Box(
-        modifier = modifier.size(size),
+        modifier = modifier
+            .size(size)
+            .drawWithCache {
+                val strokePx = strokeWidth.toPx()
+                val inset = strokePx / 2f
+                val arcSize = Size(this.size.width - strokePx, this.size.height - strokePx)
+                val topLeft = Offset(inset, inset)
+                val arcStroke = Stroke(width = strokePx, cap = StrokeCap.Round)
+                val arcBrush = Brush.linearGradient(
+                    colors = listOf(primaryColor, secondaryColor),
+                    start = Offset(0f, 0f),
+                    end = Offset(this.size.width, this.size.height),
+                )
+                onDrawBehind {
+                    drawArc(
+                        color = trackColor,
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = arcSize,
+                        style = arcStroke,
+                    )
+
+                    val currentProgress = animatedProgressState.value
+                    if (currentProgress > 0.005f) {
+                        drawArc(
+                            brush = arcBrush,
+                            startAngle = -90f,
+                            sweepAngle = currentProgress * 360f,
+                            useCenter = false,
+                            topLeft = topLeft,
+                            size = arcSize,
+                            style = arcStroke,
+                        )
+                    }
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokePx = strokeWidth.toPx()
-            val inset = strokePx / 2f
-            val arcSize = Size(this.size.width - strokePx, this.size.height - strokePx)
-            val topLeft = Offset(inset, inset)
-
-            drawArc(
-                color = colorScheme.onSurface.copy(alpha = 0.09f),
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = strokePx, cap = StrokeCap.Round),
-            )
-
-            if (animatedProgress > 0.005f) {
-                drawArc(
-                    brush = Brush.linearGradient(
-                        colors = listOf(primaryColor, secondaryColor),
-                        start = Offset(0f, 0f),
-                        end = Offset(this.size.width, this.size.height),
-                    ),
-                    startAngle = -90f,
-                    sweepAngle = animatedProgress * 360f,
-                    useCenter = false,
-                    topLeft = topLeft,
-                    size = arcSize,
-                    style = Stroke(width = strokePx, cap = StrokeCap.Round),
-                )
-            }
-        }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(

@@ -47,18 +47,6 @@ enum class ExamHistoryFilter {
     BOOKED_PAST,
 }
 
-@Composable
-fun ExamsHistoryScreen(uiState: ExamsHistoryUiState) {
-    var filter by rememberSaveable { mutableStateOf(ExamHistoryFilter.ALL) }
-    UniScreenLazyColumn {
-        examsHistoryContentItems(
-            uiState = uiState,
-            filter = filter,
-            onFilterSelected = { filter = it },
-        )
-    }
-}
-
 fun LazyListScope.examsHistoryContentItems(
     uiState: ExamsHistoryUiState,
     filter: ExamHistoryFilter,
@@ -74,7 +62,7 @@ fun LazyListScope.examsHistoryContentItems(
     }
 
     if (uiState.exams.isEmpty()) {
-        item(key = "history-empty") {
+        item(key = "history-empty", contentType = "empty-state") {
             UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_history_empty_title),
                 description = stringResource(Res.string.ui_history_empty_desc),
@@ -84,7 +72,7 @@ fun LazyListScope.examsHistoryContentItems(
         }
     } else {
         if (verbalizedCount > 0 && pastBookedCount > 0) {
-            item(key = "history-filters") {
+            item(key = "history-filters", contentType = "filter-chips") {
                 val options = listOf(
                     Triple(ExamHistoryFilter.ALL, stringResource(Res.string.ui_exams_all_filter), uiState.exams.size),
                     Triple(ExamHistoryFilter.VERBALIZED, stringResource(Res.string.ui_exams_history_verbalized_count), verbalizedCount),
@@ -106,7 +94,7 @@ fun LazyListScope.examsHistoryContentItems(
             }
         }
 
-        item(key = "history-header") {
+        item(key = "history-header", contentType = "section-header") {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_exams_history_kicker),
                 subtitle = stringResource(Res.string.ui_professor_rounds_count, displayedExams.size),
@@ -118,6 +106,7 @@ fun LazyListScope.examsHistoryContentItems(
             key = { index, exam ->
                 "history|${exam.id}|${exam.date}|${exam.time}|$index"
             },
+            contentType = { _, _ -> "past-exam" },
         ) { _, exam ->
             PastExamItem(exam)
         }

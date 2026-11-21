@@ -7,6 +7,7 @@ import com.anto426.securestorage.getString
 import com.anto426.securestorage.putString
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.uniapp.data.profileCacheKey
 import com.anto426.unisdk.session.UniSessionTicket
 import com.anto426.unisdk.session.UniUserProfile
@@ -110,7 +111,7 @@ class UniAccountStoreTest {
         assertEquals(firstAccount.accountId, secondAccount.accountId)
         assertEquals(1, accounts.size)
         assertEquals(setOf("career-a", "professor-a"), accounts.single().profiles.map { it.profileId }.toSet())
-        assertEquals(CareerType.PROFESSOR, accounts.single().activeProfileType)
+        assertEquals(UniProfileRole.PROFESSOR, accounts.single().activeProfileType)
     }
 
     @Test

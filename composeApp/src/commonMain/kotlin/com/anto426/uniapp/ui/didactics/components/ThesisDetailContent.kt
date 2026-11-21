@@ -22,18 +22,18 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.model.didactics.AcademicContentItem
 import com.anto426.uniapp.model.didactics.ThesisData
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.model.ProfessorContentItem
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun ThesisDetailContent(
-    item: ProfessorContentItem,
+    item: AcademicContentItem,
     thesis: ThesisData,
 ) {
     val colorScheme = MaterialTheme.colorScheme

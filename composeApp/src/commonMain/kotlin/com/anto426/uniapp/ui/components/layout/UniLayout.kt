@@ -156,7 +156,7 @@ fun UniScreenColumn(
                 bottom = padding.calculateBottomPadding() + 8.dp,
             ),
     ) {
-        item(key = "screen-content") {
+        item(key = "screen-content", contentType = "screen-content") {
             Column(
                 modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -181,84 +181,4 @@ fun UniScreenLazyColumn(content: LazyListScope.() -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
     )
-}
-
-
-/**
- * A decorative card inspired by a well-known slogan, adapted for UniApp.
- */
-@Composable
-fun UniNeverSettleCard(
-    modifier: Modifier = Modifier,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    LiquidCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedRectangle(32.dp),
-        colors = LiquidCardDefaults.colors(
-            containerColor = colorScheme.primaryContainer.copy(alpha = 0.15f)
-        ),
-        contentPadding = 24.dp,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(Res.string.ui_brand_experience),
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp
-                    ),
-                    color = colorScheme.primary.copy(alpha = 0.8f)
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "NEVER",
-                        style = MaterialTheme.typography.displaySmall.copy(
-                            fontWeight = FontWeight.Black,
-                            fontSize = 32.sp,
-                            letterSpacing = (-1).sp
-                        ),
-                        color = colorScheme.onSurface
-                    )
-
-                    Surface(
-                        color = colorScheme.primary,
-                        shape = RoundedRectangle(12.dp)
-                    ) {
-                        Text(
-                            text = "SETTLE",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 0.5.sp
-                            ),
-                            color = colorScheme.onPrimary,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(colorScheme.primary.copy(alpha = 0.1f), RoundedRectangle(14.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Star,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
 }

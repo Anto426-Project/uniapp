@@ -1,13 +1,15 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.liquidmonet.components.charts.model.LiquidChartEntry
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.data.toGradeExams
 import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.didactics.data.GradeSimulationRepository
@@ -239,7 +241,7 @@ data class GradesUiState(
 }
 
 internal class GradesViewModel(
-    dataSource: UniAppDataSource,
+    dataSource: UniGateway,
     private val simulationRepository: GradeSimulationRepository,
     private val simulationOwner: LocalDataScope,
     private val toastSink: AppToastSink,
@@ -249,14 +251,15 @@ internal class GradesViewModel(
     private var simulationWriteRevision = 0L
     val uiState: StateFlow<GradesUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Career, UniAppDataRequests.StudyPlan, UniAppDataRequests.Exams)
+    private val repository = dataSource.asUniRepository(viewModelScope, simulations = simulationRepository)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Career, UniDatasets.StudyPlan, UniDatasets.Exams)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val career = snapshot.require(UniAppDataRequests.Career)
-            val studyPlan = runCatching { snapshot.require(UniAppDataRequests.StudyPlan) }.getOrNull()
-            val examRounds = runCatching { snapshot.require(UniAppDataRequests.Exams) }.getOrNull().orEmpty()
+            val career = snapshot.require(UniDatasets.Career)
+            val studyPlan = runCatching { snapshot.require(UniDatasets.StudyPlan) }.getOrNull()
+            val examRounds = runCatching { snapshot.require(UniDatasets.Exams) }.getOrNull().orEmpty()
 
             val currentExams = career.toGradeExams()
             val targetCfu = career.cfuTarget ?: 180
@@ -285,8 +288,8 @@ internal class GradesViewModel(
             mutableUiState.update { state ->
                 state.copy(
                     currentExams = currentExams,
-                    officialAverage = career.average.academicNumber(),
-                    officialDegreeBase = career.degreeBase.academicNumber(),
+                    officialAverage = career.averageValue,
+                    officialDegreeBase = career.degreeBaseValue,
                     simulationItems = suggested + draft.values.filter { it.isCustom },
                     degreeCfuTarget = targetCfu,
                     loadState = FeatureLoadState.Content,
@@ -298,7 +301,7 @@ internal class GradesViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_voti_e_simulazione) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_voti_e_simulazione) },
             )
         }
 
@@ -333,7 +336,7 @@ internal class GradesViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                val message = getString(Res.string.msg_impossibile_salvare_la_simulazione)
+                val message = readAppString(Res.string.msg_impossibile_salvare_la_simulazione)
                 if (revision == simulationWriteRevision) toastSink.error(message)
             }
         }

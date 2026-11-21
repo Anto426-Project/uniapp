@@ -30,7 +30,6 @@ import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniRemoteAvatar
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.platform.ProjectInfo
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -43,10 +42,10 @@ internal fun CreatorCreditsScreen(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val author = state.data?.author
-    val creatorName = author?.name?.takeIf(String::isNotBlank) ?: ProjectInfo.authorLogin
-    val creatorHandle = "@${author?.login ?: ProjectInfo.authorLogin}"
-    val creator = state.data?.contributors.orEmpty().firstOrNull { it.login.equals(ProjectInfo.authorLogin, true) }
-    val contributors = state.data?.contributors.orEmpty().filterNot { it.login.equals(ProjectInfo.authorLogin, true) }
+    val creatorName = author?.name?.takeIf(String::isNotBlank) ?: state.authorLogin
+    val creatorHandle = "@${author?.login ?: state.authorLogin}"
+    val creator = state.data?.contributors.orEmpty().firstOrNull { it.login.equals(state.authorLogin, true) }
+    val contributors = state.data?.contributors.orEmpty().filterNot { it.login.equals(state.authorLogin, true) }
     val rowShape = remember { RoundedRectangle(16.dp) }
 
     UniScreenColumn(modifier = modifier) {
@@ -197,7 +196,7 @@ internal fun CreatorCreditsScreen(
 
                 LiquidButton(
                     text = stringResource(Res.string.ui_project_github_profile),
-                    onClick = { onOpenLink(ProjectInfo.authorUrl) },
+                    onClick = { onOpenLink(state.authorUrl) },
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.onPrimaryContainer,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),

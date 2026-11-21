@@ -1,5 +1,6 @@
 package com.anto426.uniapp.project.data
 
+import com.anto426.uniapp.data.GitHubProjectClient
 import com.anto426.uniapp.project.model.*
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -30,7 +31,7 @@ class GitHubProjectRepositoryTest {
                 else -> respond("""{"id":3,"name":"uniapp","full_name":"Anto426-Project/uniapp","html_url":"https://github.com/Anto426-Project/uniapp","license":null}""")
             }
         })
-        val repository = GitHubProjectRepository(client) { 1234 }
+        val repository = GitHubProjectClient(client) { 1234 }
         try {
             val result = repository.load()
             assertEquals(2, result.repositories.size)
@@ -50,7 +51,7 @@ class GitHubProjectRepositoryTest {
             author = GitHubAuthor("Anto426", url = "https://github.com/Anto426"),
             contributors = listOf(GitHubContributor(login = "Existing", contributions = 4)), fetchedAt = 100,
         )
-        val repository = GitHubProjectRepository(HttpClient(MockEngine { respond("{}", HttpStatusCode.Forbidden) }))
+        val repository = GitHubProjectClient(HttpClient(MockEngine { respond("{}", HttpStatusCode.Forbidden) }))
         try {
             val result = repository.load(cached)
             assertTrue(result.incomplete)
@@ -61,7 +62,7 @@ class GitHubProjectRepositoryTest {
 
     @Test
     fun cancellationIsPropagated() = runTest {
-        val repository = GitHubProjectRepository(HttpClient(MockEngine { throw CancellationException("cancelled") }))
+        val repository = GitHubProjectClient(HttpClient(MockEngine { throw CancellationException("cancelled") }))
         try { assertFailsWith<CancellationException> { repository.load() } }
         finally { repository.close() }
     }

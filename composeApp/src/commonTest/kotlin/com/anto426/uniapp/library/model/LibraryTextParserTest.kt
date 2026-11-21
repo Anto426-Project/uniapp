@@ -1,5 +1,7 @@
 package com.anto426.uniapp.library.model
 
+import com.anto426.unisdk.library.LibraryTextParser
+import com.anto426.unisdk.library.ParsedLibraryBookCopyAction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -83,9 +85,9 @@ class LibraryTextParserTest {
             id = "MOL00065117",
             title = "Informatica : arte e mestiere",
             rawDescription = "Informatica : arte e mestiere Ceri, Stefano 1999 Documento disponibile Inventario D1 1225 Collocazione PE SL004 CERIS Note 1 v.",
-            actions = listOf(LibraryBookCopyAction("a1", "Richiesta", "MOLBA", "Pesche", "RPE")),
+            actions = listOf(ParsedLibraryBookCopyAction("a1", "Richiesta", "MOLBA", "Pesche", "RPE")),
         )
-        assertTrue(detail.isAvailable)
+        assertTrue(detail.hasAvailableDocument)
         assertEquals("D1 1225", detail.inventory)
         assertEquals("PE SL004 CERIS", detail.shelfmark)
         assertEquals("1 v.", detail.notes)

@@ -50,7 +50,6 @@ import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.settings.presentation.SettingsUiState
 import com.anto426.uniapp.security.biometric.BiometricAvailability
-import com.anto426.unisdk.platform.AppInfoProvider
 
 @Composable
 fun SettingsScreen(
@@ -95,8 +94,7 @@ fun SettingsScreen(
     val activeAccount = accountUiState.accounts.firstOrNull { it.accountId == accountUiState.activeAccountId }
         ?: accountUiState.accounts.firstOrNull()
 
-    val appInfo by AppInfoProvider.info.collectAsState()
-    val realVersion = installedVersion.ifBlank { appInfo.versionName.ifBlank { "2.0" } }
+    val realVersion = installedVersion.ifBlank { "2.0" }
     val hasUpdateAvailable = !updateSubtitle.isNullOrBlank()
     val effectiveUpdateSubtitle = stringResource(Res.string.ui_version_number, realVersion)
 

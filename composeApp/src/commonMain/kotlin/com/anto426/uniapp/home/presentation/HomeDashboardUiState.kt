@@ -1,6 +1,6 @@
 package com.anto426.uniapp.home.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.compose.runtime.Immutable

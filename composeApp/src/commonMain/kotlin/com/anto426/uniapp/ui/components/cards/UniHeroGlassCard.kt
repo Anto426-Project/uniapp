@@ -4,7 +4,6 @@ import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,17 +18,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -304,60 +306,62 @@ fun UniHeroFluidBackground(
         } else null
     }
 
-    Canvas(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .alpha(alpha),
-    ) {
-        val shaderDrawn = shader?.let { runtimeShader ->
-            try {
-                runtimeShader.setFloatUniform("resolution", size.width, size.height)
-                runtimeShader.setFloatUniform("time", movement * 6.28318f)
-                runtimeShader.setColorUniform("primaryColor", palette.cool)
-                runtimeShader.setColorUniform("secondaryColor", palette.violet)
-                runtimeShader.setColorUniform("tertiaryColor", palette.warm)
-                runtimeShader.setColorUniform("glowColor", palette.glow)
-                runtimeShader.setColorUniform("baseColor", baseColor)
-                drawRect(brush = ShaderBrush(runtimeShader.asComposeShader()))
-                true
-            } catch (error: Throwable) {
-                logUniAppShaderError("Unable to draw hero card AGSL shader", error)
-                false
-            }
-        } ?: false
+            .graphicsLayer { this.alpha = alpha }
+            .drawWithCache {
+                val cachedShaderBrush = shader?.let { runtimeShader ->
+                    try {
+                        runtimeShader.setFloatUniform("resolution", size.width, size.height)
+                        runtimeShader.setFloatUniform("time", movement * 6.28318f)
+                        runtimeShader.setColorUniform("primaryColor", palette.cool)
+                        runtimeShader.setColorUniform("secondaryColor", palette.violet)
+                        runtimeShader.setColorUniform("tertiaryColor", palette.warm)
+                        runtimeShader.setColorUniform("glowColor", palette.glow)
+                        runtimeShader.setColorUniform("baseColor", baseColor)
+                        ShaderBrush(runtimeShader.asComposeShader())
+                    } catch (error: Throwable) {
+                        logUniAppShaderError("Unable to draw hero card AGSL shader", error)
+                        null
+                    }
+                }
 
-        if (!shaderDrawn) {
-            val upperTop = lerp(baseColor, palette.violet, 0.28f)
-            val upperEdge = lerp(lerp(palette.cool, palette.glow, 0.72f), Color.White, 0.14f)
-            drawRect(color = lerp(baseColor, palette.violet, 0.42f))
-            val upperDiag = androidx.compose.ui.graphics.Path().apply {
-                moveTo(0f, 0f)
-                lineTo(size.width, 0f)
-                lineTo(size.width, size.height * 0.90f)
-                lineTo(0f, size.height * 0.56f)
-                close()
-            }
-            drawPath(
-                path = upperDiag,
-                brush = Brush.verticalGradient(
-                    colors = listOf(upperTop, lerp(baseColor, palette.cool, 0.72f), upperEdge),
-                    startY = 0f,
-                    endY = size.height * 0.90f,
-                ),
-            )
-            val domeCenter = Offset(size.width * 0.16f, size.height * 1.02f)
-            val domeRadius = size.minDimension * 0.50f
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(lerp(baseColor, palette.warm, 0.84f), lerp(palette.glow, Color.White, 0.16f)),
-                    center = domeCenter,
-                    radius = domeRadius,
-                ),
-                radius = domeRadius,
-                center = domeCenter,
-            )
-        }
-    }
+                if (cachedShaderBrush != null) {
+                    onDrawBehind {
+                        drawRect(brush = cachedShaderBrush)
+                    }
+                } else {
+                    val baseFill = lerp(baseColor, palette.violet, 0.42f)
+                    val upperTop = lerp(baseColor, palette.violet, 0.28f)
+                    val upperEdge = lerp(lerp(palette.cool, palette.glow, 0.72f), Color.White, 0.14f)
+                    val upperDiag = Path().apply {
+                        moveTo(0f, 0f)
+                        lineTo(size.width, 0f)
+                        lineTo(size.width, size.height * 0.90f)
+                        lineTo(0f, size.height * 0.56f)
+                        close()
+                    }
+                    val upperBrush = Brush.verticalGradient(
+                        colors = listOf(upperTop, lerp(baseColor, palette.cool, 0.72f), upperEdge),
+                        startY = 0f,
+                        endY = size.height * 0.90f,
+                    )
+                    val domeCenter = Offset(size.width * 0.16f, size.height * 1.02f)
+                    val domeRadius = size.minDimension * 0.50f
+                    val domeBrush = Brush.radialGradient(
+                        colors = listOf(lerp(baseColor, palette.warm, 0.84f), lerp(palette.glow, Color.White, 0.16f)),
+                        center = domeCenter,
+                        radius = domeRadius,
+                    )
+                    onDrawBehind {
+                        drawRect(color = baseFill)
+                        drawPath(path = upperDiag, brush = upperBrush)
+                        drawCircle(brush = domeBrush, radius = domeRadius, center = domeCenter)
+                    }
+                }
+            },
+    )
 }
 
 /**
@@ -392,19 +396,22 @@ fun UniHeroPureGlassLens(
         refractionAmount = 44.dp,
         containerColor = Color.Transparent,
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.08f),
-                        Color.White.copy(alpha = 0.02f),
-                        Color.Transparent,
-                    ),
-                    center = Offset(size.width * 0.28f, size.height * 0.20f),
-                    radius = size.maxDimension * 0.94f,
-                ),
-            )
-        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawWithCache {
+                    val sheenBrush = Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.02f),
+                            Color.Transparent,
+                        ),
+                        center = Offset(size.width * 0.28f, size.height * 0.20f),
+                        radius = size.maxDimension * 0.94f,
+                    )
+                    onDrawBehind { drawRect(brush = sheenBrush) }
+                },
+        )
     }
 }
 
@@ -473,11 +480,13 @@ fun UniHeroGlassCard(
     }
 
     val performance = LocalLiquidGlassPerformance.current
-    val rotation by animateLiquidFloatAsState(
+    val rotationState = animateLiquidFloatAsState(
         targetValue = if (flipped) 180f else 0f,
         animationSpec = remember(performance) { LiquidMotion.spatialSpring<Float>(performance) },
         label = "heroCardFlipRotation",
     )
+    // Only recompose once at the 90° midpoint instead of every animation tick.
+    val showFront by remember(rotationState) { derivedStateOf { rotationState.value <= 90f } }
 
     val cardArtworkBackdrop = rememberLayerBackdrop()
 
@@ -511,7 +520,7 @@ fun UniHeroGlassCard(
             .fillMaxWidth()
             .heightIn(min = height)
             .graphicsLayer {
-                rotationY = rotation
+                rotationY = rotationState.value
                 cameraDistance = 14f * density
             },
         shape = shape,
@@ -551,7 +560,7 @@ fun UniHeroGlassCard(
             }
 
             // 3. Facce della card in base alla rotazione
-            if (rotation <= 90f) {
+            if (showFront) {
                 Box(
                     modifier = Modifier.fillMaxWidth().heightIn(min = height),
                     propagateMinConstraints = true,
@@ -571,22 +580,32 @@ fun UniHeroGlassCard(
             }
 
             // 4. Bordo perimetrale di cristallo speculare
-            Canvas(modifier = Modifier.matchParentSize()) {
-                drawRoundRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.42f),
-                            Color.White.copy(alpha = 0.10f),
-                            Color.White.copy(alpha = 0.03f),
-                            Color.White.copy(alpha = 0.28f),
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, size.height),
-                    ),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius.toPx(), cornerRadius.toPx()),
-                    style = Stroke(width = 1.2.dp.toPx()),
-                )
-            }
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .drawWithCache {
+                        val rimBrush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.42f),
+                                Color.White.copy(alpha = 0.10f),
+                                Color.White.copy(alpha = 0.03f),
+                                Color.White.copy(alpha = 0.28f),
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(size.width, size.height),
+                        )
+                        val radiusPx = cornerRadius.toPx()
+                        val corner = CornerRadius(radiusPx, radiusPx)
+                        val stroke = Stroke(width = 1.2.dp.toPx())
+                        onDrawBehind {
+                            drawRoundRect(
+                                brush = rimBrush,
+                                cornerRadius = corner,
+                                style = stroke,
+                            )
+                        }
+                    },
+            )
         }
     }
 }

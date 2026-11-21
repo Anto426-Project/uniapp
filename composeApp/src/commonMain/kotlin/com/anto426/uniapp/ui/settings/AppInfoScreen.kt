@@ -14,15 +14,16 @@ import com.anto426.uniapp.ui.components.banners.UniAppInfoBanner
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.updates.model.InstalledAppBuild
+import com.anto426.uniapp.updates.model.UniAppModuleBuildInfo
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
-import com.anto426.unisdk.platform.AppInfoProvider
-import com.anto426.unisdk.platform.AppModuleInfo
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun AppInfoScreen(
     updateUiState: AppUpdateUiState? = null,
+    installedBuild: InstalledAppBuild = InstalledAppBuild(),
     onOpenAboutUniApp: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenTerms: () -> Unit,
@@ -35,9 +36,11 @@ fun AppInfoScreen(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
-    val appInfo by AppInfoProvider.info.collectAsState()
+    val appInfo = installedBuild
     val isUpdateAvailable = updateUiState?.isUpdateAvailable == true
-    val displayVersion = appInfo.versionName.substringBefore('-').substringBefore('+')
+    val rawVersion = appInfo.versionName.takeUnless { it == "unknown" || it.isBlank() }
+        ?: updateUiState?.installedVersion.orEmpty().ifBlank { "2.0.0" }
+    val displayVersion = rawVersion.substringBefore('-').substringBefore('+')
 
     UniScreenColumn {
         // 1. Hero Brand Card (310dp con flip 3D)
@@ -138,10 +141,10 @@ fun AppInfoScreen(
         // 4. Architettura & Componenti
         UniInsetGroup(title = stringResource(Res.string.ui_info_components)) {
             val defaultModules = listOf(
-                AppModuleInfo("liquid-monet", "2.0.0", "", false),
-                AppModuleInfo("uni-sdk", "2.0.0", "", false),
-                AppModuleInfo("secure-storage-sdk", "2.0.0", "", false),
-                AppModuleInfo("firebase-connector-sdk", "2.0.0", "", false),
+                UniAppModuleBuildInfo("liquid-monet", "2.0.0", "", false),
+                UniAppModuleBuildInfo("uni-sdk", "2.0.0", "", false),
+                UniAppModuleBuildInfo("secure-storage-sdk", "2.0.0", "", false),
+                UniAppModuleBuildInfo("firebase-connector-sdk", "2.0.0", "", false),
             )
             val modulesToDisplay = appInfo.modules.ifEmpty { defaultModules }
 

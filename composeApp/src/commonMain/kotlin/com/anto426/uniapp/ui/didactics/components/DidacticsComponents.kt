@@ -194,19 +194,6 @@ fun ProfessorDidacticsContent(
 }
 
 @Composable
-fun ProfessorMetricBadge(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    LiquidBadge(
-        text = text,
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-        contentColor = MaterialTheme.colorScheme.primary,
-    )
-}
-
-@Composable
 fun YearProgress(year: String, isCompleted: Boolean, colorScheme: ColorScheme) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

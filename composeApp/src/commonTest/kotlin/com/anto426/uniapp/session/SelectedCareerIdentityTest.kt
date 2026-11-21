@@ -1,5 +1,6 @@
 package com.anto426.uniapp.session
 
+import com.anto426.uniapp.data.matchesSelectedCareer
 import com.anto426.unisdk.model.LoginCareerOption
 import com.anto426.unisdk.session.UniCareerProfile
 import com.anto426.unisdk.session.UniUserProfile
@@ -28,5 +29,4 @@ class SelectedCareerIdentityTest {
         assertFalse(returned.matchesSelectedCareer(mathematics))
         assertTrue(returned.matchesSelectedCareer(null))
     }
-
 }

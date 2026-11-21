@@ -1,12 +1,13 @@
 package com.anto426.uniapp.updates.runtime
 
-import com.anto426.uniapp.updates.data.AppUpdateSource
-import com.anto426.uniapp.updates.presentation.toUiState
+import com.anto426.uniapp.data.UniUpdateManager
+import com.anto426.uniapp.data.UniUpdateManifestLoader
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.InstalledAppBuild
-import com.anto426.uniapp.updates.platform.PlatformUpdateLauncher
+import com.anto426.uniapp.updates.model.UniAppUpdateManifest
 import com.anto426.uniapp.updates.platform.PlatformUpdateLaunchResult
-import com.anto426.unisdk.model.AppUpdateInfo
+import com.anto426.uniapp.updates.platform.PlatformUpdateLauncher
+import com.anto426.uniapp.updates.presentation.toUiState
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,8 +17,8 @@ import kotlin.test.assertTrue
 class AppUpdateControllerTest {
     @Test
     fun aHigherBuildCodeOffersAnUpdateEvenWhenTheVersionNameAndRemoteFlagAreUnchanged() = runTest {
-        val controller = AppUpdateController(
-            AppUpdateSource { _ -> updateInfo(false).copy(latestVersion = "2.0.3", latestVersionCode = 1146) },
+        val controller = UniUpdateManager(
+            UniUpdateManifestLoader { _ -> updateInfo(false).copy(latestVersion = "2.0.3", latestVersionCode = 1146) },
             InstalledAppBuild("2.0.3", 1145), successfulLauncher(),
         )
         controller.refresh()
@@ -26,8 +27,8 @@ class AppUpdateControllerTest {
 
     @Test
     fun equalBuildCodesNeverOfferAnUpdateBasedOnlyOnTheVersionName() = runTest {
-        val controller = AppUpdateController(
-            AppUpdateSource { _ -> updateInfo(true, true).copy(latestVersion = "9.0", latestVersionCode = 1145) },
+        val controller = UniUpdateManager(
+            UniUpdateManifestLoader { _ -> updateInfo(true, true).copy(latestVersion = "9.0", latestVersionCode = 1145) },
             InstalledAppBuild("2.0.3", 1145), successfulLauncher(),
         )
         controller.refresh()
@@ -40,7 +41,7 @@ class AppUpdateControllerTest {
         var openedUrl: String? = null
         val controller =
             controller(
-                source = AppUpdateSource { _ -> updateInfo(isAvailable = true) },
+                source = UniUpdateManifestLoader { _ -> updateInfo(isAvailable = true) },
                 launcher = PlatformUpdateLauncher { url, _ ->
                     openedUrl = url
                     PlatformUpdateLaunchResult.Started
@@ -62,7 +63,7 @@ class AppUpdateControllerTest {
         val controller =
             controller(
                 source =
-                    AppUpdateSource { _ ->
+                    UniUpdateManifestLoader { _ ->
                         attempt++
                         if (attempt == 1) updateInfo(isAvailable = true, isMandatory = true)
                         else error("offline")
@@ -83,7 +84,7 @@ class AppUpdateControllerTest {
         val controller =
             controller(
                 source =
-                    AppUpdateSource { _ ->
+                    UniUpdateManifestLoader { _ ->
                         updateInfo(isAvailable = true).copy(downloadUrl = "http://example.invalid/app.apk")
                     },
                 launcher = PlatformUpdateLauncher { _, _ ->
@@ -100,7 +101,7 @@ class AppUpdateControllerTest {
 
     @Test
     fun currentBuildIsPublishedAsUpToDate() = runTest {
-        val controller = controller(AppUpdateSource { _ -> updateInfo(isAvailable = false) })
+        val controller = controller(UniUpdateManifestLoader { _ -> updateInfo(isAvailable = false) })
 
         controller.refresh()
 
@@ -110,8 +111,8 @@ class AppUpdateControllerTest {
     @Test
     fun debugBuildDoesNotEnforceMandatoryGate() = runTest {
         val controller =
-            AppUpdateController(
-                source = AppUpdateSource { _ -> updateInfo(isAvailable = true, isMandatory = true) },
+            UniUpdateManager(
+                source = UniUpdateManifestLoader { _ -> updateInfo(isAvailable = true, isMandatory = true) },
                 installedBuild = InstalledAppBuild("1.0", 1, isDebuggable = true),
                 launcher = successfulLauncher(),
             )
@@ -125,8 +126,8 @@ class AppUpdateControllerTest {
 
     @Test
     fun newerInstalledBuildNeverOffersRemoteDowngradeEvenIfMarkedMandatory() = runTest {
-        val controller = AppUpdateController(
-            AppUpdateSource { _ -> updateInfo(true, true).copy(latestVersion = "1.8.9-beta", latestVersionCode = 199) },
+        val controller = UniUpdateManager(
+            UniUpdateManifestLoader { _ -> updateInfo(true, true).copy(latestVersion = "1.8.9-beta", latestVersionCode = 199) },
             InstalledAppBuild("2.0", 200), successfulLauncher(),
         )
         controller.refresh()
@@ -140,7 +141,7 @@ class AppUpdateControllerTest {
     fun installCannotBeStartedTwiceOrOverwrittenByRefresh() = runTest {
         var launches = 0
         var checks = 0
-        val controller = controller(AppUpdateSource { _ -> checks++; updateInfo(true) },
+        val controller = controller(UniUpdateManifestLoader { _ -> checks++; updateInfo(true) },
             PlatformUpdateLauncher { _, _ -> launches++; PlatformUpdateLaunchResult.Started })
         controller.refresh()
         assertTrue(controller.startUpdate())
@@ -153,14 +154,14 @@ class AppUpdateControllerTest {
 
     @Test
     fun cancelledCheckRestoresPreviousState() = runTest {
-        val controller = controller(AppUpdateSource { _ -> throw kotlinx.coroutines.CancellationException() })
+        val controller = controller(UniUpdateManifestLoader { _ -> throw kotlinx.coroutines.CancellationException() })
         kotlin.test.assertFailsWith<kotlinx.coroutines.CancellationException> { controller.refresh() }
         assertEquals(AppUpdatePhase.Idle, controller.state.value.phase)
     }
 
     @Test
     fun thrownLauncherFailureCanBeRetried() = runTest {
-        val controller = controller(AppUpdateSource { _ -> updateInfo(true) },
+        val controller = controller(UniUpdateManifestLoader { _ -> updateInfo(true) },
             PlatformUpdateLauncher { _, _ -> error("Installer failed") })
         controller.refresh()
         assertFalse(controller.startUpdate())
@@ -172,7 +173,7 @@ class AppUpdateControllerTest {
     @Test
     fun mandatoryUpdateRemainsRequiredAfterRefresh() = runTest {
         var checks = 0
-        val controller = controller(AppUpdateSource { _ -> checks++; updateInfo(true, true) })
+        val controller = controller(UniUpdateManifestLoader { _ -> checks++; updateInfo(true, true) })
         controller.refresh()
         controller.refresh()
         assertEquals(2, checks)
@@ -180,9 +181,9 @@ class AppUpdateControllerTest {
     }
 
     private fun controller(
-        source: AppUpdateSource,
+        source: UniUpdateManifestLoader,
         launcher: PlatformUpdateLauncher = successfulLauncher(),
-    ) = AppUpdateController(
+    ) = UniUpdateManager(
         source = source,
         installedBuild = InstalledAppBuild("1.0", 1),
         launcher = launcher,
@@ -194,15 +195,10 @@ class AppUpdateControllerTest {
     private fun updateInfo(
         isAvailable: Boolean,
         isMandatory: Boolean = false,
-    ) = AppUpdateInfo(
-        currentVersion = "1.0",
-        currentVersionCode = 1,
+    ) = UniAppUpdateManifest(
         channel = "stable",
-        track = "release",
         latestVersion = "2.0",
         latestVersionCode = if (isAvailable) 2 else 1,
-        minSupportedVersion = if (isMandatory) "2.0" else null,
-        minSupportedVersionCode = if (isMandatory) 2 else null,
         isUpdateAvailable = isAvailable,
         isMandatory = isMandatory,
         downloadUrl = DOWNLOAD_URL,

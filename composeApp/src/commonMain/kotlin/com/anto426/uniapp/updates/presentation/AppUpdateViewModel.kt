@@ -2,7 +2,7 @@ package com.anto426.uniapp.updates.presentation
 
 import com.anto426.uniapp.presentation.sdkFailureMessage
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
@@ -12,9 +12,9 @@ import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.info
 import com.anto426.uniapp.feedback.runtime.success
+import com.anto426.uniapp.data.UniUpdateManager
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
-import com.anto426.uniapp.updates.runtime.AppUpdateController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +47,7 @@ data class AppUpdateUiState(
 }
 
 internal class AppUpdateViewModel(
-    private val controller: AppUpdateController,
+    private val controller: UniUpdateManager,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val dismissedUpdate = MutableStateFlow<String?>(null)
@@ -77,13 +77,13 @@ internal class AppUpdateViewModel(
             controller.refresh()
             val state = controller.state.value
             when (state.phase) {
-                AppUpdatePhase.UpToDate -> toastSink.success(getString(Res.string.msg_lapp_e_aggiornata))
+                AppUpdatePhase.UpToDate -> toastSink.success(readAppString(Res.string.msg_lapp_e_aggiornata))
                 AppUpdatePhase.Available -> toastSink.info(
-                    if (state.isMandatory) getString(Res.string.msg_aggiornamento_obbligatorio_disponibile)
-                    else getString(Res.string.msg_e_disponibile_un_nuovo_aggiornamento),
+                    if (state.isMandatory) readAppString(Res.string.msg_aggiornamento_obbligatorio_disponibile)
+                    else readAppString(Res.string.msg_e_disponibile_un_nuovo_aggiornamento),
                 )
                 AppUpdatePhase.Failed -> toastSink.error(
-                    sdkFailureMessage(state.message) { getString(Res.string.msg_impossibile_controllare_gli_aggiornamenti) },
+                    sdkFailureMessage(state.message) { readAppString(Res.string.msg_impossibile_controllare_gli_aggiornamenti) },
                 )
                 AppUpdatePhase.Idle,
                 AppUpdatePhase.Checking,
@@ -103,7 +103,7 @@ internal class AppUpdateViewModel(
                 toastSink.info(Res.string.msg_update_started)
             } else {
                 toastSink.error(
-                    sdkFailureMessage(controller.state.value.message) { getString(Res.string.msg_impossibile_avviare_laggiornamento) },
+                    sdkFailureMessage(controller.state.value.message) { readAppString(Res.string.msg_impossibile_avviare_laggiornamento) },
                 )
             }
         }

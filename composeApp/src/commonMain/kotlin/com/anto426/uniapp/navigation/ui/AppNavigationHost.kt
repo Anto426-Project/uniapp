@@ -88,8 +88,8 @@ import com.anto426.uniapp.ui.components.state.AppLoadingState
 import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import com.anto426.uniapp.ui.updates.ChangelogRoute
 import com.anto426.uniapp.ui.updates.UpdatesScreen
+import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.uniapp.updates.presentation.AppUpdateViewModel
-import com.anto426.unisdk.model.CareerType
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -115,9 +115,9 @@ internal fun AppNavigationHost(
     val authenticatedAccount = (sessionState as? AppSessionState.Authenticated)?.account
     val accountId = authenticatedAccount?.accountId.orEmpty()
     val profileId = authenticatedAccount?.activeProfileId
-    val accountDataSource = accountId.takeIf(String::isNotBlank)?.let { runtime.dataSourceFor(it, profileId) }
-        ?: runtime.dataSource
-    val dataGeneration = (accountDataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.generation ?: 0L
+    val accountRepository = accountId.takeIf(String::isNotBlank)?.let { runtime.repositoryFor(it, profileId) }
+        ?: runtime.defaultRepository
+    val dataGeneration = accountRepository.generation
     val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
     val attendanceScannerActionHost = remember(accountId, profileId, dataGeneration) { AttendanceScannerActionHost() }
     val newsDetailActionHost = remember(accountId, profileId, dataGeneration) { NewsDetailActionHost() }
@@ -149,17 +149,16 @@ internal fun AppNavigationHost(
     val storageResetNotice by sessionViewModel.storageResetNotice.collectAsStateWithLifecycle()
     com.anto426.uniapp.updates.platform.NotifyAvailableAppUpdate(updateUiState, notificationState.enabled)
     val updateLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(updateLifecycle, accountDataSource) {
+    LaunchedEffect(updateLifecycle, accountRepository) {
         updateLifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
-            (accountDataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.maintainFreshData()
-            kotlinx.coroutines.awaitCancellation()
+            accountRepository.maintainFreshData()
         }
     }
     LaunchedEffect(updateLifecycle, runtime) {
         updateLifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
             while (true) {
-                runtime.updateController.refresh()
-                kotlinx.coroutines.delay(15 * 60 * 1000L)
+                runtime.updateController.refresh(force = false)
+                kotlinx.coroutines.delay(com.anto426.uniapp.data.UniCachePolicies.AppUpdate.maxAgeMillis)
             }
         }
     }
@@ -367,7 +366,7 @@ internal fun AppNavigationHost(
                             sessionController = runtime.sessionController,
                             accountSwitcherViewModel = accountSwitcherViewModel,
                             accountSwitcherUiState = accountSwitcherState,
-                            dataSource = accountDataSource,
+                            dataSource = accountRepository,
                             localDataStore = runtime.localDataStore,
                             gradeSimulations = runtime.gradeSimulations,
                             projectData = runtime.projectData,
@@ -642,7 +641,7 @@ private fun topBarActions(
                 label = stringResource(Res.string.ui_home_switch_career),
                 subItems = profiles.map { profile ->
                     val role = stringResource(
-                        if (profile.type == CareerType.PROFESSOR) {
+                        if (profile.type == UniProfileRole.PROFESSOR) {
                             Res.string.ui_professor_role
                         } else {
                             Res.string.ui_student_role

@@ -1,6 +1,6 @@
 package com.anto426.uniapp.data
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 
 import androidx.compose.ui.graphics.Color
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
@@ -135,5 +135,3 @@ object UniAppInitialData {
         LiquidPaletteOption("Violet", Color(0xFF9B59B6)),
     )
 }
-
-typealias UiInitialData = UniAppInitialData

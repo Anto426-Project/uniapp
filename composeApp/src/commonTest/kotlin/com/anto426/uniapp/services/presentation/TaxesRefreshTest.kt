@@ -1,6 +1,7 @@
 package com.anto426.uniapp.services.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.model.Taxes
 import kotlinx.coroutines.CompletableDeferred
@@ -33,7 +34,7 @@ class TaxesRefreshTest : com.anto426.uniapp.testing.ResourceTest() {
                     return Taxes("0", emptyList())
                 }
             }
-            val viewModel = TaxesViewModel(source)
+            val viewModel = TaxesViewModel(source.asUniRepository(backgroundScope))
             advanceUntilIdle()
             assertEquals(listOf(false), flags)
             assertEquals(FeatureLoadState.Empty, viewModel.uiState.value.loadState)

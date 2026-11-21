@@ -21,7 +21,6 @@ import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgr
 import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailUiState
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.uniapp.ui.didactics.components.SurveyQuestionCard
-import com.anto426.unisdk.model.SurveyQuestion
 
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -33,9 +32,11 @@ fun QuestionnaireDetailScreen(
     onFreeTextChanged: (String, String) -> Unit,
     onSubmit: () -> Unit,
 ) {
-    val questions = uiState.survey?.pages.orEmpty().flatMap { page -> page.questions }
+    val questions = androidx.compose.runtime.remember(uiState.survey) {
+        uiState.survey?.pages.orEmpty().flatMap { page -> page.questions }
+    }
     UniScreenLazyColumn {
-        item(key = "survey-progress") {
+        item(key = "survey-progress", contentType = "survey-progress") {
             LiquidCard(
                 shape = RoundedRectangle(24.dp),
                 contentPadding = 18.dp,
@@ -52,7 +53,11 @@ fun QuestionnaireDetailScreen(
             }
         }
 
-        itemsIndexed(questions, key = { index, question -> "${question.pageId}|${question.questionId}|$index" }) { index, question ->
+        itemsIndexed(
+            items = questions,
+            key = { index, question -> "${question.pageId}|${question.questionId}|$index" },
+            contentType = { _, _ -> "survey-question" },
+        ) { index, question ->
             SurveyQuestionCard(
                 index = index,
                 question = question,
@@ -63,7 +68,7 @@ fun QuestionnaireDetailScreen(
             )
         }
 
-        item(key = "survey-submit") {
+        item(key = "survey-submit", contentType = "survey-submit") {
             LiquidButton(
                 text = if (uiState.submitted) stringResource(Res.string.ui_questionnaire_submitted) else stringResource(Res.string.ui_questionnaire_submit),
                 onClick = onSubmit,

@@ -1,12 +1,11 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.data.toStudyCourse
 import com.anto426.uniapp.model.didactics.StudyCourse
@@ -18,7 +17,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 data class CourseDetailUiState(
     val course: StudyCourse? = null,
@@ -29,24 +29,25 @@ data class CourseDetailUiState(
 
 class CourseDetailViewModel(
     private val courseId: String,
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(CourseDetailUiState())
     val uiState: StateFlow<CourseDetailUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
     private val dataRequests = listOf(
-        UniAppDataRequests.syllabus(courseId),
-        UniAppDataRequests.StudyPlan,
-        UniAppDataRequests.Career,
-        UniAppDataRequests.Contacts,
+        UniDatasets.syllabus(courseId),
+        UniDatasets.StudyPlan,
+        UniDatasets.Career,
+        UniDatasets.Contacts,
     )
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
-            val syllabus = snapshot.require(UniAppDataRequests.syllabus(courseId))
-            val studyPlan = runCatching { snapshot.require(UniAppDataRequests.StudyPlan) }.getOrNull()
-            val career = runCatching { snapshot.require(UniAppDataRequests.Career) }.getOrNull()
-            val contacts = runCatching { snapshot.require(UniAppDataRequests.Contacts).toContacts() }.getOrNull()
+            val syllabus = snapshot.require(UniDatasets.syllabus(courseId))
+            val studyPlan = runCatching { snapshot.require(UniDatasets.StudyPlan) }.getOrNull()
+            val career = runCatching { snapshot.require(UniDatasets.Career) }.getOrNull()
+            val contacts = runCatching { snapshot.require(UniDatasets.Contacts).toContacts() }.getOrNull()
 
             val planCourse = studyPlan?.courses?.firstOrNull {
                 it.adsceId?.trim() == courseId.trim() || it.title.trim().equals(syllabus.adDes.trim(), ignoreCase = true)
@@ -62,19 +63,19 @@ class CourseDetailViewModel(
                 professorContact = matchedContact,
                 loadState = FeatureLoadState.Content,
             )
-            snapshot.state(UniAppDataRequests.syllabus(courseId)).error?.let { throw it }
+            snapshot.state(UniDatasets.syllabus(courseId)).error?.let { throw it }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Throwable) {
             mutableUiState.value = CourseDetailUiState(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_corso) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_il_corso) },
             )
         }
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
+        repository.didactics.refresh(dataRequests, force)
     }
 
     private companion object {
@@ -94,8 +95,8 @@ class CourseDetailViewModel(
                 val cleanContact = contact.name.lowercase()
                 val contactTokens = cleanContact.split(" ", "-", ",").map { it.trim() }.filter { it.length > 2 }
                 (profTokens.size >= 2 && profTokens.all { token -> cleanContact.contains(token) }) ||
-                        (contactTokens.size >= 2 && contactTokens.all { token -> cleanProf.contains(token) }) ||
-                        cleanContact == cleanProf
+                    (contactTokens.size >= 2 && contactTokens.all { token -> cleanProf.contains(token) }) ||
+                    cleanContact == cleanProf
             }
         }
     }

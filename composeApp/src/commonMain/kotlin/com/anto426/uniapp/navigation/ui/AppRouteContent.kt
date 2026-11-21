@@ -34,7 +34,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniCacheEngine
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.UniProjectManager
+import com.anto426.uniapp.data.UniRepository
+import com.anto426.uniapp.data.UniSessionController
 import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.didactics.data.GradeSimulationRepository
@@ -66,7 +70,6 @@ import com.anto426.uniapp.services.presentation.ContactsViewModel
 import com.anto426.uniapp.services.presentation.ContactDetailViewModel
 import com.anto426.uniapp.services.presentation.ServicesViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
-import com.anto426.uniapp.session.SessionManager
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.session.presentation.AppUnlockUiState
 import com.anto426.uniapp.security.biometric.BiometricAuthenticator
@@ -134,13 +137,13 @@ internal fun AppRouteContent(
     attendanceScannerActionHost: AttendanceScannerActionHost,
     newsDetailActionHost: NewsDetailActionHost? = null,
     navigator: AppNavigator,
-    sessionController: SessionManager,
+    sessionController: UniSessionController,
     accountSwitcherViewModel: AccountSwitcherViewModel,
     accountSwitcherUiState: AccountSwitcherUiState,
-    dataSource: UniAppDataSource,
+    dataSource: UniGateway,
     localDataStore: UniLocalDataStore,
     gradeSimulations: GradeSimulationRepository,
-    projectData: com.anto426.uniapp.project.data.ProjectDataStore,
+    projectData: UniProjectManager,
     accountId: String,
     searchQuery: String,
     isSearchActive: Boolean,
@@ -174,7 +177,9 @@ internal fun AppRouteContent(
     onSignOut: () -> Unit,
 ) {
     val activeProfileId = (sessionState as? AppSessionState.Authenticated)?.account?.activeProfileId
-    val dataGeneration = (dataSource as? com.anto426.uniapp.data.runtime.ScopedDataRepository)?.generation ?: 0
+    val dataGeneration = (dataSource as? UniRepository)?.generation
+        ?: (dataSource as? UniCacheEngine)?.generation ?: 0
+    val systemDomain = (dataSource as? UniRepository)?.system
     val viewModelKey = "$accountId|${activeProfileId.orEmpty()}|$dataGeneration|$route"
     val uriHandler = LocalUriHandler.current
     when (route) {
@@ -406,8 +411,8 @@ internal fun AppRouteContent(
                 onOpenUpdates = { navigator.navigate(AppRoute.Updates) },
                 onOpenDevices = { navigator.navigate(AppRoute.Devices) },
                 onOpenLanguage = { navigator.navigate(AppRoute.Language) },
-                onOpenContribute = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.repositoryUrl) },
-                onOpenReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.issuesUrl) },
+                onOpenContribute = { uriHandler.openUri(systemDomain?.repositoryUrl ?: projectData.uiState.value.repositoryUrl) },
+                onOpenReportBug = { uriHandler.openUri(systemDomain?.issuesUrl ?: projectData.uiState.value.issuesUrl) },
                 onOpenLogin = accountSwitcherViewModel::addAccount,
                 onSignOut = onSignOut,
                 onNotificationsEnabledChange = resolvedSettingsViewModel::setNotificationsEnabled,
@@ -519,9 +524,10 @@ internal fun AppRouteContent(
 
         AppRoute.Info ->
             AppInfoScreen(
-                onReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.bugReportUrl()) },
+                onReportBug = { uriHandler.openUri(systemDomain?.bugReportUrl() ?: projectData.uiState.value.issuesUrl) },
                 updateUiState = updateUiState,
-                onOpenSource = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.repositoryUrl) },
+                installedBuild = systemDomain?.currentInstalledBuild() ?: com.anto426.uniapp.updates.model.InstalledAppBuild(),
+                onOpenSource = { uriHandler.openUri(systemDomain?.repositoryUrl ?: projectData.uiState.value.repositoryUrl) },
                 onOpenAboutUniApp = { navigator.navigate(AppRoute.AboutUniApp) },
                 onOpenPrivacy = { navigator.navigate(AppRoute.Privacy) },
                 onOpenTerms = { navigator.navigate(AppRoute.Terms) },
@@ -843,7 +849,7 @@ internal fun AppRouteContent(
                     LiquidNavigationItem(stringResource(Res.string.msg_storico)),
                 )
                 UniScreenLazyColumn {
-                    item(key = "exams-tab-bar") {
+                    item(key = "exams-tab-bar", contentType = "tab-bar") {
                         LiquidTabBar(
                             items = examTabs,
                             selectedIndex = state.selectedTab,
@@ -853,7 +859,7 @@ internal fun AppRouteContent(
                     }
                     if (state.selectedTab == 2) {
                         if (historyState.loadState != FeatureLoadState.Content) {
-                            item(key = "exams-history-state-${historyState.loadState}") {
+                            item(key = "exams-history-state-${historyState.loadState}", contentType = "feature-state") {
                                 FeatureStateContent(
                                     state = historyState.loadState,
                                     errorMessage = historyState.errorMessage,
@@ -872,7 +878,7 @@ internal fun AppRouteContent(
                         }
                     } else {
                         if (state.loadState != FeatureLoadState.Content) {
-                            item(key = "exams-state-${state.selectedTab}-${state.loadState}") {
+                            item(key = "exams-state-${state.selectedTab}-${state.loadState}", contentType = "feature-state") {
                                 FeatureStateContent(
                                     state = state.loadState,
                                     errorMessage = state.errorMessage,
@@ -1009,7 +1015,7 @@ internal fun AppRouteContent(
         AppRoute.AboutUniApp ->
             AboutUniAppScreen(
                 sections = UniAppInitialData.appInfoSections,
-                onReportBug = { uriHandler.openUri(com.anto426.unisdk.platform.ProjectInfo.bugReportUrl()) },
+                onReportBug = { uriHandler.openUri(systemDomain?.bugReportUrl() ?: projectData.uiState.value.issuesUrl) },
                 onBack = { navigator.goBack() },
             )
         AppRoute.Privacy -> PrivacyScreen(UniAppInitialData.privacySections, onBack = { navigator.goBack() })
@@ -1147,7 +1153,7 @@ internal fun AppRouteContent(
 private fun AcademicSectionRouteContent(
     section: AcademicSection,
     viewModelKey: String,
-    dataSource: UniAppDataSource,
+    dataSource: UniGateway,
     searchQuery: String,
     navigator: AppNavigator,
 ) {
@@ -1191,7 +1197,7 @@ private fun AcademicItemDetailRouteContent(
     section: AcademicSection,
     itemKey: String,
     viewModelKey: String,
-    dataSource: UniAppDataSource,
+    dataSource: UniGateway,
 ) {
     val detailViewModel =
         viewModel(key = "$viewModelKey|$section|$itemKey") {
@@ -1214,11 +1220,6 @@ private fun AcademicItemDetailRouteContent(
             onTabSelected = detailViewModel::selectTab,
         )
     }
-}
-
-@Composable
-private fun InvalidDetailRoute(navigator: AppNavigator) {
-    LaunchedEffect(navigator) { navigator.goBack() }
 }
 
 private fun AppNavigator.openHomeAction(actionId: String) {

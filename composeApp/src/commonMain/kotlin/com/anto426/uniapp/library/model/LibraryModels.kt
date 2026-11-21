@@ -1,116 +1,16 @@
 package com.anto426.uniapp.library.model
 
-data class LibraryCatalogBook(
-    val id: String,
-    val title: String,
-    val subtitle: String,
-    val metadata: String = "",
-    val branches: List<String> = emptyList(),
-)
-
-data class LibraryCatalogPage(
-    val query: String,
-    val books: List<LibraryCatalogBook>,
-    val page: Int,
-    val total: Int,
-) {
-    val hasNextPage: Boolean get() = page * PAGE_SIZE < total
-
-    companion object {
-        const val PAGE_SIZE = 10
-    }
-}
-
-data class LibraryBookCopyAction(
-    val actionId: String,
-    val label: String,
-    val libraryCode: String,
-    val branchName: String,
-    val movementType: String,
-)
-
-data class LibraryBookDetail(
-    val id: String,
-    val title: String,
-    val author: String? = null,
-    val year: String? = null,
-    val hasAvailableDocument: Boolean = false,
-    val branches: List<String> = emptyList(),
-    val inventory: String? = null,
-    val shelfmark: String? = null,
-    val notes: String? = null,
-    val description: String = "",
-    val actions: List<LibraryBookCopyAction> = emptyList(),
-) {
-    val isAvailable: Boolean get() = hasAvailableDocument || actions.isNotEmpty()
-}
-
-data class LibraryBookLoanDraft(
-    val draftId: String,
-    val description: String,
-)
-
-data class LibraryLoanSubmissionResult(
-    val description: String,
-    val requiresVerification: Boolean = true,
-)
-
-data class LibraryMovementItem(
-    val id: String? = null,
-    val title: String,
-    val detail: String,
-    val branchName: String? = null,
-    val dueDateLabel: String? = null,
-    val canCancel: Boolean = false,
-    val canRenew: Boolean = false,
-    val actionToken: String? = null,
-)
-
-data class LibraryBookingOption(
-    val id: String,
-    val label: String,
-)
-
-data class LibrarySpaceBooking(
-    val id: String? = null,
-    val title: String,
-    val description: String,
-    val dateLabel: String? = null,
-    val timeLabel: String? = null,
-    val canCancel: Boolean = false,
-    val bookingToken: String? = null,
-)
-
-data class LibraryBookingOverview(
-    val contextId: String,
-    val types: List<LibraryBookingOption>,
-    val bookings: List<LibrarySpaceBooking>,
-)
-
-data class LibrarySpaceSelection(
-    val owners: List<LibraryBookingOption>,
-    val resources: List<LibraryBookingOption>,
-)
-
-data class LibrarySpaceSlot(
-    val slotId: String,
-    val label: String,
-    val timeLabel: String,
-    val description: String,
-    val dateLabel: String? = null,
-    val seatsLabel: String? = null,
-    val requiresDeviceAddress: Boolean = false,
-)
-
-data class LibrarySpaceCalendar(
-    val calendarId: String,
-    val resourceId: String,
-    val page: Int = 1,
-    val description: String = "",
-    val slots: List<LibrarySpaceSlot> = emptyList(),
-)
-
-data class LibrarySpaceBookingOutcome(
-    val confirmed: Boolean,
-    val serverCode: Int,
-)
+typealias LibraryCatalogBook = com.anto426.unisdk.library.LibraryCatalogBook
+typealias LibraryCatalogPage = com.anto426.unisdk.library.LibraryCatalogPage
+typealias LibraryBookCopyAction = com.anto426.unisdk.library.LibraryBookCopyAction
+typealias LibraryBookDetail = com.anto426.unisdk.library.LibraryBookDetail
+typealias LibraryBookLoanDraft = com.anto426.unisdk.library.LibraryBookLoanDraft
+typealias LibraryLoanSubmissionResult = com.anto426.unisdk.library.LibraryLoanSubmissionResult
+typealias LibraryMovementItem = com.anto426.unisdk.library.LibraryMovementItem
+typealias LibraryBookingOption = com.anto426.unisdk.library.LibraryBookingOption
+typealias LibrarySpaceBooking = com.anto426.unisdk.library.LibrarySpaceBooking
+typealias LibraryBookingOverview = com.anto426.unisdk.library.LibraryBookingOverview
+typealias LibrarySpaceSelection = com.anto426.unisdk.library.LibrarySpaceSelection
+typealias LibrarySpaceSlot = com.anto426.unisdk.library.LibrarySpaceSlot
+typealias LibrarySpaceCalendar = com.anto426.unisdk.library.LibrarySpaceCalendar
+typealias LibrarySpaceBookingOutcome = com.anto426.unisdk.library.LibrarySpaceBookingOutcome

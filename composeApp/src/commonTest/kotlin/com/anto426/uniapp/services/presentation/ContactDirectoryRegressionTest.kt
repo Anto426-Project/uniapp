@@ -1,6 +1,7 @@
 package com.anto426.uniapp.services.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.model.UniversityContact
@@ -152,9 +153,9 @@ class ContactDirectoryRegressionTest : com.anto426.uniapp.testing.ResourceTest()
         }
     }
 
-    private fun source(vararg contacts: UniversityContact) = object : FakeUniAppDataSource() {
+    private fun kotlinx.coroutines.test.TestScope.source(vararg contacts: UniversityContact) = object : FakeUniAppDataSource() {
         override suspend fun loadUniversityContacts(forceRefresh: Boolean): List<UniversityContact> = contacts.toList()
-    }
+    }.asUniRepository(backgroundScope)
 
     private fun contact(
         id: String?,

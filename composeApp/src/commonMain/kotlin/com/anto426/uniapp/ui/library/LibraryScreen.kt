@@ -594,16 +594,16 @@ private fun LibraryLoansTab(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                if (!movement.branchName.isNullOrBlank()) {
+                                movement.branchName?.takeIf(String::isNotBlank)?.let { branchName ->
                                     LiquidBadge(
-                                        text = movement.branchName,
+                                        text = branchName,
                                         containerColor = colorScheme.primary.copy(alpha = 0.14f),
                                         contentColor = colorScheme.primary,
                                     )
                                 }
-                                if (!movement.dueDateLabel.isNullOrBlank()) {
+                                movement.dueDateLabel?.takeIf(String::isNotBlank)?.let { dueDateLabel ->
                                     LiquidBadge(
-                                        text = movement.dueDateLabel,
+                                        text = dueDateLabel,
                                         containerColor = colorScheme.secondary.copy(alpha = 0.14f),
                                         contentColor = colorScheme.secondary,
                                     )
@@ -787,16 +787,16 @@ private fun LibrarySpacesTab(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalArrangement = Arrangement.spacedBy(4.dp),
                                 ) {
-                                    if (!booking.dateLabel.isNullOrBlank()) {
+                                    booking.dateLabel?.takeIf(String::isNotBlank)?.let { dateLabel ->
                                         LiquidBadge(
-                                            text = booking.dateLabel,
+                                            text = dateLabel,
                                             containerColor = colorScheme.primary.copy(alpha = 0.14f),
                                             contentColor = colorScheme.primary,
                                         )
                                     }
-                                    if (!booking.timeLabel.isNullOrBlank()) {
+                                    booking.timeLabel?.takeIf(String::isNotBlank)?.let { timeLabel ->
                                         LiquidBadge(
-                                            text = booking.timeLabel,
+                                            text = timeLabel,
                                             containerColor = colorScheme.secondary.copy(alpha = 0.14f),
                                             contentColor = colorScheme.secondary,
                                         )

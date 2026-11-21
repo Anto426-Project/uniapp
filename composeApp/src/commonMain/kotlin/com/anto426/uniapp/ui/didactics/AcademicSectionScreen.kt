@@ -28,7 +28,7 @@ import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
-import com.anto426.unisdk.model.ProfessorContentItem
+import com.anto426.uniapp.model.didactics.AcademicContentItem
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -37,7 +37,7 @@ import uniapp.composeapp.generated.resources.*
 fun AcademicSectionScreen(
     uiState: AcademicSectionUiState,
     section: AcademicSection = AcademicSection.Teachings,
-    onItemClick: (ProfessorContentItem) -> Unit,
+    onItemClick: (AcademicContentItem) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 

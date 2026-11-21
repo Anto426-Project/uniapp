@@ -1,34 +1,33 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
+import com.anto426.uniapp.data.toQuestionnaireForm
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
+import com.anto426.uniapp.model.didactics.QuestionnaireForm
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.model.SurveyAnswerSubmission
-import com.anto426.unisdk.model.SurveyForm
-import com.anto426.unisdk.model.SurveyPageSubmission
-import com.anto426.unisdk.model.SurveySaveRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 data class QuestionnaireDetailUiState(
     val title: String,
-    val survey: SurveyForm? = null,
+    val survey: QuestionnaireForm? = null,
     val selectedAnswers: Map<String, Set<String>> = emptyMap(),
     val freeTextAnswers: Map<String, String> = emptyMap(),
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
@@ -50,20 +49,21 @@ class QuestionnaireDetailViewModel(
     private val courseId: String,
     private val tagList: String,
     title: String,
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(QuestionnaireDetailUiState(title = title))
     val uiState: StateFlow<QuestionnaireDetailUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.surveyPage(courseId, tagList))
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.surveyPage(courseId, tagList))
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.update {
             it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         }
         try {
-            val survey = snapshot.require(UniAppDataRequests.surveyPage(courseId, tagList))
+            val survey = snapshot.require(UniDatasets.surveyPage(courseId, tagList)).toQuestionnaireForm()
             mutableUiState.update {
                 it.copy(
                     survey = survey,
@@ -80,14 +80,13 @@ class QuestionnaireDetailViewModel(
             mutableUiState.update {
                 it.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_questionario) },
+                    errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_il_questionario) },
                 )
             }
         }
-    
     }
 
-    fun refresh() { sharedData.refresh(dataRequests, force = true) }
+    fun refresh() { repository.didactics.refresh(dataRequests, force = true) }
 
     fun selectAnswer(questionId: String, answerId: String, multipleChoice: Boolean) {
         mutableUiState.update { state ->
@@ -128,48 +127,18 @@ class QuestionnaireDetailViewModel(
         viewModelScope.launch {
             mutableUiState.update { it.copy(isSubmitting = true) }
             try {
-                val details = sharedData.loadStudentDetails()
-                val studentId =
-                    listOfNotNull(details.stuId, details.matId, details.matricola)
-                        .firstOrNull { it.isNotBlank() }
-                        ?: error(getString(Res.string.msg_identificativo_studente_non_disponibile))
-                val userCompId = survey.userCompId?.takeIf(String::isNotBlank)
-                    ?: error(getString(Res.string.msg_identificativo_compilazione_non_disponibile))
-                val questCompId = survey.questCompId?.takeIf(String::isNotBlank)
-                    ?: error(getString(Res.string.msg_identificativo_questionario_non_disponibile))
-                val request =
-                    SurveySaveRequest(
-                        studentId = studentId,
-                        userCompId = userCompId,
-                        questCompId = questCompId,
-                        surveyPageDtos = survey.pages.map { page ->
-                            SurveyPageSubmission(
-                                pageId = page.pageId,
-                                ansBodyDto = page.questions.flatMap { question ->
-                                    val selected = state.selectedAnswers[question.questionId].orEmpty()
-                                    selected.map { answerId ->
-                                        val isFreeText = question.answers.any { it.answerId == answerId && it.freeText }
-                                        SurveyAnswerSubmission(
-                                            questionId = question.questionId,
-                                            answerId = answerId,
-                                            answerBody = if (isFreeText) {
-                                                state.freeTextAnswers[question.questionId].orEmpty().trim()
-                                            } else {
-                                                ""
-                                            },
-                                        )
-                                    }
-                                },
-                            )
-                        },
-                    )
-                val message = sharedData.saveSurvey(courseId, request)
+                val message = repository.didactics.submitQuestionnaire(
+                    courseId = courseId,
+                    form = survey,
+                    selectedAnswers = state.selectedAnswers,
+                    freeTextAnswers = state.freeTextAnswers,
+                )
                 mutableUiState.update { it.copy(isSubmitting = false, submitted = true) }
                 toastSink.success(message)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage { getString(Res.string.msg_impossibile_salvare_il_questionario) }
+                val message = error.userMessage { readAppString(Res.string.msg_impossibile_salvare_il_questionario) }
                 mutableUiState.update { it.copy(isSubmitting = false) }
                 toastSink.error(message)
             }

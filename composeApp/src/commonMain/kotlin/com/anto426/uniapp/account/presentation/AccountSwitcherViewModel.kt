@@ -2,12 +2,12 @@ package com.anto426.uniapp.account.presentation
 
 import com.anto426.uniapp.presentation.userMessage
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.session.SessionManager
+import com.anto426.uniapp.data.UniSessionController
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.info
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AccountSwitcherViewModel(
-    private val sessionController: SessionManager,
+    private val sessionController: UniSessionController,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(AccountSwitcherUiState())
@@ -80,7 +80,7 @@ class AccountSwitcherViewModel(
                 } catch (error: Throwable) {
                     mutableUiState.value.copy(
                         isLoading = false,
-                        errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_gli_account) },
+                        errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_gli_account) },
                     )
                 }
         }
@@ -123,7 +123,7 @@ class AccountSwitcherViewModel(
 
                     else -> {
                         mutableUiState.update { it.copy(activatingAccountId = null) }
-                        toastSink.error(getString(Res.string.msg_impossibile_attivare_laccount))
+                        toastSink.error(readAppString(Res.string.msg_impossibile_attivare_laccount))
                     }
                 }
             } catch (error: CancellationException) {
@@ -132,10 +132,10 @@ class AccountSwitcherViewModel(
                 mutableUiState.update {
                     it.copy(
                         activatingAccountId = null,
-                        errorMessage = error.userMessage { getString(Res.string.msg_impossibile_attivare_laccount_2) },
+                        errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_attivare_laccount_2) },
                     )
                 }
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_attivare_laccount) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_attivare_laccount) })
             }
         }
     }
@@ -168,9 +168,9 @@ class AccountSwitcherViewModel(
 
                     else -> {
                         mutableUiState.update {
-                            it.copy(profileErrorMessage = getString(Res.string.msg_impossibile_attivare_il_profilo))
+                            it.copy(profileErrorMessage = readAppString(Res.string.msg_impossibile_attivare_il_profilo))
                         }
-                        toastSink.error(getString(Res.string.msg_impossibile_attivare_il_profilo))
+                        toastSink.error(readAppString(Res.string.msg_impossibile_attivare_il_profilo))
                     }
                 }
             } catch (error: CancellationException) {
@@ -178,10 +178,10 @@ class AccountSwitcherViewModel(
             } catch (error: Throwable) {
                 mutableUiState.update {
                     it.copy(
-                        profileErrorMessage = error.userMessage { getString(Res.string.msg_impossibile_attivare_il_profilo_2) },
+                        profileErrorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_attivare_il_profilo_2) },
                     )
                 }
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_attivare_il_profilo) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_attivare_il_profilo) })
             } finally {
                 mutableUiState.update { it.copy(activatingProfileId = null) }
             }
@@ -195,7 +195,7 @@ class AccountSwitcherViewModel(
     fun addAccount() {
         if (mutableUiState.value.isRemovingAccount) return
         viewModelScope.launch {
-            toastSink.info(getString(Res.string.msg_accedi_con_il_nuovo_account))
+            toastSink.info(readAppString(Res.string.msg_accedi_con_il_nuovo_account))
             sessionController.signOut()
         }
     }
@@ -227,12 +227,12 @@ class AccountSwitcherViewModel(
                             pendingRemovalAccountId = null,
                         )
                     }
-                    toastSink.success(getString(Res.string.msg_account_rimosso_dal_dispositivo))
+                    toastSink.success(readAppString(Res.string.msg_account_rimosso_dal_dispositivo))
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_completare_la_rimozione_dellaccount))
+                toastSink.error(readAppString(Res.string.msg_impossibile_completare_la_rimozione_dellaccount))
             } finally {
                 mutableUiState.update { it.copy(isRemovingAccount = false) }
             }

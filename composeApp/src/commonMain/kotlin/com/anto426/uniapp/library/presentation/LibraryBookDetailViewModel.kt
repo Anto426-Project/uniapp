@@ -2,7 +2,8 @@ package com.anto426.uniapp.library.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
@@ -17,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 data class LibraryBookDetailUiState(
@@ -32,9 +33,10 @@ data class LibraryBookDetailUiState(
 
 class LibraryBookDetailViewModel(
     private val bookId: String,
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
+    private val repository = dataSource.asUniRepository(viewModelScope)
     private val mutableUiState = MutableStateFlow(LibraryBookDetailUiState())
     val uiState: StateFlow<LibraryBookDetailUiState> = mutableUiState.asStateFlow()
 
@@ -49,7 +51,7 @@ class LibraryBookDetailViewModel(
         )
         viewModelScope.launch {
             try {
-                val detail = dataSource.loadLibraryBook(bookId)
+                val detail = repository.library.loadBook(bookId)
                 mutableUiState.value = LibraryBookDetailUiState(
                     loadState = FeatureLoadState.Content,
                     book = detail,
@@ -59,7 +61,7 @@ class LibraryBookDetailViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = LibraryBookDetailUiState(
                     loadState = FeatureLoadState.Error,
-                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_libro) },
+                    errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_il_libro) },
                 )
             }
         }
@@ -70,7 +72,7 @@ class LibraryBookDetailViewModel(
         mutableUiState.value = mutableUiState.value.copy(preparingActionId = action.actionId)
         viewModelScope.launch {
             try {
-                val draft = dataSource.prepareLibraryBookRequest(bookId, action.actionId)
+                val draft = repository.library.prepareBookRequest(bookId, action.actionId)
                 mutableUiState.value = mutableUiState.value.copy(
                     preparingActionId = null,
                     pendingDraft = draft,
@@ -79,7 +81,7 @@ class LibraryBookDetailViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(preparingActionId = null)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_preparare_richiesta_prestito) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_preparare_richiesta_prestito) })
             }
         }
     }
@@ -95,13 +97,13 @@ class LibraryBookDetailViewModel(
         mutableUiState.value = mutableUiState.value.copy(isSubmitting = true)
         viewModelScope.launch {
             try {
-                val result = dataSource.confirmLibraryBookRequest(draft.draftId)
+                val result = repository.library.confirmBookRequest(draft.draftId)
                 mutableUiState.value = mutableUiState.value.copy(
                     pendingDraft = null,
                     isSubmitting = false,
                     submissionResult = result,
                 )
-                toastSink.success(getString(Res.string.ui_library_request_submitted))
+                toastSink.success(readAppString(Res.string.ui_library_request_submitted))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
@@ -109,7 +111,7 @@ class LibraryBookDetailViewModel(
                     pendingDraft = null,
                     isSubmitting = false,
                 )
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_inviare_richiesta_prestito) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_inviare_richiesta_prestito) })
             }
         }
     }

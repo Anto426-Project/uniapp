@@ -4,11 +4,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.appTopLevelRoutes
 import com.anto426.uniapp.navigation.policy.AppRouteGuard
 import com.anto426.uniapp.session.model.AppSessionState
-import com.anto426.unisdk.model.CareerType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -161,7 +161,7 @@ class AppNavigatorTest {
     fun libraryDestinationsRedirectToServicesForStudentsAndProfessors() {
         val guard = AppRouteGuard()
         val professor = AppSessionState.Authenticated(
-            authenticatedSession.account.copy(activeProfileType = CareerType.PROFESSOR),
+            authenticatedSession.account.copy(activeProfileType = UniProfileRole.PROFESSOR),
         )
 
         for (route in listOf(AppRoute.Library(), AppRoute.LibraryBookDetail("book"), AppRoute.LibraryBooking)) {
@@ -188,7 +188,7 @@ class AppNavigatorTest {
     fun professorCannotOpenStudentOnlyDestinations() {
         val professorSession =
             AppSessionState.Authenticated(
-                authenticatedSession.account.copy(activeProfileType = CareerType.PROFESSOR),
+                authenticatedSession.account.copy(activeProfileType = UniProfileRole.PROFESSOR),
             )
         val guard = AppRouteGuard()
 

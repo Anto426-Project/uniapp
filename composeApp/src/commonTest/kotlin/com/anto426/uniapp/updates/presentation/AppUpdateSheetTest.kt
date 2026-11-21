@@ -1,12 +1,14 @@
 package com.anto426.uniapp.updates.presentation
 
 import androidx.lifecycle.ViewModelStore
-import com.anto426.uniapp.updates.data.AppUpdateSource
+import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.UniUpdateManager
+import com.anto426.uniapp.data.UniUpdateManifestLoader
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.updates.model.InstalledAppBuild
+import com.anto426.uniapp.updates.model.UniAppUpdateManifest
 import com.anto426.uniapp.updates.platform.PlatformUpdateLaunchResult
 import com.anto426.uniapp.updates.platform.PlatformUpdateLauncher
-import com.anto426.uniapp.updates.runtime.AppUpdateController
-import com.anto426.unisdk.model.AppUpdateInfo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,10 +24,10 @@ class AppUpdateSheetTest {
             for (mandatory in listOf(false, true)) {
                 var requests = 0
                 val finish = CompletableDeferred<Unit>()
-                val controller = AppUpdateController(AppUpdateSource {
+                val controller = UniUpdateManager(UniUpdateManifestLoader {
                     requests++
                     if (requests > 1) finish.await()
-                    AppUpdateInfo(currentVersion = "2.0.3", channel = "stable", track = "release",
+                    UniAppUpdateManifest(channel = "stable",
                         latestVersion = "2.0.4", latestVersionCode = 1147,
                         downloadUrl = "https://example.invalid/app.apk", isUpdateAvailable = true, isMandatory = mandatory)
                 }, InstalledAppBuild("2.0.3", 1146), PlatformUpdateLauncher { _, _ -> PlatformUpdateLaunchResult.Started })

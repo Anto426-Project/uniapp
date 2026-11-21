@@ -60,7 +60,7 @@ data class StudyYear(
     val yearNumber: Int = 1,
     val yearName: String,
     val courses: List<StudyCourse>,
-    val icon: ImageVector? = null
+    val icon: ImageVector? = null,
 )
 
 enum class QuestionnaireStatus { PENDING, COMPLETED, UNAVAILABLE }
@@ -72,6 +72,33 @@ data class QuestionnaireData(
     val status: QuestionnaireStatus,
     val courseId: String = "",
     val tagList: String = "",
+)
+
+data class QuestionnaireAnswerOption(
+    val answerId: String,
+    val answerText: String,
+    val freeText: Boolean = false,
+)
+
+data class QuestionnaireQuestion(
+    val questionId: String,
+    val questionText: String,
+    val answers: List<QuestionnaireAnswerOption> = emptyList(),
+    val required: Boolean = true,
+    val multipleChoice: Boolean = false,
+    val freeTextEnabled: Boolean = false,
+    val pageId: String = "",
+)
+
+data class QuestionnairePage(
+    val pageId: String,
+    val questions: List<QuestionnaireQuestion> = emptyList(),
+)
+
+data class QuestionnaireForm(
+    val userCompId: String? = null,
+    val questCompId: String? = null,
+    val pages: List<QuestionnairePage> = emptyList(),
 )
 
 enum class PastExamStatus { VERBALIZED, BOOKED_PAST }
@@ -111,11 +138,10 @@ data class ExamSession(
     val isBooked: Boolean = false,
     val id: String = "",
     val isBookingFuture: Boolean = false,
+    val calendarUrl: String? = null,
 )
 
 data class GradeExam(val name: String, val grade: Int, val cfu: Int)
-
-data class GradeSimulationPreset(val name: String, val cfu: Int, val initialGrade: Int)
 
 @Serializable
 data class SimulationItem(
@@ -125,6 +151,48 @@ data class SimulationItem(
     val grade: Int,
     val isEnabled: Boolean = false,
     val isCustom: Boolean = false,
+)
+
+data class AcademicDetailField(
+    val label: String,
+    val value: String,
+)
+
+data class AcademicExamBookingEntry(
+    val studentName: String,
+    val matricola: String? = null,
+    val grade: String? = null,
+)
+
+data class AcademicCommissionMember(
+    val displayName: String,
+    val role: String? = null,
+)
+
+data class AcademicContentItem(
+    val id: String? = null,
+    val title: String,
+    val subtitle: String? = null,
+    val detail: String? = null,
+    val code: String? = null,
+    val date: String? = null,
+    val fields: List<AcademicDetailField> = emptyList(),
+    val bookings: List<AcademicExamBookingEntry> = emptyList(),
+    val commission: List<AcademicCommissionMember> = emptyList(),
+) {
+    fun itemKey(): String =
+        listOf(id, code, date, title, subtitle, detail)
+            .joinToString("|") { it.orEmpty() }
+            .hashCode()
+            .toString()
+}
+
+data class AcademicDashboardData(
+    val teachings: List<AcademicContentItem> = emptyList(),
+    val examRounds: List<AcademicContentItem> = emptyList(),
+    val theses: List<AcademicContentItem> = emptyList(),
+    val reports: List<AcademicContentItem> = emptyList(),
+    val unavailableSections: List<String> = emptyList(),
 )
 
 data class ThesisData(

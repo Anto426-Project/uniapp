@@ -4,9 +4,13 @@ import com.anto426.uniapp.didactics.presentation.GradesViewModel
 
 import com.anto426.uniapp.account.model.UniAccountProfileSummary
 import com.anto426.uniapp.account.model.UniAccountSummary
+import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.buildExamHistory
 import com.anto426.uniapp.data.local.FakeUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.data.toAcademicContentItem
 import com.anto426.uniapp.didactics.data.GradeSimulationRepository
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
@@ -14,7 +18,6 @@ import com.anto426.uniapp.didactics.presentation.QuestionnairesViewModel
 import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailViewModel
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsViewModel
-import com.anto426.uniapp.didactics.presentation.buildExamHistory
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
 import com.anto426.uniapp.didactics.presentation.TranscriptsViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
@@ -27,7 +30,6 @@ import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
 import com.anto426.unisdk.model.Career
-import com.anto426.unisdk.model.CareerType
 import com.anto426.unisdk.model.CareerExam
 import com.anto426.unisdk.model.ExamRound
 import com.anto426.unisdk.model.SurveyCourse
@@ -72,7 +74,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 ),
             )
         }
-        val viewModel = TaxesViewModel(source)
+        val viewModel = TaxesViewModel(source.asUniRepository(backgroundScope))
         advanceUntilIdle()
 
         assertEquals(1, viewModel.uiState.value.pendingPayments.size)
@@ -125,7 +127,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             override suspend fun loadSurveyCourses(forceRefresh: Boolean) =
                 listOf(SurveyCourse("1", "Analisi", "tag", completed = false))
         }
-        val viewModel = DidacticsDashboardViewModel(source)
+        val viewModel = DidacticsDashboardViewModel(source.asUniRepository(backgroundScope))
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -144,7 +146,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             override suspend fun disconnectAllOtherDevices() = "Altre sessioni disconnesse"
         }
         val messages = mutableListOf<AppToastMessage>()
-        val viewModel = DeviceSessionsActionViewModel(source, AppToastSink(messages::add))
+        val viewModel = DeviceSessionsActionViewModel(source.asUniRepository(backgroundScope), AppToastSink(messages::add))
 
         viewModel.requestDisconnectAll()
         assertTrue(viewModel.uiState.value.isConfirmationVisible)
@@ -164,7 +166,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 SurveyCourse("2", "Corso B", "tag-b", "B", completed = false),
             )
         }
-        val viewModel = QuestionnairesViewModel(source)
+        val viewModel = QuestionnairesViewModel(source.asUniRepository(backgroundScope))
         advanceUntilIdle()
 
         assertEquals(2, viewModel.uiState.value.totalCount)
@@ -182,17 +184,19 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                     ),
                 )
         }
-        val viewModel = StudyPlanViewModel(source)
+        val viewModel = StudyPlanViewModel(source.asUniRepository(backgroundScope))
         advanceUntilIdle()
 
         assertEquals(listOf(1, 4), viewModel.uiState.value.years.map { it.yearNumber })
-        assertEquals(1, viewModel.uiState.value.displayedYears.single().yearNumber)
+        assertEquals(listOf(1, 4), viewModel.uiState.value.displayedYears.map { it.yearNumber })
         assertEquals(1, viewModel.uiState.value.completedCount)
         assertEquals(2, viewModel.uiState.value.totalCoursesCount)
         assertEquals(9, viewModel.uiState.value.acquiredCfu)
         assertEquals(180, viewModel.uiState.value.totalCfu)
         viewModel.selectStatusFilter(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED)
         assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED, viewModel.uiState.value.statusFilter)
+        viewModel.selectYear(0)
+        assertEquals(1, viewModel.uiState.value.displayedYears.single().yearNumber)
         viewModel.selectYear(1)
         assertEquals(4, viewModel.uiState.value.displayedYears.single().yearNumber)
     }
@@ -227,7 +231,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                     ),
                 )
         }
-        val viewModel = TranscriptsViewModel(source)
+        val viewModel = TranscriptsViewModel(source.asUniRepository(backgroundScope))
         advanceUntilIdle()
 
         val allExams = viewModel.uiState.value.examsByYear.values.flatten()
@@ -236,8 +240,8 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals("Idoneo", allExams.first { it.name == "Tirocinio" }.grade)
         assertEquals("Idoneo", allExams.first { it.name == "Seminario" }.grade)
         assertEquals(listOf(1, 2, 0), viewModel.uiState.value.availableYears)
-        assertEquals(1, viewModel.uiState.value.selectedYear)
-        assertEquals(listOf(1), viewModel.uiState.value.displayedYears)
+        assertEquals(com.anto426.uniapp.didactics.presentation.ALL_ACADEMIC_YEARS, viewModel.uiState.value.selectedYear)
+        assertEquals(listOf(1, 2, 0), viewModel.uiState.value.displayedYears)
         assertEquals("28.0", viewModel.uiState.value.averageLabel)
         assertEquals("102.0", viewModel.uiState.value.degreeBaseLabel)
         assertEquals(18, viewModel.uiState.value.acquiredCfu)
@@ -310,7 +314,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 totalCount = 2,
             )
         }
-        val viewModel = TransportViewModel(source)
+        val viewModel = TransportViewModel(source.asUniRepository(backgroundScope))
         advanceUntilIdle()
 
         assertEquals(1, viewModel.uiState.value.days.size)
@@ -333,9 +337,10 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 ),
             )
         }
+        val simRepo = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope)
         val viewModel = GradesViewModel(
-            dataSource = source,
-            simulationRepository = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope),
+            dataSource = source.asUniRepository(backgroundScope, simulations = simRepo),
+            simulationRepository = simRepo,
             simulationOwner = LocalDataScope.Profile("account", "career"),
             toastSink = AppToastSink.None,
         )
@@ -371,9 +376,10 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 ),
             )
         }
+        val simRepo = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope)
         val viewModel = GradesViewModel(
-            dataSource = source,
-            simulationRepository = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope),
+            dataSource = source.asUniRepository(backgroundScope, simulations = simRepo),
+            simulationRepository = simRepo,
             simulationOwner = LocalDataScope.Profile("account", "career"),
             toastSink = AppToastSink.None,
         )
@@ -400,7 +406,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                     ExamRound("Basi di dati", "07/09/2026 15:00", "Lab", 12, open = true),
                 )
         }
-        val viewModel = ExamsViewModel(source, today = { LocalDate(2026, 9, 5) })
+        val viewModel = ExamsViewModel(source.asUniRepository(backgroundScope), today = { LocalDate(2026, 9, 5) })
         advanceUntilIdle()
 
         assertEquals(
@@ -480,8 +486,9 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 return expectedBytes
             }
         }
-        val home = HomeDashboardViewModel(source, quickActions = emptyList(), preparationDispatcher = Dispatchers.Main)
-        val badge = AcademicIdentityViewModel(source)
+        val repo = source.asUniRepository(backgroundScope)
+        val home = HomeDashboardViewModel(repo, quickActions = emptyList(), preparationDispatcher = Dispatchers.Main)
+        val badge = AcademicIdentityViewModel(repo)
         advanceUntilIdle()
 
         home.uiState.first { it.profilePhotoData != null || it.loadState == FeatureLoadState.Error }
@@ -508,7 +515,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 photoUrl = null,
                 isGuest = false,
                 activeProfileId = "professor-1",
-                activeProfileType = CareerType.PROFESSOR,
+                activeProfileType = UniProfileRole.PROFESSOR,
                 profiles =
                     listOf(
                         UniAccountProfileSummary(
@@ -518,12 +525,12 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                             dipId = "DIP-12",
                             departmentName = "Dipartimento di Ingegneria",
                             teacherId = "DOC-42",
-                            type = CareerType.PROFESSOR,
+                            type = UniProfileRole.PROFESSOR,
                         ),
                     ),
             )
 
-        val badge = AcademicIdentityViewModel(source, account)
+        val badge = AcademicIdentityViewModel(source.asUniRepository(backgroundScope), account)
         advanceUntilIdle()
 
         assertTrue(badge.uiState.value.isProfessor)
@@ -552,7 +559,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 )
         }
 
-        val viewModel = HomeDashboardViewModel(source, emptyList(), professorAccount(), preparationDispatcher = Dispatchers.Main)
+        val viewModel = HomeDashboardViewModel(source.asUniRepository(backgroundScope), emptyList(), professorAccount(), preparationDispatcher = Dispatchers.Main)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -572,7 +579,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             )
         }
 
-        val viewModel = HomeDashboardViewModel(source, emptyList(), preparationDispatcher = Dispatchers.Main)
+        val viewModel = HomeDashboardViewModel(source.asUniRepository(backgroundScope), emptyList(), preparationDispatcher = Dispatchers.Main)
         advanceUntilIdle()
 
         assertEquals(0, viewModel.uiState.value.activeNewsIndex)
@@ -604,8 +611,9 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 )
         }
         val account = professorAccount()
-        val didactics = DidacticsDashboardViewModel(source, account)
-        val exams = ExamsViewModel(source, account = account)
+        val repo = source.asUniRepository(backgroundScope)
+        val didactics = DidacticsDashboardViewModel(repo, account)
+        val exams = ExamsViewModel(repo, account = account)
         advanceUntilIdle()
 
         assertTrue(didactics.uiState.value.isProfessor)
@@ -637,16 +645,19 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                 ProfessorDashboard(theses = listOf(thesis), examRounds = listOf(exam))
         }
 
+        val repo = source.asUniRepository(backgroundScope)
+        val thesisItem = thesis.toAcademicContentItem()
+        val examItem = exam.toAcademicContentItem()
         val thesisDetail =
-            AcademicItemDetailViewModel(AcademicSection.Theses, thesis.academicItemKey(), source)
+            AcademicItemDetailViewModel(AcademicSection.Theses, thesisItem.academicItemKey(), repo)
         val examDetail =
-            AcademicItemDetailViewModel(AcademicSection.ExamRounds, exam.academicItemKey(), source)
+            AcademicItemDetailViewModel(AcademicSection.ExamRounds, examItem.academicItemKey(), repo)
         advanceUntilIdle()
 
         thesisDetail.uiState.first { it.loadState != FeatureLoadState.Loading }
-        assertEquals(thesis, thesisDetail.uiState.value.item)
+        assertEquals(thesisItem, thesisDetail.uiState.value.item)
         examDetail.uiState.first { it.loadState != FeatureLoadState.Loading }
-        assertEquals(exam, examDetail.uiState.value.item)
+        assertEquals(examItem, examDetail.uiState.value.item)
     }
 
     private fun professorAccount() =
@@ -660,7 +671,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             photoUrl = null,
             isGuest = false,
             activeProfileId = "professor-1",
-            activeProfileType = CareerType.PROFESSOR,
+            activeProfileType = UniProfileRole.PROFESSOR,
             profiles =
                 listOf(
                     UniAccountProfileSummary(
@@ -670,7 +681,7 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                         dipId = "DIP-12",
                         departmentName = "Dipartimento di Ingegneria",
                         teacherId = "DOC-42",
-                        type = CareerType.PROFESSOR,
+                        type = UniProfileRole.PROFESSOR,
                     ),
                 ),
         )

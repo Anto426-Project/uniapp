@@ -438,6 +438,31 @@
     <string name="ui_colors_subtitle">Mit dem Liquid-Farbspektrum experimentieren</string>
     <string name="ui_advanced_controls">Erweiterte Steuerung</string>
     <string name="ui_colors_info">Die ausgewählte Farbe dient als Ausgangsfarbe für die gesamte Monet-Palette der App, wenn Material You deaktiviert ist.</string>
+    <string name="ui_colors_tab_spectrum">Spektrum</string>
+    <string name="ui_colors_tab_adjust">Anpassen</string>
+    <string name="ui_colors_tab_presets">Vorlagen</string>
+    <string name="ui_colors_monet_preview">Monet-Palettenvorschau</string>
+    <string name="ui_colors_token_primary">Primär</string>
+    <string name="ui_colors_token_surface">Fläche</string>
+    <string name="ui_colors_token_secondary">Sekundär</string>
+    <string name="ui_colors_token_tertiary">Tertiär</string>
+    <string name="ui_colors_action_random">Zufällig</string>
+    <string name="ui_colors_action_reset">Zurücksetzen</string>
+    <string name="ui_colors_sat_bright">Sättigung und Helligkeit</string>
+    <string name="ui_colors_hue">Farbton</string>
+    <string name="ui_colors_saturation">Sättigung</string>
+    <string name="ui_colors_brightness">Helligkeit</string>
+    <string name="ui_colors_red">Rot</string>
+    <string name="ui_colors_green">Grün</string>
+    <string name="ui_colors_blue">Blau</string>
+    <string name="ui_colors_cat_uniapp">UniApp</string>
+    <string name="ui_colors_cat_vibrant">Lebendig</string>
+    <string name="ui_colors_cat_pastel">Pastell</string>
+    <string name="ui_colors_cat_elegant">Elegant</string>
+    <string name="ui_colors_hex_and_recents">HEX-Code und Verlauf</string>
+    <string name="ui_colors_hex_apply">Anwenden</string>
+    <string name="ui_colors_hex_invalid">Gültigen HEX-Code eingeben (z. B. #2979FF)</string>
+    <string name="ui_colors_recents">Zuletzt</string>
 
 
     <string name="ui_connected_devices">Verbundene Geräte</string>
@@ -887,6 +912,9 @@
     <string name="ui_grades_custom_exam_name_placeholder">z. B. Praktikum / Wahlfach</string>
     <string name="ui_grades_custom_exam_cfu">Leistungspunkte (CFU)</string>
     <string name="ui_grades_custom_exam_grade">Erwartete Note</string>
+    <string name="ui_grades_scenarios_title">Szenarien für verbleibende Credits</string>
+    <string name="ui_grades_scenarios_subtitle">Geschätzte Abschlussnote je nach Durchschnitt der nächsten Prüfungen</string>
+    <string name="ui_grades_scenario_average">Mit Schnitt %1$d/30</string>
 
     <!-- Transport & Booking -->
     <string name="ui_transport_route_subtitle">Wähle die Universitäts-Shuttlelinie für deine Fahrt</string>
@@ -1577,7 +1605,7 @@
     <string name="ui_grades_target_feasible_msg">Erreichbares Ziel: Du benötigst einen Durchschnitt von %1$s in den verbleibenden %2$d CFU.</string>
     <string name="ui_grades_target_hard_msg">Sehr anspruchsvoll: Ein nahezu perfekter Durchschnitt (%1$s) ist erforderlich. Berücksichtige die Thesis-Punkte.</string>
     <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
-    <string name="ui_grades_tier_exams_percent">%1$d Prüfungen • %2$d%%</string>
+    <string name="ui_grades_tier_exams_percent">%1$d Prüfungen • %2$d%</string>
     <string name="ui_grades_highest_grade_courses_format">Bestnote: %1$s</string>
     <string name="ui_grades_active_singular">%1$d aktiv</string>
     <string name="ui_grades_active_plural">%1$d aktiv</string>

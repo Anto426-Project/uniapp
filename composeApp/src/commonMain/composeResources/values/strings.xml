@@ -438,6 +438,31 @@
     <string name="ui_colors_subtitle">Sperimenta con lo spettro cromatico Liquid</string>
     <string name="ui_advanced_controls">Controlli avanzati</string>
     <string name="ui_colors_info">Il colore selezionato verrà utilizzato come seme per generare l'intera palette Monet dell'applicazione se il motore Material You è disattivato.</string>
+    <string name="ui_colors_tab_spectrum">Spettro</string>
+    <string name="ui_colors_tab_adjust">Regolazione</string>
+    <string name="ui_colors_tab_presets">Preset</string>
+    <string name="ui_colors_monet_preview">Anteprima palette Monet</string>
+    <string name="ui_colors_token_primary">Primario</string>
+    <string name="ui_colors_token_surface">Superficie</string>
+    <string name="ui_colors_token_secondary">Secondario</string>
+    <string name="ui_colors_token_tertiary">Terziario</string>
+    <string name="ui_colors_action_random">Casuale</string>
+    <string name="ui_colors_action_reset">Ripristina</string>
+    <string name="ui_colors_sat_bright">Saturazione e luminosità</string>
+    <string name="ui_colors_hue">Tonalità</string>
+    <string name="ui_colors_saturation">Saturazione</string>
+    <string name="ui_colors_brightness">Luminosità</string>
+    <string name="ui_colors_red">Rosso</string>
+    <string name="ui_colors_green">Verde</string>
+    <string name="ui_colors_blue">Blu</string>
+    <string name="ui_colors_cat_uniapp">UniApp</string>
+    <string name="ui_colors_cat_vibrant">Vibranti</string>
+    <string name="ui_colors_cat_pastel">Pastello</string>
+    <string name="ui_colors_cat_elegant">Eleganti</string>
+    <string name="ui_colors_hex_and_recents">Codice HEX e recenti</string>
+    <string name="ui_colors_hex_apply">Applica</string>
+    <string name="ui_colors_hex_invalid">Inserisci un codice esadecimale valido (es. #2979FF)</string>
+    <string name="ui_colors_recents">Recenti</string>
 
 
     <string name="ui_connected_devices">Dispositivi connessi</string>
@@ -887,6 +912,9 @@
     <string name="ui_grades_custom_exam_name_placeholder">Es. tirocinio / esame a scelta</string>
     <string name="ui_grades_custom_exam_cfu">Crediti formativi (CFU)</string>
     <string name="ui_grades_custom_exam_grade">Voto previsto</string>
+    <string name="ui_grades_scenarios_title">Scenari sui CFU rimanenti</string>
+    <string name="ui_grades_scenarios_subtitle">Voto finale stimato in base alla media dei prossimi esami</string>
+    <string name="ui_grades_scenario_average">Con media %1$d/30</string>
 
     <!-- Transport & Booking -->
     <string name="ui_transport_route_subtitle">Scegli la linea universitaria per il tuo spostamento</string>
@@ -1577,7 +1605,7 @@
     <string name="ui_grades_target_feasible_msg">Obiettivo raggiungibile: serve una media di %1$s nei restanti %2$d CFU.</string>
     <string name="ui_grades_target_hard_msg">Molto impegnativo: occorre una media quasi perfetta (%1$s). Valuta i punti tesi.</string>
     <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
-    <string name="ui_grades_tier_exams_percent">%1$d esami • %2$d%%</string>
+    <string name="ui_grades_tier_exams_percent">%1$d esami • %2$d%</string>
     <string name="ui_grades_highest_grade_courses_format">Massimo: %1$s</string>
     <string name="ui_grades_active_singular">%1$d attivo</string>
     <string name="ui_grades_active_plural">%1$d attivi</string>

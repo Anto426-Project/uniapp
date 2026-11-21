@@ -19,7 +19,7 @@ import com.anto426.uniapp.ui.components.items.ProfessorExamItem
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
-import com.anto426.unisdk.model.ProfessorContentItem
+import com.anto426.uniapp.model.didactics.AcademicContentItem
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -35,7 +35,7 @@ fun ExamsScreen(
     onTabSelected: (Int) -> Unit,
     showTabs: Boolean = true,
     onToggleBooking: (String) -> Unit,
-    onProfessorExamClick: (ProfessorContentItem) -> Unit = {},
+    onProfessorExamClick: (AcademicContentItem) -> Unit = {},
     onAddToCalendar: (String) -> Unit,
 ) {
     var bookableFilter by rememberSaveable { mutableStateOf(ExamBookableFilter.ALL) }
@@ -55,7 +55,7 @@ fun ExamsScreen(
 
     UniScreenLazyColumn {
         if (!uiState.isProfessor && showTabs) {
-            item(key = "exam-tabs") {
+            item(key = "exam-tabs", contentType = "exam-tabs") {
                 LiquidTabBar(
                     items = studentTabs,
                     selectedIndex = uiState.selectedTab,
@@ -82,11 +82,11 @@ fun ExamsScreen(
 }
 
 fun LazyListScope.professorExamsContentItems(
-    rounds: List<ProfessorContentItem>,
-    onProfessorExamClick: (ProfessorContentItem) -> Unit,
+    rounds: List<AcademicContentItem>,
+    onProfessorExamClick: (AcademicContentItem) -> Unit,
 ) {
     if (rounds.isEmpty()) {
-        item(key = "professor-exam-empty") {
+        item(key = "professor-exam-empty", contentType = "empty-state") {
             UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_no_exams_in_section),
                 description = stringResource(Res.string.ui_no_exams_in_section_description),
@@ -95,7 +95,7 @@ fun LazyListScope.professorExamsContentItems(
             )
         }
     } else {
-        item(key = "professor-exams-header") {
+        item(key = "professor-exams-header", contentType = "section-header") {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_professor_exam_rounds),
                 subtitle = stringResource(
@@ -107,6 +107,7 @@ fun LazyListScope.professorExamsContentItems(
         itemsIndexed(
             items = rounds,
             key = { index, exam -> "professor-exam|${exam.id}|${exam.title}|$index" },
+            contentType = { _, _ -> "professor-exam" },
         ) { _, exam ->
             ProfessorExamItem(
                 exam = exam,
@@ -137,7 +138,7 @@ fun LazyListScope.studentExamsContentItems(
     }
 
     if (uiState.selectedTab == 0 && uiState.visibleExams.isNotEmpty()) {
-        item(key = "student-exam-filters") {
+        item(key = "student-exam-filters", contentType = "filter-chips") {
             val filterOptions = listOf(
                 Triple(
                     ExamBookableFilter.ALL,
@@ -172,7 +173,7 @@ fun LazyListScope.studentExamsContentItems(
     }
 
     if (displayedStudentExams.isEmpty()) {
-        item(key = "exam-empty-${uiState.selectedTab}-$bookableFilter") {
+        item(key = "exam-empty-${uiState.selectedTab}-$bookableFilter", contentType = "empty-state") {
             UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_no_exams_in_section),
                 description = stringResource(Res.string.ui_no_exams_in_section_description),
@@ -181,7 +182,7 @@ fun LazyListScope.studentExamsContentItems(
             )
         }
     } else {
-        item(key = "student-exams-header-${uiState.selectedTab}") {
+        item(key = "student-exams-header-${uiState.selectedTab}", contentType = "section-header") {
             LiquidSectionHeader(
                 title = if (uiState.selectedTab == 1) {
                     stringResource(Res.string.ui_booked_exams)
@@ -197,6 +198,7 @@ fun LazyListScope.studentExamsContentItems(
         itemsIndexed(
             items = displayedStudentExams,
             key = { index, exam -> "exam|${exam.id}|${exam.date}|${exam.time}|$index" },
+            contentType = { _, _ -> "exam-session" },
         ) { _, exam ->
             ExamSessionItem(
                 exam = exam,

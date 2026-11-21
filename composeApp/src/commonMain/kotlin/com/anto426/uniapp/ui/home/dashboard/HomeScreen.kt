@@ -50,7 +50,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (uiState.loadState == FeatureLoadState.Error && !uiState.errorMessage.isNullOrBlank()) {
-            item(key = "home-error") {
+            item(key = "home-error", contentType = "home-error") {
                 HomeErrorRetryCard(
                     message = uiState.errorMessage,
                     onRetry = onRefresh,
@@ -60,7 +60,7 @@ fun HomeScreen(
         }
 
         // 1. Riepilogo stile Apple Fitness / Salute (Header identità + unica card sintetica)
-        item(key = "home-summary") {
+        item(key = "home-summary", contentType = "home-summary") {
             HomeSummarySection(
                 uiState = uiState,
                 onOpenBadge = onOpenBadge,
@@ -70,7 +70,7 @@ fun HomeScreen(
         }
 
         // 2. Stato immediato stile Apple Casa (Appelli e Tasse / Tesi)
-        item(key = "home-spotlight") {
+        item(key = "home-spotlight", contentType = "home-spotlight") {
             HomeSpotlightRow(
                 uiState = uiState,
                 onOpenExams = onOpenExams,
@@ -81,7 +81,7 @@ fun HomeScreen(
         }
 
         // 3. Accesso rapido compatto (sopra le notizie)
-        item(key = "home-quick-access") {
+        item(key = "home-quick-access", contentType = "home-quick-access") {
             HomeQuickAccessGroup(
                 uiState = uiState,
                 onToggleCustomization = onToggleCustomization,
@@ -92,7 +92,7 @@ fun HomeScreen(
         }
 
         // 4. Notizie > stile Apple News / App Store (peek orizzontale edge-to-edge)
-        item(key = "home-news") {
+        item(key = "home-news", contentType = "home-news") {
             HomeNewsSection(
                 homeNews = uiState.news,
                 activeNewsIndex = uiState.activeNewsIndex,

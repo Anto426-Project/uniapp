@@ -2,7 +2,8 @@ package com.anto426.uniapp.library.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
@@ -17,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 data class LibraryUiState(
@@ -47,9 +48,10 @@ data class LibraryUiState(
 
 class LibraryViewModel(
     initialTab: Int = 0,
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
+    private val repository = dataSource.asUniRepository(viewModelScope)
     private val mutableUiState = MutableStateFlow(LibraryUiState(selectedTab = initialTab.coerceIn(0, 2)))
     val uiState: StateFlow<LibraryUiState> = mutableUiState.asStateFlow()
 
@@ -84,7 +86,7 @@ class LibraryViewModel(
         )
         viewModelScope.launch {
             try {
-                val result = dataSource.searchLibraryBooks(targetQuery, page.coerceAtLeast(1))
+                val result = repository.library.searchBooks(targetQuery, page.coerceAtLeast(1))
                 mutableUiState.value = mutableUiState.value.copy(
                     submittedQuery = targetQuery,
                     hasSearched = true,
@@ -100,7 +102,7 @@ class LibraryViewModel(
                 mutableUiState.value = mutableUiState.value.copy(
                     hasSearched = true,
                     isSearching = false,
-                    catalogError = error.userMessage { getString(Res.string.msg_impossibile_cercare_in_biblioteca) },
+                    catalogError = error.userMessage { readAppString(Res.string.msg_impossibile_cercare_in_biblioteca) },
                 )
             }
         }
@@ -113,7 +115,7 @@ class LibraryViewModel(
         )
         viewModelScope.launch {
             try {
-                val list = dataSource.loadLibraryMovements(forceRefresh = true)
+                val list = repository.library.loadMovements(forceRefresh = true)
                 mutableUiState.value = mutableUiState.value.copy(
                     movementsLoadState = if (list.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                     movements = list,
@@ -125,7 +127,7 @@ class LibraryViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     movementsLoadState = FeatureLoadState.Error,
-                    movementsError = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_prestiti) },
+                    movementsError = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_i_prestiti) },
                     hasLoadedMovements = true,
                 )
             }
@@ -150,15 +152,15 @@ class LibraryViewModel(
         )
         viewModelScope.launch {
             try {
-                dataSource.cancelLibraryMovement(token)
+                repository.library.cancelMovement(token)
                 mutableUiState.value = mutableUiState.value.copy(busyMovementToken = null)
                 refreshMovements()
-                toastSink.success(getString(Res.string.ui_library_movement_canceled))
+                toastSink.success(readAppString(Res.string.ui_library_movement_canceled))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(busyMovementToken = null)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_annullare_la_richiesta_biblioteca) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_annullare_la_richiesta_biblioteca) })
             }
         }
     }
@@ -169,15 +171,15 @@ class LibraryViewModel(
         mutableUiState.value = mutableUiState.value.copy(busyMovementToken = token)
         viewModelScope.launch {
             try {
-                val feedback = dataSource.renewLibraryMovement(token)
+                val feedback = repository.library.renewMovement(token)
                 mutableUiState.value = mutableUiState.value.copy(busyMovementToken = null)
-                toastSink.success(feedback.ifBlank { getString(Res.string.ui_library_loan_renewed) })
+                toastSink.success(feedback.ifBlank { readAppString(Res.string.ui_library_loan_renewed) })
                 refreshMovements()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(busyMovementToken = null)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_prorogare_il_prestito) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_prorogare_il_prestito) })
             }
         }
     }
@@ -189,7 +191,7 @@ class LibraryViewModel(
         )
         viewModelScope.launch {
             try {
-                val overview = dataSource.loadLibraryBookingOverview()
+                val overview = repository.library.loadBookingOverview()
                 mutableUiState.value = mutableUiState.value.copy(
                     spacesLoadState = if (overview.bookings.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                     spaceBookings = overview.bookings,
@@ -202,7 +204,7 @@ class LibraryViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     spacesLoadState = FeatureLoadState.Error,
-                    spacesError = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_prenotazioni_biblioteca) },
+                    spacesError = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_prenotazioni_biblioteca) },
                     hasLoadedSpaces = true,
                 )
             }
@@ -227,15 +229,15 @@ class LibraryViewModel(
         )
         viewModelScope.launch {
             try {
-                dataSource.cancelLibrarySpaceBooking(token)
+                repository.library.cancelSpaceBooking(token)
                 mutableUiState.value = mutableUiState.value.copy(busyBookingToken = null)
-                toastSink.success(getString(Res.string.ui_library_space_booking_canceled))
+                toastSink.success(readAppString(Res.string.ui_library_space_booking_canceled))
                 refreshSpaces()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(busyBookingToken = null)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_annullare_prenotazione_spazio) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_annullare_prenotazione_spazio) })
             }
         }
     }

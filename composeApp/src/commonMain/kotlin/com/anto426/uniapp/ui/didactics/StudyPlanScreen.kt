@@ -13,10 +13,9 @@ import com.anto426.uniapp.didactics.presentation.ALL_ACADEMIC_YEARS
 import com.anto426.uniapp.didactics.presentation.StudyPlanUiState
 import com.anto426.uniapp.model.didactics.CourseStatus
 import com.anto426.uniapp.model.didactics.StudyCourse
-import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
+import com.anto426.unisdk.model.firstAcademicIntegerOrNull
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.items.StudyCourseItem
-import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.anto426.uniapp.ui.didactics.components.CareerStatusFilterRow
 import com.anto426.uniapp.ui.didactics.components.CareerSummaryHeroCard
@@ -24,23 +23,6 @@ import com.anto426.uniapp.ui.didactics.components.CareerYearChipRow
 import com.anto426.uniapp.ui.didactics.components.careerYearLabel
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
-
-@Composable
-fun StudyPlanScreen(
-    uiState: StudyPlanUiState,
-    onYearSelected: (Int) -> Unit,
-    onCourseClick: (StudyCourse) -> Unit = {},
-    onStatusFilterChanged: (CourseStatus?) -> Unit = {},
-) {
-    UniScreenColumn {
-        StudyPlanContent(
-            uiState = uiState,
-            onYearSelected = onYearSelected,
-            onCourseClick = onCourseClick,
-            onStatusFilterChanged = onStatusFilterChanged,
-        )
-    }
-}
 
 @Composable
 fun StudyPlanContent(

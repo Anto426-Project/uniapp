@@ -1,16 +1,17 @@
 package com.anto426.uniapp.home.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
-import com.anto426.uniapp.data.UniAppInitialData
+import com.anto426.uniapp.account.model.UniProfileRole
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.model.home.QuickActionItem
-import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
 import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeDashboardViewModel(
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     quickActions: List<QuickActionItem>,
     private val account: UniAccountSummary? = null,
     private val preparationDispatcher: CoroutineDispatcher = Dispatchers.Default,
@@ -40,43 +41,63 @@ class HomeDashboardViewModel(
         )
     val uiState: StateFlow<HomeDashboardUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
     private val dataRequests = if (account?.isProfessor == true) {
-        listOf(UniAppDataRequests.Professor, UniAppDataRequests.News)
+        listOf(UniDatasets.Professor, UniDatasets.News)
     } else {
-        listOf(UniAppDataRequests.Student, UniAppDataRequests.Career, UniAppDataRequests.Taxes,
-            UniAppDataRequests.Exams, UniAppDataRequests.News)
+        listOf(
+            UniDatasets.Student,
+            UniDatasets.Career,
+            UniDatasets.Taxes,
+            UniDatasets.Exams,
+            UniDatasets.News,
+        )
     }
 
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, partial = true, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        val failure = snapshot.firstError?.userMessage { getString(Res.string.msg_impossibile_aggiornare_la_panoramica) }
-        val preparedNews = snapshot.value(UniAppDataRequests.News)?.let {
-            sharedData.prepareNews(it, preparationDispatcher)
+        val failure = snapshot.firstError?.userMessage { readAppString(Res.string.msg_impossibile_aggiornare_la_panoramica) }
+        val preparedNews = snapshot.value(UniDatasets.News)?.let {
+            repository.didactics.prepareNews(it, preparationDispatcher)
         }
         mutableUiState.update { current ->
             var next = current.copy(errorMessage = failure)
-            snapshot.value(UniAppDataRequests.Student)?.let { student ->
-                next = next.copy(profileName = student.fullName, matricola = student.matricola.orEmpty(),
-                    profileInitials = student.fullName.initials(), departmentName = student.departmentName.orEmpty(),
-                    degreeName = student.degreeName.orEmpty(), loadState = FeatureLoadState.Content)
+            snapshot.value(UniDatasets.Student)?.let { student ->
+                next = next.copy(
+                    profileName = student.fullName,
+                    matricola = student.matricola.orEmpty(),
+                    profileInitials = student.initials,
+                    departmentName = student.departmentName.orEmpty(),
+                    degreeName = student.degreeName.orEmpty(),
+                    loadState = FeatureLoadState.Content,
+                )
             }
-            snapshot.value(UniAppDataRequests.Career)?.let { career ->
-                val target = career.cfuTarget ?: 0
-                val acquired = career.cfu.firstAcademicIntegerOrNull() ?: 0
-                next = next.copy(academicYear = career.year, acquiredCfu = acquired.toString(), targetCfu = target,
-                    degreeBase = career.degreeBase ?: "—", average = career.average, completedExams = career.exams.size,
-                    progress = if (target > 0) (acquired.toFloat() / target).coerceIn(0f, 1f) else 0f,
-                    loadState = FeatureLoadState.Content)
+            snapshot.value(UniDatasets.Career)?.let { career ->
+                val target = career.resolveTargetCfu(defaultTarget = 0)
+                val acquired = career.acquiredCfuValue
+                next = next.copy(
+                    academicYear = career.year,
+                    acquiredCfu = acquired.toString(),
+                    targetCfu = target,
+                    degreeBase = career.degreeBase ?: "—",
+                    average = career.average,
+                    completedExams = career.validExams.size,
+                    progress = career.resolveProgress(defaultTarget = 0),
+                    loadState = FeatureLoadState.Content,
+                )
             }
-            snapshot.value(UniAppDataRequests.Taxes)?.let { taxes ->
-                val tax = taxes.unpaidInstallments.firstOrNull()
-                next = next.copy(dueAmount = taxes.dueAmount,
-                    nextTaxLabel = tax?.let { "${it.title} • ${it.deadline}" }.orEmpty())
+            snapshot.value(UniDatasets.Taxes)?.let { taxes ->
+                next = next.copy(
+                    dueAmount = taxes.dueAmount,
+                    nextTaxLabel = taxes.nextUnpaidInstallmentLabel,
+                )
             }
-            snapshot.value(UniAppDataRequests.Exams)?.let { rounds ->
+            snapshot.value(UniDatasets.Exams)?.let { rounds ->
                 val upcoming = rounds.firstOrNull { it.open && !it.booked }
-                next = next.copy(openExamRounds = rounds.count { it.open && !it.booked },
-                    nextExamLabel = upcoming?.let { "${it.courseName} • ${it.dateTime}" }.orEmpty())
+                next = next.copy(
+                    openExamRounds = rounds.count { it.open && !it.booked },
+                    nextExamLabel = upcoming?.let { "${it.courseName} • ${it.dateTime}" }.orEmpty(),
+                )
             }
             preparedNews?.let { feed ->
                 val items = feed.items
@@ -84,15 +105,24 @@ class HomeDashboardViewModel(
             }
             if (account?.isProfessor == true) {
                 val profile = account.profiles.firstOrNull { it.profileId == account.activeProfileId }
-                    ?: account.profiles.firstOrNull { it.type == com.anto426.unisdk.model.CareerType.PROFESSOR }
-                next = next.copy(isProfessor = true, profileName = account.displayName,
-                    profileInitials = account.displayName.initials(), matricola = account.serverUserId,
-                    departmentName = profile?.departmentName.orEmpty(), degreeName = profile?.departmentName.orEmpty())
-                snapshot.value(UniAppDataRequests.Professor)?.let { dashboard ->
+                    ?: account.profiles.firstOrNull { it.type == UniProfileRole.PROFESSOR }
+                next = next.copy(
+                    isProfessor = true,
+                    profileName = account.displayName,
+                    profileInitials = account.displayName.initials(),
+                    matricola = account.serverUserId,
+                    departmentName = profile?.departmentName.orEmpty(),
+                    degreeName = profile?.departmentName.orEmpty(),
+                )
+                snapshot.value(UniDatasets.Professor)?.let { dashboard ->
                     val round = dashboard.examRounds.firstOrNull()
-                    next = next.copy(teachingCount = dashboard.teachings.size, thesisCount = dashboard.theses.size,
-                        openExamRounds = dashboard.examRounds.size, nextExamLabel = round?.subtitle ?: round?.title.orEmpty(),
-                        loadState = FeatureLoadState.Content)
+                    next = next.copy(
+                        teachingCount = dashboard.teachings.size,
+                        thesisCount = dashboard.theses.size,
+                        openExamRounds = dashboard.examRounds.size,
+                        nextExamLabel = round?.subtitle ?: round?.title.orEmpty(),
+                        loadState = FeatureLoadState.Content,
+                    )
                 }
             }
             if (snapshot.resolved && next.loadState == FeatureLoadState.Loading && failure != null) {
@@ -103,15 +133,15 @@ class HomeDashboardViewModel(
     }
 
     init {
-        sharedData.startPortrait(account)
+        repository.didactics.startPortrait(account)
         viewModelScope.launch {
-            sharedData.portrait.collect { image -> mutableUiState.update { it.copy(profilePhotoData = image) } }
+            repository.didactics.portrait.collect { image -> mutableUiState.update { it.copy(profilePhotoData = image) } }
         }
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
-        if (force) sharedData.refreshPortrait()
+        repository.didactics.refresh(dataRequests, force)
+        if (force) repository.didactics.refreshPortrait()
     }
 
     fun showNews(news: NewsItem) {

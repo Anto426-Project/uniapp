@@ -2,13 +2,13 @@ package com.anto426.uniapp.session.presentation
 
 import com.anto426.uniapp.presentation.userMessage
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.session.SessionManager
-import com.anto426.uniapp.session.PasswordUnlockResult
+import com.anto426.uniapp.data.PasswordUnlockResult
+import com.anto426.uniapp.data.UniSessionController
 import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.info
@@ -32,7 +32,7 @@ data class AppUnlockUiState(
 enum class AppPasswordUnlockError { Invalid, RetryLater, Failed }
 
 class AppSessionViewModel(
-    private val sessionController: SessionManager,
+    private val sessionController: UniSessionController,
 ) : ViewModel() {
     val state: StateFlow<AppSessionState> = sessionController.state
     val storageResetNotice: StateFlow<Boolean> = sessionController.storageResetNotice
@@ -67,12 +67,12 @@ class AppSessionViewModel(
                 try {
                     if (authenticator.availability() != BiometricAvailability.Available) {
                         mutableUnlockUiState.value =
-                            AppUnlockUiState(errorMessage = getString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
+                            AppUnlockUiState(errorMessage = readAppString(Res.string.msg_autenticazione_del_dispositivo_non_disponibile))
                         return@launch
                     }
                     when (
                         val result = authenticator.authenticate(
-                            getString(Res.string.msg_conferma_la_tua_identita_per_aprire_laccount_uniapp),
+                            readAppString(Res.string.msg_conferma_la_tua_identita_per_aprire_laccount_uniapp),
                         )
                     ) {
                         BiometricAuthenticationResult.Authenticated -> {
@@ -81,7 +81,7 @@ class AppSessionViewModel(
                         }
 
                         BiometricAuthenticationResult.Cancelled -> {
-                            val message = getString(Res.string.msg_accesso_annullato)
+                            val message = readAppString(Res.string.msg_accesso_annullato)
                             toastSink?.info(message)
                             mutableUnlockUiState.value = AppUnlockUiState()
                         }
@@ -89,14 +89,14 @@ class AppSessionViewModel(
                         is BiometricAuthenticationResult.Failed ->
                             mutableUnlockUiState.value =
                                 AppUnlockUiState(
-                                    errorMessage = result.message.ifBlank { getString(Res.string.msg_autenticazione_non_riuscita) },
+                                    errorMessage = result.message.ifBlank { readAppString(Res.string.msg_autenticazione_non_riuscita) },
                                 )
                     }
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Throwable) {
                     mutableUnlockUiState.value =
-                        AppUnlockUiState(errorMessage = error.userMessage { getString(Res.string.msg_impossibile_aprire_laccount) })
+                        AppUnlockUiState(errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_aprire_laccount) })
                 } finally {
                     mutableUnlockUiState.update { it.copy(isAuthenticating = false) }
                 }

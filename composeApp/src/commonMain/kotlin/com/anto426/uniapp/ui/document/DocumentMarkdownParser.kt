@@ -1,6 +1,6 @@
 package com.anto426.uniapp.ui.document
 
-import com.anto426.uniapp.ui.news.NewsContentFormatter
+import com.anto426.unisdk.model.NewsContentFormatter
 
 internal data class ParsedMarkdownSection(
     val title: String?,

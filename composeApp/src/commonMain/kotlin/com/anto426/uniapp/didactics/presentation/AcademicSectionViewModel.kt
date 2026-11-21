@@ -1,23 +1,24 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
+import com.anto426.uniapp.data.toAcademicDashboardData
+import com.anto426.uniapp.model.didactics.AcademicContentItem
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.model.ProfessorContentItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 enum class AcademicSection {
     Teachings,
@@ -27,12 +28,12 @@ enum class AcademicSection {
 }
 
 data class AcademicSectionUiState(
-    val items: List<ProfessorContentItem> = emptyList(),
+    val items: List<AcademicContentItem> = emptyList(),
     val query: String = "",
     val loadState: FeatureLoadState = FeatureLoadState.Loading,
     val errorMessage: String? = null,
 ) {
-    val visibleItems: List<ProfessorContentItem>
+    val visibleItems: List<AcademicContentItem>
         get() {
             val normalized = query.trim()
             if (normalized.isEmpty()) return items
@@ -46,17 +47,18 @@ data class AcademicSectionUiState(
 
 class AcademicSectionViewModel(
     private val section: AcademicSection,
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(AcademicSectionUiState())
     val uiState: StateFlow<AcademicSectionUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Professor)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Professor)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
         try {
-            val dashboard = snapshot.require(UniAppDataRequests.Professor)
+            val dashboard = snapshot.require(UniDatasets.Professor).toAcademicDashboardData()
             val items =
                 when (section) {
                     AcademicSection.Teachings -> dashboard.teachings
@@ -77,15 +79,14 @@ class AcademicSectionViewModel(
             mutableUiState.update {
                 it.copy(
                     loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_dati_della_docenza) },
+                    errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_i_dati_della_docenza) },
                 )
             }
         }
-
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
+        repository.didactics.refresh(dataRequests, force)
     }
 
     fun updateQuery(query: String) {
@@ -93,8 +94,4 @@ class AcademicSectionViewModel(
     }
 }
 
-fun ProfessorContentItem.academicItemKey(): String =
-    listOf(id, code, date, title, subtitle, detail)
-        .joinToString("|") { it.orEmpty() }
-        .hashCode()
-        .toString()
+fun AcademicContentItem.academicItemKey(): String = itemKey()

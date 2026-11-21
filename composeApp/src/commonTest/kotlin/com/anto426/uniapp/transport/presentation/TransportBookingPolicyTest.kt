@@ -1,9 +1,13 @@
 package com.anto426.uniapp.transport.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.bookedTransportRequests
 import com.anto426.uniapp.feedback.runtime.AppToastKind
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
+import com.anto426.uniapp.model.transport.TripBookingDirection
+import com.anto426.uniapp.model.transport.TripBookingRequest
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportBookingRequest
@@ -65,12 +69,12 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             TransportBooking("4", "4", "A01", "data illeggibile", "Andata", false, ""),
         ))
         assertEquals(3, booked.size)
-        assertTrue(isTransportDateBooked(monday, "A01", TransportDirection.OUTBOUND, booked))
-        assertTrue(isTransportDateBooked(monday, "A01", TransportDirection.ROUND_TRIP, booked))
-        assertFalse(isTransportDateBooked(monday, "A01", TransportDirection.RETURN, booked))
-        assertFalse(isTransportDateBooked(tuesday, "A01", TransportDirection.OUTBOUND, booked))
-        assertTrue(isTransportDateBooked(tuesday, "A01", TransportDirection.RETURN, booked))
-        assertFalse(isTransportDateBooked(tuesday, "B02", TransportDirection.RETURN, booked))
+        assertTrue(isTransportDateBooked(monday, "A01", TripBookingDirection.OUTBOUND, booked))
+        assertTrue(isTransportDateBooked(monday, "A01", TripBookingDirection.ROUND_TRIP, booked))
+        assertFalse(isTransportDateBooked(monday, "A01", TripBookingDirection.RETURN, booked))
+        assertFalse(isTransportDateBooked(tuesday, "A01", TripBookingDirection.OUTBOUND, booked))
+        assertTrue(isTransportDateBooked(tuesday, "A01", TripBookingDirection.RETURN, booked))
+        assertFalse(isTransportDateBooked(tuesday, "B02", TripBookingDirection.RETURN, booked))
     }
 
     @Test
@@ -79,12 +83,12 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
         val tuesday = LocalDate(2026, 9, 29)
         assertEquals(
             listOf(
-                TransportBookingRequest("A01", monday, TransportDirection.OUTBOUND),
-                TransportBookingRequest("A01", monday, TransportDirection.RETURN),
-                TransportBookingRequest("A01", tuesday, TransportDirection.OUTBOUND),
-                TransportBookingRequest("A01", tuesday, TransportDirection.RETURN),
+                TripBookingRequest("A01", monday, TripBookingDirection.OUTBOUND),
+                TripBookingRequest("A01", monday, TripBookingDirection.RETURN),
+                TripBookingRequest("A01", tuesday, TripBookingDirection.OUTBOUND),
+                TripBookingRequest("A01", tuesday, TripBookingDirection.RETURN),
             ),
-            transportBookingRequests("A01", listOf(tuesday, monday, monday), TransportDirection.ROUND_TRIP),
+            transportBookingRequests("A01", listOf(tuesday, monday, monday), TripBookingDirection.ROUND_TRIP),
         )
     }
 
@@ -92,7 +96,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
     fun aFailedRideDoesNotAbortTheRemainingIndividualBookings() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
-            val calls = mutableListOf<TransportBookingRequest>()
+            val calls = mutableListOf<TripBookingRequest>()
             val resultMessage = CompletableDeferred<AppToastMessage>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
@@ -100,24 +104,24 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     bookings = emptyList(), totalCount = 0,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
-                    calls += request
+                    calls += request.toTripRequest()
                     if (request.date == LocalDate(2026, 9, 28) && request.direction == TransportDirection.RETURN) {
                         error("Portale temporaneamente non disponibile")
                     }
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source, AppToastSink { message -> resultMessage.complete(message) }, today = { friday })
+            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), AppToastSink { message -> resultMessage.complete(message) }, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             assertTrue(model.uiState.value.routes.isNotEmpty())
-            model.book(listOf(LocalDate(2026, 9, 28), LocalDate(2026, 9, 29)), TransportDirection.ROUND_TRIP)
+            model.book(listOf(LocalDate(2026, 9, 28), LocalDate(2026, 9, 29)), TripBookingDirection.ROUND_TRIP)
             advanceUntilIdle()
             val message = resultMessage.await()
 
             assertEquals(
                 transportBookingRequests(
-                    "A01", listOf(LocalDate(2026, 9, 28), LocalDate(2026, 9, 29)), TransportDirection.ROUND_TRIP,
+                    "A01", listOf(LocalDate(2026, 9, 28), LocalDate(2026, 9, 29)), TripBookingDirection.ROUND_TRIP,
                 ),
                 calls,
             )
@@ -132,18 +136,18 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
     fun todayAndWeekendsNeverReachThePortalEvenFromAnOldScreen() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
-            val calls = mutableListOf<TransportBookingRequest>()
+            val calls = mutableListOf<TripBookingRequest>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
                     routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRoute("A01", "Campus A/R")),
                     bookings = emptyList(), totalCount = 0,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
-                    calls += request
+                    calls += request.toTripRequest()
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source, today = { friday })
+            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             assertTrue(model.uiState.value.routes.isNotEmpty())
@@ -163,7 +167,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
     fun bookedRideCannotBeSubmittedAgainFromAnOldScreen() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
-            val calls = mutableListOf<TransportBookingRequest>()
+            val calls = mutableListOf<TripBookingRequest>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
                     routeLabel = "Campus A/R", routeCode = "A01", availableRoutes = listOf(TransportRoute("A01", "Campus A/R")),
@@ -171,17 +175,17 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     totalCount = 1,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
-                    calls += request
+                    calls += request.toTripRequest()
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source, today = { friday })
+            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             val monday = LocalDate(2026, 9, 28)
             assertEquals("A01", model.uiState.value.selectedRouteCode)
-            model.book(monday, TransportDirection.OUTBOUND)
-            model.book(monday, TransportDirection.ROUND_TRIP)
+            model.book(monday, TripBookingDirection.OUTBOUND)
+            model.book(monday, TripBookingDirection.ROUND_TRIP)
             advanceUntilIdle()
             assertTrue(calls.isEmpty())
             assertFalse(model.uiState.value.bookedSuccessfully)
@@ -194,7 +198,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
     fun portalDuplicateIsHiddenEvenWhileTheCachedListIsStale() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
-            val calls = mutableListOf<TransportBookingRequest>()
+            val calls = mutableListOf<TripBookingRequest>()
             val warning = CompletableDeferred<AppToastMessage>()
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadTransportData(forceRefresh: Boolean) = TransportData(
@@ -202,11 +206,11 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     bookings = emptyList(), totalCount = 0,
                 )
                 override suspend fun bookTransport(request: TransportBookingRequest): TransportActionResult {
-                    calls += request
+                    calls += request.toTripRequest()
                     return TransportActionResult.AlreadyExists
                 }
             }
-            val model = TransportBookingViewModel(source, AppToastSink { warning.complete(it) }, today = { friday })
+            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), AppToastSink { warning.complete(it) }, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             val monday = LocalDate(2026, 9, 28)
@@ -214,7 +218,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             advanceUntilIdle()
             assertEquals(AppToastKind.Warning, warning.await().kind)
             assertEquals(1, calls.size)
-            assertTrue(isTransportDateBooked(monday, "A01", TransportDirection.OUTBOUND, model.uiState.value.bookedRequests))
+            assertTrue(isTransportDateBooked(monday, "A01", TripBookingDirection.OUTBOUND, model.uiState.value.bookedRequests))
             model.book(monday)
             advanceUntilIdle()
             assertEquals(1, calls.size)
@@ -222,4 +226,14 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
             Dispatchers.resetMain()
         }
     }
+
+    private fun TransportBookingRequest.toTripRequest() = TripBookingRequest(
+        routeCode = routeCode,
+        date = date,
+        direction = when (direction) {
+            TransportDirection.OUTBOUND -> TripBookingDirection.OUTBOUND
+            TransportDirection.RETURN -> TripBookingDirection.RETURN
+            TransportDirection.ROUND_TRIP -> TripBookingDirection.ROUND_TRIP
+        },
+    )
 }

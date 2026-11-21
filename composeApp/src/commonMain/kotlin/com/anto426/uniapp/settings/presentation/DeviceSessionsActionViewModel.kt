@@ -1,12 +1,13 @@
 package com.anto426.uniapp.settings.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
@@ -26,9 +27,10 @@ data class DeviceSessionsActionUiState(
 )
 
 class DeviceSessionsActionViewModel(
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
+    private val repository = dataSource.asUniRepository(viewModelScope)
     private val mutableUiState = MutableStateFlow(DeviceSessionsActionUiState())
     val uiState: StateFlow<DeviceSessionsActionUiState> = mutableUiState.asStateFlow()
 
@@ -48,7 +50,7 @@ class DeviceSessionsActionViewModel(
         viewModelScope.launch {
             mutableUiState.update { it.copy(isDisconnecting = true) }
             try {
-                val message = dataSource.disconnectAllOtherDevices()
+                val message = repository.services.disconnectAllOtherDevices()
                 mutableUiState.update {
                     it.copy(
                         isConfirmationVisible = false,
@@ -61,7 +63,7 @@ class DeviceSessionsActionViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.update { it.copy(isConfirmationVisible = false, isDisconnecting = false) }
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_chiudere_le_altre_sessioni) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_chiudere_le_altre_sessioni) })
             }
         }
     }

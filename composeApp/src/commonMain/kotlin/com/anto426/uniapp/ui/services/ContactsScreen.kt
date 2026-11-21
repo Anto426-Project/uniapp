@@ -26,7 +26,7 @@ fun ContactsScreen(
 
     UniScreenLazyColumn {
         if (uiState.categories.size > 1) {
-            item(key = "contact-categories") {
+            item(key = "contact-categories", contentType = "filter-chips") {
                 UniHorizontalChipRow {
                     LiquidChip(
                         label = stringResource(Res.string.ui_contacts_all_categories),
@@ -52,7 +52,7 @@ fun ContactsScreen(
 
         // Contact Sections
         if (categoryFiltered.isEmpty()) {
-            item(key = "contacts-empty") {
+            item(key = "contacts-empty", contentType = "empty-state") {
                 UniExpressiveStatusState(
                     title = stringResource(Res.string.ui_contacts_empty_title),
                     description = stringResource(Res.string.ui_contacts_empty_desc),
@@ -61,7 +61,7 @@ fun ContactsScreen(
                 )
             }
         } else {
-            item(key = "filtered-header") {
+            item(key = "filtered-header", contentType = "section-header") {
                 val subtitle = if (categoryFiltered.size == 1) {
                     stringResource(Res.string.ui_contacts_available_one)
                 } else {
@@ -75,6 +75,7 @@ fun ContactsScreen(
             itemsIndexed(
                 items = categoryFiltered,
                 key = { index, item -> "contact|${item.email}|${item.name}|$index" },
+                contentType = { _, _ -> "contact-item" },
             ) { _, contact ->
                 ContactItem(contact) { onContactClick(contact) }
             }

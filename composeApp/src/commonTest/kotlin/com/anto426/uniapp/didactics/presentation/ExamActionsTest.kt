@@ -2,6 +2,7 @@ package com.anto426.uniapp.didactics.presentation
 
 import androidx.lifecycle.ViewModelStore
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.stableUiId
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
@@ -61,7 +62,7 @@ class ExamActionsTest : ResourceTest() {
                     error("appello ancora non prenotabile")
                 }
             }
-            val vm = ExamsViewModel(source, AppToastSink { messages.trySend(it) }, today = { LocalDate(2026, 9, 10) })
+            val vm = ExamsViewModel(source.asUniRepository(backgroundScope), AppToastSink { messages.trySend(it) }, today = { LocalDate(2026, 9, 10) })
             store.put("exams", vm)
             vm.uiState.first { it.exams.size == rounds.size }
             assertEquals(2, vm.uiState.value.exams.map { it.id }.distinct().size)
@@ -96,7 +97,7 @@ class ExamActionsTest : ResourceTest() {
             val source = object : FakeUniAppDataSource() {
                 override suspend fun loadExamRounds(forceRefresh: Boolean) = listOf(booked, undated)
             }
-            val vm = ExamsViewModel(source, AppToastSink { errors.trySend(it) }, today = { LocalDate(2026, 9, 10) })
+            val vm = ExamsViewModel(source.asUniRepository(backgroundScope), AppToastSink { errors.trySend(it) }, today = { LocalDate(2026, 9, 10) })
             store.put("exams", vm)
             vm.uiState.first { it.exams.size == 2 }
             val opened = mutableListOf<String>()

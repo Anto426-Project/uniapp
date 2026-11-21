@@ -1,17 +1,24 @@
 package com.anto426.uniapp.data.runtime
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.UniCacheEngine
+import com.anto426.uniapp.data.UniCachePolicies
+import com.anto426.uniapp.data.UniCachePolicy
+import com.anto426.uniapp.data.UniDataSnapshot
+import com.anto426.uniapp.data.UniDatasetKey
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.toNewsItems
-import com.anto426.unisdk.model.UniversityNews
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
-import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.unisdk.model.StudentDetails
 import com.anto426.unisdk.model.Taxes
+import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.transport.TransportActionResult
-import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportBooking
+import com.anto426.unisdk.transport.TransportData
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
@@ -34,7 +41,7 @@ class ScopedDataRepositoryTest {
                 return byteArrayOf(1, 2, 3)
             }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         data.loadTransportData()
         runCurrent()
         assertEquals(listOf("first", "second"), archived)
@@ -48,16 +55,16 @@ class ScopedDataRepositoryTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; return Taxes("$calls", emptyList()) }
         }
-        val data = ScopedDataRepository(source, backgroundScope, nowMillis = { now })
+        val data = UniCacheEngine(source, backgroundScope, nowMillis = { now })
         data.loadTaxes()
         repeat(5) {
-            data.observe(listOf(UniAppDataRequests.Taxes)).first()
-            data.refresh(listOf(UniAppDataRequests.Taxes))
+            data.observe(listOf(UniDatasets.Taxes)).first()
+            data.refresh(listOf(UniDatasets.Taxes))
             data.loadTaxes()
         }
         runCurrent()
         assertEquals(1, calls)
-        now += com.anto426.uniapp.data.UniAppCachePolicies.Taxes.maxAgeMillis - 1
+        now += UniCachePolicies.Taxes.maxAgeMillis - 1
         data.loadTaxes()
         assertEquals(1, calls)
         now++
@@ -73,12 +80,12 @@ class ScopedDataRepositoryTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; error("offline") }
         }
-        val data = ScopedDataRepository(source, backgroundScope, nowMillis = { now })
+        val data = UniCacheEngine(source, backgroundScope, nowMillis = { now })
         assertFailsWith<IllegalStateException> { data.loadTaxes() }
-        repeat(5) { data.refresh(listOf(UniAppDataRequests.Taxes)) }
+        repeat(5) { data.refresh(listOf(UniDatasets.Taxes)) }
         runCurrent()
         assertEquals(1, calls)
-        now += com.anto426.uniapp.data.UniAppCachePolicies.Taxes.retryDelayMillis
+        now += UniCachePolicies.Taxes.retryDelayMillis
         assertFailsWith<IllegalStateException> { data.loadTaxes() }
         assertEquals(2, calls)
         data.close()
@@ -87,18 +94,18 @@ class ScopedDataRepositoryTest {
     @Test
     fun cancelledLoaderResolvesItsErrorAndRetriesWhileOwnerIsActive() = runTest {
         var calls = 0
-        val request = UniAppDataRequest(
+        val request = UniDatasetKey(
             "cancelled",
-            policy = com.anto426.uniapp.data.UniAppCachePolicy(100, retryDelayMillis = 50),
+            policy = UniCachePolicy(100, retryDelayMillis = 50),
         ) { _ ->
             calls++
             if (calls == 1) throw CancellationException("request cancelled")
             42
         }
-        val data = ScopedDataRepository(
+        val data = UniCacheEngine(
             FakeUniAppDataSource(), backgroundScope, nowMillis = { testScheduler.currentTime },
         )
-        val received = mutableListOf<UniAppDataSnapshot>()
+        val received = mutableListOf<UniDataSnapshot>()
         backgroundScope.launch { data.observe(listOf(request)).collect(received::add) }
         backgroundScope.launch { data.maintainFreshData() }
 
@@ -119,8 +126,8 @@ class ScopedDataRepositoryTest {
     @Test
     fun foregroundSchedulerRefreshesOnlyObservedExpiredDataAndStopsInBackground() = runTest {
         var calls = 0
-        val request = UniAppDataRequest("scheduled", policy = com.anto426.uniapp.data.UniAppCachePolicy(100)) { _ -> ++calls }
-        val data = ScopedDataRepository(FakeUniAppDataSource(), backgroundScope, nowMillis = { testScheduler.currentTime })
+        val request = UniDatasetKey("scheduled", policy = UniCachePolicy(100)) { _ -> ++calls }
+        val data = UniCacheEngine(FakeUniAppDataSource(), backgroundScope, nowMillis = { testScheduler.currentTime })
         val observer = backgroundScope.launch { data.observe(listOf(request)).collect() }
         val foreground = backgroundScope.launch { data.maintainFreshData() }
         runCurrent()
@@ -149,7 +156,7 @@ class ScopedDataRepositoryTest {
                 return super.loadTransportData(forceRefresh)
             }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         data.loadTransportData()
         data.deleteTransportBooking("booking")
         runCurrent()
@@ -166,7 +173,7 @@ class ScopedDataRepositoryTest {
         val source = object : FakeUniAppDataSource() {
             override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; return response.await() }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         val first = async { data.loadTaxes() }
         val second = async { data.loadTaxes() }
         runCurrent()
@@ -191,14 +198,14 @@ class ScopedDataRepositoryTest {
                 return Taxes(if (forceRefresh) "20" else "10", emptyList())
             }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         val waiting = async { data.loadTaxes() }
         runCurrent()
-        repeat(3) { data.refresh(listOf(UniAppDataRequests.Taxes), force = true) }
+        repeat(3) { data.refresh(listOf(UniDatasets.Taxes), force = true) }
         runCurrent()
         initial.complete(Unit)
         runCurrent()
-        repeat(3) { data.refresh(listOf(UniAppDataRequests.Taxes), force = true) }
+        repeat(3) { data.refresh(listOf(UniDatasets.Taxes), force = true) }
         runCurrent()
         assertEquals(listOf(false, true), calls)
         forced.complete(Unit)
@@ -224,10 +231,10 @@ class ScopedDataRepositoryTest {
                 return TransportActionResult.Completed
             }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         val received = mutableListOf<TransportData>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            data.observe(listOf(UniAppDataRequests.Transport)).mapNotNull { it.value(UniAppDataRequests.Transport) }.collect(received::add)
+            data.observe(listOf(UniDatasets.Transport)).mapNotNull { it.value(UniDatasets.Transport) }.collect(received::add)
         }
         val waiting = async { data.loadTransportData(forceRefresh = true) }
         runCurrent()
@@ -251,18 +258,18 @@ class ScopedDataRepositoryTest {
                 return Taxes("42", emptyList())
             }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
         data.loadTaxes()
         fail = true
-        data.refresh(listOf(UniAppDataRequests.Taxes), force = true)
+        data.refresh(listOf(UniDatasets.Taxes), force = true)
         runCurrent()
-        val snapshot = data.observe(listOf(UniAppDataRequests.Taxes)).first()
-        assertEquals("42", snapshot.require(UniAppDataRequests.Taxes).dueAmount)
+        val snapshot = data.observe(listOf(UniDatasets.Taxes)).first()
+        assertEquals("42", snapshot.require(UniDatasets.Taxes).dueAmount)
         assertEquals("offline", snapshot.firstError?.message)
         fail = false
-        data.refresh(listOf(UniAppDataRequests.Taxes), force = true)
+        data.refresh(listOf(UniDatasets.Taxes), force = true)
         runCurrent()
-        assertNull(data.observe(listOf(UniAppDataRequests.Taxes)).first().firstError)
+        assertNull(data.observe(listOf(UniDatasets.Taxes)).first().firstError)
         data.close()
     }
 
@@ -275,16 +282,16 @@ class ScopedDataRepositoryTest {
                 Taxes("private", emptyList())
             }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
-        val received = mutableListOf<UniAppDataSnapshot>()
+        val data = UniCacheEngine(source, backgroundScope)
+        val received = mutableListOf<UniDataSnapshot>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            data.observe(listOf(UniAppDataRequests.Taxes)).collect(received::add)
+            data.observe(listOf(UniDatasets.Taxes)).collect(received::add)
         }
         runCurrent()
         data.close()
         response.complete(Unit)
         runCurrent()
-        assertTrue(received.all { it.value(UniAppDataRequests.Taxes) == null })
+        assertTrue(received.all { it.value(UniDatasets.Taxes) == null })
         assertFailsWith<CancellationException> { data.loadTaxes() }
     }
 
@@ -293,8 +300,8 @@ class ScopedDataRepositoryTest {
         fun source(amount: String) = object : FakeUniAppDataSource() {
             override suspend fun loadTaxes(forceRefresh: Boolean) = Taxes(amount, emptyList())
         }
-        val first = ScopedDataRepository(source("A"), backgroundScope, generation = 1)
-        val second = ScopedDataRepository(source("B"), backgroundScope, generation = 2)
+        val first = UniCacheEngine(source("A"), backgroundScope, generation = 1)
+        val second = UniCacheEngine(source("B"), backgroundScope, generation = 2)
         assertEquals("A", first.loadTaxes().dueAmount)
         assertEquals("B", second.loadTaxes().dueAmount)
         first.close()
@@ -308,13 +315,13 @@ class ScopedDataRepositoryTest {
         var active = 0
         var maximum = 0
         val requests = (1..10).map { index ->
-            UniAppDataRequest("test/$index") { _ ->
+            UniDatasetKey("test/$index") { _ ->
                 active++
                 maximum = maxOf(maximum, active)
                 try { gate.await(); index } finally { active-- }
             }
         }
-        val data = ScopedDataRepository(FakeUniAppDataSource(), backgroundScope, concurrency = 3)
+        val data = UniCacheEngine(FakeUniAppDataSource(), backgroundScope, concurrency = 3)
         data.refresh(requests)
         runCurrent()
         assertEquals(3, active)
@@ -335,10 +342,11 @@ class ScopedDataRepositoryTest {
             override suspend fun loadStudentDetails(forceRefresh: Boolean) = StudentDetails("Mario Rossi")
             override suspend fun loadTaxes(forceRefresh: Boolean): Taxes { calls++; gate.await(); return Taxes(amount, emptyList()) }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
+        val repo = data.asUniRepository(backgroundScope)
         try {
-            val home = HomeDashboardViewModel(data, emptyList(), preparationDispatcher = Dispatchers.Main)
-            val taxes = TaxesViewModel(data)
+            val home = HomeDashboardViewModel(repo, emptyList(), preparationDispatcher = Dispatchers.Main)
+            val taxes = TaxesViewModel(repo)
             runCurrent()
             assertEquals("Mario Rossi", home.uiState.value.profileName)
             assertEquals(FeatureLoadState.Content, home.uiState.value.loadState)
@@ -364,15 +372,16 @@ class ScopedDataRepositoryTest {
             override suspend fun loadStudentDetails(forceRefresh: Boolean) = StudentDetails("Mario", photoUrl = photo)
             override suspend fun loadProfileImage(source: String, forceRefresh: Boolean): ByteArray { calls++; return source.encodeToByteArray() }
         }
-        val data = ScopedDataRepository(source, backgroundScope)
+        val data = UniCacheEngine(source, backgroundScope)
+        val repo = data.asUniRepository(backgroundScope)
         try {
-            val home = HomeDashboardViewModel(data, emptyList(), preparationDispatcher = Dispatchers.Main)
-            val badge = AcademicIdentityViewModel(data)
+            val home = HomeDashboardViewModel(repo, emptyList(), preparationDispatcher = Dispatchers.Main)
+            val badge = AcademicIdentityViewModel(repo)
             runCurrent()
             assertSame(data.portrait.value, home.uiState.value.profilePhotoData)
             assertEquals(1, calls)
             photo = "second"
-            data.refresh(listOf(UniAppDataRequests.Student), force = true)
+            data.refresh(listOf(UniDatasets.Student), force = true)
             runCurrent()
             assertContentEquals("second".encodeToByteArray(), home.uiState.value.profilePhotoData)
             assertSame(home.uiState.value.profilePhotoData, badge.uiState.value.photoData)
@@ -381,7 +390,7 @@ class ScopedDataRepositoryTest {
     }
     @Test
     fun concurrentConsumersAndEquivalentSnapshotsReuseThePreparedFeed() = runTest {
-        val cache = ScopedDataRepository(FakeUniAppDataSource(), backgroundScope)
+        val cache = UniCacheEngine(FakeUniAppDataSource(), backgroundScope)
         val dispatcher = StandardTestDispatcher(testScheduler)
         val input = listOf(news("a", "Ateneo"), news("b", "Dipartimento"))
         val home = async { cache.prepareNews(input, dispatcher) }
@@ -394,13 +403,13 @@ class ScopedDataRepositoryTest {
     @Test
     fun refreshReplacesChangedContentAndKeepsStableKeysAndAccountIsolation() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
-        val cache = ScopedDataRepository(FakeUniAppDataSource(), backgroundScope)
+        val cache = UniCacheEngine(FakeUniAppDataSource(), backgroundScope)
         val first = cache.prepareNews(listOf(news("a", "Ateneo")), dispatcher)
         val update = cache.prepareNews(listOf(news("a", "Ateneo").copy(title = "Updated", publishedAt = "26/09/2026")), dispatcher)
         assertNotSame(first, update)
         assertEquals(first.items.single().key, update.items.single().key)
         assertEquals("Updated", cache.newsFeed!!.items.single().title)
-        assertNull(ScopedDataRepository(FakeUniAppDataSource(), backgroundScope).newsFeed)
+        assertNull(UniCacheEngine(FakeUniAppDataSource(), backgroundScope).newsFeed)
         val empty = cache.prepareNews(emptyList(), dispatcher)
         assertEquals(emptyList(), empty.items)
         assertEquals(emptyMap(), empty.byCategory)

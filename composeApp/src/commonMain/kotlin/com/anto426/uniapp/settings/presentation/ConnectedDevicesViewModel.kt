@@ -1,12 +1,14 @@
 package com.anto426.uniapp.settings.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.data.toDeviceInfo
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
@@ -38,19 +40,20 @@ data class ConnectedDevicesUiState(
 }
 
 class ConnectedDevicesViewModel(
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(ConnectedDevicesUiState())
     val uiState: StateFlow<ConnectedDevicesUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Devices)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Devices)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        val result = snapshot.state(UniAppDataRequests.Devices)
+        val result = snapshot.state(UniDatasets.Devices)
         val devices = result.value?.toDeviceInfo()
         val message = result.error?.userMessage {
-            getString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)
+            readAppString(Res.string.msg_impossibile_caricare_i_dispositivi_collegati)
         }
         mutableUiState.update { state ->
             state.copy(
@@ -75,7 +78,7 @@ class ConnectedDevicesViewModel(
         if (!state.canManageSessions || device.isCurrent || device !in state.devices) return
         if (device.revocationToken.isNullOrBlank()) {
             viewModelScope.launch {
-                toastSink.warning(getString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile))
+                toastSink.warning(readAppString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile))
             }
             return
         }
@@ -95,7 +98,7 @@ class ConnectedDevicesViewModel(
         }
         val token = pending.revocationToken
         if (token.isNullOrBlank()) {
-            viewModelScope.launch { toastSink.warning(getString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile)) }
+            viewModelScope.launch { toastSink.warning(readAppString(Res.string.msg_questa_sessione_non_espone_un_token_revocabile)) }
             dismissRevocation()
             return
         }
@@ -111,7 +114,7 @@ class ConnectedDevicesViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage { getString(Res.string.msg_impossibile_revocare_il_dispositivo) }
+                val message = error.userMessage { readAppString(Res.string.msg_impossibile_revocare_il_dispositivo) }
                 mutableUiState.value = mutableUiState.value.copy(
                     isMutating = false,
                 )

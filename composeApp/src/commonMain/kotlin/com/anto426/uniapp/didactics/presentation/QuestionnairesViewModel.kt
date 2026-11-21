@@ -1,12 +1,12 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
+import com.anto426.uniapp.data.toQuestionnaireDataList
 import com.anto426.uniapp.model.didactics.QuestionnaireData
 import com.anto426.uniapp.model.didactics.QuestionnaireStatus
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -17,7 +17,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 data class QuestionnairesUiState(
     val pending: List<QuestionnaireData> = emptyList(),
@@ -31,29 +32,17 @@ data class QuestionnairesUiState(
         get() = if (totalCount == 0) 0f else completed.size.toFloat() / totalCount
 }
 
-class QuestionnairesViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
+class QuestionnairesViewModel(private val dataSource: UniGateway) : ViewModel() {
     private val mutableUiState = MutableStateFlow(QuestionnairesUiState())
     val uiState: StateFlow<QuestionnairesUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Surveys)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Surveys)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val questionnaires = snapshot.require(UniAppDataRequests.Surveys).map { course ->
-                QuestionnaireData(
-                    course = course.title,
-                    prof = course.professor.orEmpty(),
-                    code = course.adCod.orEmpty(),
-                    status = when {
-                        course.completed -> QuestionnaireStatus.COMPLETED
-                        course.enabled -> QuestionnaireStatus.PENDING
-                        else -> QuestionnaireStatus.UNAVAILABLE
-                    },
-                    courseId = course.courseId,
-                    tagList = course.tagList,
-                )
-            }
+            val questionnaires = snapshot.require(UniDatasets.Surveys).toQuestionnaireDataList()
             mutableUiState.value = QuestionnairesUiState(
                 pending = questionnaires.filter { it.status == QuestionnaireStatus.PENDING },
                 completed = questionnaires.filter { it.status == QuestionnaireStatus.COMPLETED },
@@ -66,13 +55,12 @@ class QuestionnairesViewModel(private val dataSource: UniAppDataSource) : ViewMo
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_questionari) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_i_questionari) },
             )
         }
-
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
+        repository.didactics.refresh(dataRequests, force)
     }
 }

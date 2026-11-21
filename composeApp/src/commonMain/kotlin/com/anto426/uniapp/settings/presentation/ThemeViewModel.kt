@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 enum class AppThemeMode {
@@ -179,7 +179,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }
@@ -244,7 +244,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }
@@ -271,7 +271,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }
@@ -285,7 +285,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }
@@ -298,7 +298,7 @@ class ThemeViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_personalizzazione))
+                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_personalizzazione))
             }
         }
     }

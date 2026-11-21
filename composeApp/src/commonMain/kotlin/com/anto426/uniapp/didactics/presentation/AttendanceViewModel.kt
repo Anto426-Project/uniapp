@@ -1,12 +1,11 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.data.toAttendanceData
 import com.anto426.uniapp.model.didactics.AttendanceData
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -16,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 data class AttendanceUiState(
     val records: List<AttendanceData> = emptyList(),
@@ -35,19 +36,20 @@ data class AttendanceUiState(
     }
 }
 
-class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel() {
+class AttendanceViewModel(private val dataSource: UniGateway) : ViewModel() {
     private val mutableUiState = MutableStateFlow(AttendanceUiState())
     val uiState: StateFlow<AttendanceUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Attendance)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Attendance)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(
             loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Loading else mutableUiState.value.loadState,
-            errorMessage = null
+            errorMessage = null,
         )
         try {
-            val records = snapshot.require(UniAppDataRequests.Attendance).toAttendanceData()
+            val records = snapshot.require(UniDatasets.Attendance).toAttendanceData()
             mutableUiState.value = mutableUiState.value.copy(
                 records = records,
                 loadState = if (records.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
@@ -59,14 +61,13 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Error else FeatureLoadState.Content,
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_presenze) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_presenze) },
             )
         }
-
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
+        repository.didactics.refresh(dataRequests, force)
     }
 
     fun registerAttendance(
@@ -78,12 +79,12 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
     ) {
         val trimmedCode = qrCode.trim()
         viewModelScope.launch {
-        if (trimmedCode.isBlank()) {
-            mutableUiState.value = mutableUiState.value.copy(
-                registrationErrorMessage = getString(Res.string.msg_inserisci_o_inquadra_un_codice_qr_valido)
-            )
-            return@launch
-        }
+            if (trimmedCode.isBlank()) {
+                mutableUiState.value = mutableUiState.value.copy(
+                    registrationErrorMessage = readAppString(Res.string.msg_inserisci_o_inquadra_un_codice_qr_valido),
+                )
+                return@launch
+            }
 
             mutableUiState.value = mutableUiState.value.copy(
                 isRegistering = true,
@@ -91,7 +92,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 registrationErrorMessage = null,
             )
             try {
-                val result = sharedData.registerAttendance(
+                val result = repository.didactics.registerAttendance(
                     qrCode = trimmedCode,
                     deviceLatitude = latitude,
                     deviceLongitude = longitude,
@@ -99,7 +100,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
                 )
                 mutableUiState.value = mutableUiState.value.copy(
                     isRegistering = false,
-                    registrationSuccessMessage = result.ifBlank { getString(Res.string.msg_presenza_registrata_con_successo) },
+                    registrationSuccessMessage = result.ifBlank { readAppString(Res.string.msg_presenza_registrata_con_successo) },
                     registrationErrorMessage = null,
                 )
                 onSuccess?.invoke()
@@ -108,7 +109,7 @@ class AttendanceViewModel(private val dataSource: UniAppDataSource) : ViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(
                     isRegistering = false,
-                    registrationErrorMessage = error.userMessage { getString(Res.string.msg_errore_durante_la_registrazione_della_presenza) },
+                    registrationErrorMessage = error.userMessage { readAppString(Res.string.msg_errore_durante_la_registrazione_della_presenza) },
                 )
             }
         }

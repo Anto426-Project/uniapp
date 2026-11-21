@@ -438,6 +438,31 @@
     <string name="ui_colors_subtitle">Experimenteer met het Liquid-kleurenspectrum</string>
     <string name="ui_advanced_controls">Geavanceerde bediening</string>
     <string name="ui_colors_info">De geselecteerde kleur wordt gebruikt als basis om het volledige Monet-palet van de app te genereren wanneer Material You is uitgeschakeld.</string>
+    <string name="ui_colors_tab_spectrum">Spectrum</string>
+    <string name="ui_colors_tab_adjust">Aanpassen</string>
+    <string name="ui_colors_tab_presets">Voorinstellingen</string>
+    <string name="ui_colors_monet_preview">Monet-paletvoorbeeld</string>
+    <string name="ui_colors_token_primary">Primair</string>
+    <string name="ui_colors_token_surface">Oppervlak</string>
+    <string name="ui_colors_token_secondary">Secundair</string>
+    <string name="ui_colors_token_tertiary">Tertiair</string>
+    <string name="ui_colors_action_random">Willekeurig</string>
+    <string name="ui_colors_action_reset">Herstellen</string>
+    <string name="ui_colors_sat_bright">Verzadiging en helderheid</string>
+    <string name="ui_colors_hue">Tint</string>
+    <string name="ui_colors_saturation">Verzadiging</string>
+    <string name="ui_colors_brightness">Helderheid</string>
+    <string name="ui_colors_red">Rood</string>
+    <string name="ui_colors_green">Groen</string>
+    <string name="ui_colors_blue">Blauw</string>
+    <string name="ui_colors_cat_uniapp">UniApp</string>
+    <string name="ui_colors_cat_vibrant">Levendig</string>
+    <string name="ui_colors_cat_pastel">Pastel</string>
+    <string name="ui_colors_cat_elegant">Elegant</string>
+    <string name="ui_colors_hex_and_recents">HEX-code en recent</string>
+    <string name="ui_colors_hex_apply">Toepassen</string>
+    <string name="ui_colors_hex_invalid">Voer een geldige HEX-kleur in (bijv. #2979FF)</string>
+    <string name="ui_colors_recents">Recent</string>
 
 
     <string name="ui_connected_devices">Verbonden apparaten</string>
@@ -887,6 +912,9 @@
     <string name="ui_grades_custom_exam_name_placeholder">Bijv. stage / keuzevak</string>
     <string name="ui_grades_custom_exam_cfu">Studiepunten (CFU)</string>
     <string name="ui_grades_custom_exam_grade">Verwacht cijfer</string>
+    <string name="ui_grades_scenarios_title">Scenario’s voor resterende studiepunten</string>
+    <string name="ui_grades_scenarios_subtitle">Geschatte eindscore op basis van het gemiddelde van komende examens</string>
+    <string name="ui_grades_scenario_average">Met gemiddelde %1$d/30</string>
 
     <!-- Transport & Booking -->
     <string name="ui_transport_route_subtitle">Kies de universitaire shuttlelijn voor je rit</string>
@@ -1577,7 +1605,7 @@
     <string name="ui_grades_target_feasible_msg">Haalbaar doel: je hebt een gemiddelde van %1$s nodig over de resterende %2$d CFU.</string>
     <string name="ui_grades_target_hard_msg">Zeer veeleisend: een bijna perfect gemiddelde (%1$s) is vereist. Overweeg scriptiepunten.</string>
     <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
-    <string name="ui_grades_tier_exams_percent">%1$d tentamens • %2$d%%</string>
+    <string name="ui_grades_tier_exams_percent">%1$d tentamens • %2$d%</string>
     <string name="ui_grades_highest_grade_courses_format">Hoogste: %1$s</string>
     <string name="ui_grades_active_singular">%1$d actief</string>
     <string name="ui_grades_active_plural">%1$d actief</string>

@@ -21,7 +21,7 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.unisdk.model.ProfessorContentItem
+import com.anto426.uniapp.model.didactics.AcademicContentItem
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -29,7 +29,7 @@ import uniapp.composeapp.generated.resources.*
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfessorExamItem(
-    exam: ProfessorContentItem,
+    exam: AcademicContentItem,
     onClickDetail: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme

@@ -51,14 +51,13 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
 import com.anto426.liquidmonet.components.selection.select.LiquidSelect
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.model.transport.TripBookingDirection
 import com.anto426.uniapp.transport.presentation.TransportBookingUiState
 import com.anto426.uniapp.transport.presentation.isTransportBookingDateAllowed
 import com.anto426.uniapp.transport.presentation.isTransportDateBooked
 import com.anto426.uniapp.transport.presentation.transportBookingWindow
+import com.anto426.uniapp.transport.presentation.transportRouteStopsFor
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.transport.TransportDirection
-import com.anto426.unisdk.transport.TransportRoute
-import com.anto426.unisdk.transport.displayFor
 import com.kyant.shapes.RoundedRectangle
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
@@ -73,10 +72,10 @@ import uniapp.composeapp.generated.resources.*
 fun TransportBookingScreen(
     uiState: TransportBookingUiState,
     onRouteSelected: (String) -> Unit,
-    onBook: (List<LocalDate>, TransportDirection) -> Unit,
+    onBook: (List<LocalDate>, TripBookingDirection) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    var selectedDirection by remember { mutableStateOf(TransportDirection.OUTBOUND) }
+    var selectedDirection by remember { mutableStateOf(TripBookingDirection.OUTBOUND) }
 
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val lastBookableDate = remember(today) { transportBookingWindow(today).last() }
@@ -146,9 +145,8 @@ fun TransportBookingScreen(
             )
 
             if (uiState.selectedRoute.isNotBlank()) {
-                val route = TransportRoute(code = "", label = uiState.selectedRoute)
-                val outbound = route.displayFor(TransportDirection.OUTBOUND)
-                val returning = route.displayFor(TransportDirection.RETURN)
+                val outbound = transportRouteStopsFor(uiState.selectedRoute, TripBookingDirection.OUTBOUND)
+                val returning = transportRouteStopsFor(uiState.selectedRoute, TripBookingDirection.RETURN)
 
                 if (outbound.departureStop.isNotBlank() && outbound.arrivalStop.isNotBlank()) {
                     LiquidCard(
@@ -178,9 +176,9 @@ fun TransportBookingScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = when (selectedDirection) {
-                                        TransportDirection.OUTBOUND -> "${outbound.departureStop} → ${outbound.arrivalStop}"
-                                        TransportDirection.RETURN -> "${returning.departureStop} → ${returning.arrivalStop}"
-                                        TransportDirection.ROUND_TRIP -> "${outbound.departureStop} ⇄ ${outbound.arrivalStop}"
+                                        TripBookingDirection.OUTBOUND -> "${outbound.departureStop} → ${outbound.arrivalStop}"
+                                        TripBookingDirection.RETURN -> "${returning.departureStop} → ${returning.arrivalStop}"
+                                        TripBookingDirection.ROUND_TRIP -> "${outbound.departureStop} ⇄ ${outbound.arrivalStop}"
                                     },
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold,
@@ -388,7 +386,7 @@ fun TransportBookingScreen(
 
         // 4. Riepilogo Selezione (Pass Digitale di Prenotazione)
         if (uiState.selectedRoute.isNotBlank() && availableSelectedDates.isNotEmpty()) {
-            val totalRides = availableSelectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
+            val totalRides = availableSelectedDates.size * (if (selectedDirection == TripBookingDirection.ROUND_TRIP) 2 else 1)
 
             LiquidCard(
                 shape = RoundedRectangle(20.dp),
@@ -430,25 +428,24 @@ fun TransportBookingScreen(
 
                         LiquidBadge(
                             text = when (selectedDirection) {
-                                TransportDirection.ROUND_TRIP -> stringResource(Res.string.ui_transport_round_trip_caps)
-                                TransportDirection.RETURN -> stringResource(Res.string.ui_transport_return_only_caps)
+                                TripBookingDirection.ROUND_TRIP -> stringResource(Res.string.ui_transport_round_trip_caps)
+                                TripBookingDirection.RETURN -> stringResource(Res.string.ui_transport_return_only_caps)
                                 else -> stringResource(Res.string.ui_transport_outbound_only_caps)
                             },
                         )
                     }
 
                     // Fermate e Tragitto
-                    val route = TransportRoute(code = "", label = uiState.selectedRoute)
-                    val directions = if (selectedDirection == TransportDirection.ROUND_TRIP) {
-                        listOf(TransportDirection.OUTBOUND, TransportDirection.RETURN)
+                    val directions = if (selectedDirection == TripBookingDirection.ROUND_TRIP) {
+                        listOf(TripBookingDirection.OUTBOUND, TripBookingDirection.RETURN)
                     } else listOf(selectedDirection)
 
                     directions.forEach { direction ->
-                        val display = route.displayFor(direction)
+                        val display = transportRouteStopsFor(uiState.selectedRoute, direction)
                         if (directions.size > 1) {
                             Text(
                                 text = stringResource(
-                                    if (direction == TransportDirection.OUTBOUND) Res.string.ui_trip_outbound
+                                    if (direction == TripBookingDirection.OUTBOUND) Res.string.ui_trip_outbound
                                     else Res.string.ui_trip_return,
                                 ),
                                 style = MaterialTheme.typography.labelSmall,
@@ -617,15 +614,15 @@ fun TransportBookingScreen(
         }
 
         // 5. Bottone di Conferma Prenotazione
-        val totalRides = availableSelectedDates.size * (if (selectedDirection == TransportDirection.ROUND_TRIP) 2 else 1)
+        val totalRides = availableSelectedDates.size * (if (selectedDirection == TripBookingDirection.ROUND_TRIP) 2 else 1)
         val buttonText = when {
-            selectedDirection == TransportDirection.ROUND_TRIP && availableSelectedDates.size > 1 ->
+            selectedDirection == TripBookingDirection.ROUND_TRIP && availableSelectedDates.size > 1 ->
                 stringResource(Res.string.ui_transport_confirm_rides_roundtrip, totalRides)
-            selectedDirection == TransportDirection.ROUND_TRIP ->
+            selectedDirection == TripBookingDirection.ROUND_TRIP ->
                 stringResource(Res.string.ui_transport_confirm_two_rides_roundtrip)
             totalRides > 1 ->
                 stringResource(Res.string.ui_transport_confirm_rides, totalRides)
-            selectedDirection == TransportDirection.RETURN ->
+            selectedDirection == TripBookingDirection.RETURN ->
                 stringResource(Res.string.ui_transport_confirm_return_ride)
             else ->
                 stringResource(Res.string.ui_transport_confirm_outbound_ride)
@@ -656,14 +653,14 @@ fun TransportBookingScreen(
  */
 @Composable
 private fun BookingDirectionSelector(
-    selectedDirection: TransportDirection,
-    onDirectionSelected: (TransportDirection) -> Unit,
+    selectedDirection: TripBookingDirection,
+    onDirectionSelected: (TripBookingDirection) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val directions = listOf(
-        Triple(TransportDirection.OUTBOUND, stringResource(Res.string.ui_transport_outbound_short), LiquidIcons.ArrowForward),
-        Triple(TransportDirection.RETURN, stringResource(Res.string.ui_transport_return_short), LiquidIcons.ArrowBack),
-        Triple(TransportDirection.ROUND_TRIP, stringResource(Res.string.ui_transport_round_trip_short), LiquidIcons.Refresh),
+        Triple(TripBookingDirection.OUTBOUND, stringResource(Res.string.ui_transport_outbound_short), LiquidIcons.ArrowForward),
+        Triple(TripBookingDirection.RETURN, stringResource(Res.string.ui_transport_return_short), LiquidIcons.ArrowBack),
+        Triple(TripBookingDirection.ROUND_TRIP, stringResource(Res.string.ui_transport_round_trip_short), LiquidIcons.Refresh),
     )
 
     Row(

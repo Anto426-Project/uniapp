@@ -1,15 +1,14 @@
 package com.anto426.uniapp.didactics.presentation
 
-import org.jetbrains.compose.resources.getString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
-import com.anto426.uniapp.model.didactics.firstAcademicIntegerOrNull
+import com.anto426.uniapp.account.model.UniProfileRole
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
@@ -18,7 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import com.anto426.uniapp.localization.readAppString
+import uniapp.composeapp.generated.resources.*
 
 @Immutable
 data class DidacticsDashboardUiState(
@@ -43,24 +43,35 @@ data class DidacticsDashboardUiState(
 )
 
 class DidacticsDashboardViewModel(
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val account: UniAccountSummary? = null,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(DidacticsDashboardUiState())
     val uiState: StateFlow<DidacticsDashboardUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = if (account?.isProfessor == true) listOf(UniAppDataRequests.Professor) else listOf(UniAppDataRequests.Student, UniAppDataRequests.Career, UniAppDataRequests.StudyPlan, UniAppDataRequests.Exams, UniAppDataRequests.Surveys)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = if (account?.isProfessor == true) {
+        listOf(UniDatasets.Professor)
+    } else {
+        listOf(
+            UniDatasets.Student,
+            UniDatasets.Career,
+            UniDatasets.StudyPlan,
+            UniDatasets.Exams,
+            UniDatasets.Surveys,
+        )
+    }
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
         try {
             if (account?.isProfessor == true) {
                 val professor = checkNotNull(account)
-                val dashboard = snapshot.require(UniAppDataRequests.Professor)
+                val dashboard = snapshot.require(UniDatasets.Professor)
                 val profile =
                     professor.profiles.firstOrNull { it.profileId == professor.activeProfileId }
                         ?: professor.profiles.firstOrNull {
-                            it.type == com.anto426.unisdk.model.CareerType.PROFESSOR
+                            it.type == UniProfileRole.PROFESSOR
                         }
                 mutableUiState.value =
                     DidacticsDashboardUiState(
@@ -74,51 +85,37 @@ class DidacticsDashboardViewModel(
                         loadState = FeatureLoadState.Content,
                         errorMessage =
                             dashboard.unavailableSections.takeIf { it.isNotEmpty() }
-                                ?.let { getString(Res.string.msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili) },
+                                ?.let { readAppString(Res.string.msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili) },
                     )
                 snapshot.throwIfFailed()
                 return@observeIn
             }
-            val data = DidacticsSnapshot(
-                student = snapshot.require(UniAppDataRequests.Student),
-                career = snapshot.require(UniAppDataRequests.Career),
-                plan = snapshot.require(UniAppDataRequests.StudyPlan),
-                rounds = snapshot.value(UniAppDataRequests.Exams).orEmpty(),
-                surveys = snapshot.value(UniAppDataRequests.Surveys).orEmpty(),
-            )
+            val student = snapshot.require(UniDatasets.Student)
+            val career = snapshot.require(UniDatasets.Career)
+            val plan = snapshot.require(UniDatasets.StudyPlan)
+            val rounds = snapshot.value(UniDatasets.Exams).orEmpty()
+            val surveys = snapshot.value(UniDatasets.Surveys).orEmpty()
 
-            val acquiredCfu = data.career.cfu.firstAcademicIntegerOrNull() ?: 0
-            val targetCfu = data.career.cfuTarget ?: data.plan.courses.sumOf { it.cfu ?: 0 }
-            val completedExams = maxOf(
-                data.career.exams.size,
-                data.plan.courses.count { it.completed },
-            )
-            val totalActivities = data.plan.courses.size.coerceAtLeast(completedExams)
-            val currentYear = data.career.year.firstAcademicIntegerOrNull()?.coerceAtLeast(1) ?: 1
-            val totalYears = data.plan.courses.mapNotNull { it.year }.maxOrNull()?.coerceAtLeast(currentYear)
-                ?: currentYear
-            val details = listOfNotNull(
-                data.student.departmentName?.takeIf(String::isNotBlank),
-                data.student.matricola?.takeIf(String::isNotBlank)?.let { "Matricola $it" },
-            ).joinToString(" • ")
+            val acquiredCfu = career.resolveAcquiredCfu(plan)
+            val targetCfu = career.resolveTargetCfu(plan, defaultTarget = 0)
+            val completedExams = career.resolveCompletedExamsCount(plan)
+            val totalActivities = plan.courses.size.coerceAtLeast(completedExams)
+            val currentYear = career.currentYearValue
+            val totalYears = career.resolveTotalYears(plan)
 
             mutableUiState.value = DidacticsDashboardUiState(
-                degreeName = data.student.degreeName ?: data.career.status,
-                degreeDetails = details,
+                degreeName = student.degreeName ?: career.status,
+                degreeDetails = student.degreeSummaryDetails,
                 completedExams = completedExams,
                 plannedActivities = totalActivities,
                 currentYear = currentYear,
                 totalYears = totalYears,
-                average = data.career.average,
+                average = career.average,
                 acquiredCfu = acquiredCfu,
                 targetCfu = targetCfu,
-                progress = if (targetCfu > 0) {
-                    (acquiredCfu.toFloat() / targetCfu).coerceIn(0f, 1f)
-                } else {
-                    0f
-                },
-                openExamRounds = data.rounds.count { it.open && !it.booked },
-                pendingQuestionnaires = data.surveys.count { it.enabled && !it.completed },
+                progress = career.resolveProgress(plan, defaultTarget = 0),
+                openExamRounds = rounds.count { it.open && !it.booked },
+                pendingQuestionnaires = surveys.count { it.enabled && !it.completed },
                 loadState = FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
@@ -128,22 +125,13 @@ class DidacticsDashboardViewModel(
             mutableUiState.update {
                 it.copy(
                     loadState = if (it.degreeName.isBlank()) FeatureLoadState.Error else FeatureLoadState.Content,
-                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_la_panoramica_didattica) },
+                    errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_la_panoramica_didattica) },
                 )
             }
         }
-
     }
 
     fun refresh(force: Boolean = false) {
-        sharedData.refresh(dataRequests, force)
+        repository.didactics.refresh(dataRequests, force)
     }
-
-    private data class DidacticsSnapshot(
-        val student: com.anto426.unisdk.model.StudentDetails,
-        val career: com.anto426.unisdk.model.Career,
-        val plan: com.anto426.unisdk.model.StudyPlan,
-        val rounds: List<com.anto426.unisdk.model.ExamRound>,
-        val surveys: List<com.anto426.unisdk.model.SurveyCourse>,
-    )
 }

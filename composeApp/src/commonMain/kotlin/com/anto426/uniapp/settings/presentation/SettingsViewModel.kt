@@ -2,7 +2,7 @@ package com.anto426.uniapp.settings.presentation
 
 import com.anto426.uniapp.presentation.userMessage
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
@@ -87,7 +87,7 @@ class SettingsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                toastSink.error(getString(Res.string.msg_impossibile_leggere_le_preferenze_protette))
+                toastSink.error(readAppString(Res.string.msg_impossibile_leggere_le_preferenze_protette))
             }
         }
     }
@@ -155,9 +155,9 @@ class SettingsViewModel(
                 when (
                     val result = biometricAuthenticator.authenticate(
                         if (enabled) {
-                            getString(Res.string.msg_conferma_la_tua_identita_per_attivare_la_protezione)
+                            readAppString(Res.string.msg_conferma_la_tua_identita_per_attivare_la_protezione)
                         } else {
-                            getString(Res.string.msg_conferma_la_tua_identita_per_disattivare_la_protezione)
+                            readAppString(Res.string.msg_conferma_la_tua_identita_per_disattivare_la_protezione)
                         },
                     )
                 ) {
@@ -189,12 +189,12 @@ class SettingsViewModel(
                         if (enabled) update { copy(isPasswordSetupVisible = false, passwordSetupError = null) }
                     }
                     is BiometricAuthenticationResult.Failed ->
-                        toastSink.error(result.message.ifBlank { getString(Res.string.msg_autenticazione_non_riuscita) })
+                        toastSink.error(result.message.ifBlank { readAppString(Res.string.msg_autenticazione_non_riuscita) })
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_aggiornare_la_protezione_biometrica) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_aggiornare_la_protezione_biometrica) })
             } finally {
                 update {
                     copy(
@@ -226,7 +226,7 @@ class SettingsViewModel(
                 throw error
             } catch (_: Throwable) {
                 rollback()
-                toastSink.error(getString(Res.string.msg_impossibile_salvare_la_preferenza))
+                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_preferenza))
             }
         }
     }

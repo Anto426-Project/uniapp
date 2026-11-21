@@ -1,6 +1,7 @@
 package com.anto426.uniapp.settings.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.unisdk.model.ConnectedDevice

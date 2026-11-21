@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ResourceEnvironment
 import org.jetbrains.compose.resources.StringResource
 
 enum class AppToastKind { Success, Info, Warning, Error }
@@ -29,9 +30,9 @@ data class AppToastMessage(
     constructor(text: String, kind: AppToastKind = AppToastKind.Info, subtitle: String? = null) :
         this(AppToastText.Plain(text), kind, subtitle)
 
-    internal suspend fun resolveText(): String = when (val content = text) {
-        is AppToastText.Plain -> sdkFeedbackMessage(content.value)
-        is AppToastText.Localized -> readAppString(content.resource)
+    internal suspend fun resolveText(environment: ResourceEnvironment? = null): String = when (val content = text) {
+        is AppToastText.Plain -> sdkFeedbackMessage(content.value, environment)
+        is AppToastText.Localized -> readAppString(content.resource, environment)
     }
 }
 
@@ -54,15 +55,18 @@ class AppToastManager : ViewModel(), AppToastSink {
     // Keep the active toast across navigation and Android activity recreation.
     internal val liquidState: LiquidToastState by lazy { LiquidToastState(viewModelScope) }
     private var presenterStarted = false
+    private lateinit var resourceEnvironment: ResourceEnvironment
 
-    internal fun startPresentation() {
+    internal fun bindPresentation(environment: ResourceEnvironment) {
+        resourceEnvironment = environment
         if (presenterStarted) return
         presenterStarted = true
         viewModelScope.launch {
             messages.collect { message ->
+                val environmentForMessage = resourceEnvironment
                 liquidState.show(
-                    message = message.resolveText(),
-                    subtitle = message.subtitle?.let { sdkFeedbackMessage(it) },
+                    message = message.resolveText(environmentForMessage),
+                    subtitle = message.subtitle?.let { sdkFeedbackMessage(it, environmentForMessage) },
                     icon = message.kind.toIcon(),
                 )
             }

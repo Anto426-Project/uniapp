@@ -54,7 +54,7 @@ import com.anto426.uniapp.ui.components.account.UniSavedAccountsSheet
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.unisdk.model.LoginCareerOption
+import com.anto426.uniapp.account.model.UniLoginProfileOption
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -71,7 +71,7 @@ fun LoginScreen(
     onPasswordChange: (String) -> Unit,
     onRememberCredentialsChange: (Boolean) -> Unit = {},
     onSubmit: () -> Unit,
-    onCareerSelected: (LoginCareerOption) -> Unit,
+    onCareerSelected: (UniLoginProfileOption) -> Unit,
     onCancelCareerSelection: () -> Unit,
     onShowForgotPassword: () -> Unit,
     onDismissForgotPassword: () -> Unit,

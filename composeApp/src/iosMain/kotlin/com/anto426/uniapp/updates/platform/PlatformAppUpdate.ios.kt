@@ -40,7 +40,26 @@ internal actual fun rememberPlatformAppUpdateEnvironment(): PlatformAppUpdateEnv
         )
         AppInfoProvider.initialize(info)
         PlatformAppUpdateEnvironment(
-            installedBuild = info,
+            installedBuild = com.anto426.uniapp.updates.model.InstalledAppBuild(
+                versionName = info.versionName,
+                versionCode = info.versionCode,
+                isDebuggable = info.isDebuggable,
+                applicationId = info.applicationId,
+                name = info.name,
+                platform = info.platform,
+                osVersion = info.osVersion,
+                deviceModel = info.deviceModel,
+                sourceRevision = info.sourceRevision,
+                appStoreUrl = info.appStoreUrl,
+                modules = info.modules.map {
+                    com.anto426.uniapp.updates.model.UniAppModuleBuildInfo(
+                        name = it.name,
+                        version = it.version,
+                        revision = it.revision,
+                        hasLocalChanges = it.hasLocalChanges,
+                    )
+                },
+            ),
             launcher = PlatformUpdateLauncher { _, _ ->
                 if (storeUrl == null) {
                     PlatformUpdateLaunchResult.Failed(getString(Res.string.msg_configura_uniapp_app_store_url_per_aprire_lapp))

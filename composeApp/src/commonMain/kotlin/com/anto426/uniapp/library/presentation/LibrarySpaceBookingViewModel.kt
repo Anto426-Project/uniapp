@@ -2,7 +2,8 @@ package com.anto426.uniapp.library.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
@@ -17,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 data class LibrarySpaceBookingUiState(
@@ -40,9 +41,10 @@ data class LibrarySpaceBookingUiState(
 )
 
 class LibrarySpaceBookingViewModel(
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
     private val toastSink: AppToastSink = AppToastSink.None,
 ) : ViewModel() {
+    private val repository = dataSource.asUniRepository(viewModelScope)
     private val mutableUiState = MutableStateFlow(LibrarySpaceBookingUiState())
     val uiState: StateFlow<LibrarySpaceBookingUiState> = mutableUiState.asStateFlow()
 
@@ -54,7 +56,7 @@ class LibrarySpaceBookingViewModel(
         mutableUiState.value = LibrarySpaceBookingUiState(loadState = FeatureLoadState.Loading)
         viewModelScope.launch {
             try {
-                val overview = dataSource.loadLibraryBookingOverview()
+                val overview = repository.library.loadBookingOverview()
                 val firstType = overview.types.firstOrNull()?.id
                 mutableUiState.value = LibrarySpaceBookingUiState(
                     loadState = if (overview.types.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
@@ -69,7 +71,7 @@ class LibrarySpaceBookingViewModel(
             } catch (error: Throwable) {
                 mutableUiState.value = LibrarySpaceBookingUiState(
                     loadState = FeatureLoadState.Error,
-                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_prenotazioni_biblioteca) },
+                    errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_prenotazioni_biblioteca) },
                 )
             }
         }
@@ -107,7 +109,7 @@ class LibrarySpaceBookingViewModel(
         )
         viewModelScope.launch {
             try {
-                val resources = dataSource.loadLibraryResourcesForOwner(ownerId)
+                val resources = repository.library.loadResourcesForOwner(ownerId)
                 val firstResource = resources.firstOrNull()?.id
                 mutableUiState.value = mutableUiState.value.copy(
                     resources = resources,
@@ -121,7 +123,7 @@ class LibrarySpaceBookingViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(isLoadingSelection = false)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_caricare_spazi_biblioteca) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_caricare_spazi_biblioteca) })
             }
         }
     }
@@ -150,7 +152,7 @@ class LibrarySpaceBookingViewModel(
         )
         viewModelScope.launch {
             try {
-                val next = dataSource.loadLibraryCalendarPage(currentCalendar.calendarId, page)
+                val next = repository.library.loadCalendarPage(currentCalendar.calendarId, page)
                 mutableUiState.value = mutableUiState.value.copy(
                     isLoadingCalendar = false,
                     calendar = next,
@@ -159,7 +161,7 @@ class LibrarySpaceBookingViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(isLoadingCalendar = false)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_caricare_calendario_biblioteca) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_caricare_calendario_biblioteca) })
             }
         }
     }
@@ -192,7 +194,7 @@ class LibrarySpaceBookingViewModel(
                 it.requiresDeviceAddress && state.deviceAddresses[it.slotId].isNullOrBlank()
             }
             if (missingAddress) {
-                toastSink.error(getString(Res.string.ui_library_device_address_required))
+                toastSink.error(readAppString(Res.string.ui_library_device_address_required))
                 return@launch
             }
             mutableUiState.value = mutableUiState.value.copy(isSubmitting = true)
@@ -200,7 +202,7 @@ class LibrarySpaceBookingViewModel(
                 val addresses = selectedSlots
                     .filter { it.requiresDeviceAddress }
                     .associate { it.slotId to state.deviceAddresses[it.slotId].orEmpty().trim() }
-                val outcome = dataSource.bookLibrarySpace(
+                val outcome = repository.library.bookSpace(
                     calendarId = calendar.calendarId,
                     slotIds = selectedSlots.map { it.slotId },
                     note = state.note.trim(),
@@ -209,10 +211,10 @@ class LibrarySpaceBookingViewModel(
                 mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
                 if (outcome.confirmed) {
                     mutableUiState.value = mutableUiState.value.copy(bookingCompleted = true)
-                    toastSink.success(getString(Res.string.ui_library_booking_confirmed))
+                    toastSink.success(readAppString(Res.string.ui_library_booking_confirmed))
                 } else {
                     toastSink.warning(
-                        getString(Res.string.ui_library_booking_rejected_code, outcome.serverCode),
+                        readAppString(Res.string.ui_library_booking_rejected_code, outcome.serverCode),
                     )
                     // SDK requires reloading calendar slots after a rejected booking attempt.
                     loadCalendarForResource(overview.contextId, calendar.resourceId)
@@ -221,7 +223,7 @@ class LibrarySpaceBookingViewModel(
                 throw error
             } catch (error: Throwable) {
                 mutableUiState.value = mutableUiState.value.copy(isSubmitting = false)
-                toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_prenotare_spazio) })
+                toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_prenotare_spazio) })
                 loadCalendarForResource(overview.contextId, calendar.resourceId)
             }
         }
@@ -230,7 +232,7 @@ class LibrarySpaceBookingViewModel(
     private suspend fun loadSelectionForType(contextId: String, typeId: String) {
         mutableUiState.value = mutableUiState.value.copy(isLoadingSelection = true)
         try {
-            val selection = dataSource.loadLibraryResourceSelection(contextId, typeId)
+            val selection = repository.library.loadResourceSelection(contextId, typeId)
             val firstOwner = selection.owners.firstOrNull()?.id
             val firstResource = selection.resources.firstOrNull()?.id
             mutableUiState.value = mutableUiState.value.copy(
@@ -247,7 +249,7 @@ class LibrarySpaceBookingViewModel(
             throw error
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(isLoadingSelection = false)
-            toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_caricare_spazi_biblioteca) })
+            toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_caricare_spazi_biblioteca) })
         }
     }
 
@@ -258,7 +260,7 @@ class LibrarySpaceBookingViewModel(
             deviceAddresses = emptyMap(),
         )
         try {
-            val calendar = dataSource.loadLibraryCalendar(contextId, resourceId, null, null)
+            val calendar = repository.library.loadCalendar(contextId, resourceId, null, null)
             mutableUiState.value = mutableUiState.value.copy(
                 isLoadingCalendar = false,
                 calendar = calendar,
@@ -267,7 +269,7 @@ class LibrarySpaceBookingViewModel(
             throw error
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(isLoadingCalendar = false)
-            toastSink.error(error.userMessage { getString(Res.string.msg_impossibile_caricare_calendario_biblioteca) })
+            toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_caricare_calendario_biblioteca) })
         }
     }
 }

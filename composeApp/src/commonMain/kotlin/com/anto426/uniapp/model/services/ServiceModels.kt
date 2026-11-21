@@ -2,6 +2,7 @@ package com.anto426.uniapp.model.services
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.anto426.unisdk.model.contactDialUriOrNull
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -83,3 +84,7 @@ data class ServiceData(
     val badgeLabel: String?
         @Composable get() = badgeLabelRes?.let { stringResource(it) }
 }
+
+/** Only complete, unambiguous numbers can become a call action. */
+internal fun String.contactDialUri(): String? =
+    contactDialUriOrNull()

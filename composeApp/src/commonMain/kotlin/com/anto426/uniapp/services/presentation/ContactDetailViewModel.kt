@@ -1,12 +1,14 @@
 package com.anto426.uniapp.services.presentation
 
-import org.jetbrains.compose.resources.getString
+import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anto426.uniapp.data.runtime.*
-import com.anto426.uniapp.data.UniAppDataSource
+import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.data.toContacts
 import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -26,16 +28,17 @@ data class ContactDetailUiState(
 
 class ContactDetailViewModel(
     private val contactId: String,
-    private val dataSource: UniAppDataSource,
+    private val dataSource: UniGateway,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(ContactDetailUiState())
     val uiState: StateFlow<ContactDetailUiState> = mutableUiState.asStateFlow()
 
-    private val sharedData = dataSource.sharedData(viewModelScope)
-    private val dataRequests = listOf(UniAppDataRequests.Contacts)
+    private val repository = dataSource.asUniRepository(viewModelScope)
+    private val sharedData = repository.engine
+    private val dataRequests = listOf(UniDatasets.Contacts)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
-            val contacts = snapshot.require(UniAppDataRequests.Contacts).toContacts()
+            val contacts = snapshot.require(UniDatasets.Contacts).toContacts()
             val contact = contacts.firstOrNull { it.detailKey == contactId }
                 // Retain routes saved by versions that used email or display name.
                 ?: contacts.firstOrNull { it.email == contactId || it.name == contactId }
@@ -49,7 +52,7 @@ class ContactDetailViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_contatto) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_il_contatto) },
             )
         }
 

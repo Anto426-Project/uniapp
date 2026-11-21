@@ -4,7 +4,7 @@ import com.anto426.uniapp.library.model.*
 import com.anto426.unisdk.model.*
 import com.anto426.unisdk.transport.*
 
-open class FakeUniAppDataSource : UniAppDataSource {
+open class FakeUniAppDataSource : UniGateway {
     override suspend fun loadCareer(forceRefresh: Boolean) = Career("0", null, "0", 180, "1", null, "", emptyList())
     override suspend fun loadProfessorDashboard(forceRefresh: Boolean) = ProfessorDashboard()
     override suspend fun loadExamRounds(forceRefresh: Boolean) = emptyList<ExamRound>()

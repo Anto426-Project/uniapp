@@ -22,19 +22,18 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.didactics.presentation.toAcademicDetailFields
+import com.anto426.uniapp.model.didactics.AcademicContentItem
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
-import com.anto426.unisdk.model.ProfessorContentItem
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
 internal fun ProfessorExamDetailContent(
-    item: ProfessorContentItem,
+    item: AcademicContentItem,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
 ) {
@@ -181,7 +180,7 @@ internal fun ProfessorExamDetailContent(
 
 @Composable
 private fun ProfessorBookingsTabContent(
-    item: ProfessorContentItem,
+    item: AcademicContentItem,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     if (item.bookings.isEmpty()) {
@@ -224,7 +223,7 @@ private fun ProfessorBookingsTabContent(
 
 @Composable
 private fun ProfessorCommissionTabContent(
-    item: ProfessorContentItem,
+    item: AcademicContentItem,
 ) {
     if (item.commission.isEmpty()) {
         UniInsetGroup {
@@ -256,12 +255,11 @@ private fun ProfessorCommissionTabContent(
 
 @Composable
 private fun ProfessorSessionInfoTabContent(
-    item: ProfessorContentItem,
+    item: AcademicContentItem,
 ) {
     val rawFields =
         item.fields
             .map { it.label to it.value }
-            .ifEmpty { item.detail.toAcademicDetailFields() }
             .filterNot { (label, _) ->
                 label.equals("Commissione", ignoreCase = true) ||
                     label.equals("Prenotazione", ignoreCase = true)
