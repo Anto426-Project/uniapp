@@ -1,6 +1,6 @@
 package com.anto426.uniapp.data.local
 
-import com.anto426.uniapp.model.didactics.SimulationItem
+import com.anto426.uniapp.data.contract.SimulationItem
 import com.anto426.uniapp.security.password.AppPasswordVerifier
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.nullable
@@ -83,6 +83,24 @@ object UniAppDataKeys {
             name = "theme.background-vignette",
             serializer = Boolean.serializer(),
             defaultValue = true,
+        )
+    val ThemeNavBarShowLabels =
+        LocalDataKey(
+            name = "theme.navbar-show-labels",
+            serializer = Boolean.serializer(),
+            defaultValue = true,
+        )
+    val ThemeNavBarAutoHide =
+        LocalDataKey(
+            name = "theme.navbar-auto-hide",
+            serializer = Boolean.serializer(),
+            defaultValue = true,
+        )
+    val ThemeElementEntrance =
+        LocalDataKey(
+            name = "theme.element-entrance",
+            serializer = String.serializer(),
+            defaultValue = "None",
         )
     val LanguageCode =
         LocalDataKey(

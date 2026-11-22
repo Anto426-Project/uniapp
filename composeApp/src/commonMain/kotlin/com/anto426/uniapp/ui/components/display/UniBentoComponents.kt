@@ -43,6 +43,7 @@ import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.motion.LiquidMotion
 import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.kyant.shapes.RoundedRectangle
 
 /**
@@ -217,39 +218,48 @@ fun UniInsetGroup(
     modifier: Modifier = Modifier,
     title: String? = null,
     cornerRadius: Dp = 22.dp,
+    animateEntrance: Boolean = true,
+    entranceOrder: Int = 0,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .graphicsLayer(clip = false),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (!title.isNullOrBlank()) {
-            Text(
-                text = title.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.6.sp,
-                color = colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp),
-            )
-        }
-
-        LiquidCard(
-            modifier = Modifier
+    val groupBody: @Composable () -> Unit = {
+        Column(
+            modifier = modifier
                 .fillMaxWidth()
                 .graphicsLayer(clip = false),
-            shape = RoundedRectangle(cornerRadius),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-            clipContent = false,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-                content = content,
-            )
+            if (!title.isNullOrBlank()) {
+                Text(
+                    text = title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.6.sp,
+                    color = colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+            }
+
+            LiquidCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
+                shape = RoundedRectangle(cornerRadius),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                clipContent = false,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                    content = content,
+                )
+            }
         }
+    }
+    if (animateEntrance) {
+        UniAnimatedEntrance(order = entranceOrder) { groupBody() }
+    } else {
+        groupBody()
     }
 }
 

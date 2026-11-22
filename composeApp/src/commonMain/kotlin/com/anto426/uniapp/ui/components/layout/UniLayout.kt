@@ -146,22 +146,24 @@ fun UniScreenColumn(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val padding = LocalUniScreenPadding.current
-    LazyColumn(
-        modifier = modifier.fillMaxSize().graphicsLayer(clip = false),
-        contentPadding =
-            PaddingValues(
-                start = 18.dp,
-                top = padding.calculateTopPadding(),
-                end = 18.dp,
-                bottom = padding.calculateBottomPadding() + 8.dp,
-            ),
-    ) {
-        item(key = "screen-content", contentType = "screen-content") {
-            Column(
-                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                content = content,
-            )
+    ProvideUniEntranceEpoch {
+        LazyColumn(
+            modifier = modifier.fillMaxSize().graphicsLayer(clip = false),
+            contentPadding =
+                PaddingValues(
+                    start = 18.dp,
+                    top = padding.calculateTopPadding(),
+                    end = 18.dp,
+                    bottom = padding.calculateBottomPadding() + 8.dp,
+                ),
+        ) {
+            item(key = "screen-content", contentType = "screen-content") {
+                Column(
+                    modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    content = content,
+                )
+            }
         }
     }
 }
@@ -169,16 +171,18 @@ fun UniScreenColumn(
 @Composable
 fun UniScreenLazyColumn(content: LazyListScope.() -> Unit) {
     val padding = LocalUniScreenPadding.current
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().graphicsLayer(clip = false),
-        contentPadding =
-            PaddingValues(
-                start = 18.dp,
-                top = padding.calculateTopPadding(),
-                end = 18.dp,
-                bottom = padding.calculateBottomPadding() + 8.dp,
-            ),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        content = content,
-    )
+    ProvideUniEntranceEpoch {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().graphicsLayer(clip = false),
+            contentPadding =
+                PaddingValues(
+                    start = 18.dp,
+                    top = padding.calculateTopPadding(),
+                    end = 18.dp,
+                    bottom = padding.calculateBottomPadding() + 8.dp,
+                ),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
+    }
 }

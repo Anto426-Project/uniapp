@@ -1,15 +1,17 @@
 package com.anto426.uniapp.ui.motion
 
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import androidx.compose.runtime.compositionLocalOf
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.components.layout.screenentrance.LiquidScreenEntranceAnimation
 import com.anto426.uniapp.settings.model.PageMotionPreferences
 import org.jetbrains.compose.resources.StringResource
 import uniapp.composeapp.generated.resources.*
 
 /** One SDK preset for changing app content; the SDK owns timing and reduced motion. */
 internal object UniMotion {
-    val contentTransition = LiquidSwitcherTransition.DirectionalHorizontal
+    val contentTransition = LiquidSwitcherTransition.SlideHorizontal
     val inlineContentTransition = LiquidSwitcherTransition.Crossfade
+    val defaultElementEntrance = LiquidScreenEntranceAnimation.None
 
     val options = (listOf(contentTransition) + LiquidSwitcherTransition.entries.filter {
         it != contentTransition && it != LiquidSwitcherTransition.None
@@ -29,11 +31,32 @@ internal object UniMotion {
             UniMotionOption(transition, labels.first, labels.second)
         }
 
+    val elementEntranceOptions = listOf(
+        LiquidScreenEntranceAnimation.None,
+        LiquidScreenEntranceAnimation.FadeUp,
+        LiquidScreenEntranceAnimation.FadeDown,
+        LiquidScreenEntranceAnimation.Fade,
+        LiquidScreenEntranceAnimation.Scale,
+    ).map { animation ->
+        val labels = when (animation) {
+            LiquidScreenEntranceAnimation.None -> Res.string.ui_entrance_none to Res.string.ui_entrance_none_sub
+            LiquidScreenEntranceAnimation.Fade -> Res.string.ui_entrance_fade to Res.string.ui_entrance_fade_sub
+            LiquidScreenEntranceAnimation.FadeUp -> Res.string.ui_entrance_fade_up to Res.string.ui_entrance_fade_up_sub
+            LiquidScreenEntranceAnimation.FadeDown -> Res.string.ui_entrance_fade_down to Res.string.ui_entrance_fade_down_sub
+            LiquidScreenEntranceAnimation.Scale -> Res.string.ui_entrance_scale to Res.string.ui_entrance_scale_sub
+        }
+        UniElementEntranceOption(animation, labels.first, labels.second)
+    }
+
     fun selectedTransition(preferences: PageMotionPreferences): LiquidSwitcherTransition =
         options.firstOrNull { it.transition.name == preferences.transitionName }?.transition ?: contentTransition
 
     fun effectiveTransition(preferences: PageMotionPreferences): LiquidSwitcherTransition =
         selectedTransition(preferences)
+
+    fun parseElementEntrance(name: String?): LiquidScreenEntranceAnimation =
+        LiquidScreenEntranceAnimation.entries.firstOrNull { it.name.equals(name, ignoreCase = true) }
+            ?: defaultElementEntrance
 
     fun normalized(preferences: PageMotionPreferences): PageMotionPreferences {
         val transition = selectedTransition(preferences)
@@ -50,4 +73,11 @@ internal data class UniMotionOption(
     val description: StringResource,
 )
 
+internal data class UniElementEntranceOption(
+    val animation: LiquidScreenEntranceAnimation,
+    val title: StringResource,
+    val description: StringResource,
+)
+
 internal val LocalUniContentTransition = compositionLocalOf { UniMotion.contentTransition }
+internal val LocalUniElementEntrance = compositionLocalOf { UniMotion.defaultElementEntrance }

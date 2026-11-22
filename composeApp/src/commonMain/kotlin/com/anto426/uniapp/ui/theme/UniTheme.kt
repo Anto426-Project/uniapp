@@ -7,13 +7,14 @@ import com.anto426.liquidmonet.theme.LiquidMonetTheme
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.ui.motion.LocalUniContentTransition
+import com.anto426.uniapp.ui.motion.LocalUniElementEntrance
 import com.anto426.uniapp.ui.motion.UniMotion
 
 /** The single application bridge from persisted appearance preferences to Liquid Monet. */
 @Composable
 fun UniTheme(
     state: ThemeUiState,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val darkTheme = when (state.themeMode) {
         AppThemeMode.System -> isSystemInDarkTheme()
@@ -30,7 +31,10 @@ fun UniTheme(
         maximumGlassQuality = state.glassQuality,
         reduceMotion = state.reducedMotion,
     ) {
-        CompositionLocalProvider(LocalUniContentTransition provides UniMotion.effectiveTransition(state.pageMotion)) {
+        CompositionLocalProvider(
+            LocalUniContentTransition provides UniMotion.effectiveTransition(state.pageMotion),
+            LocalUniElementEntrance provides state.elementEntrance,
+        ) {
             content()
         }
     }

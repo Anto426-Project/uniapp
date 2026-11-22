@@ -41,6 +41,8 @@ import com.anto426.uniapp.feedback.runtime.warning
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
+import com.anto426.uniapp.ui.components.layout.UniContentHost
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -64,44 +66,53 @@ fun FeatureStateContent(
             toastSink.warning(errorMessage)
         }
     }
-    when (state) {
-        FeatureLoadState.Loading -> {
-            if (inline) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 220.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    LiquidLoading(
-                        style = LiquidLoadingStyle.Dots,
-                        size = LiquidLoadingSize.Large,
-                        message = stringResource(Res.string.ui_loading),
-                    )
+    UniContentHost(
+        targetState = state,
+        modifier = if (inline) Modifier.fillMaxWidth() else Modifier.fillMaxSize(),
+        transition = UniMotion.inlineContentTransition,
+        suppressElementEntrance = false,
+        contentAlignment = if (inline) Alignment.TopStart else Alignment.Center,
+        label = "FeatureStateContent",
+    ) { currentState ->
+        when (currentState) {
+            FeatureLoadState.Loading -> {
+                if (inline) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 220.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        LiquidLoading(
+                            style = LiquidLoadingStyle.Dots,
+                            size = LiquidLoadingSize.Large,
+                            message = stringResource(Res.string.ui_loading),
+                        )
+                    }
+                } else {
+                    AppLoadingState()
                 }
-            } else {
-                AppLoadingState()
             }
+
+            FeatureLoadState.Error -> UniExpressiveStatusState(
+                isError = true,
+                title = stringResource(Res.string.ui_state_error_title),
+                description = errorMessage ?: stringResource(Res.string.ui_state_error_desc),
+                actionLabel = stringResource(Res.string.ui_retry),
+                onActionClick = onRetry,
+                inline = inline,
+            )
+
+            FeatureLoadState.Empty -> UniExpressiveStatusState(
+                isError = false,
+                title = emptyTitle?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.ui_state_empty_content),
+                description = errorMessage ?: emptyMessage.ifBlank { stringResource(Res.string.ui_state_no_data) },
+                actionLabel = if (errorMessage != null) stringResource(Res.string.ui_retry) else emptyActionLabel,
+                onActionClick = if (errorMessage != null) onRetry else onEmptyActionClick,
+                inline = inline,
+                mainIcon = emptyIcon,
+            )
+
+            FeatureLoadState.Content -> content()
         }
-
-        FeatureLoadState.Error -> UniExpressiveStatusState(
-            isError = true,
-            title = stringResource(Res.string.ui_state_error_title),
-            description = errorMessage ?: stringResource(Res.string.ui_state_error_desc),
-            actionLabel = stringResource(Res.string.ui_retry),
-            onActionClick = onRetry,
-            inline = inline,
-        )
-
-        FeatureLoadState.Empty -> UniExpressiveStatusState(
-            isError = false,
-            title = emptyTitle?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.ui_state_empty_content),
-            description = errorMessage ?: emptyMessage.ifBlank { stringResource(Res.string.ui_state_no_data) },
-            actionLabel = if (errorMessage != null) stringResource(Res.string.ui_retry) else emptyActionLabel,
-            onActionClick = if (errorMessage != null) onRetry else onEmptyActionClick,
-            inline = inline,
-            mainIcon = emptyIcon,
-        )
-
-        FeatureLoadState.Content -> content()
     }
 }
 

@@ -1,6 +1,7 @@
 package com.anto426.uniapp.settings.presentation
 
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.components.layout.screenentrance.LiquidScreenEntranceAnimation
 import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.uniapp.data.local.FakeUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataScope
@@ -25,7 +26,10 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
         val animated = LiquidSwitcherTransition.entries.filter { it != LiquidSwitcherTransition.None }
         assertEquals(animated.toSet(), UniMotion.options.map { it.transition }.toSet())
         assertEquals(animated.size, UniMotion.options.size)
-        assertEquals(LiquidSwitcherTransition.DirectionalHorizontal, UniMotion.effectiveTransition(PageMotionPreferences()))
+        assertEquals(LiquidSwitcherTransition.SlideHorizontal, UniMotion.effectiveTransition(PageMotionPreferences()))
+        assertEquals(LiquidSwitcherTransition.SlideHorizontal, UniMotion.options.first().transition)
+        assertEquals(LiquidScreenEntranceAnimation.None, UniMotion.defaultElementEntrance)
+        assertEquals(LiquidScreenEntranceAnimation.None, UniMotion.elementEntranceOptions.first().animation)
         for (transition in animated) {
             val preference = PageMotionPreferences(true, transition.name)
             assertEquals(preference, Json.decodeFromString(
@@ -110,26 +114,35 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
             val viewModel = ThemeViewModel(store)
             advanceUntilIdle()
 
-            viewModel.setLiquidIntensity(0.45f)
+            viewModel.setLiquidIntensity(0f)
             viewModel.selectGlassQuality(LiquidGlassQualityTier.HIGH)
-            viewModel.setBackgroundIntensity(0.60f)
+            viewModel.setBackgroundIntensity(0f)
             viewModel.setBackgroundSpeedFactor(1.6f)
             viewModel.setBackgroundVignette(false)
+            viewModel.setNavBarShowLabels(false)
+            viewModel.setNavBarAutoHide(false)
+            viewModel.selectElementEntrance(LiquidScreenEntranceAnimation.Scale)
             advanceUntilIdle()
 
-            assertEquals(0.45f, viewModel.uiState.value.liquidIntensity)
+            assertEquals(0f, viewModel.uiState.value.liquidIntensity)
             assertEquals(LiquidGlassQualityTier.HIGH, viewModel.uiState.value.glassQuality)
-            assertEquals(0.60f, viewModel.uiState.value.backgroundIntensity)
+            assertEquals(0f, viewModel.uiState.value.backgroundIntensity)
             assertEquals(1.6f, viewModel.uiState.value.backgroundSpeedFactor)
             assertEquals(false, viewModel.uiState.value.showBackgroundVignette)
+            assertEquals(false, viewModel.uiState.value.navBarShowLabels)
+            assertEquals(false, viewModel.uiState.value.navBarAutoHide)
+            assertEquals(LiquidScreenEntranceAnimation.Scale, viewModel.uiState.value.elementEntrance)
 
             val reloaded = ThemeViewModel(store)
             advanceUntilIdle()
-            assertEquals(0.45f, reloaded.uiState.value.liquidIntensity)
+            assertEquals(0f, reloaded.uiState.value.liquidIntensity)
             assertEquals(LiquidGlassQualityTier.HIGH, reloaded.uiState.value.glassQuality)
-            assertEquals(0.60f, reloaded.uiState.value.backgroundIntensity)
+            assertEquals(0f, reloaded.uiState.value.backgroundIntensity)
             assertEquals(1.6f, reloaded.uiState.value.backgroundSpeedFactor)
             assertEquals(false, reloaded.uiState.value.showBackgroundVignette)
+            assertEquals(false, reloaded.uiState.value.navBarShowLabels)
+            assertEquals(false, reloaded.uiState.value.navBarAutoHide)
+            assertEquals(LiquidScreenEntranceAnimation.Scale, reloaded.uiState.value.elementEntrance)
 
             reloaded.reset()
             advanceUntilIdle()
@@ -138,6 +151,9 @@ class ThemePageMotionTest : com.anto426.uniapp.testing.ResourceTest() {
             assertEquals(ThemeUiState.DEFAULT_BACKGROUND_INTENSITY, reloaded.uiState.value.backgroundIntensity)
             assertEquals(ThemeUiState.DEFAULT_BACKGROUND_SPEED, reloaded.uiState.value.backgroundSpeedFactor)
             assertEquals(true, reloaded.uiState.value.showBackgroundVignette)
+            assertEquals(true, reloaded.uiState.value.navBarShowLabels)
+            assertEquals(true, reloaded.uiState.value.navBarAutoHide)
+            assertEquals(UniMotion.defaultElementEntrance, reloaded.uiState.value.elementEntrance)
         } finally {
             Dispatchers.resetMain()
         }

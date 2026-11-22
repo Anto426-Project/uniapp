@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class PageMotionPreferences(
     // Compatibility only: reduced motion is controlled by the global theme preference.
     val enabled: Boolean = true,
-    val transitionName: String = "DirectionalHorizontal",
+    val transitionName: String = "SlideHorizontal",
 )

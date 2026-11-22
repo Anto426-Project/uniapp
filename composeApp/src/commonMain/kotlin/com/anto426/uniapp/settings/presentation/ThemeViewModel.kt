@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.components.layout.screenentrance.LiquidScreenEntranceAnimation
 import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.liquidmonet.theme.monet.LiquidMonetPresets
 import com.anto426.liquidmonet.theme.monet.LiquidMonetSeed
@@ -49,6 +50,9 @@ data class ThemeUiState(
     val backgroundIntensity: Float = DEFAULT_BACKGROUND_INTENSITY,
     val backgroundSpeedFactor: Float = DEFAULT_BACKGROUND_SPEED,
     val showBackgroundVignette: Boolean = true,
+    val navBarShowLabels: Boolean = true,
+    val navBarAutoHide: Boolean = true,
+    val elementEntrance: LiquidScreenEntranceAnimation = UniMotion.defaultElementEntrance,
 ) {
     companion object {
         const val DEFAULT_LIQUID_INTENSITY = 0.82f
@@ -125,18 +129,25 @@ class ThemeViewModel(
                         .let { if (pageMotionChanged) mutableUiState.value.pageMotion else it },
                     liquidIntensity = localDataStore
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemeLiquidIntensity)
-                        .coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_LIQUID_INTENSITY),
+                        .coerceFiniteIn(0f..1f, ThemeUiState.DEFAULT_LIQUID_INTENSITY),
                     glassQuality = localDataStore
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemeGlassQuality)
                         ?.let(::parseGlassQuality),
                     backgroundIntensity = localDataStore
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundIntensity)
-                        .coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_BACKGROUND_INTENSITY),
+                        .coerceFiniteIn(0f..1f, ThemeUiState.DEFAULT_BACKGROUND_INTENSITY),
                     backgroundSpeedFactor = localDataStore
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundSpeed)
                         .coerceFiniteIn(0.25f..2.0f, ThemeUiState.DEFAULT_BACKGROUND_SPEED),
                     showBackgroundVignette = localDataStore
                         .read(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundVignette),
+                    navBarShowLabels = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeNavBarShowLabels),
+                    navBarAutoHide = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeNavBarAutoHide),
+                    elementEntrance = localDataStore
+                        .read(LocalDataScope.Application, UniAppDataKeys.ThemeElementEntrance)
+                        .let(UniMotion::parseElementEntrance),
                 )
             } catch (error: CancellationException) {
                 throw error
@@ -201,7 +212,7 @@ class ThemeViewModel(
     }
 
     fun setLiquidIntensity(intensity: Float) {
-        val normalized = intensity.coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_LIQUID_INTENSITY)
+        val normalized = intensity.coerceFiniteIn(0f..1f, ThemeUiState.DEFAULT_LIQUID_INTENSITY)
         mutableUiState.value = mutableUiState.value.copy(liquidIntensity = normalized)
         persistDebouncedPreference(UniAppDataKeys.ThemeLiquidIntensity, normalized)
     }
@@ -212,7 +223,7 @@ class ThemeViewModel(
     }
 
     fun setBackgroundIntensity(intensity: Float) {
-        val normalized = intensity.coerceFiniteIn(0.2f..1f, ThemeUiState.DEFAULT_BACKGROUND_INTENSITY)
+        val normalized = intensity.coerceFiniteIn(0f..1f, ThemeUiState.DEFAULT_BACKGROUND_INTENSITY)
         mutableUiState.value = mutableUiState.value.copy(backgroundIntensity = normalized)
         persistDebouncedPreference(UniAppDataKeys.ThemeBackgroundIntensity, normalized)
     }
@@ -226,6 +237,21 @@ class ThemeViewModel(
     fun setBackgroundVignette(show: Boolean) {
         mutableUiState.value = mutableUiState.value.copy(showBackgroundVignette = show)
         persistPreference(UniAppDataKeys.ThemeBackgroundVignette, show, showSuccess = false)
+    }
+
+    fun setNavBarShowLabels(showLabels: Boolean) {
+        mutableUiState.value = mutableUiState.value.copy(navBarShowLabels = showLabels)
+        persistPreference(UniAppDataKeys.ThemeNavBarShowLabels, showLabels, showSuccess = false)
+    }
+
+    fun setNavBarAutoHide(autoHide: Boolean) {
+        mutableUiState.value = mutableUiState.value.copy(navBarAutoHide = autoHide)
+        persistPreference(UniAppDataKeys.ThemeNavBarAutoHide, autoHide, showSuccess = false)
+    }
+
+    fun selectElementEntrance(animation: LiquidScreenEntranceAnimation) {
+        mutableUiState.value = mutableUiState.value.copy(elementEntrance = animation)
+        persistPreference(UniAppDataKeys.ThemeElementEntrance, animation.name, showSuccess = false)
     }
 
     fun selectPageTransition(transition: LiquidSwitcherTransition) {
@@ -266,6 +292,9 @@ class ThemeViewModel(
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundIntensity, defaults.backgroundIntensity)
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundSpeed, defaults.backgroundSpeedFactor)
                 localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeBackgroundVignette, defaults.showBackgroundVignette)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeNavBarShowLabels, defaults.navBarShowLabels)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeNavBarAutoHide, defaults.navBarAutoHide)
+                localDataStore.write(LocalDataScope.Application, UniAppDataKeys.ThemeElementEntrance, defaults.elementEntrance.name)
                 localDataStore.remove(LocalDataScope.Application, UniAppDataKeys.ThemeCustomColor)
                 toastSink.success(Res.string.msg_theme_reset)
             } catch (error: CancellationException) {
