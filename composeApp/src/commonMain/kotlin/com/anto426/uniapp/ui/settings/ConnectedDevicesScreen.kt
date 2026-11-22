@@ -1,17 +1,7 @@
-package com.anto426.uniapp.ui.settings
+﻿package com.anto426.uniapp.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.buttons.button.LiquidButton
-import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
-import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.uniapp.data.contract.DeviceInfo
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesUiState
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
@@ -22,8 +12,10 @@ import com.anto426.uniapp.ui.components.items.CurrentDeviceHero
 import com.anto426.uniapp.ui.components.items.DevicePreferenceItem
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.settings.components.DeviceDisconnectDialog
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
+
 
 @Composable
 fun ConnectedDevicesScreen(
@@ -105,50 +97,3 @@ fun ConnectedDevicesScreen(
     }
 }
 
-@Composable
-private fun DeviceDisconnectDialog(
-    title: String,
-    message: String,
-    confirmLabel: String,
-    isWorking: Boolean,
-    canConfirm: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    LiquidDialog(
-        onDismissRequest = { if (!isWorking) onDismiss() },
-        title = title,
-        text = message,
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                LiquidButton(
-                    onClick = onConfirm,
-                    enabled = canConfirm && !isWorking,
-                    isLoading = isWorking,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = confirmLabel,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                LiquidButton(
-                    onClick = onDismiss,
-                    enabled = !isWorking,
-                    variant = LiquidButtonVariant.Text,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_cancel),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        },
-    )
-}
