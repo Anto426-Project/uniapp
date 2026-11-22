@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">Własna</string>
     <string name="msg_biometric_enabled">Włączono logowanie biometryczne.</string>
     <string name="msg_biometric_disabled">Wyłączono logowanie biometryczne.</string>
+    <string name="msg_notifications_enabled">Powiadomienia włączone.</string>
+    <string name="msg_notifications_disabled">Powiadomienia wyłączone.</string>
     <string name="msg_update_finish_in_app_store">Dokończ aktualizację w App Store.</string>
     <string name="ui_news_attachment_document">Dokument</string>
     <string name="ui_library_document_available">Pozycja dostępna</string>

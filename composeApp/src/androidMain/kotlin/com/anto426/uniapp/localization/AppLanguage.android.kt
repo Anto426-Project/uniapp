@@ -17,6 +17,10 @@ internal actual fun BindAppLanguage(languageCode: String) {
     val context = LocalContext.current
     LaunchedEffect(context, languageCode) {
         if (languageCode.isBlank()) return@LaunchedEffect
+        val targetLocale = Locale.forLanguageTag(languageCode)
+        if (Locale.getDefault().language != targetLocale.language) {
+            Locale.setDefault(targetLocale)
+        }
         val currentLanguage = context.resources.configuration.locales[0]?.language
         if (currentLanguage == languageCode) return@LaunchedEffect
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.liquidmonet.components.feedback.toast.state.LiquidToastState
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.localization.activeAppResourceEnvironment
 import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.sdkFeedbackMessage
 import kotlinx.coroutines.channels.Channel
@@ -59,6 +60,7 @@ class AppToastManager : ViewModel(), AppToastSink {
 
     internal fun bindPresentation(environment: ResourceEnvironment) {
         resourceEnvironment = environment
+        activeAppResourceEnvironment = environment
         if (presenterStarted) return
         presenterStarted = true
         viewModelScope.launch {

@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.StringResource
 
 enum class AppPasswordSetupError {
     TooShort,
@@ -98,7 +99,7 @@ class SettingsViewModel(
         persistToggle(
             key = UniAppDataKeys.NotificationsEnabled,
             enabled = enabled,
-            successMessage = if (enabled) "Notifiche attivate." else "Notifiche disattivate.",
+            successResource = if (enabled) Res.string.msg_notifications_enabled else Res.string.msg_notifications_disabled,
             rollback = {
                 update { copy(notificationsEnabled = !enabled) }
                 notificationController.setEnabled(accountId, !enabled)
@@ -215,18 +216,18 @@ class SettingsViewModel(
     private fun persistToggle(
         key: LocalDataKey<Boolean>,
         enabled: Boolean,
-        successMessage: String,
+        successResource: StringResource,
         rollback: () -> Unit,
     ) {
         viewModelScope.launch {
             try {
                 localDataStore.write(dataScope, key, enabled)
-                toastSink.success(successMessage)
+                toastSink.success(successResource)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
                 rollback()
-                toastSink.error(readAppString(Res.string.msg_impossibile_salvare_la_preferenza))
+                toastSink.error(Res.string.msg_impossibile_salvare_la_preferenza)
             }
         }
     }

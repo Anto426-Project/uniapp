@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">Custom</string>
     <string name="msg_biometric_enabled">Biometric sign-in enabled.</string>
     <string name="msg_biometric_disabled">Biometric sign-in disabled.</string>
+    <string name="msg_notifications_enabled">Notifications enabled.</string>
+    <string name="msg_notifications_disabled">Notifications disabled.</string>
     <string name="msg_update_finish_in_app_store">Finish updating in the App Store.</string>
     <string name="ui_news_attachment_document">Document</string>
     <string name="ui_library_document_available">Item available</string>

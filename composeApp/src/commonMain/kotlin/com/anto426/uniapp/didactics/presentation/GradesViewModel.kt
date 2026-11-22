@@ -330,8 +330,9 @@ internal class GradesViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                val message = getString(Res.string.msg_impossibile_salvare_la_simulazione)
-                if (revision == simulationWriteRevision) toastSink.error(message)
+                if (revision == simulationWriteRevision) {
+                    toastSink.error(Res.string.msg_impossibile_salvare_la_simulazione)
+                }
             }
         }
     }

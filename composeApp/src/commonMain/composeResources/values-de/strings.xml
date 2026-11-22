@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">Benutzerdefiniert</string>
     <string name="msg_biometric_enabled">Biometrische Anmeldung aktiviert.</string>
     <string name="msg_biometric_disabled">Biometrische Anmeldung deaktiviert.</string>
+    <string name="msg_notifications_enabled">Benachrichtigungen aktiviert.</string>
+    <string name="msg_notifications_disabled">Benachrichtigungen deaktiviert.</string>
     <string name="msg_update_finish_in_app_store">Schließe das Update im App Store ab.</string>
     <string name="ui_news_attachment_document">Dokument</string>
     <string name="ui_library_document_available">Medium verfügbar</string>

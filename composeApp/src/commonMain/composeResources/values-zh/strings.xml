@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">自定义</string>
     <string name="msg_biometric_enabled">已开启生物识别登录。</string>
     <string name="msg_biometric_disabled">已关闭生物识别登录。</string>
+    <string name="msg_notifications_enabled">已开启通知。</string>
+    <string name="msg_notifications_disabled">已关闭通知。</string>
     <string name="msg_update_finish_in_app_store">请在 App Store 中完成更新。</string>
     <string name="ui_news_attachment_document">文档</string>
     <string name="ui_library_document_available">馆藏可用</string>

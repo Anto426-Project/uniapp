@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">Aangepast</string>
     <string name="msg_biometric_enabled">Biometrisch inloggen ingeschakeld.</string>
     <string name="msg_biometric_disabled">Biometrisch inloggen uitgeschakeld.</string>
+    <string name="msg_notifications_enabled">Meldingen ingeschakeld.</string>
+    <string name="msg_notifications_disabled">Meldingen uitgeschakeld.</string>
     <string name="msg_update_finish_in_app_store">Voltooi de update in de App Store.</string>
     <string name="ui_news_attachment_document">Document</string>
     <string name="ui_library_document_available">Exemplaar beschikbaar</string>

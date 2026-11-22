@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">Personalizada</string>
     <string name="msg_biometric_enabled">Acesso biométrico ativado.</string>
     <string name="msg_biometric_disabled">Acesso biométrico desativado.</string>
+    <string name="msg_notifications_enabled">Notificações ativadas.</string>
+    <string name="msg_notifications_disabled">Notificações desativadas.</string>
     <string name="msg_update_finish_in_app_store">Conclui a atualização na App Store.</string>
     <string name="ui_news_attachment_document">Documento</string>
     <string name="ui_library_document_available">Documento disponível</string>

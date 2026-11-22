@@ -1779,6 +1779,8 @@
     <string name="ui_theme_palette_custom">カスタム</string>
     <string name="msg_biometric_enabled">生体認証でのログインを有効にしました。</string>
     <string name="msg_biometric_disabled">生体認証でのログインを無効にしました。</string>
+    <string name="msg_notifications_enabled">通知を有効にしました。</string>
+    <string name="msg_notifications_disabled">通知を無効にしました。</string>
     <string name="msg_update_finish_in_app_store">App Storeでアップデートを完了してください。</string>
     <string name="ui_news_attachment_document">文書</string>
     <string name="ui_library_document_available">資料を利用できます</string>

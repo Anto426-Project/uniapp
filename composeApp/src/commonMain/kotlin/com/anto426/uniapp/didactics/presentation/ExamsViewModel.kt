@@ -14,6 +14,7 @@ import com.anto426.uniapp.data.professorContract
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
+import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -27,7 +28,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 data class ExamsUiState(
@@ -87,7 +87,7 @@ class ExamsViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_gli_appelli) },
+                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_gli_appelli) },
             )
         }
     }
@@ -108,7 +108,7 @@ class ExamsViewModel(
         viewModelScope.launch {
             try {
                 if (!session.isBooked && !session.canBook) {
-                    toastSink.error(getString(Res.string.ui_exam_not_yet_bookable))
+                    toastSink.error(Res.string.ui_exam_not_yet_bookable)
                     return@launch
                 }
                 val message = repository.didactics.toggleExamBooking(examId, today())
@@ -116,7 +116,7 @@ class ExamsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage { getString(Res.string.msg_operazione_sull_appello_non_riuscita) }
+                val message = error.userMessage { readAppString(Res.string.msg_operazione_sull_appello_non_riuscita) }
                 toastSink.error(message)
             } finally {
                 mutableUiState.value = mutableUiState.value.copy(mutatingExamId = null)
@@ -128,12 +128,12 @@ class ExamsViewModel(
         val url = mutableUiState.value.exams.firstOrNull { it.id == examId }?.calendarUrl
         viewModelScope.launch {
             if (url == null) {
-                toastSink.error(getString(Res.string.ui_exam_calendar_date_missing))
+                toastSink.error(Res.string.ui_exam_calendar_date_missing)
                 return@launch
             }
             try { openUrl(url) }
             catch (error: CancellationException) { throw error }
-            catch (_: Exception) { toastSink.error(getString(Res.string.ui_exam_calendar_open_failed)) }
+            catch (_: Exception) { toastSink.error(Res.string.ui_exam_calendar_open_failed) }
         }
     }
 }
