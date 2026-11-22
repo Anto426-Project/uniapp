@@ -1,5 +1,7 @@
 package com.anto426.uniapp.account.storage
 
+import com.anto426.securestorage.SecureStorageCorruptedException
+import com.anto426.securestorage.SecureStorageDecodingException
 import com.anto426.securestorage.SecureStorageManager
 import com.anto426.securestorage.getObject
 import com.anto426.securestorage.getString
@@ -17,6 +19,7 @@ import com.anto426.unisdk.session.UniCredentials
 import com.anto426.unisdk.session.UniSessionTicket
 import com.anto426.unisdk.session.UniUserProfile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
@@ -48,7 +51,7 @@ class UniAccountStore(
     /** Clears the previous local format once; subsequent logins remain stored. */
     private suspend fun prepareStorage() {
         if (resetReady.value) return
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             resetLock.withLock {
                 if (!resetReady.value) {
                     val maintenance = storageManager.vault("storage-reset")
@@ -57,8 +60,21 @@ class UniAccountStore(
                         "notice-pending" -> mutableStorageResetNotice.value = true
                         else -> {
                             val registryStorage = storageManager.registry()
-                            val registry = registryStorage.getObject<StoredAccountRegistry>(REGISTRY_KEY)
-                            val showNotice = status == "resetting-notice" || registry != null
+                            val hadRegistryEntry = try {
+                                registryStorage.contains(REGISTRY_KEY)
+                            } catch (_: SecureStorageCorruptedException) {
+                                true
+                            } catch (_: SecureStorageDecodingException) {
+                                true
+                            }
+                            val registry = try {
+                                registryStorage.getObject<StoredAccountRegistry>(REGISTRY_KEY)
+                            } catch (_: SecureStorageCorruptedException) {
+                                null
+                            } catch (_: SecureStorageDecodingException) {
+                                null
+                            }
+                            val showNotice = status == "resetting-notice" || registry != null || hadRegistryEntry
                             maintenance.putString(RELEASE_STORAGE_RESET_KEY, if (showNotice) "resetting-notice" else "resetting")
                             storageManager.destroyAll(registry?.accounts.orEmpty().map(StoredAccount::accountId) + listOf("application-data", "storage-migrations"))
                             cachedRegistry = null
@@ -76,20 +92,22 @@ class UniAccountStore(
 
     internal suspend fun acknowledgeStorageReset() {
         prepareStorage()
-        resetLock.withLock {
-            storageManager.vault("storage-reset").putString(RELEASE_STORAGE_RESET_KEY, "complete")
-            mutableStorageResetNotice.value = false
+        withContext(Dispatchers.IO) {
+            resetLock.withLock {
+                storageManager.vault("storage-reset").putString(RELEASE_STORAGE_RESET_KEY, "complete")
+                mutableStorageResetNotice.value = false
+            }
         }
     }
 
     private suspend fun <T> withAccountStorage(block: suspend () -> T): T {
         prepareStorage()
-        return lock.withLock { block() }
+        return withContext(Dispatchers.IO) { lock.withLock { block() } }
     }
 
     private suspend fun <T> withApplicationStorage(block: suspend () -> T): T {
         prepareStorage()
-        return applicationLock.withLock { block() }
+        return withContext(Dispatchers.IO) { applicationLock.withLock { block() } }
     }
 
     suspend fun snapshot(): UniAccountRegistrySnapshot =
@@ -261,11 +279,23 @@ class UniAccountStore(
         withAccountStorage {
             requireKnownAccount(loadRegistry(), accountId)
             val vault = storageManager.vault(accountId)
-            val storedSource = vault.getString(PROFILE_IMAGE_SOURCE_KEY) ?: return@withAccountStorage null
-            if (expectedSource != null && storedSource != expectedSource) return@withAccountStorage null
-            val savedAt = vault.getString(PROFILE_IMAGE_SAVED_AT_KEY)?.toLongOrNull() ?: return@withAccountStorage null
-            val bytes = vault.getBytes(PROFILE_IMAGE_BYTES_KEY) ?: return@withAccountStorage null
-            CachedProfileImage(savedAtMillis = savedAt, bytes = bytes, source = storedSource)
+            try {
+                val storedSource = vault.getString(PROFILE_IMAGE_SOURCE_KEY) ?: return@withAccountStorage null
+                if (expectedSource != null && storedSource != expectedSource) return@withAccountStorage null
+                val savedAt = vault.getString(PROFILE_IMAGE_SAVED_AT_KEY)?.toLongOrNull() ?: return@withAccountStorage null
+                val bytes = vault.getBytes(PROFILE_IMAGE_BYTES_KEY) ?: return@withAccountStorage null
+                CachedProfileImage(savedAtMillis = savedAt, bytes = bytes, source = storedSource)
+            } catch (_: SecureStorageCorruptedException) {
+                runCatching { vault.remove(PROFILE_IMAGE_BYTES_KEY) }
+                runCatching { vault.remove(PROFILE_IMAGE_SOURCE_KEY) }
+                runCatching { vault.remove(PROFILE_IMAGE_SAVED_AT_KEY) }
+                null
+            } catch (_: SecureStorageDecodingException) {
+                runCatching { vault.remove(PROFILE_IMAGE_BYTES_KEY) }
+                runCatching { vault.remove(PROFILE_IMAGE_SOURCE_KEY) }
+                runCatching { vault.remove(PROFILE_IMAGE_SAVED_AT_KEY) }
+                null
+            }
         }
 
     internal suspend fun writeProfileImage(

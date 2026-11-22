@@ -67,16 +67,27 @@ class LoginViewModel(
 
     private fun authenticate(career: UniLoginProfileOption?) {
         val state = mutableUiState.value
+        if (state.isLoading) return
         if (state.username.isBlank() || state.password.isBlank()) {
             viewModelScope.launch { toastSink.warning(readAppString(Res.string.ui_login_error_empty)) }
             return
         }
         viewModelScope.launch {
-            sessionController.authenticate(
-                credentials = UniAccountCredentials(state.username, state.password),
-                selectedCareer = career,
-                preferredAccountId = reauthenticationAccountId,
-            )
+            try {
+                sessionController.authenticate(
+                    credentials = UniAccountCredentials(state.username, state.password),
+                    selectedCareer = career,
+                    preferredAccountId = reauthenticationAccountId,
+                )
+            } finally {
+                val latest = sessionController.state.value
+                if (latest !is AppSessionState.Authenticating &&
+                    latest !is AppSessionState.Switching &&
+                    latest !is AppSessionState.Initializing
+                ) {
+                    mutableUiState.update { it.copy(isLoading = false) }
+                }
+            }
         }
     }
 

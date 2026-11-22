@@ -1,8 +1,12 @@
 package com.anto426.uniapp.data.local
 
+import com.anto426.securestorage.SecureStorageCorruptedException
+import com.anto426.securestorage.SecureStorageDecodingException
 import com.anto426.securestorage.SecureStorageJson
 import com.anto426.uniapp.account.storage.UniAccountStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flow
@@ -14,6 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /** Defines who owns a persisted value and therefore when that value is erased. */
@@ -98,7 +103,7 @@ internal class EncryptedUniLocalDataStore(
         }
     }
 
-    override suspend fun <T> read(scope: LocalDataScope, key: LocalDataKey<T>): T = withContext(Dispatchers.Default) {
+    override suspend fun <T> read(scope: LocalDataScope, key: LocalDataKey<T>): T = withContext(Dispatchers.IO) {
         val cell = acquire(scope, key.name)
         try { cell.lock.withLock { readCell(cell, scope, key) } }
         finally { release(cell) }
@@ -110,7 +115,7 @@ internal class EncryptedUniLocalDataStore(
         return readUnlocked(scope, key).also { cell.value = it; cell.loaded = true }
     }
 
-    override suspend fun <T> write(scope: LocalDataScope, key: LocalDataKey<T>, value: T) = withContext(Dispatchers.Default) {
+    override suspend fun <T> write(scope: LocalDataScope, key: LocalDataKey<T>, value: T) = withContext(Dispatchers.IO) {
         val cell = acquire(scope, key.name)
         try {
             cell.lock.withLock {
@@ -125,7 +130,7 @@ internal class EncryptedUniLocalDataStore(
         } finally { release(cell) }
     }
 
-    override suspend fun remove(scope: LocalDataScope, key: LocalDataKey<*>) = withContext(Dispatchers.Default) {
+    override suspend fun remove(scope: LocalDataScope, key: LocalDataKey<*>) = withContext(Dispatchers.IO) {
         val cell = acquire(scope, key.name)
         try {
             cell.lock.withLock {
@@ -142,7 +147,7 @@ internal class EncryptedUniLocalDataStore(
         try {
             emitAll(cell.revision.map { cell.lock.withLock { readCell(cell, scope, key) } }.distinctUntilChanged())
         } finally { release(cell) }
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun invalidateAccount(accountId: String) {
         val affected = guard.withLock {
@@ -166,9 +171,31 @@ internal class EncryptedUniLocalDataStore(
     }
 
     private suspend fun <T> readUnlocked(scope: LocalDataScope, key: LocalDataKey<T>): T {
-        val bytes = readBytes(scope, storageKey(scope, key.name)) ?: return key.defaultValue
+        val rawKey = storageKey(scope, key.name)
+        val bytes = try {
+            readBytes(scope, rawKey)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: SecureStorageCorruptedException) {
+            runCatching { removeBytes(scope, rawKey) }
+            return key.defaultValue
+        } catch (_: SecureStorageDecodingException) {
+            runCatching { removeBytes(scope, rawKey) }
+            return key.defaultValue
+        } ?: return key.defaultValue
         return try {
             json.decodeFromString(key.serializer, bytes.decodeToString(throwOnInvalidSequence = true))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: SerializationException) {
+            runCatching { removeBytes(scope, rawKey) }
+            key.defaultValue
+        } catch (_: CharacterCodingException) {
+            runCatching { removeBytes(scope, rawKey) }
+            key.defaultValue
+        } catch (_: IllegalArgumentException) {
+            runCatching { removeBytes(scope, rawKey) }
+            key.defaultValue
         } finally {
             bytes.fill(0)
         }

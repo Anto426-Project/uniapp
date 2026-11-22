@@ -5,10 +5,10 @@ import com.anto426.uniapp.localization.readAppString
 import androidx.compose.ui.graphics.Color
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.library.LibraryAccessEnabled
 import com.anto426.uniapp.model.home.QuickActionItem
 import com.anto426.uniapp.model.legal.LegalSectionData
-import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.model.services.ServiceData
 import com.anto426.uniapp.model.settings.LanguageInfo
 import uniapp.composeapp.generated.resources.*

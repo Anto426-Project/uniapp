@@ -1,5 +1,6 @@
 package com.anto426.uniapp.account.model
 
+import com.anto426.uniapp.data.toSdkLoginCareerOption
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -28,26 +29,7 @@ data class UniLoginProfileOption(
     val type: UniProfileRole = UniProfileRole.STUDENT,
 ) {
     val profileId: String
-        get() =
-            when (type) {
-                UniProfileRole.PROFESSOR ->
-                    listOfNotNull(
-                        "prof",
-                        teacherId?.trim()?.takeIf(String::isNotBlank),
-                        dipId?.trim()?.takeIf(String::isNotBlank),
-                        displayName.trim().lowercase().takeIf(String::isNotBlank),
-                    ).joinToString(":")
-
-                UniProfileRole.STUDENT ->
-                    listOfNotNull(
-                        "stu",
-                        matId?.trim()?.takeIf(String::isNotBlank),
-                        stuId?.trim()?.takeIf(String::isNotBlank),
-                        matricola?.trim()?.takeIf(String::isNotBlank),
-                        cdsId?.trim()?.takeIf(String::isNotBlank),
-                        degreeName.trim().lowercase().takeIf(String::isNotBlank),
-                    ).joinToString(":")
-            }
+        get() = toSdkLoginCareerOption().profileId
 }
 
 /** Credentials owned by UniApp. They are never included in the SDK session ticket. */

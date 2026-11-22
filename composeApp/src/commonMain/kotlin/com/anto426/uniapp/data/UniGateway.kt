@@ -1,5 +1,7 @@
 package com.anto426.uniapp.data
 
+import com.anto426.securestorage.SecureStorageCorruptedException
+import com.anto426.securestorage.SecureStorageDecodingException
 import com.anto426.uniapp.account.data.AccountAvatarStore
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
@@ -10,22 +12,21 @@ import com.anto426.uniapp.data.local.UniAppDataKeys
 import com.anto426.uniapp.data.local.UniLocalDataStore
 import com.anto426.uniapp.demo.DemoAccount
 import com.anto426.uniapp.demo.DemoCatalog
-import com.anto426.uniapp.library.model.LibraryBookCopyAction
-import com.anto426.uniapp.library.model.LibraryBookDetail
-import com.anto426.uniapp.library.model.LibraryBookLoanDraft
-import com.anto426.uniapp.library.model.LibraryBookingOption
-import com.anto426.uniapp.library.model.LibraryBookingOverview
-import com.anto426.uniapp.library.model.LibraryCatalogBook
-import com.anto426.uniapp.library.model.LibraryCatalogPage
-import com.anto426.uniapp.library.model.LibraryLoanSubmissionResult
-import com.anto426.uniapp.library.model.LibraryMovementItem
-import com.anto426.uniapp.library.model.LibrarySpaceBooking
-import com.anto426.uniapp.library.model.LibrarySpaceBookingOutcome
-import com.anto426.uniapp.library.model.LibrarySpaceCalendar
-import com.anto426.uniapp.library.model.LibrarySpaceSelection
-import com.anto426.uniapp.library.model.LibrarySpaceSlot
-import com.anto426.unisdk.library.LibraryTextParser
-import com.anto426.unisdk.library.ParsedLibraryBookCopyAction
+import com.anto426.uniapp.data.contract.LibraryBookCopyAction
+import com.anto426.uniapp.data.contract.LibraryBookDetail
+import com.anto426.uniapp.data.contract.LibraryBookLoanDraft
+import com.anto426.uniapp.data.contract.LibraryBookingOption
+import com.anto426.uniapp.data.contract.LibraryBookingOverview
+import com.anto426.uniapp.data.contract.LibraryCatalogBook
+import com.anto426.uniapp.data.contract.LibraryCatalogPage
+import com.anto426.uniapp.data.contract.LibraryLoanSubmissionResult
+import com.anto426.uniapp.data.contract.LibraryMovementItem
+import com.anto426.uniapp.data.contract.LibrarySpaceBooking
+import com.anto426.uniapp.data.contract.LibrarySpaceBookingOutcome
+import com.anto426.uniapp.data.contract.LibrarySpaceCalendar
+import com.anto426.uniapp.data.contract.LibrarySpaceSelection
+import com.anto426.uniapp.data.contract.LibrarySpaceSlot
+import com.anto426.uniapp.data.contract.LibraryTextParser
 import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.userMessage
 import com.anto426.uniapp.project.model.GitHubAuthor
@@ -101,6 +102,7 @@ import kotlin.time.Clock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -111,7 +113,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -287,6 +292,17 @@ class UniSessionController internal constructor(
     suspend fun cancelUnlock() {
         lock.withLock {
             val requirement = mutableState.value as? AppSessionState.UnlockRequired ?: return
+            val fallback = requirement.fallbackAccount?.takeIf { previous ->
+                DemoAccount.isDemo(previous) ||
+                    activeSession?.account?.let {
+                        it.accountId == previous.accountId && it.activeProfileId == previous.activeProfileId
+                    } == true
+            }
+            if (fallback != null) {
+                prepareNotificationOwner(fallback.accountId)
+                mutableState.value = AppSessionState.Authenticated(fallback)
+                return
+            }
             prepareNotificationOwner(null)
             accountStore.setActiveAccount(null)
             mutableState.value = AppSessionState.SignedOut()
@@ -346,8 +362,12 @@ class UniSessionController internal constructor(
                     demoProfileLocked(),
                     UniSessionTicket.restore("local-demo-v1".encodeToByteArray()),
                 )
-                mutableState.value = AppSessionState.Authenticated(account)
                 mutableAccountsRevision.value += 1
+                mutableState.value = if (requiresBiometricUnlock(account.accountId)) {
+                    AppSessionState.UnlockRequired(account)
+                } else {
+                    AppSessionState.Authenticated(account)
+                }
                 return@withLock
             }
             val notificationOwner = preferredAccountId?.takeIf { accountId ->
@@ -356,22 +376,39 @@ class UniSessionController internal constructor(
             prepareNotificationOwner(notificationOwner)
             mutableState.value = AppSessionState.Authenticating
             try {
-                closeActiveSessionLocked()
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-            }
-            mutableState.value =
                 try {
-                    authenticateLocked(credentials, selectedCareer?.toSdkLoginCareerOption(), preferredAccountId)
+                    closeActiveSessionLocked()
                 } catch (error: CancellationException) {
-                    prepareNotificationOwner(null)
                     throw error
-                } catch (error: Throwable) {
-                    prepareNotificationOwner(null)
-                    AppSessionState.SignedOut(error.userMessage { readAppString(Res.string.msg_accesso_non_riuscito) })
+                } catch (_: Exception) {
                 }
-            prepareNotificationOwner((mutableState.value as? AppSessionState.Authenticated)?.account?.accountId)
+                mutableState.value =
+                    try {
+                        withContext(Dispatchers.IO) {
+                            withTimeout(45_000L) {
+                                authenticateLocked(credentials, selectedCareer?.toSdkLoginCareerOption(), preferredAccountId)
+                            }
+                        }
+                    } catch (error: TimeoutCancellationException) {
+                        prepareNotificationOwner(null)
+                        val timeoutError = UniSdkException(UniSdkErrorCode.NETWORK_TIMEOUT, error)
+                        AppSessionState.SignedOut(timeoutError.userMessage { readAppString(Res.string.msg_accesso_non_riuscito) })
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (error: Throwable) {
+                        prepareNotificationOwner(null)
+                        AppSessionState.SignedOut(error.userMessage { readAppString(Res.string.msg_accesso_non_riuscito) })
+                    }
+                prepareNotificationOwner((mutableState.value as? AppSessionState.Authenticated)?.account?.accountId)
+            } catch (error: CancellationException) {
+                withContext(NonCancellable) {
+                    if (mutableState.value == AppSessionState.Authenticating) {
+                        mutableState.value = AppSessionState.SignedOut()
+                    }
+                    runCatching { prepareNotificationOwner(null) }
+                }
+                throw error
+            }
         }
     }
 
@@ -406,8 +443,9 @@ class UniSessionController internal constructor(
                 }
             } catch (error: Throwable) {
                 mutableState.value = current?.let(AppSessionState::Authenticated) ?: AppSessionState.SignedOut()
-                try { prepareNotificationOwner(current?.accountId) }
-                catch (_: Throwable) {}
+                withContext(NonCancellable) {
+                    runCatching { prepareNotificationOwner(current?.accountId) }
+                }
                 throw error
             }
         }
@@ -444,8 +482,8 @@ class UniSessionController internal constructor(
 
     suspend fun signOut() {
         lock.withLock {
-            prepareNotificationOwner(null)
-            closeActiveSessionLocked()
+            runCatching { prepareNotificationOwner(null) }
+            runCatching { closeActiveSessionLocked() }
             accountStore.setActiveAccount(null)
             mutableState.value = AppSessionState.SignedOut()
         }
@@ -486,17 +524,19 @@ class UniSessionController internal constructor(
 
     internal suspend fun removeAccount(accountId: String, authenticator: BiometricAuthenticator): Boolean =
         lock.withLock {
-            require(accountStore.snapshot().accounts.any { it.accountId == accountId }) { "Unknown account" }
+            val targetAccount = accountStore.snapshot().accounts.firstOrNull { it.accountId == accountId }
+                ?: throw IllegalArgumentException("Unknown account")
             val isProtected = requiresBiometricUnlock(accountId)
             if (!authorizeAccountRemoval(isProtected, authenticator)) return@withLock false
-            removeAccountLocked(accountId)
+            removeAccountLocked(targetAccount)
             true
         }
 
-    private suspend fun removeAccountLocked(accountId: String) {
+    private suspend fun removeAccountLocked(account: UniAccountSummary) {
+        val accountId = account.accountId
         val previous = mutableState.value
         try {
-            closeActiveSessionLocked(accountId)
+            disconnectAndCloseSessionLocked(account)
             accountStore.forgetAccount(accountId)
         } finally {
             mutableState.value = when (previous) {
@@ -517,6 +557,33 @@ class UniSessionController internal constructor(
             avatars.remove(accountId)
             mutableAccountsRevision.value += 1
         }
+    }
+
+    private suspend fun disconnectAndCloseSessionLocked(account: UniAccountSummary) {
+        val accountId = account.accountId
+        if (DemoAccount.isDemo(account)) {
+            closeActiveSessionLocked(accountId)
+            return
+        }
+        val current = activeSession?.takeIf { it.account.accountId == accountId }
+        if (current != null) {
+            activeSession = null
+            closeLibrarySessionForOwner(accountId)
+            val revoked = withTimeoutOrNull(8_000L) {
+                runCatching { backend.revokeSession(current.session) }.isSuccess
+            } == true
+            if (!revoked) {
+                runCatching { backend.closeSession(current.session) }
+            }
+            return
+        }
+        val storedTicket = runCatching { accountStore.loadSessionTicket(accountId) }.getOrNull()
+        if (storedTicket != null) {
+            withTimeoutOrNull(8_000L) {
+                runCatching { backend.revokeSessionTicket(storedTicket) }
+            }
+        }
+        closeLibrarySessionForOwner(accountId)
     }
 
     private suspend fun authenticateLocked(
@@ -549,9 +616,14 @@ class UniSessionController internal constructor(
                 }
                 pendingProfileCatalog = emptyList()
                 pendingProfileUsername = null
-                installSessionLocked(ActiveSessionContext(account, profile, result.session))
                 mutableAccountsRevision.value += 1
-                AppSessionState.Authenticated(account)
+                if (requiresBiometricUnlock(account.accountId)) {
+                    runCatching { backend.closeSession(result.session) }
+                    AppSessionState.UnlockRequired(account)
+                } else {
+                    installSessionLocked(ActiveSessionContext(account, profile, result.session))
+                    AppSessionState.Authenticated(account)
+                }
             }
         }
     }
@@ -627,7 +699,7 @@ class UniSessionController internal constructor(
     private suspend fun installSessionLocked(next: ActiveSessionContext) {
         val previous = activeSession
         activeSession = next
-        if (previous != null) {
+        if (previous != null) withContext(NonCancellable) {
             if (previous.account.accountId != next.account.accountId ||
                 previous.account.activeProfileId != next.account.activeProfileId
             ) {
@@ -691,7 +763,9 @@ class UniSessionController internal constructor(
         try {
             block(transport)
         } finally {
-            closeTransportSession(transport)
+            withContext(NonCancellable) {
+                runCatching { closeTransportSession(transport) }
+            }
         }
     }
 
@@ -905,6 +979,8 @@ class PortalUniGateway(
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val requestLocksGuard = Mutex()
     private val requestLocks = mutableMapOf<String, Mutex>()
+    private val savedAtGuard = Mutex()
+    private val savedAtByKey = mutableMapOf<String, Long>()
 
     // Opaque token vault for Sebina library session objects
     private data class OwnedLibraryHandle<T>(
@@ -961,6 +1037,20 @@ class PortalUniGateway(
         if (sessions.state.value !== context.sessionState) {
             throw CancellationException("The account or profile changed while loading data")
         }
+    }
+
+    internal suspend fun readCachedSavedAtMillis(request: UniDatasetKey<*>): Long? {
+        val context = activeContext()
+        if (request.id.startsWith("portrait/")) {
+            return accounts.readProfileImage(context.accountId, request.id.removePrefix("portrait/"))
+                ?.savedAtMillis
+                ?.also { ensureCurrent(context) }
+        }
+        val key = request.cacheKey ?: return null
+        val cacheAddress = "${context.accountId}|${context.profileScopedKey(key)}"
+        val savedAt = savedAtGuard.withLock { savedAtByKey[cacheAddress] }
+        ensureCurrent(context)
+        return savedAt
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -1194,7 +1284,15 @@ class PortalUniGateway(
         val key = context.profileScopedKey(ticketImageCacheKey(bookingId))
         return requestLock(context.accountId, key).withLock {
             ensureCurrent(context)
-            val original = accounts.readCachedData(context.accountId, key)
+            val original = try {
+                accounts.readCachedData(context.accountId, key)
+            } catch (_: SecureStorageCorruptedException) {
+                runCatching { accounts.removeCachedData(context.accountId, key) }
+                null
+            } catch (_: SecureStorageDecodingException) {
+                runCatching { accounts.removeCachedData(context.accountId, key) }
+                null
+            }
             ensureCurrent(context)
             if (!forceRefresh && original != null) return@withLock original
             try {
@@ -1253,7 +1351,9 @@ class PortalUniGateway(
         }
         return LibraryCatalogPage(
             query = query,
-            books = sdkPage.books.map { it.parsed },
+            books = sdkPage.books.map { book ->
+                LibraryTextParser.parseCatalogBook(book.id, book.title, book.description)
+            },
             page = sdkPage.page,
             total = sdkPage.total,
         )
@@ -1497,7 +1597,7 @@ class PortalUniGateway(
                     actionId = token,
                     label = action.label.ifBlank { action.movementType },
                     libraryCode = action.libraryCode,
-                    branchName = action.branchDisplayName,
+                    branchName = LibraryTextParser.branchDisplayName(action.libraryCode),
                     movementType = action.movementType,
                 )
             }
@@ -1626,15 +1726,36 @@ class PortalUniGateway(
         requestLocksGuard.withLock { requestLocks.getOrPut("$accountId|$key") { Mutex() } }
 
     private suspend fun <T> readEntry(accountId: String?, key: String, serializer: KSerializer<T>): CachedValue<T>? {
-        val bytes = accounts.readCachedData(accountId, key) ?: return null
+        val bytes = try {
+            accounts.readCachedData(accountId, key)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: SecureStorageCorruptedException) {
+            runCatching { accounts.removeCachedData(accountId, key) }
+            return null
+        } catch (_: SecureStorageDecodingException) {
+            runCatching { accounts.removeCachedData(accountId, key) }
+            return null
+        } ?: return null
         return try {
-            val envelope = json.decodeFromString<CacheEnvelope>(bytes.decodeToString())
-            if (envelope.schemaVersion != CACHE_SCHEMA_VERSION) return null
+            val envelope = json.decodeFromString<CacheEnvelope>(bytes.decodeToString(throwOnInvalidSequence = true))
+            if (envelope.schemaVersion != CACHE_SCHEMA_VERSION) {
+                runCatching { accounts.removeCachedData(accountId, key) }
+                savedAtGuard.withLock { savedAtByKey.remove("$accountId|$key") }
+                return null
+            }
+            savedAtGuard.withLock { savedAtByKey["$accountId|$key"] = envelope.savedAtMillis }
             CachedValue(envelope.savedAtMillis, json.decodeFromString(serializer, envelope.payload))
         } catch (error: CancellationException) {
             throw error
         } catch (_: SerializationException) {
-            accounts.removeCachedData(accountId, key)
+            runCatching { accounts.removeCachedData(accountId, key) }
+            null
+        } catch (_: CharacterCodingException) {
+            runCatching { accounts.removeCachedData(accountId, key) }
+            null
+        } catch (_: IllegalArgumentException) {
+            runCatching { accounts.removeCachedData(accountId, key) }
             null
         } finally {
             bytes.fill(0)
@@ -1652,12 +1773,14 @@ class PortalUniGateway(
         val bytes = json.encodeToString(CacheEnvelope.serializer(), envelope).encodeToByteArray()
         try {
             accounts.writeCachedData(accountId, key, bytes)
+            savedAtGuard.withLock { savedAtByKey["$accountId|$key"] = savedAtMillis }
         } finally {
             bytes.fill(0)
         }
     }
 
     private suspend fun invalidate(accountId: String, key: String) {
+        savedAtGuard.withLock { savedAtByKey.remove("$accountId|$key") }
         accounts.removeCachedData(accountId, key)
     }
 
@@ -1671,7 +1794,7 @@ class PortalUniGateway(
     private data class CacheEnvelope(val schemaVersion: Int, val savedAtMillis: Long, val payload: String)
 
     private companion object {
-        const val CACHE_SCHEMA_VERSION = 1
+        const val CACHE_SCHEMA_VERSION = 3
     }
 }
 

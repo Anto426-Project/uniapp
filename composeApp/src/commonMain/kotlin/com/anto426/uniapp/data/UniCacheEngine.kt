@@ -1,11 +1,12 @@
 package com.anto426.uniapp.data
 
 import com.anto426.uniapp.account.model.UniAccountSummary
-import com.anto426.uniapp.library.model.LibraryBookDetail
-import com.anto426.uniapp.library.model.LibraryBookingOverview
-import com.anto426.uniapp.library.model.LibraryCatalogPage
-import com.anto426.uniapp.library.model.LibraryMovementItem
-import com.anto426.uniapp.model.news.NewsFeed
+import com.anto426.uniapp.data.contract.LibraryBookDetail
+import com.anto426.uniapp.data.contract.LibraryBookingOverview
+import com.anto426.uniapp.data.contract.LibraryCatalogPage
+import com.anto426.uniapp.data.contract.LibraryMovementItem
+import com.anto426.uniapp.data.contract.NewsFeed
+import com.anto426.uniapp.data.contract.toNewsItems
 import com.anto426.uniapp.project.model.GitHubProjectSnapshot
 import com.anto426.uniapp.updates.model.InstalledAppBuild
 import com.anto426.uniapp.updates.model.UniAppUpdateManifest
@@ -61,6 +62,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -79,6 +81,8 @@ internal fun datasetCacheKey(kind: String, id: String): String =
     "$kind-v2-${cacheIdentityDigest(id)}"
 
 internal expect fun cacheIdentityDigest(value: String): String
+
+internal expect fun logCacheDiagnostic(message: String)
 
 /** Fixed sources belong to exactly one career, including an explicitly absent profile id. */
 internal fun requireDataRequestOwner(
@@ -254,7 +258,7 @@ class UniCacheEngine(
     private val source: UniGateway,
     parentScope: CoroutineScope,
     val generation: Long = 0,
-    concurrency: Int = 4,
+    concurrency: Int = 8,
     private val nowMillis: () -> Long = { currentEpochMillis() },
 ) : UniGateway by source {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
@@ -282,6 +286,7 @@ class UniCacheEngine(
 
     private val guard = Mutex()
     private val network = Semaphore(concurrency)
+    private val backgroundNetwork = Semaphore(2)
     private val entries = linkedMapOf<String, Entry<*>>()
     private var ticketArchiveJob: Job? = null
     private var closed = false
@@ -367,6 +372,10 @@ class UniCacheEngine(
     }
 
     fun refresh(requests: List<UniDatasetKey<*>>, force: Boolean = false) {
+        if (closed || !scope.isActive) {
+            logCacheDiagnostic("refresh ignored (closed=$closed active=${scope.isActive} gen=$generation ids=${requests.map { it.id }})")
+            return
+        }
         scope.launch { refreshRequests(requests, force, invalidated = false) }
     }
 
@@ -393,7 +402,7 @@ class UniCacheEngine(
     }
 
     fun preload(isProfessor: Boolean) = refresh(
-        if (isProfessor) listOf(UniDatasets.Professor, UniDatasets.News, UniDatasets.Contacts)
+        if (isProfessor) listOf(UniDatasets.Professor, UniDatasets.News)
         else listOf(
             UniDatasets.Student,
             UniDatasets.Career,
@@ -401,11 +410,6 @@ class UniCacheEngine(
             UniDatasets.Exams,
             UniDatasets.Taxes,
             UniDatasets.News,
-            UniDatasets.Surveys,
-            UniDatasets.Attendance,
-            UniDatasets.Contacts,
-            UniDatasets.Transport,
-            UniDatasets.Devices,
         ),
         force = false,
     )
@@ -464,16 +468,22 @@ class UniCacheEngine(
     /** One scheduler while the app is visible. It sleeps until observed data actually expires. */
     suspend fun maintainFreshData(): Nothing {
         scheduleRevision.collectLatest {
-            val wait = guard.withLock {
-                entries.values.filter { it.visibleConsumers > 0 && it.job == null && it.request.policy != null }
-                    .minOfOrNull(::dueIn)
-            } ?: return@collectLatest awaitCancellation()
-            delay(wait.coerceAtLeast(1))
-            val due = guard.withLock {
-                entries.values.filter { it.visibleConsumers > 0 && it.job == null && dueIn(it) == 0L }.map { it.request }
+            while (true) {
+                val wait = guard.withLock {
+                    entries.values.filter { it.visibleConsumers > 0 && it.job == null && it.request.policy != null }
+                        .minOfOrNull(::dueIn)
+                } ?: awaitCancellation()
+                delay(wait.coerceAtLeast(1))
+                val due = guard.withLock {
+                    entries.values.filter {
+                        it.visibleConsumers > 0 && it.job == null && it.request.policy != null && dueIn(it) == 0L
+                    }.map { it.request }
+                }
+                if (due.isEmpty()) continue
+                // Starting requests changes scheduleRevision. Run that work in the owner's scope.
+                refresh(due)
+                awaitCancellation()
             }
-            refreshRequests(due, force = false, invalidated = false)
-            awaitCancellation()
         }
         awaitCancellation()
     }
@@ -483,9 +493,13 @@ class UniCacheEngine(
         force: Boolean,
         invalidated: Boolean = false,
     ): Deferred<T>? = guard.withLock {
-        if (closed) throw CancellationException("Data owner closed")
+        if (closed) {
+            logCacheDiagnostic("start rejected (closed) id=${entry.request.id} gen=$generation force=$force")
+            throw CancellationException("Data owner closed")
+        }
         entry.job?.let {
             if (invalidated || (force && !entry.forcing)) entry.forcePending = true
+            if (force) logCacheDiagnostic("start coalesced into in-flight job id=${entry.request.id} gen=$generation forcing=${entry.forcing} pending=${entry.forcePending}")
             return@withLock it
         }
         if (!force && !invalidated && dueIn(entry) > 0) return@withLock null
@@ -503,7 +517,14 @@ class UniCacheEngine(
         scope.launch {
             try {
                 if (entry.state.value.value == null && source is PortalUniGateway) {
-                    source.readCached(entry.request)?.let { cached ->
+                    val initialCache = try {
+                        source.readCached(entry.request)
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        null
+                    }
+                    initialCache?.let { cached ->
                         guard.withLock {
                             currentCoroutineContext().ensureActive()
                             if (closed) throw CancellationException("Data owner closed")
@@ -520,11 +541,28 @@ class UniCacheEngine(
                         entry.forcing = mustRefresh
                     }
                     val result = try {
-                        Result.success(network.withPermit { entry.request.load(source, mustRefresh) })
-                    } catch (error: CancellationException) { throw error }
-                    catch (error: Throwable) { Result.failure(error) }
+                        Result.success(
+                            network.withPermit {
+                                val timeoutMillis = if (entry.request.id.startsWith("library-")) 95_000L else 45_000L
+                                withTimeout(timeoutMillis) {
+                                    entry.request.load(source, mustRefresh)
+                                }
+                            },
+                        )
+                    } catch (error: kotlinx.coroutines.TimeoutCancellationException) {
+                        logCacheDiagnostic("load timeout id=${entry.request.id} gen=$generation force=$mustRefresh")
+                        Result.failure(com.anto426.unisdk.errors.UniSdkException(com.anto426.unisdk.errors.UniSdkErrorCode.FEATURE_LOAD_TIMEOUT, error))
+                    }
+                    catch (error: CancellationException) {
+                        logCacheDiagnostic("load cancelled id=${entry.request.id} gen=$generation active=${currentCoroutineContext().isActive} reason=${error.message}")
+                        throw error
+                    }
+                    catch (error: Throwable) {
+                        logCacheDiagnostic("load failed id=${entry.request.id} gen=$generation type=${error::class.simpleName} msg=${error.message}")
+                        Result.failure(error)
+                    }
                     val savedAt = if (result.isSuccess && source is PortalUniGateway) {
-                        try { source.readCached(entry.request)?.savedAtMillis }
+                        try { source.readCachedSavedAtMillis(entry.request) }
                         catch (error: CancellationException) { throw error }
                         catch (_: Exception) { null }
                     } else null
@@ -553,6 +591,7 @@ class UniCacheEngine(
                             } else entry.retryAt = nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
                             result.fold(completion::complete, completion::completeExceptionally)
                             trimIdleEntries()
+                            scheduleRevision.value += 1
                             false
                         }
                     }
@@ -567,9 +606,13 @@ class UniCacheEngine(
                                         ensureActive()
                                         if (booking.ticketUrl.isBlank()) continue
                                         try {
-                                            network.withPermit {
-                                                source.loadTransportTicketImage(booking.id, booking.ticketUrl)
+                                            backgroundNetwork.withPermit {
+                                                withTimeout(30_000L) {
+                                                    source.loadTransportTicketImage(booking.id, booking.ticketUrl)
+                                                }
                                             }
+                                        } catch (error: kotlinx.coroutines.TimeoutCancellationException) {
+                                            // Retried on next refresh or detail view.
                                         } catch (error: CancellationException) {
                                             throw error
                                         } catch (_: Exception) {
@@ -583,22 +626,12 @@ class UniCacheEngine(
                     }
                 }
             } catch (error: CancellationException) {
+                logCacheDiagnostic("entry cancelled id=${entry.request.id} gen=$generation active=${currentCoroutineContext().isActive} closed=$closed reason=${error.message}")
                 if (currentCoroutineContext().isActive) {
-                    val failure = IllegalStateException()
-                    guard.withLock {
-                        if (!closed && entry.job === completion) {
-                            entry.state.value = entry.state.value.copy(
-                                error = failure,
-                                refreshing = false,
-                                revision = entry.state.value.revision + 1,
-                            )
-                            entry.retryAt = nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
-                        }
-                    }
-                    completion.completeExceptionally(failure)
+                    reportLoadFailure(entry, completion, IllegalStateException(null, error))
                 } else completion.cancel(error)
             } catch (error: Throwable) {
-                completion.completeExceptionally(error)
+                reportLoadFailure(entry, completion, error)
             } finally {
                 withContext(NonCancellable) {
                     guard.withLock {
@@ -613,6 +646,24 @@ class UniCacheEngine(
             }
         }
         completion
+    }
+
+    private suspend fun <T : Any> reportLoadFailure(
+        entry: Entry<T>,
+        completion: CompletableDeferred<T>,
+        error: Throwable,
+    ) {
+        guard.withLock {
+            if (!closed && entry.job === completion) {
+                entry.state.value = entry.state.value.copy(
+                    error = error,
+                    refreshing = false,
+                    revision = entry.state.value.revision + 1,
+                )
+                entry.retryAt = nowMillis() + (entry.request.policy?.retryDelayMillis ?: 60_000L)
+            }
+        }
+        completion.completeExceptionally(error)
     }
 
     internal suspend fun <T : Any> get(request: UniDatasetKey<T>, force: Boolean): T {

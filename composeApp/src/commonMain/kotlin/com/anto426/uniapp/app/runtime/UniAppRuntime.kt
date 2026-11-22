@@ -1,8 +1,8 @@
 package com.anto426.uniapp.app.runtime
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.firebase.createPushNotificationConnector
 import com.anto426.uniapp.account.platform.rememberPlatformUniAccountStore
 import com.anto426.uniapp.account.storage.UniAccountStore
@@ -36,6 +36,7 @@ import com.anto426.unisdk.platform.registerPushNotificationsTokenProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -53,8 +54,8 @@ class UniAppRuntime internal constructor(
     private val libraryService: LibraryService,
     private val unregisterPushTokenProvider: () -> Unit,
 ) {
-    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val dataScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val dataScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     internal val gradeSimulations = GradeSimulationRepository(localDataStore, dataScope)
     internal val applicationImages = ApplicationImageStore(localDataStore, dataScope)
     internal val projectData = UniProjectManager(dataScope, localDataStore)
@@ -75,20 +76,7 @@ class UniAppRuntime internal constructor(
 
     init {
         lifecycleScope.launch {
-            sessionController.state.collect { state ->
-                updateOwner(state)
-                if (state == AppSessionState.Initializing || state == AppSessionState.Authenticating) return@collect
-                val accountId = (state as? AppSessionState.Authenticated)?.account
-                    ?.takeUnless(DemoAccount::isDemo)?.accountId
-                if (notificationManager.boundOwnerId != accountId) {
-                    val enabled = accountId?.let { owner ->
-                        try { localDataStore.read(LocalDataScope.Account(owner), UniAppDataKeys.NotificationsEnabled) }
-                        catch (error: CancellationException) { throw error }
-                        catch (_: Exception) { false }
-                    } ?: false
-                    notificationManager.bindOwner(accountId, enabled)
-                }
-            }
+            sessionController.state.collect(::updateOwner)
         }
         lifecycleScope.launch {
             projectData.uiState.map { it.data?.author }.distinctUntilChanged().collect { author ->
@@ -116,20 +104,22 @@ class UniAppRuntime internal constructor(
         if (previous != null) dataScope.launch { previous.close() }
     }
 
-    internal fun repositoryFor(accountId: String, profileId: String?): UniRepository {
+    internal fun repositoryFor(accountId: String, profileId: String?): UniRepository? {
         require(accountId.isNotBlank()) { "Account id cannot be blank" }
-        updateOwner(sessionController.state.value)
+        val state = sessionController.state.value
+        updateOwner(state)
+        val account = (state as? AppSessionState.Authenticated)?.account ?: return null
+        if (account.accountId != accountId || account.activeProfileId != profileId) return null
         val ownerKey = accountId to profileId
         activeRepository?.takeIf { activeDataOwner == ownerKey }?.let { return it }
         return run {
             generation += 1
-            val account = (sessionController.state.value as? AppSessionState.Authenticated)?.account
             val engine = UniCacheEngine(
                 source = if (DemoAccount.isDemo(account)) DemoUniGateway(
                     identity = {
                         val current = (sessionController.state.value as? AppSessionState.Authenticated)?.account
                             ?.takeIf { it.accountId == accountId } ?: account
-                        (current?.displayName ?: DemoAccount.developerName(null)) to current?.photoUrl
+                        current.displayName to current.photoUrl
                     },
                     imageLoader = { applicationImages.load(it)?.bytes ?: byteArrayOf() },
                     portraitSharer = { source, bytes ->
@@ -166,7 +156,7 @@ class UniAppRuntime internal constructor(
                 activeDataOwner = ownerKey
                 activeRepository = repo
                 engine.startPortrait(account)
-                engine.preload(account?.isProfessor == true)
+                engine.preload(account.isProfessor)
             }
         }
     }
@@ -190,14 +180,21 @@ class UniAppRuntime internal constructor(
     }
 }
 
+private class UniAppRuntimeViewModel(val runtime: UniAppRuntime) : ViewModel() {
+    override fun onCleared() {
+        runtime.close()
+    }
+}
+
 @Composable
 internal fun rememberUniAppRuntime(): UniAppRuntime {
     val accountStore = rememberPlatformUniAccountStore()
     val updateEnvironment = rememberPlatformAppUpdateEnvironment()
     val notificationPermissions = rememberPlatformNotificationPermissionController()
-    val pushConnector = remember { createPushNotificationConnector() }
-    val runtime =
-        remember(accountStore, updateEnvironment, notificationPermissions, pushConnector) {
+    // Retain the data services alongside the ViewModels that depend on them.
+    val holder = viewModel {
+        val pushConnector = createPushNotificationConnector()
+        val runtime = run {
             val backend = RemoteUniBackendService()
             val libraryService = RemoteLibraryService()
             val localDataStore = EncryptedUniLocalDataStore(accountStore)
@@ -235,8 +232,7 @@ internal fun rememberUniAppRuntime(): UniAppRuntime {
                 unregisterPushTokenProvider = unregisterPushTokenProvider,
             )
         }
-    DisposableEffect(runtime) {
-        onDispose(runtime::close)
+        UniAppRuntimeViewModel(runtime)
     }
-    return runtime
+    return holder.runtime
 }

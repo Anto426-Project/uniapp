@@ -2,51 +2,8 @@ package com.anto426.uniapp.model.services
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.anto426.unisdk.model.contactDialUriOrNull
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-
-enum class ContactCategory {
-    TEACHERS,
-    SECRETARIAT,
-    SERVICES
-}
-
-data class ContactData(
-    val name: String,
-    val role: String,
-    val initials: String,
-    val email: String = "",
-    val phone: String = "",
-    val category: ContactCategory = ContactCategory.TEACHERS,
-    val department: String = "",
-    val office: String = "",
-    val officeHours: String = "",
-    val city: String = "",
-    val id: String = "",
-    val firstName: String = "",
-    val lastName: String = "",
-    val phones: List<String> = emptyList(),
-    val address: String = "",
-    val building: String = "",
-) {
-    /** Keep the singular phone available to existing consumers while exposing every number. */
-    val phoneNumbers: List<String>
-        get() = (phones + phone).map(String::trim).filter(String::isNotBlank).distinct()
-
-    val detailKey: String
-        // A person can have multiple directory entries with the same API ID.
-        get() = listOf(id, name, email, department, address, building, city, office, *phoneNumbers.toTypedArray())
-            .joinToString(separator = "|", prefix = "contact:") { "${it.length}:$it" }
-}
-
-data class TaxPaymentData(
-    val title: String,
-    val date: String,
-    val amount: String,
-    val isPaid: Boolean,
-    val iuv: String,
-)
 
 data class ServiceData(
     val titleRes: StringResource? = null,
@@ -84,7 +41,3 @@ data class ServiceData(
     val badgeLabel: String?
         @Composable get() = badgeLabelRes?.let { stringResource(it) }
 }
-
-/** Only complete, unambiguous numbers can become a call action. */
-internal fun String.contactDialUri(): String? =
-    contactDialUriOrNull()

@@ -61,81 +61,58 @@ class AccountSwitcherViewModel(
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
             mutableUiState.update { it.copy(isLoading = true, errorMessage = null) }
-            mutableUiState.value =
-                try {
-                    val snapshot = sessionController.accounts()
-                    val activeId =
-                        (sessionController.state.value as? AppSessionState.Authenticated)
-                            ?.account
-                            ?.accountId
-                    sessionController.avatars.restore(snapshot)
-                    mutableUiState.value.copy(
-                        accounts = snapshot,
-                        activeAccountId = activeId,
+            try {
+                val snapshot = sessionController.accounts()
+                sessionController.avatars.restore(snapshot)
+                val active = (sessionController.state.value as? AppSessionState.Authenticated)?.account
+                mutableUiState.update {
+                    it.copy(
+                        accounts = snapshot.map { account -> active?.takeIf { it.accountId == account.accountId } ?: account },
+                        activeAccountId = active?.accountId,
                         profileImages = sessionController.avatars.images.value.mapValues { (_, image) -> image.bytes },
                         isLoading = false,
                     )
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (error: Throwable) {
-                    mutableUiState.value.copy(
-                        isLoading = false,
-                        errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_gli_account) },
-                    )
                 }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                val message = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_gli_account) }
+                mutableUiState.update { it.copy(isLoading = false, errorMessage = message) }
+            }
         }
     }
 
     fun selectAccount(accountId: String) {
         val current = mutableUiState.value
         if (current.isRemovingAccount || current.pendingRemovalAccountId != null) return
-        if (accountId == current.activeAccountId || current.activatingAccountId != null) return
+        if (accountId == current.activeAccountId ||
+            current.activatingAccountId != null || current.activatingProfileId != null
+        ) return
 
+        mutableUiState.update { it.copy(activatingAccountId = accountId, errorMessage = null) }
         viewModelScope.launch {
-            mutableUiState.update {
-                it.copy(
-                    activatingAccountId = accountId,
-                    errorMessage = null,
-                )
-            }
             try {
-                when (sessionController.activate(accountId)) {
+                when (val state = sessionController.activate(accountId)) {
                     is AppSessionState.Authenticated -> {
-                        mutableUiState.update {
-                            it.copy(
-                                activeAccountId = accountId,
-                                activatingAccountId = null,
-                            )
-                        }
+                        mutableUiState.update { it.copy(activeAccountId = state.account.accountId) }
                         toastSink.success(Res.string.msg_account_activated)
                         refresh()
                     }
 
-                    is AppSessionState.ReauthenticationRequired -> {
-                        mutableUiState.update { it.copy(activatingAccountId = null) }
-                        // The session state routes to Login. LoginViewModel retains the selected
-                        // account id so the refreshed credentials update that account, not a copy.
-                    }
+                    // The session state routes to login or unlock for the selected account.
+                    is AppSessionState.ReauthenticationRequired,
+                    is AppSessionState.UnlockRequired -> Unit
 
-                    is AppSessionState.UnlockRequired -> {
-                        mutableUiState.update { it.copy(activatingAccountId = null) }
-                    }
-
-                    else -> {
-                        mutableUiState.update { it.copy(activatingAccountId = null) }
-                        toastSink.error(readAppString(Res.string.msg_impossibile_attivare_laccount))
-                    }
+                    else -> toastSink.error(Res.string.msg_impossibile_attivare_laccount)
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                mutableUiState.update {
-                    it.copy(
-                        activatingAccountId = null,
-                        errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_attivare_laccount_2) },
-                    )
-                }
+                val message = error.userMessage { readAppString(Res.string.msg_impossibile_attivare_laccount_2) }
+                mutableUiState.update { it.copy(errorMessage = message) }
                 toastSink.error(error.userMessage { readAppString(Res.string.msg_impossibile_attivare_laccount) })
+            } finally {
+                mutableUiState.update { it.copy(activatingAccountId = null) }
             }
         }
     }
@@ -151,8 +128,8 @@ class AccountSwitcherViewModel(
             mutableUiState.value.activatingProfileId != null
         ) return
 
+        mutableUiState.update { it.copy(activatingProfileId = profileId, profileErrorMessage = null) }
         viewModelScope.launch {
-            mutableUiState.update { it.copy(activatingProfileId = profileId, profileErrorMessage = null) }
             try {
                 when (val state = sessionController.activateProfile(profileId)) {
                     is AppSessionState.Authenticated -> {
