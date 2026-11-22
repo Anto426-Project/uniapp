@@ -65,6 +65,7 @@ import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.GradesUiState
+import com.anto426.uniapp.didactics.presentation.GradesViewModel
 import com.anto426.uniapp.didactics.presentation.TargetFeasibility
 import com.anto426.uniapp.data.contract.SimulationItem
 import com.anto426.uniapp.data.contract.toFixedTwoDecimals
@@ -706,8 +707,8 @@ fun GraduationTargetTab(
                     formattedValue = targetLabel,
                     value = uiState.targetDegree,
                     onValueChange = onTargetDegreeChange,
-                    minValue = 66,
-                    maxValue = 111,
+                    minValue = GradesViewModel.MIN_TARGET_DEGREE,
+                    maxValue = GradesViewModel.MAX_TARGET_DEGREE,
                 )
 
                 LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
@@ -718,7 +719,7 @@ fun GraduationTargetTab(
                     value = uiState.thesisPoints,
                     onValueChange = onThesisPointsChange,
                     minValue = 0,
-                    maxValue = 15,
+                    maxValue = GradesViewModel.MAX_THESIS_POINTS,
                 )
 
                 LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
@@ -729,7 +730,7 @@ fun GraduationTargetTab(
                     value = uiState.bonusPoints,
                     onValueChange = onBonusPointsChange,
                     minValue = 0,
-                    maxValue = 10,
+                    maxValue = GradesViewModel.MAX_BONUS_POINTS,
                 )
             }
         }

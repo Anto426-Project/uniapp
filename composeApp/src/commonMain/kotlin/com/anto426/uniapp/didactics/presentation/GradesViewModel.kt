@@ -394,18 +394,25 @@ internal class GradesViewModel(
     }
 
     fun updateTargetDegree(target: Int) {
-        mutableUiState.update { it.copy(targetDegree = target.coerceIn(66, 111)) }
+        mutableUiState.update { it.copy(targetDegree = target.coerceIn(MIN_TARGET_DEGREE, MAX_TARGET_DEGREE)) }
     }
 
     fun updateThesisPoints(points: Int) {
-        mutableUiState.update { it.copy(thesisPoints = points.coerceIn(0, 15)) }
+        mutableUiState.update { it.copy(thesisPoints = points.coerceIn(0, MAX_THESIS_POINTS)) }
     }
 
     fun updateBonusPoints(points: Int) {
-        mutableUiState.update { it.copy(bonusPoints = points.coerceIn(0, 5)) }
+        mutableUiState.update { it.copy(bonusPoints = points.coerceIn(0, MAX_BONUS_POINTS)) }
     }
 
     fun updateDegreeCfuTarget(cfu: Int) {
         mutableUiState.update { it.copy(degreeCfuTarget = cfu.coerceIn(60, 360)) }
+    }
+
+    companion object {
+        const val MIN_TARGET_DEGREE = 66
+        const val MAX_TARGET_DEGREE = 111
+        const val MAX_THESIS_POINTS = 15
+        const val MAX_BONUS_POINTS = 5
     }
 }
