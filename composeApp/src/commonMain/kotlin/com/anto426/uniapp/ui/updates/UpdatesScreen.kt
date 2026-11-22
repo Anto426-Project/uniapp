@@ -36,12 +36,6 @@ fun UpdatesScreen(
     val channelBadge = if (uiState.channel.isNullOrBlank()) null else channel
 
     UniScreenColumn {
-        if (uiState.isMandatory) {
-            UniInsetGroup {
-                UpdateChangelogRow(onOpenChangelog)
-            }
-        }
-
         // 1. Banner Aggiornamento Software
         UniAnimatedEntrance(order = 0) {
             UniAppUpdateBanner(
@@ -74,7 +68,7 @@ fun UpdatesScreen(
                 subtitle = "${uiState.installedVersion} • $channel",
                 icon = LiquidIcons.Check,
                 iconTint = if (isUpToDate) glassColors.success else colorScheme.primary,
-                showDivider = uiState.supportsPackageVerification || !uiState.isMandatory,
+                showDivider = true,
                 titleMaxLines = 1,
                 subtitleMaxLines = 1,
                 minHeight = 64.dp,
@@ -92,12 +86,10 @@ fun UpdatesScreen(
             )
 
             if (uiState.supportsPackageVerification) {
-                UpdatePackageVerificationItem(uiState.bannerState, showDivider = !uiState.isMandatory)
+                UpdatePackageVerificationItem(uiState.bannerState, showDivider = true)
             }
 
-            if (!uiState.isMandatory) {
-                UpdateChangelogRow(onOpenChangelog)
-            }
+            UpdateChangelogRow(onOpenChangelog)
         }
     }
 }
