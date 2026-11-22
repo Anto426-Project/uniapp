@@ -56,6 +56,7 @@ fun SettingsScreen(
     uiState: SettingsUiState,
     accountUiState: AccountSwitcherUiState = AccountSwitcherUiState(),
     installedVersion: String = "",
+    hasUpdateAvailable: Boolean = false,
     updateSubtitle: String? = null,
     onSelectAccount: (String) -> Unit = {},
     onRemoveAccount: (String) -> Unit,
@@ -95,8 +96,11 @@ fun SettingsScreen(
         ?: accountUiState.accounts.firstOrNull()
 
     val realVersion = installedVersion.ifBlank { "2.0" }
-    val hasUpdateAvailable = !updateSubtitle.isNullOrBlank()
-    val effectiveUpdateSubtitle = stringResource(Res.string.ui_version_number, realVersion)
+    val effectiveUpdateSubtitle = if (hasUpdateAvailable && !updateSubtitle.isNullOrBlank()) {
+        updateSubtitle
+    } else {
+        stringResource(Res.string.ui_version_number, realVersion)
+    }
 
     UniScreenColumn {
         // 0. Active Account Hero Card (pieno spazio al nome completo + cambio account rapido)

@@ -111,7 +111,7 @@ data class UniCachePolicy(
 
 object UniCachePolicies {
     val Transport = UniCachePolicy(minutes(2))
-    val ConnectedDevices = UniCachePolicy(minutes(5))
+    val ConnectedDevices = UniCachePolicy(0L, retryDelayMillis = 30_000L)
     val LibraryMovements = UniCachePolicy(minutes(5))
     val LibrarySpaces = UniCachePolicy(minutes(5))
     val LibraryBookDetail = UniCachePolicy(minutes(10))

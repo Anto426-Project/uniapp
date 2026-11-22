@@ -14,7 +14,6 @@ import com.anto426.uniapp.auth.presentation.LoginViewModel
 import com.anto426.uniapp.data.UniProjectManager
 import com.anto426.uniapp.data.UniSessionController
 import com.anto426.uniapp.data.local.UniLocalDataStore
-import com.anto426.uniapp.model.updates.UpdateState
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.ui.AppRouteContext
 import com.anto426.uniapp.navigation.ui.ConnectedDevicesActionHost
@@ -107,10 +106,11 @@ internal fun SettingsRouteContent(
         uiState = settingsUiState,
         accountUiState = accountSwitcherUiState,
         installedVersion = updateUiState.installedVersion,
-        updateSubtitle = if (updateUiState.bannerState == UpdateState.AVAILABLE) {
+        hasUpdateAvailable = updateUiState.isUpdateAvailable,
+        updateSubtitle = if (updateUiState.isUpdateAvailable) {
             updateUiState.statusText?.let { stringResource(it) } ?: stringResource(Res.string.msg_aggiornamento_disponibile)
         } else {
-            "Versione ${updateUiState.installedVersion.ifBlank { "2.0" }}"
+            null
         },
         onSelectAccount = accountSwitcherViewModel::selectAccount,
         onRemoveAccount = accountSwitcherViewModel::requestAccountRemoval,
@@ -205,6 +205,9 @@ internal fun DevicesRouteContent(
     val devicesViewModel =
         viewModel(key = context.viewModelKey) { ConnectedDevicesViewModel(context.dataSource, context.toastSink) }
     val devicesUiState by devicesViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(devicesViewModel) {
+        devicesViewModel.refresh(force = true)
+    }
     val disconnectAllViewModel =
         viewModel(key = "disconnect-all|${context.viewModelKey}") {
             DeviceSessionsActionViewModel(context.dataSource, context.toastSink)
