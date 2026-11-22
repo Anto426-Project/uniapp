@@ -29,6 +29,7 @@ import com.anto426.uniapp.project.presentation.ProjectInfoUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniRemoteAvatar
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -84,11 +85,12 @@ internal fun CreatorCreditsScreen(
         }
 
         // 1. Creatore & Lead Developer Hero Card
-        LiquidCard(
-            contentPadding = PaddingValues(22.dp),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(28.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                contentPadding = PaddingValues(22.dp),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(28.dp),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -211,9 +213,13 @@ internal fun CreatorCreditsScreen(
                 )
             }
         }
+        }
 
         // 2. Crediti e Riconoscimenti
-        UniInsetGroup(title = stringResource(Res.string.ui_credits_acknowledgements)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_credits_acknowledgements),
+            entranceOrder = 1,
+        ) {
             Text(
                 text = stringResource(Res.string.ui_credits_explanation),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

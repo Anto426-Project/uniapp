@@ -47,6 +47,7 @@ import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.settings.presentation.SettingsUiState
 import com.anto426.uniapp.security.biometric.BiometricAvailability
@@ -122,15 +123,16 @@ fun SettingsScreen(
             }
             val accountMeta = listOfNotNull(degreeLabel, matricolaLabel).joinToString(" • ")
 
-            LiquidCard(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics(mergeDescendants = true) {}
-                    .graphicsLayer(clip = false),
-                shape = RoundedRectangle(24.dp),
-                onClick = { isAccountSheetVisible = true },
-            ) {
+            UniAnimatedEntrance(order = 0) {
+                LiquidCard(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {}
+                        .graphicsLayer(clip = false),
+                    shape = RoundedRectangle(24.dp),
+                    onClick = { isAccountSheetVisible = true },
+                ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -198,10 +200,14 @@ fun SettingsScreen(
                     }
                 }
             }
+            }
         }
 
         // 1. Sicurezza e accesso
-        UniInsetGroup(title = stringResource(Res.string.ui_security)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_security),
+            entranceOrder = 1,
+        ) {
             UniInsetRow(
                 title = stringResource(Res.string.ui_connected_devices),
                 subtitle = stringResource(Res.string.ui_active_sessions),
@@ -238,7 +244,10 @@ fun SettingsScreen(
         }
 
         // 2. Aspetto e personalizzazione
-        UniInsetGroup(title = stringResource(Res.string.ui_appearance)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_appearance),
+            entranceOrder = 2,
+        ) {
             UniInsetRow(
                 title = stringResource(Res.string.ui_theme_colors),
                 subtitle = stringResource(Res.string.ui_theme_subtitle),
@@ -271,7 +280,10 @@ fun SettingsScreen(
         }
 
         // 3. Sistema e informazioni
-        UniInsetGroup(title = stringResource(Res.string.ui_system_and_info)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_system_and_info),
+            entranceOrder = 3,
+        ) {
             UniInsetRow(
                 title = stringResource(Res.string.ui_updates),
                 subtitle = effectiveUpdateSubtitle,
@@ -311,7 +323,10 @@ fun SettingsScreen(
         }
 
         // 4. Partecipa al progetto
-        UniInsetGroup(title = stringResource(Res.string.ui_project_contribute_group)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_project_contribute_group),
+            entranceOrder = 4,
+        ) {
             UniInsetRow(
                 title = stringResource(Res.string.msg_diventa_un_collaboratore),
                 subtitle = stringResource(Res.string.msg_invia_una_pull_request_con_correzioni_traduzioni_o),
@@ -330,7 +345,10 @@ fun SettingsScreen(
             )
         }
 
-        UniInsetGroup(title = stringResource(Res.string.ui_session_title)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_session_title),
+            entranceOrder = 5,
+        ) {
             UniInsetRow(
                 title = stringResource(Res.string.ui_sign_out),
                 icon = LiquidIcons.Close,

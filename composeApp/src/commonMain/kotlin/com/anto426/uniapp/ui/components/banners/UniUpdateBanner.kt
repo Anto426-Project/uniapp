@@ -36,6 +36,7 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidCircularProgressIndicator
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.updates.UpdateState
@@ -44,7 +45,6 @@ import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.cards.heroTextAccent
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
-import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -147,7 +147,7 @@ private fun UpdateBannerFrontFace(
         LiquidAnimatedSwitcher(
             targetState = state,
             modifier = Modifier.fillMaxWidth(),
-            transition = LocalUniContentTransition.current,
+            mode = LiquidSwitcherMode.Inline,
             label = "UpdateBannerTopStatus",
         ) { currentState ->
             UpdateBannerMinimalStatusLine(
@@ -172,7 +172,7 @@ private fun UpdateBannerFrontFace(
         LiquidAnimatedSwitcher(
             targetState = state,
             modifier = Modifier.fillMaxWidth(),
-            transition = LocalUniContentTransition.current,
+            mode = LiquidSwitcherMode.Inline,
             label = "UpdateBannerFooter",
         ) { currentState ->
             Box(

@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">PROJEÇÃO DE CONCLUSÃO</string>
     <string name="ui_stats_weighting_spread">Desvio de ponderação</string>
     <string name="ui_stats_highest_grade">Nota mais alta</string>
+    <string name="ui_stats_lowest_grade">Nota mais baixa</string>
     <string name="ui_stats_recent_trend">Tendência recente</string>
     <string name="ui_stats_trend_points_positive">+%1$s pontos</string>
     <string name="ui_stats_trend_points_negative">%1$s pontos</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">Radiant Beam</string>
     <string name="ui_theme_background_radiant_sub">Raios luminosos em camadas vindos de cima</string>
     <string name="ui_theme_glow_intensity">Intensidade do brilho de fundo</string>
-    <string name="ui_theme_anim_speed">Velocidade dinâmica da animação</string>
+    <string name="ui_theme_anim_speed">Velocidade da animação de fundo</string>
     <string name="ui_theme_saturation">Saturação cromática do fundo</string>
     <string name="ui_theme_vignette_title">Vinheta nos cantos</string>
     <string name="ui_theme_vignette_sub">Escurece as bordas para melhorar a legibilidade do texto</string>
@@ -1774,4 +1775,30 @@
     <string name="ui_library_document_available">Documento disponível</string>
     <string name="ui_library_requestable_copies">Exemplares disponíveis para pedido: %1$d</string>
     <string name="ui_library_active_request">Pedido ativo</string>
+    <string name="ui_theme_transition_preview_title">Prévia da transição</string>
+    <string name="ui_theme_transition_preview_prev">Página anterior</string>
+    <string name="ui_theme_transition_preview_next">Próxima página</string>
+    <string name="ui_entrance_fade">Esmaecimento</string>
+    <string name="ui_entrance_fade_down">De cima</string>
+    <string name="ui_entrance_fade_down_sub">As seções descem suavemente com esmaecimento</string>
+    <string name="ui_entrance_fade_sub">Aparição suave sem deslocamento</string>
+    <string name="ui_entrance_fade_up">De baixo</string>
+    <string name="ui_entrance_fade_up_sub">As seções sobem suavemente com esmaecimento</string>
+    <string name="ui_entrance_none">Desativada</string>
+    <string name="ui_entrance_none_sub">Os elementos aparecem imediatamente sem animação</string>
+    <string name="ui_entrance_scale">Zoom suave</string>
+    <string name="ui_entrance_scale_sub">Leve expansão a partir do centro com esmaecimento</string>
+    <string name="ui_theme_animations_group">Animações e movimento</string>
+    <string name="ui_theme_background_group">Fundo Liquid</string>
+    <string name="ui_theme_element_entrance_preview_title">Prévia de aparição</string>
+    <string name="ui_theme_element_entrance_replay">Repetir</string>
+    <string name="ui_theme_element_entrance_title">Aparição de elementos</string>
+    <string name="ui_theme_navbar_autohide_sub">Oculta automaticamente ao rolar para baixo</string>
+    <string name="ui_theme_navbar_autohide_title">Ocultar ao rolar</string>
+    <string name="ui_theme_navbar_group">Barra de navegação</string>
+    <string name="ui_theme_navbar_labels_sub">Desative para uma barra compacta apenas com ícones</string>
+    <string name="ui_theme_navbar_labels_title">Mostrar rótulos</string>
+    <string name="ui_theme_tab_style">Estilo</string>
+    <string name="ui_theme_tab_effects">Efeitos</string>
+    <string name="ui_theme_tab_interface">Interface</string>
 </resources>

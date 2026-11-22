@@ -9,6 +9,7 @@ import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.ui.components.banners.UniAppUpdateBanner
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.model.updates.UpdateState
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
@@ -40,26 +41,31 @@ fun UpdatesScreen(
         }
 
         // 1. Banner Aggiornamento Software
-        UniAppUpdateBanner(
-            height = 370.dp,
-            state = uiState.bannerState,
-            version = uiState.displayedVersion,
-            title = stringResource(Res.string.ui_app_name),
-            subtitle = stringResource(Res.string.ui_university),
-            statusText = uiState.statusText?.let { stringResource(it) },
-            channelLabel = channelBadge,
-            isMandatory = uiState.isMandatory,
-            onDownload = onOpenUpdate,
-            canDownload = uiState.canOpenUpdate,
-            progress = uiState.progress,
-            downloadedMb = uiState.downloadedMb,
-            totalMb = uiState.totalMb,
-            onRestart = onOpenUpdate,
-            onRetry = onRetry,
-        )
+        UniAnimatedEntrance(order = 0) {
+            UniAppUpdateBanner(
+                height = 370.dp,
+                state = uiState.bannerState,
+                version = uiState.displayedVersion,
+                title = stringResource(Res.string.ui_app_name),
+                subtitle = stringResource(Res.string.ui_university),
+                statusText = uiState.statusText?.let { stringResource(it) },
+                channelLabel = channelBadge,
+                isMandatory = uiState.isMandatory,
+                onDownload = onOpenUpdate,
+                canDownload = uiState.canOpenUpdate,
+                progress = uiState.progress,
+                downloadedMb = uiState.downloadedMb,
+                totalMb = uiState.totalMb,
+                onRestart = onOpenUpdate,
+                onRetry = onRetry,
+            )
+        }
 
         // 2. Canale, Integrità & Note di Rilascio
-        UniInsetGroup(title = stringResource(Res.string.ui_update_system_information)) {
+        UniInsetGroup(
+            title = stringResource(Res.string.ui_update_system_information),
+            entranceOrder = 1,
+        ) {
             val isUpToDate = uiState.bannerState == UpdateState.UP_TO_DATE
             UniInsetRow(
                 title = stringResource(Res.string.ui_update_installed_version),

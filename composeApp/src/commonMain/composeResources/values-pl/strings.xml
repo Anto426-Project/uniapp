@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">PROGNOZA DYPLOMU</string>
     <string name="ui_stats_weighting_spread">Różnica ważenia</string>
     <string name="ui_stats_highest_grade">Najwyższa ocena</string>
+    <string name="ui_stats_lowest_grade">Najniższa ocena</string>
     <string name="ui_stats_recent_trend">Ostatni trend</string>
     <string name="ui_stats_trend_points_positive">+%1$s pkt</string>
     <string name="ui_stats_trend_points_negative">%1$s pkt</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">Radiant Beam</string>
     <string name="ui_theme_background_radiant_sub">Warstwowe promienie światła z góry</string>
     <string name="ui_theme_glow_intensity">Intensywność poświaty tła</string>
-    <string name="ui_theme_anim_speed">Prędkość dynamicznej animacji</string>
+    <string name="ui_theme_anim_speed">Prędkość animacji tła</string>
     <string name="ui_theme_saturation">Nasycenie barw tła</string>
     <string name="ui_theme_vignette_title">Winietowanie narożników</string>
     <string name="ui_theme_vignette_sub">Przyciemnia krawędzie, aby poprawić czytelność tekstu</string>
@@ -1774,4 +1775,30 @@
     <string name="ui_library_document_available">Pozycja dostępna</string>
     <string name="ui_library_requestable_copies">Egzemplarze do zamówienia: %1$d</string>
     <string name="ui_library_active_request">Aktywne zamówienie</string>
+    <string name="ui_theme_transition_preview_title">Podgląd przejścia</string>
+    <string name="ui_theme_transition_preview_prev">Poprzednia strona</string>
+    <string name="ui_theme_transition_preview_next">Następna strona</string>
+    <string name="ui_entrance_fade">Zanikanie</string>
+    <string name="ui_entrance_fade_down">Od góry</string>
+    <string name="ui_entrance_fade_down_sub">Sekcje płynnie opadają z zanikaniem</string>
+    <string name="ui_entrance_fade_sub">Łagodne pojawianie bez przesunięcia</string>
+    <string name="ui_entrance_fade_up">Od dołu</string>
+    <string name="ui_entrance_fade_up_sub">Sekcje płynnie unoszą się z zanikaniem</string>
+    <string name="ui_entrance_none">Wyłączone</string>
+    <string name="ui_entrance_none_sub">Elementy pojawiają się natychmiast bez animacji</string>
+    <string name="ui_entrance_scale">Miękkie powiększenie</string>
+    <string name="ui_entrance_scale_sub">Delikatne skalowanie ze środka z zanikaniem</string>
+    <string name="ui_theme_animations_group">Animacje i ruch</string>
+    <string name="ui_theme_background_group">Tło Liquid</string>
+    <string name="ui_theme_element_entrance_preview_title">Podgląd pojawiania</string>
+    <string name="ui_theme_element_entrance_replay">Odtwórz</string>
+    <string name="ui_theme_element_entrance_title">Pojawianie się elementów</string>
+    <string name="ui_theme_navbar_autohide_sub">Automatycznie znika przy przewijaniu w dół</string>
+    <string name="ui_theme_navbar_autohide_title">Ukrywaj podczas przewijania</string>
+    <string name="ui_theme_navbar_group">Pasek nawigacji</string>
+    <string name="ui_theme_navbar_labels_sub">Wyłącz, aby uzyskać kompaktowy pasek z samymi ikonami</string>
+    <string name="ui_theme_navbar_labels_title">Pokaż etykiety</string>
+    <string name="ui_theme_tab_style">Styl</string>
+    <string name="ui_theme_tab_effects">Efekty</string>
+    <string name="ui_theme_tab_interface">Interfejs</string>
 </resources>

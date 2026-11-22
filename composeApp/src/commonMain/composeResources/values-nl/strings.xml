@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">AFSTUDEERPROJECTIE</string>
     <string name="ui_stats_weighting_spread">Wegingsverschil</string>
     <string name="ui_stats_highest_grade">Hoogste cijfer</string>
+    <string name="ui_stats_lowest_grade">Laagste cijfer</string>
     <string name="ui_stats_recent_trend">Recente trend</string>
     <string name="ui_stats_trend_points_positive">+%1$s punten</string>
     <string name="ui_stats_trend_points_negative">%1$s punten</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">Radiant Beam</string>
     <string name="ui_theme_background_radiant_sub">Gelaagde lichtstralen van bovenaf</string>
     <string name="ui_theme_glow_intensity">Intensiteit achtergrondgloed</string>
-    <string name="ui_theme_anim_speed">Dynamische animatiesnelheid</string>
+    <string name="ui_theme_anim_speed">Snelheid achtergrondanimatie</string>
     <string name="ui_theme_saturation">Kleurverzadiging achtergrond</string>
     <string name="ui_theme_vignette_title">Hoekvignettering</string>
     <string name="ui_theme_vignette_sub">Maakt randen donkerder om de leesbaarheid van tekst te verbeteren</string>
@@ -1774,4 +1775,30 @@
     <string name="ui_library_document_available">Exemplaar beschikbaar</string>
     <string name="ui_library_requestable_copies">Aanvraagbare exemplaren: %1$d</string>
     <string name="ui_library_active_request">Lopende aanvraag</string>
+    <string name="ui_theme_transition_preview_title">Overgangsvoorbeeld</string>
+    <string name="ui_theme_transition_preview_prev">Vorige pagina</string>
+    <string name="ui_theme_transition_preview_next">Volgende pagina</string>
+    <string name="ui_entrance_fade">Eenvoudige fade</string>
+    <string name="ui_entrance_fade_down">Van bovenaf</string>
+    <string name="ui_entrance_fade_down_sub">Secties glijden vloeiend van bovenaf in beeld</string>
+    <string name="ui_entrance_fade_sub">Zachte zichtbaarheid zonder verplaatsing</string>
+    <string name="ui_entrance_fade_up">Van onderaf</string>
+    <string name="ui_entrance_fade_up_sub">Secties schuiven vloeiend van onderaf in beeld</string>
+    <string name="ui_entrance_none">Uitgeschakeld</string>
+    <string name="ui_entrance_none_sub">Elementen verschijnen direct zonder animatie</string>
+    <string name="ui_entrance_scale">Zachte zoom</string>
+    <string name="ui_entrance_scale_sub">Subtiele vergroting vanuit het midden met fade</string>
+    <string name="ui_theme_animations_group">Animaties en beweging</string>
+    <string name="ui_theme_background_group">Liquid-achtergrond</string>
+    <string name="ui_theme_element_entrance_preview_title">Voorbeeld verschijning</string>
+    <string name="ui_theme_element_entrance_replay">Opnieuw</string>
+    <string name="ui_theme_element_entrance_title">Elementverschijning</string>
+    <string name="ui_theme_navbar_autohide_sub">Verbergt automatisch tijdens omlaag scrollen</string>
+    <string name="ui_theme_navbar_autohide_title">Verbergen bij scrollen</string>
+    <string name="ui_theme_navbar_group">Navigatiebalk</string>
+    <string name="ui_theme_navbar_labels_sub">Schakel uit voor een compacte balk met alleen pictogrammen</string>
+    <string name="ui_theme_navbar_labels_title">Labels weergeven</string>
+    <string name="ui_theme_tab_style">Stijl</string>
+    <string name="ui_theme_tab_effects">Effecten</string>
+    <string name="ui_theme_tab_interface">Interface</string>
 </resources>

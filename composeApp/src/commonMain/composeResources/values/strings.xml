@@ -93,7 +93,7 @@
 
     <string name="ui_accounts_saved_title">Account salvati</string>
     <string name="ui_account_remove">Rimuovi account</string>
-    <string name="ui_account_remove_confirmation">Rimuovere l’account di %1$s e i suoi dati salvati da questo dispositivo? L’utenza universitaria rimane attiva. Se l’account è protetto, dovrai autenticarti prima di continuare.</string>
+    <string name="ui_account_remove_confirmation">Rimuovendo l’account di %1$s verrà disconnessa la sessione attiva e cancellati i dati salvati su questo dispositivo. Se l’account è protetto, dovrai autenticarti prima di continuare.</string>
     <string name="ui_accounts_saved_sub">Ogni account usa un archivio cifrato separato</string>
     <string name="ui_accounts_empty_title">Nessun account salvato</string>
     <string name="ui_accounts_empty_desc">Aggiungi un account per iniziare.</string>
@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">PROIEZIONE LAUREA</string>
     <string name="ui_stats_weighting_spread">Scarto ponderazione</string>
     <string name="ui_stats_highest_grade">Voto più alto</string>
+    <string name="ui_stats_lowest_grade">Voto più basso</string>
     <string name="ui_stats_recent_trend">Trend recente</string>
     <string name="ui_stats_trend_points_positive">+%1$s punti</string>
     <string name="ui_stats_trend_points_negative">%1$s punti</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">Radiant Beam</string>
     <string name="ui_theme_background_radiant_sub">Raggi luminosi stratificati dall'alto</string>
     <string name="ui_theme_glow_intensity">Intensità bagliore sfondo</string>
-    <string name="ui_theme_anim_speed">Velocità dinamica animazione</string>
+    <string name="ui_theme_anim_speed">Velocità animazione sfondo</string>
     <string name="ui_theme_saturation">Saturazione cromatica sfondo</string>
     <string name="ui_theme_vignette_title">Vignettatura angolare</string>
     <string name="ui_theme_vignette_sub">Inscurisce i bordi per aumentare la leggibilità del testo</string>
@@ -1322,7 +1323,7 @@
     <string name="msg_impossibile_attivare_il_profilo">Impossibile attivare il profilo.</string>
     <string name="msg_impossibile_attivare_il_profilo_2">Impossibile attivare il profilo</string>
     <string name="msg_accedi_con_il_nuovo_account">Accedi con il nuovo account.</string>
-    <string name="msg_account_rimosso_dal_dispositivo">Account rimosso dal dispositivo.</string>
+    <string name="msg_account_rimosso_dal_dispositivo">Account disconnesso e rimosso dal dispositivo.</string>
     <string name="msg_impossibile_completare_la_rimozione_dellaccount">Impossibile completare la rimozione dell’account.</string>
     <string name="msg_un">UN</string>
     <string name="msg_diventa_un_collaboratore">Diventa un collaboratore</string>
@@ -1774,4 +1775,39 @@
     <string name="ui_library_document_available">Documento disponibile</string>
     <string name="ui_library_requestable_copies">Copie richiedibili: %1$d</string>
     <string name="ui_library_active_request">Richiesta attiva</string>
+    <string name="ui_theme_transition_preview_title">Anteprima transizione</string>
+    <string name="ui_theme_transition_preview_prev">Pagina precedente</string>
+    <string name="ui_theme_transition_preview_next">Pagina successiva</string>
+    <string name="sdk_error_app_backend_unavailable">Il portale universitario è momentaneamente non disponibile. Riprova tra poco.</string>
+    <string name="sdk_error_auth_attestation_required">Verifica integrità del dispositivo richiesta per accedere.</string>
+    <string name="sdk_error_auth_attestation_failed">Verifica integrità del dispositivo non riuscita. Riprova.</string>
+    <string name="sdk_error_auth_challenge_invalid">Risposta di sicurezza non valida dal portale. Riprova.</string>
+    <string name="sdk_error_auth_registration_failed">Registrazione della sessione non riuscita. Verifica le credenziali e riprova.</string>
+    <string name="sdk_error_cineca_unavailable">I servizi Esse3/Cineca sono momentaneamente non disponibili. Riprova tra poco.</string>
+    <string name="sdk_error_password_invalid">Password non valida o modificata. Accedi nuovamente.</string>
+    <string name="sdk_error_request_forbidden">Accesso negato dal portale per questa richiesta.</string>
+    <string name="sdk_error_service_unavailable">Servizio momentaneamente non disponibile. Riprova tra poco.</string>
+    <string name="ui_entrance_fade">Dissolvenza</string>
+    <string name="ui_entrance_fade_down">Dall'alto</string>
+    <string name="ui_entrance_fade_down_sub">Le sezioni entrano dall'alto con dissolvenza</string>
+    <string name="ui_entrance_fade_sub">Comparsa morbida senza movimento</string>
+    <string name="ui_entrance_fade_up">Dal basso</string>
+    <string name="ui_entrance_fade_up_sub">Le sezioni entrano dal basso con dissolvenza</string>
+    <string name="ui_entrance_none">Disattivata</string>
+    <string name="ui_entrance_none_sub">Gli elementi appaiono subito senza animazione</string>
+    <string name="ui_entrance_scale">Zoom morbido</string>
+    <string name="ui_entrance_scale_sub">Leggera espansione dal centro con dissolvenza</string>
+    <string name="ui_theme_animations_group">Animazioni e movimento</string>
+    <string name="ui_theme_background_group">Sfondo Liquid</string>
+    <string name="ui_theme_element_entrance_preview_title">Anteprima apparizione</string>
+    <string name="ui_theme_element_entrance_replay">Riproduci</string>
+    <string name="ui_theme_element_entrance_title">Apparizione elementi</string>
+    <string name="ui_theme_navbar_autohide_sub">Scompare automaticamente scorrendo verso il basso</string>
+    <string name="ui_theme_navbar_autohide_title">Nascondi allo scorrimento</string>
+    <string name="ui_theme_navbar_group">Barra di navigazione</string>
+    <string name="ui_theme_navbar_labels_sub">Disattiva per una barra compatta con sole icone</string>
+    <string name="ui_theme_navbar_labels_title">Mostra etichette</string>
+    <string name="ui_theme_tab_style">Stile</string>
+    <string name="ui_theme_tab_effects">Effetti</string>
+    <string name="ui_theme_tab_interface">Interfaccia</string>
 </resources>

@@ -32,6 +32,7 @@ import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
 import com.anto426.uniapp.ui.components.items.LanguageItem
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 
@@ -202,14 +203,21 @@ fun LanguageScreen(
     onLanguageSelected: (String) -> Unit,
 ) {
     UniScreenColumn {
-        LanguageExpressiveHero()
+        UniAnimatedEntrance(order = 0) {
+            LanguageExpressiveHero()
+        }
 
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_available_languages),
-            subtitle = stringResource(Res.string.ui_language_subtitle),
-        )
+        UniAnimatedEntrance(order = 1) {
+            LiquidSectionHeader(
+                title = stringResource(Res.string.ui_available_languages),
+                subtitle = stringResource(Res.string.ui_language_subtitle),
+            )
+        }
 
-        UniInsetGroup(modifier = Modifier.selectableGroup()) {
+        UniInsetGroup(
+            modifier = Modifier.selectableGroup(),
+            entranceOrder = 1,
+        ) {
             uiState.languages.forEachIndexed { index, language ->
                 LanguageItem(
                     language = language,

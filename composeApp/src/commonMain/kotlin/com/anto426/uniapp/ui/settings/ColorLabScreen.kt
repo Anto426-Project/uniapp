@@ -62,6 +62,7 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
+import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.components.selection.slider.LiquidSlider
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -70,6 +71,8 @@ import com.anto426.liquidmonet.theme.monet.blend
 import com.anto426.uniapp.data.UniAppInitialData
 import com.anto426.uniapp.settings.presentation.ColorLabUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.motion.UniMotion
 import com.kyant.shapes.Capsule
@@ -184,23 +187,25 @@ fun ColorLabScreen(
     }
 
     UniScreenColumn {
-        ColorLabHeroCard(
-            animatedColorState = animatedActiveColorState,
-            rawColor = activeColor,
-            hue = hue,
-            saturation = saturation,
-            brightness = brightness,
-            isDark = isDark,
-            canReset = !activeColor.sameRgbAs(initialColor),
-            onRandomize = {
-                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                commitColor(randomHarmoniousColor())
-            },
-            onReset = {
-                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                commitColor(initialColor)
-            },
-        )
+        UniAnimatedEntrance(order = 0) {
+            ColorLabHeroCard(
+                animatedColorState = animatedActiveColorState,
+                rawColor = activeColor,
+                hue = hue,
+                saturation = saturation,
+                brightness = brightness,
+                isDark = isDark,
+                canReset = !activeColor.sameRgbAs(initialColor),
+                onRandomize = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    commitColor(randomHarmoniousColor())
+                },
+                onReset = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    commitColor(initialColor)
+                },
+            )
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -223,8 +228,10 @@ fun ColorLabScreen(
 
         LiquidAnimatedSwitcher(
             targetState = activeTab,
-            transition = UniMotion.inlineContentTransition,
+            mode = LiquidSwitcherMode.Tab,
+            isForward = { from, to -> to.ordinal >= from.ordinal },
             modifier = Modifier.fillMaxWidth(),
+            label = "ColorLabTabs",
         ) { tab ->
             when (tab) {
                 ColorLabTab.Spectrum -> {
@@ -781,62 +788,75 @@ private fun ColorLabSlidersCard(
                 }
             }
 
-            if (sliderMode == SliderChannelMode.Hsb) {
-                ChannelSliderRow(
-                    label = stringResource(Res.string.ui_colors_hue),
-                    valueText = "${hue.roundToInt()}°",
-                    value = hue,
-                    valueRange = 0f..360f,
-                    dotColor = pureHueColor,
-                    onValueChange = { onHsvChanged(it, saturation, brightness) },
-                )
-                ChannelSliderRow(
-                    label = stringResource(Res.string.ui_colors_saturation),
-                    valueText = "${(saturation * 100f).roundToInt()}%",
-                    value = saturation,
-                    valueRange = 0f..1f,
-                    dotColor = activeColor,
-                    onValueChange = { onHsvChanged(hue, it, brightness) },
-                )
-                ChannelSliderRow(
-                    label = stringResource(Res.string.ui_colors_brightness),
-                    valueText = "${(brightness * 100f).roundToInt()}%",
-                    value = brightness,
-                    valueRange = 0f..1f,
-                    dotColor = blend(Color.Black, Color.White, brightness),
-                    onValueChange = { onHsvChanged(hue, saturation, it) },
-                )
-            } else {
-                ChannelSliderRow(
-                    label = stringResource(Res.string.ui_colors_red),
-                    valueText = rInt.toString(),
-                    value = rInt.toFloat(),
-                    valueRange = 0f..255f,
-                    dotColor = Color(0xFFE53935),
-                    onValueChange = {
-                        onRgbChanged(Color(it / 255f, activeColor.green, activeColor.blue, 1f))
-                    },
-                )
-                ChannelSliderRow(
-                    label = stringResource(Res.string.ui_colors_green),
-                    valueText = gInt.toString(),
-                    value = gInt.toFloat(),
-                    valueRange = 0f..255f,
-                    dotColor = Color(0xFF2ECC71),
-                    onValueChange = {
-                        onRgbChanged(Color(activeColor.red, it / 255f, activeColor.blue, 1f))
-                    },
-                )
-                ChannelSliderRow(
-                    label = stringResource(Res.string.ui_colors_blue),
-                    valueText = bInt.toString(),
-                    value = bInt.toFloat(),
-                    valueRange = 0f..255f,
-                    dotColor = Color(0xFF2979FF),
-                    onValueChange = {
-                        onRgbChanged(Color(activeColor.red, activeColor.green, it / 255f, 1f))
-                    },
-                )
+            UniContentHost(
+                targetState = sliderMode,
+                modifier = Modifier.fillMaxWidth(),
+                transition = UniMotion.inlineContentTransition,
+                isForward = { from, to -> to.ordinal >= from.ordinal },
+                label = "ColorLabSliderMode",
+            ) { mode ->
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    if (mode == SliderChannelMode.Hsb) {
+                        ChannelSliderRow(
+                            label = stringResource(Res.string.ui_colors_hue),
+                            valueText = "${hue.roundToInt()}°",
+                            value = hue,
+                            valueRange = 0f..360f,
+                            dotColor = pureHueColor,
+                            onValueChange = { onHsvChanged(it, saturation, brightness) },
+                        )
+                        ChannelSliderRow(
+                            label = stringResource(Res.string.ui_colors_saturation),
+                            valueText = "${(saturation * 100f).roundToInt()}%",
+                            value = saturation,
+                            valueRange = 0f..1f,
+                            dotColor = activeColor,
+                            onValueChange = { onHsvChanged(hue, it, brightness) },
+                        )
+                        ChannelSliderRow(
+                            label = stringResource(Res.string.ui_colors_brightness),
+                            valueText = "${(brightness * 100f).roundToInt()}%",
+                            value = brightness,
+                            valueRange = 0f..1f,
+                            dotColor = blend(Color.Black, Color.White, brightness),
+                            onValueChange = { onHsvChanged(hue, saturation, it) },
+                        )
+                    } else {
+                        ChannelSliderRow(
+                            label = stringResource(Res.string.ui_colors_red),
+                            valueText = rInt.toString(),
+                            value = rInt.toFloat(),
+                            valueRange = 0f..255f,
+                            dotColor = Color(0xFFE53935),
+                            onValueChange = {
+                                onRgbChanged(Color(it / 255f, activeColor.green, activeColor.blue, 1f))
+                            },
+                        )
+                        ChannelSliderRow(
+                            label = stringResource(Res.string.ui_colors_green),
+                            valueText = gInt.toString(),
+                            value = gInt.toFloat(),
+                            valueRange = 0f..255f,
+                            dotColor = Color(0xFF2ECC71),
+                            onValueChange = {
+                                onRgbChanged(Color(activeColor.red, it / 255f, activeColor.blue, 1f))
+                            },
+                        )
+                        ChannelSliderRow(
+                            label = stringResource(Res.string.ui_colors_blue),
+                            valueText = bInt.toString(),
+                            value = bInt.toFloat(),
+                            valueRange = 0f..255f,
+                            dotColor = Color(0xFF2979FF),
+                            onValueChange = {
+                                onRgbChanged(Color(activeColor.red, activeColor.green, it / 255f, 1f))
+                            },
+                        )
+                    }
+                }
             }
         }
     }

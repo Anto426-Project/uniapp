@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">卒業予測</string>
     <string name="ui_stats_weighting_spread">加重差</string>
     <string name="ui_stats_highest_grade">最高成績</string>
+    <string name="ui_stats_lowest_grade">最低成績</string>
     <string name="ui_stats_recent_trend">直近の傾向</string>
     <string name="ui_stats_trend_points_positive">+%1$s 点</string>
     <string name="ui_stats_trend_points_negative">%1$s 点</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">Radiant Beam</string>
     <string name="ui_theme_background_radiant_sub">上部から差し込む層状の光線</string>
     <string name="ui_theme_glow_intensity">背景の光の強さ</string>
-    <string name="ui_theme_anim_speed">アニメーション速度</string>
+    <string name="ui_theme_anim_speed">背景アニメーション速度</string>
     <string name="ui_theme_saturation">背景の彩度</string>
     <string name="ui_theme_vignette_title">コーナービネット</string>
     <string name="ui_theme_vignette_sub">画面端を暗くして文字の視認性を高めます</string>
@@ -1774,4 +1775,30 @@
     <string name="ui_library_document_available">資料を利用できます</string>
     <string name="ui_library_requestable_copies">取り寄せ可能な冊数：%1$d</string>
     <string name="ui_library_active_request">申請中</string>
+    <string name="ui_theme_transition_preview_title">トランジションのプレビュー</string>
+    <string name="ui_theme_transition_preview_prev">前のページ</string>
+    <string name="ui_theme_transition_preview_next">次のページ</string>
+    <string name="ui_entrance_fade">フェードのみ</string>
+    <string name="ui_entrance_fade_down">上からフェード</string>
+    <string name="ui_entrance_fade_down_sub">セクションが上から滑らかに現れます</string>
+    <string name="ui_entrance_fade_sub">移動なしで柔らかく表示します</string>
+    <string name="ui_entrance_fade_up">下からフェード</string>
+    <string name="ui_entrance_fade_up_sub">セクションが下から滑らかに現れます</string>
+    <string name="ui_entrance_none">オフ</string>
+    <string name="ui_entrance_none_sub">アニメーションなしで即座に表示します</string>
+    <string name="ui_entrance_scale">ソフトズーム</string>
+    <string name="ui_entrance_scale_sub">中央からわずかに拡大しながら表示します</string>
+    <string name="ui_theme_animations_group">アニメーションとモーション</string>
+    <string name="ui_theme_background_group">Liquid背景</string>
+    <string name="ui_theme_element_entrance_preview_title">表示プレビュー</string>
+    <string name="ui_theme_element_entrance_replay">再生</string>
+    <string name="ui_theme_element_entrance_title">要素の表示アニメーション</string>
+    <string name="ui_theme_navbar_autohide_sub">下にスクロールすると自動的に非表示になります</string>
+    <string name="ui_theme_navbar_autohide_title">スクロール時に隠す</string>
+    <string name="ui_theme_navbar_group">ナビゲーションバー</string>
+    <string name="ui_theme_navbar_labels_sub">オフにするとアイコンのみのコンパクト表示になります</string>
+    <string name="ui_theme_navbar_labels_title">ラベルを表示</string>
+    <string name="ui_theme_tab_style">スタイル</string>
+    <string name="ui_theme_tab_effects">エフェクト</string>
+    <string name="ui_theme_tab_interface">画面</string>
 </resources>

@@ -13,7 +13,7 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.settings.DeviceInfo
+import com.anto426.uniapp.data.contract.DeviceInfo
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesUiState
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
@@ -22,6 +22,7 @@ import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
 import com.anto426.uniapp.ui.components.items.ConnectedDevicesSecurityHero
 import com.anto426.uniapp.ui.components.items.CurrentDeviceHero
 import com.anto426.uniapp.ui.components.items.DevicePreferenceItem
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -40,22 +41,30 @@ fun ConnectedDevicesScreen(
     val otherDevices = uiState.otherDevices
 
     UniScreenColumn {
-        ConnectedDevicesSecurityHero()
+        UniAnimatedEntrance(order = 0) {
+            ConnectedDevicesSecurityHero()
+        }
 
         uiState.currentDevice?.let { device ->
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_current_device),
-                subtitle = stringResource(Res.string.ui_protected_session),
-            )
-            CurrentDeviceHero(device = device)
+            UniAnimatedEntrance(order = 1) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_current_device),
+                    subtitle = stringResource(Res.string.ui_protected_session),
+                )
+            }
+            UniAnimatedEntrance(order = 1) {
+                CurrentDeviceHero(device = device)
+            }
         }
 
         if (otherDevices.isNotEmpty()) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_other_sessions),
-                subtitle = stringResource(Res.string.ui_manage_access),
-            )
-            UniInsetGroup {
+            UniAnimatedEntrance(order = 2) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_other_sessions),
+                    subtitle = stringResource(Res.string.ui_manage_access),
+                )
+            }
+            UniInsetGroup(entranceOrder = 2) {
                 otherDevices.forEachIndexed { index, device ->
                     DevicePreferenceItem(
                         device = device,

@@ -93,7 +93,7 @@
 
     <string name="ui_accounts_saved_title">Saved accounts</string>
     <string name="ui_account_remove">Remove account</string>
-    <string name="ui_account_remove_confirmation">Remove %1$s’s account and its saved data from this device? Your university account remains active. If the account is protected, you will need to authenticate first.</string>
+    <string name="ui_account_remove_confirmation">Removing %1$s’s account will disconnect the active session and delete saved data from this device. If the account is protected, you will need to authenticate first.</string>
     <string name="ui_accounts_saved_sub">Each account uses a separate encrypted store</string>
     <string name="ui_accounts_empty_title">No saved accounts</string>
     <string name="ui_accounts_empty_desc">Add an account to get started.</string>
@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">DEGREE PROJECTION</string>
     <string name="ui_stats_weighting_spread">Weighting spread</string>
     <string name="ui_stats_highest_grade">Highest grade</string>
+    <string name="ui_stats_lowest_grade">Lowest grade</string>
     <string name="ui_stats_recent_trend">Recent trend</string>
     <string name="ui_stats_trend_points_positive">+%1$s points</string>
     <string name="ui_stats_trend_points_negative">%1$s points</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">Radiant Beam</string>
     <string name="ui_theme_background_radiant_sub">Layered light beams from above</string>
     <string name="ui_theme_glow_intensity">Background glow intensity</string>
-    <string name="ui_theme_anim_speed">Dynamic animation speed</string>
+    <string name="ui_theme_anim_speed">Background animation speed</string>
     <string name="ui_theme_saturation">Background color saturation</string>
     <string name="ui_theme_vignette_title">Corner vignette</string>
     <string name="ui_theme_vignette_sub">Darkens edges to improve text legibility</string>
@@ -1322,7 +1323,7 @@
     <string name="msg_impossibile_attivare_il_profilo">Unable to activate profile.</string>
     <string name="msg_impossibile_attivare_il_profilo_2">Unable to activate profile</string>
     <string name="msg_accedi_con_il_nuovo_account">Sign in with the new account.</string>
-    <string name="msg_account_rimosso_dal_dispositivo">Account removed from device.</string>
+    <string name="msg_account_rimosso_dal_dispositivo">Account disconnected and removed from device.</string>
     <string name="msg_impossibile_completare_la_rimozione_dellaccount">Unable to finish removing the account.</string>
     <string name="msg_un">UN</string>
     <string name="msg_diventa_un_collaboratore">Become a contributor</string>
@@ -1774,4 +1775,39 @@
     <string name="ui_library_document_available">Item available</string>
     <string name="ui_library_requestable_copies">Copies available to request: %1$d</string>
     <string name="ui_library_active_request">Active request</string>
+    <string name="ui_theme_transition_preview_title">Transition preview</string>
+    <string name="ui_theme_transition_preview_prev">Previous page</string>
+    <string name="ui_theme_transition_preview_next">Next page</string>
+    <string name="sdk_error_app_backend_unavailable">The university portal is temporarily unavailable. Please try again shortly.</string>
+    <string name="sdk_error_auth_attestation_required">Device integrity verification is required to sign in.</string>
+    <string name="sdk_error_auth_attestation_failed">Device integrity verification failed. Please try again.</string>
+    <string name="sdk_error_auth_challenge_invalid">Invalid security response from the portal. Please try again.</string>
+    <string name="sdk_error_auth_registration_failed">Session registration failed. Check your credentials and try again.</string>
+    <string name="sdk_error_cineca_unavailable">Esse3/Cineca services are temporarily unavailable. Please try again shortly.</string>
+    <string name="sdk_error_password_invalid">Invalid or changed password. Please sign in again.</string>
+    <string name="sdk_error_request_forbidden">Access denied by the portal for this request.</string>
+    <string name="sdk_error_service_unavailable">Service temporarily unavailable. Please try again shortly.</string>
+    <string name="ui_entrance_fade">Simple fade</string>
+    <string name="ui_entrance_fade_down">Fade down</string>
+    <string name="ui_entrance_fade_down_sub">Sections glide down into view with a fade</string>
+    <string name="ui_entrance_fade_sub">Gentle opacity reveal with no travel</string>
+    <string name="ui_entrance_fade_up">Fade up</string>
+    <string name="ui_entrance_fade_up_sub">Sections rise smoothly into view with a fade</string>
+    <string name="ui_entrance_none">Disabled</string>
+    <string name="ui_entrance_none_sub">Elements appear immediately with no entrance motion</string>
+    <string name="ui_entrance_scale">Soft zoom</string>
+    <string name="ui_entrance_scale_sub">Subtle scale expansion from center with fade</string>
+    <string name="ui_theme_animations_group">Animations &amp; Motion</string>
+    <string name="ui_theme_background_group">Liquid Background</string>
+    <string name="ui_theme_element_entrance_preview_title">Entrance preview</string>
+    <string name="ui_theme_element_entrance_replay">Replay</string>
+    <string name="ui_theme_element_entrance_title">Element entrance</string>
+    <string name="ui_theme_navbar_autohide_sub">Automatically hides while scrolling down</string>
+    <string name="ui_theme_navbar_autohide_title">Hide on scroll</string>
+    <string name="ui_theme_navbar_group">Navigation Bar</string>
+    <string name="ui_theme_navbar_labels_sub">Turn off for a compact icon-only navigation bar</string>
+    <string name="ui_theme_navbar_labels_title">Show labels</string>
+    <string name="ui_theme_tab_style">Style</string>
+    <string name="ui_theme_tab_effects">Effects</string>
+    <string name="ui_theme_tab_interface">Interface</string>
 </resources>

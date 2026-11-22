@@ -793,6 +793,7 @@
     <string name="ui_stats_degree_projection_header">毕业预测分</string>
     <string name="ui_stats_weighting_spread">加权差值</string>
     <string name="ui_stats_highest_grade">最高成绩</string>
+    <string name="ui_stats_lowest_grade">最低成绩</string>
     <string name="ui_stats_recent_trend">近期趋势</string>
     <string name="ui_stats_trend_points_positive">+%1$s 分</string>
     <string name="ui_stats_trend_points_negative">%1$s 分</string>
@@ -1000,7 +1001,7 @@
     <string name="ui_theme_background_radiant">流光射线 (Radiant Beam)</string>
     <string name="ui_theme_background_radiant_sub">自上方倾泻的分层光束</string>
     <string name="ui_theme_glow_intensity">背景光晕强度</string>
-    <string name="ui_theme_anim_speed">动态动画速度</string>
+    <string name="ui_theme_anim_speed">背景动画速度</string>
     <string name="ui_theme_saturation">背景色彩饱和度</string>
     <string name="ui_theme_vignette_title">边角暗角</string>
     <string name="ui_theme_vignette_sub">压暗边缘以提升文字可读性</string>
@@ -1774,4 +1775,30 @@
     <string name="ui_library_document_available">馆藏可用</string>
     <string name="ui_library_requestable_copies">可申请册数：%1$d</string>
     <string name="ui_library_active_request">申请中</string>
+    <string name="ui_theme_transition_preview_title">过渡预览</string>
+    <string name="ui_theme_transition_preview_prev">上一页</string>
+    <string name="ui_theme_transition_preview_next">下一页</string>
+    <string name="ui_entrance_fade">平滑淡入</string>
+    <string name="ui_entrance_fade_down">顶部淡入</string>
+    <string name="ui_entrance_fade_down_sub">区块从上方平滑下落淡入</string>
+    <string name="ui_entrance_fade_sub">无位移的柔和渐显效果</string>
+    <string name="ui_entrance_fade_up">底部淡入</string>
+    <string name="ui_entrance_fade_up_sub">区块从下方平滑上浮淡入</string>
+    <string name="ui_entrance_none">关闭</string>
+    <string name="ui_entrance_none_sub">元素立即显示，不使用入场动画</string>
+    <string name="ui_entrance_scale">柔和缩放</string>
+    <string name="ui_entrance_scale_sub">从中心轻微放大并淡入</string>
+    <string name="ui_theme_animations_group">动画与动效</string>
+    <string name="ui_theme_background_group">液态背景</string>
+    <string name="ui_theme_element_entrance_preview_title">入场预览</string>
+    <string name="ui_theme_element_entrance_replay">重播</string>
+    <string name="ui_theme_element_entrance_title">元素入场动画</string>
+    <string name="ui_theme_navbar_autohide_sub">向下滚动时自动隐藏导航栏</string>
+    <string name="ui_theme_navbar_autohide_title">滚动时隐藏</string>
+    <string name="ui_theme_navbar_group">导航栏</string>
+    <string name="ui_theme_navbar_labels_sub">关闭以使用仅图标的紧凑导航栏</string>
+    <string name="ui_theme_navbar_labels_title">显示标签</string>
+    <string name="ui_theme_tab_style">样式</string>
+    <string name="ui_theme_tab_effects">效果</string>
+    <string name="ui_theme_tab_interface">界面</string>
 </resources>
