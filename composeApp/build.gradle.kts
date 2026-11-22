@@ -40,6 +40,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_21)
         }
 
+        @Suppress("UnstableApiUsage")
         optimization {
             minify = false // The final application performs whole-program R8 optimization.
             keepRules.file("proguard-rules.pro")
@@ -60,10 +61,14 @@ kotlin {
     }
 
     sourceSets {
-        val mobileMain by creating { dependsOn(commonMain.get()) }
-        androidMain.get().dependsOn(mobileMain)
-        iosMain.get().dependsOn(mobileMain)
-        mobileMain.dependencies { implementation(libs.zscanner) }
+        val mobileMain = create("mobileMain") {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.zscanner)
+            }
+        }
+        androidMain.configure { dependsOn(mobileMain) }
+        iosMain.configure { dependsOn(mobileMain) }
         androidMain.dependencies {
             implementation(libs.zxing.core)
             implementation(libs.zxing.cpp.android)
@@ -153,6 +158,8 @@ val sourceRevision = providers.exec {
 }.standardOutput.asText.map { it.trim() }
 val appStoreUrl = providers.environmentVariable("UNIAPP_APP_STORE_URL").orElse("")
 val generateAppBuildMetadata = tasks.register("generateAppBuildMetadata") {
+    group = "build"
+    description = "Generates AppBuildMetadata.kt with resolved SDK versions and Git revision."
     val output = layout.buildDirectory.dir("generated/appInfo/commonMain")
     inputs.property("modules", moduleMetadata)
     inputs.property("revision", sourceRevision)
@@ -177,7 +184,7 @@ val generateAppBuildMetadata = tasks.register("generateAppBuildMetadata") {
         """.trimIndent())
     }
 }
-kotlin.sourceSets.commonMain { kotlin.srcDir(generateAppBuildMetadata) }
+kotlin.sourceSets.commonMain.configure { kotlin.srcDir(generateAppBuildMetadata) }
 
 // Robolectric API 36 native graphics uses Android's shared file descriptor bridge on JDK 21.
 tasks.withType<Test>().configureEach {

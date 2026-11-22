@@ -5,12 +5,9 @@
 -repackageclasses ''
 -optimizationpasses 5
 -overloadaggressively
--mergeinterfacesaggressively
 
 # Dead code elimination and member stripping
 -dontusemixedcaseclassnames
--dontskipnonpubliclibraryclasses
--dontskipnonpubliclibraryclassmembers
 
 # Preserve line numbers and source file for readable stack traces and debugging
 -keepattributes SourceFile,LineNumberTable,*Annotation*,Signature
