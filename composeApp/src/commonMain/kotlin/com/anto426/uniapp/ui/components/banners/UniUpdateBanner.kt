@@ -1,16 +1,14 @@
 package com.anto426.uniapp.ui.components.banners
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.scale
@@ -32,10 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
-import com.anto426.liquidmonet.components.feedback.progressbar.LiquidCircularProgressIndicator
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.updates.UpdateState
@@ -72,6 +67,7 @@ fun UniAppUpdateBanner(
     isMandatory: Boolean = false,
     palette: UniHeroCardPalette = rememberUniHeroCardPalette(),
 ) {
+    val appColorScheme = MaterialTheme.colorScheme
     val heroFontSize = when {
         height <= 300.dp -> 68
         height < 380.dp -> 84
@@ -103,6 +99,7 @@ fun UniAppUpdateBanner(
                 fontSize = heroFontSize,
                 cardHeight = height,
                 palette = palette,
+                appColorScheme = appColorScheme,
             )
         },
         backContent = {
@@ -130,113 +127,130 @@ private fun UpdateBannerFrontFace(
     fontSize: Int,
     cardHeight: Dp,
     palette: UniHeroCardPalette,
+    appColorScheme: ColorScheme,
 ) {
     val accent = remember(palette) { palette.cool.heroTextAccent() }
     val warmAccent = remember(palette) { palette.warm.heroTextAccent() }
+    val versionGlowAlpha = rememberUpdateBannerVersionGlowAlpha(state)
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = cardHeight)
-            .padding(horizontal = 24.dp, vertical = 22.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+            .heightIn(min = cardHeight),
     ) {
-        // 1. Micro-etichetta di stato minimale (punto colore + testo, senza cornici)
-        LiquidAnimatedSwitcher(
-            targetState = state,
-            modifier = Modifier.fillMaxWidth(),
-            mode = LiquidSwitcherMode.Inline,
-            label = "UpdateBannerTopStatus",
-        ) { currentState ->
-            UpdateBannerMinimalStatusLine(
-                state = currentState,
-                channelLabel = channelLabel,
-                isMandatory = isMandatory,
-                accent = accent,
-                warmAccent = warmAccent,
-            )
-        }
-
-        // 2. Identità tipografica centrale
-        UpdateBannerHeader(
-            version = version,
-            title = title,
-            subtitle = subtitle,
-            fontSize = fontSize,
-            maxVersionHeight = cardHeight * 0.40f,
+        UpdateBannerAtmosphereOverlay(
+            state = state,
+            accent = accent,
+            warmAccent = warmAccent,
+            modifier = Modifier.matchParentSize(),
         )
 
-        // 3. Azione o avanzamento essenziale senza box contenitori
-        LiquidAnimatedSwitcher(
-            targetState = state,
-            modifier = Modifier.fillMaxWidth(),
-            mode = LiquidSwitcherMode.Inline,
-            label = "UpdateBannerFooter",
-        ) { currentState ->
-            Box(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = cardHeight)
+                .padding(horizontal = 24.dp, vertical = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            // 1. Micro-etichetta di stato minimale (punto colore + testo, senza cornici)
+            UpdateBannerStatusSwitcher(
+                targetState = state,
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
-            ) {
-                when (currentState) {
-                    UpdateState.CHECKING -> UpdateBannerMinimalCaption(
-                        text = stringResource(Res.string.ui_update_checking),
-                        leading = {
-                            LiquidCircularProgressIndicator(
-                                indicatorSize = 15.dp,
-                                strokeWidth = 2.dp,
-                                color = accent,
-                            )
-                        },
-                    )
+            ) { currentState ->
+                UpdateBannerMinimalStatusLine(
+                    state = currentState,
+                    channelLabel = channelLabel,
+                    isMandatory = isMandatory,
+                    accent = accent,
+                    warmAccent = warmAccent,
+                )
+            }
 
-                    UpdateState.UP_TO_DATE -> UpToDateFooter(
-                        message = statusText ?: stringResource(Res.string.ui_updated_version),
-                        onCheckAgain = onRetry,
-                    )
+            // 2. Identità tipografica centrale
+            UpdateBannerHeader(
+                version = version,
+                title = title,
+                subtitle = subtitle,
+                fontSize = fontSize,
+                maxVersionHeight = cardHeight * 0.40f,
+                glowAlpha = versionGlowAlpha,
+            )
 
-                    UpdateState.AVAILABLE -> UpdateBannerActionFooter(
-                        message = statusText ?: stringResource(Res.string.ui_update_new_available),
-                        messageColor = if (isMandatory) warmAccent else accent,
-                        actionText = stringResource(Res.string.ui_update_download),
-                        onAction = onDownload,
-                        actionEnabled = canDownload,
-                        buttonVariant = LiquidButtonVariant.Primary,
-                    )
+            // 3. Azione o avanzamento essenziale senza box contenitori
+            UpdateBannerFooterSwitcher(
+                targetState = state,
+                modifier = Modifier.fillMaxWidth(),
+            ) { currentState ->
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when (currentState) {
+                        UpdateState.CHECKING -> UpdateBannerMinimalCaption(
+                            text = stringResource(Res.string.ui_update_checking),
+                            leading = {
+                                UpdateBannerOosSpinner(
+                                    color = accent,
+                                    size = 15.dp,
+                                    strokeWidth = 2.dp,
+                                )
+                            },
+                        )
 
-                    UpdateState.DOWNLOADING -> DownloadingFooter(
-                        progress = progress,
-                        downloadedMb = downloadedMb,
-                        totalMb = totalMb,
-                        accent = accent,
-                    )
+                        UpdateState.UP_TO_DATE -> UpToDateFooter(
+                            message = statusText ?: stringResource(Res.string.ui_updated_version),
+                            onCheckAgain = onRetry,
+                        )
 
-                    UpdateState.VERIFYING -> UpdateBannerProgressFooter(
-                        text = stringResource(Res.string.ui_update_integrity),
-                        icon = LiquidIcons.Lock,
-                        accent = accent,
-                    )
+                        UpdateState.AVAILABLE -> UpdateBannerActionFooter(
+                            message = statusText ?: stringResource(Res.string.ui_update_new_available),
+                            messageColor = if (isMandatory) warmAccent else accent,
+                            actionText = stringResource(Res.string.ui_update_download),
+                            onAction = onDownload,
+                            actionEnabled = canDownload,
+                            buttonVariant = LiquidButtonVariant.Primary,
+                        )
 
-                    UpdateState.INSTALLING -> InstallingFooter(progress = progress)
+                        UpdateState.DOWNLOADING -> DownloadingFooter(
+                            progress = progress,
+                            downloadedMb = downloadedMb,
+                            totalMb = totalMb,
+                            accent = accent,
+                            appColorScheme = appColorScheme,
+                        )
 
-                    UpdateState.RESTART_REQUIRED -> UpdateBannerActionFooter(
-                        message = stringResource(Res.string.ui_update_restart_info),
-                        messageColor = Color.White.copy(alpha = 0.88f),
-                        actionText = stringResource(Res.string.ui_update_restart),
-                        onAction = onRestart,
-                        actionEnabled = true,
-                        buttonVariant = LiquidButtonVariant.Primary,
-                    )
+                        UpdateState.VERIFYING -> UpdateBannerProgressFooter(
+                            text = stringResource(Res.string.ui_update_integrity),
+                            icon = LiquidIcons.Lock,
+                            accent = accent,
+                            appColorScheme = appColorScheme,
+                        )
 
-                    UpdateState.ERROR -> UpdateBannerActionFooter(
-                        message = stringResource(Res.string.ui_update_error_desc),
-                        messageColor = Color(0xFFFFB4AB),
-                        leadingIcon = LiquidIcons.Warning,
-                        actionText = stringResource(Res.string.ui_retry),
-                        onAction = onRetry,
-                        actionEnabled = true,
-                        buttonVariant = LiquidButtonVariant.Secondary,
-                    )
+                        UpdateState.INSTALLING -> InstallingFooter(
+                            progress = progress,
+                            appColorScheme = appColorScheme,
+                        )
+
+                        UpdateState.RESTART_REQUIRED -> UpdateBannerActionFooter(
+                            message = stringResource(Res.string.ui_update_restart_info),
+                            messageColor = Color.White.copy(alpha = 0.88f),
+                            actionText = stringResource(Res.string.ui_update_restart),
+                            onAction = onRestart,
+                            actionEnabled = true,
+                            buttonVariant = LiquidButtonVariant.Primary,
+                        )
+
+                        UpdateState.ERROR -> UpdateBannerActionFooter(
+                            message = stringResource(Res.string.ui_update_error_desc),
+                            messageColor = Color(0xFFFFB4AB),
+                            leadingIcon = LiquidIcons.Warning,
+                            actionText = stringResource(Res.string.ui_retry),
+                            onAction = onRetry,
+                            actionEnabled = true,
+                            buttonVariant = LiquidButtonVariant.Secondary,
+                        )
+                    }
                 }
             }
         }
@@ -279,11 +293,18 @@ private fun UpdateBannerMinimalStatusLine(
         -> accent
     }
 
+    val isPulsing = state == UpdateState.AVAILABLE ||
+        state == UpdateState.DOWNLOADING ||
+        state == UpdateState.VERIFYING ||
+        state == UpdateState.INSTALLING ||
+        state == UpdateState.RESTART_REQUIRED
+
     val fullText = if (!channelLabel.isNullOrBlank()) "$label · $channelLabel" else label
     MinimalStatusIndicatorRow(
         text = fullText,
         dotColor = dotColor,
         isBusy = state == UpdateState.CHECKING,
+        isPulsing = isPulsing,
     )
 }
 
@@ -292,26 +313,18 @@ internal fun MinimalStatusIndicatorRow(
     text: String,
     dotColor: Color,
     isBusy: Boolean = false,
+    isPulsing: Boolean = false,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (isBusy) {
-            LiquidCircularProgressIndicator(
-                indicatorSize = 11.dp,
-                strokeWidth = 1.8.dp,
-                color = dotColor,
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(7.dp)
-                    .clip(CircleShape)
-                    .background(dotColor),
-            )
-        }
+        UpdateBannerStatusDot(
+            dotColor = dotColor,
+            isBusy = isBusy,
+            isPulsing = isPulsing,
+        )
         Text(
             text = text,
             color = Color.White.copy(alpha = 0.84f),
@@ -331,6 +344,7 @@ private fun UpdateBannerHeader(
     subtitle: String,
     fontSize: Int,
     maxVersionHeight: Dp,
+    glowAlpha: Float = 0.16f,
 ) {
     Column(
         modifier = Modifier
@@ -339,11 +353,17 @@ private fun UpdateBannerHeader(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        VersionText(
+        UpdateBannerVersionSwitcher(
             version = version,
-            fontSize = fontSize,
-            maxHeight = maxVersionHeight,
-        )
+            modifier = Modifier.fillMaxWidth(),
+        ) { displayedVersion ->
+            VersionText(
+                version = displayedVersion,
+                fontSize = fontSize,
+                maxHeight = maxVersionHeight,
+                glowAlpha = glowAlpha,
+            )
+        }
         Text(
             text = title,
             color = Color.White.copy(alpha = 0.96f),
@@ -433,6 +453,7 @@ private fun UpdateBannerProgressFooter(
     text: String,
     icon: ImageVector,
     accent: Color,
+    appColorScheme: ColorScheme,
 ) {
     Column(
         modifier = Modifier.widthIn(max = 280.dp).fillMaxWidth(),
@@ -442,17 +463,19 @@ private fun UpdateBannerProgressFooter(
         UpdateBannerMinimalCaption(
             text = text,
             leading = {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = accent,
-                    modifier = Modifier.size(15.dp),
-                )
+                UpdateBannerPulseIconHost {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
             },
         )
-        LiquidLinearProgressIndicator(
+        UpdateBannerLiquidProgressBar(
             progress = null,
-            modifier = Modifier.fillMaxWidth(),
+            appColorScheme = appColorScheme,
         )
     }
 }
@@ -513,6 +536,7 @@ private fun DownloadingFooter(
     downloadedMb: Float,
     totalMb: Float,
     accent: Color,
+    appColorScheme: ColorScheme,
 ) {
     val percent = progress?.let { (it.coerceIn(0f, 1f) * 100).roundToInt() }
 
@@ -546,9 +570,9 @@ private fun DownloadingFooter(
             }
         }
 
-        LiquidLinearProgressIndicator(
+        UpdateBannerLiquidProgressBar(
             progress = progress,
-            modifier = Modifier.fillMaxWidth(),
+            appColorScheme = appColorScheme,
         )
 
         Text(
@@ -566,15 +590,18 @@ private fun DownloadingFooter(
 }
 
 @Composable
-private fun InstallingFooter(progress: Float?) {
+private fun InstallingFooter(
+    progress: Float?,
+    appColorScheme: ColorScheme,
+) {
     Column(
         modifier = Modifier.widthIn(max = 280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        LiquidLinearProgressIndicator(
+        UpdateBannerLiquidProgressBar(
             progress = progress,
-            modifier = Modifier.fillMaxWidth(),
+            appColorScheme = appColorScheme,
         )
         Text(
             text = stringResource(Res.string.ui_update_do_not_close),
@@ -585,6 +612,19 @@ private fun InstallingFooter(progress: Float?) {
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun UpdateBannerLiquidProgressBar(
+    progress: Float?,
+    appColorScheme: ColorScheme,
+) {
+    MaterialTheme(colorScheme = appColorScheme) {
+        LiquidLinearProgressIndicator(
+            progress = progress,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -668,6 +708,7 @@ internal fun VersionText(
     version: String,
     fontSize: Int = 68,
     maxHeight: Dp = Dp.Unspecified,
+    glowAlpha: Float = 0.16f,
 ) {
     val palette = rememberUniHeroCardPalette()
     val strongAccent = palette.accent
@@ -735,7 +776,7 @@ internal fun VersionText(
                         drawCircle(
                             brush = Brush.radialGradient(
                                 colors = listOf(
-                                    palette.glow.copy(alpha = 0.16f),
+                                    palette.glow.copy(alpha = glowAlpha),
                                     Color.Transparent,
                                 ),
                                 center = center,
