@@ -1812,4 +1812,8 @@
     <string name="ui_theme_tab_style">Style</string>
     <string name="ui_theme_tab_effects">Effets</string>
     <string name="ui_theme_tab_interface">Interface</string>
+    <string name="ui_course_open_catalogue_title">Fiche officielle du cours</string>
+    <string name="ui_course_open_catalogue_sub">Ouvrir sur UniMol Course Catalogue</string>
+    <string name="ui_course_open_catalogue_badge">Portail</string>
+    <string name="ui_course_sections_overview">Sections du programme</string>
 </resources>

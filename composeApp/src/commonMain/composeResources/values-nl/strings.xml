@@ -1812,4 +1812,8 @@
     <string name="ui_theme_tab_style">Stijl</string>
     <string name="ui_theme_tab_effects">Effecten</string>
     <string name="ui_theme_tab_interface">Interface</string>
+    <string name="ui_course_open_catalogue_title">Officiële vakpagina</string>
+    <string name="ui_course_open_catalogue_sub">Openen in UniMol Course Catalogue</string>
+    <string name="ui_course_open_catalogue_badge">Portaal</string>
+    <string name="ui_course_sections_overview">Programma-onderdelen</string>
 </resources>

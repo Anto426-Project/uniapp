@@ -1812,4 +1812,8 @@
     <string name="ui_theme_tab_style">样式</string>
     <string name="ui_theme_tab_effects">效果</string>
     <string name="ui_theme_tab_interface">界面</string>
+    <string name="ui_course_open_catalogue_title">官方课程页面</string>
+    <string name="ui_course_open_catalogue_sub">在 UniMol Course Catalogue 中打开</string>
+    <string name="ui_course_open_catalogue_badge">门户</string>
+    <string name="ui_course_sections_overview">课程大纲章节</string>
 </resources>

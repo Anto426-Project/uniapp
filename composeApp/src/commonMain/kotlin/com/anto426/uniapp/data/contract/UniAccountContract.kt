@@ -148,6 +148,7 @@ data class StudyCourse(
     val metodiDidattici: String = "",
     val modalitaVerifica: String = "",
     val prerequisiti: String = "",
+    val courseUrl: String? = null,
 )
 
 data class StudyYear(

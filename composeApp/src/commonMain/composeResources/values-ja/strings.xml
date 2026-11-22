@@ -1812,4 +1812,8 @@
     <string name="ui_theme_tab_style">スタイル</string>
     <string name="ui_theme_tab_effects">エフェクト</string>
     <string name="ui_theme_tab_interface">画面</string>
+    <string name="ui_course_open_catalogue_title">公式シラバスページ</string>
+    <string name="ui_course_open_catalogue_sub">UniMol Course Catalogueで開く</string>
+    <string name="ui_course_open_catalogue_badge">ポータル</string>
+    <string name="ui_course_sections_overview">シラバス項目</string>
 </resources>

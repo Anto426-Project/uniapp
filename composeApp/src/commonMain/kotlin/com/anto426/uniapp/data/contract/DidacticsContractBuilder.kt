@@ -396,6 +396,7 @@ internal fun CourseSyllabus.toStudyCourse(
         metodiDidattici = metodiDidattici.orEmpty(),
         modalitaVerifica = modalitaVerifica.orEmpty(),
         prerequisiti = prerequisiti.orEmpty(),
+        courseUrl = courseUrl,
     )
 }
 
