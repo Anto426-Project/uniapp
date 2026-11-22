@@ -7,6 +7,8 @@ import com.anto426.uniapp.data.UniCachePolicy
 import com.anto426.uniapp.data.UniDataSnapshot
 import com.anto426.uniapp.data.UniDatasetKey
 import com.anto426.uniapp.data.UniDatasets
+import com.anto426.uniapp.data.UniLoadPriority
+import com.anto426.uniapp.data.UniPreloadPlan
 import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.data.contract.toNewsItems
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
@@ -460,6 +462,135 @@ class ScopedDataRepositoryTest {
             news("old", "Ateneo").copy(publishedAt = "2025-12-31"),
         ).toNewsItems()
         assertEquals(listOf("a", "b", "old", "z"), items.map { it.title })
+    }
+
+    @Test
+    fun stagedPreloadRunsImmediateTierBeforeBoundedBackgroundTierEvenIfImmediateFails() = runTest {
+        val immediateGate = CompletableDeferred<Unit>()
+        val bgGates = List(4) { CompletableDeferred<Unit>() }
+        val started = mutableListOf<String>()
+        var bgActive = 0
+        var bgMax = 0
+
+        val immediateOk = UniDatasetKey("tier1/ok") { _ ->
+            started += "tier1/ok"
+            immediateGate.await()
+            "ok"
+        }
+        val immediateFail = UniDatasetKey("tier1/fail") { _ ->
+            started += "tier1/fail"
+            immediateGate.await()
+            throw IllegalStateException("tier1 boom")
+        }
+        val background = bgGates.mapIndexed { index, gate ->
+            UniDatasetKey("tier2/$index") { _ ->
+                started += "tier2/$index"
+                bgActive++
+                bgMax = maxOf(bgMax, bgActive)
+                try {
+                    gate.await()
+                    index
+                } finally {
+                    bgActive--
+                }
+            }
+        }
+
+        val engine = UniCacheEngine(
+            FakeUniAppDataSource(),
+            backgroundScope,
+            concurrency = 4,
+            backgroundConcurrency = 2,
+        )
+        try {
+            engine.preload(immediate = listOf(immediateOk, immediateFail), background = background)
+            runCurrent()
+            assertEquals(setOf("tier1/ok", "tier1/fail"), started.toSet())
+            assertEquals(0, bgActive)
+
+            immediateGate.complete(Unit)
+            runCurrent()
+            assertEquals(2, bgActive)
+            assertEquals(2, bgMax)
+            assertEquals(setOf("tier1/ok", "tier1/fail", "tier2/0", "tier2/1"), started.toSet())
+
+            bgGates.forEach { it.complete(Unit) }
+            runCurrent()
+            assertEquals(0, bgActive)
+            assertEquals(2, bgMax)
+            assertTrue(engine.observe(background).first().resolved)
+        } finally {
+            engine.close()
+        }
+    }
+
+    @Test
+    fun interactiveLoadBypassesSaturatedBackgroundPreloadLane() = runTest {
+        val bgGate = CompletableDeferred<Unit>()
+        var bgActive = 0
+        var interactiveCompleted = false
+
+        val bgSlow1 = UniDatasetKey("bg/1") { _ ->
+            bgActive++
+            try { bgGate.await(); "bg1" } finally { bgActive-- }
+        }
+        val bgSlow2 = UniDatasetKey("bg/2") { _ ->
+            bgActive++
+            try { bgGate.await(); "bg2" } finally { bgActive-- }
+        }
+        val bgQueued3 = UniDatasetKey("bg/3") { _ ->
+            interactiveCompleted = true
+            "bg3"
+        }
+
+        val engine = UniCacheEngine(
+            FakeUniAppDataSource(),
+            backgroundScope,
+            concurrency = 4,
+            backgroundConcurrency = 2,
+        )
+        try {
+            engine.preload(immediate = emptyList(), background = listOf(bgSlow1, bgSlow2, bgQueued3))
+            runCurrent()
+            assertEquals(2, bgActive)
+            assertFalse(interactiveCompleted)
+
+            // User opens the screen for bgQueued3 while both background slots are blocked:
+            // Interactive lane must complete immediately without waiting for bgGate.
+            val value = engine.get(bgQueued3, force = false)
+            assertEquals("bg3", value)
+            assertTrue(interactiveCompleted)
+            assertEquals(2, bgActive)
+
+            bgGate.complete(Unit)
+            runCurrent()
+            assertEquals(0, bgActive)
+        } finally {
+            engine.close()
+        }
+    }
+
+    @Test
+    fun preloadPlanCoversPortalDatasetsAndKeepsLibraryOnDemand() {
+        val studentAll = (UniPreloadPlan.studentImmediate + UniPreloadPlan.studentBackground).map { it.id }.toSet()
+        assertTrue(UniDatasets.Student.id in UniPreloadPlan.studentImmediate.map { it.id })
+        assertTrue(UniDatasets.Career.id in UniPreloadPlan.studentImmediate.map { it.id })
+        assertTrue(UniDatasets.StudyPlan.id in UniPreloadPlan.studentImmediate.map { it.id })
+        assertTrue(UniDatasets.Exams.id in UniPreloadPlan.studentImmediate.map { it.id })
+        assertTrue(UniDatasets.Taxes.id in UniPreloadPlan.studentImmediate.map { it.id })
+        assertTrue(UniDatasets.News.id in studentAll)
+        assertTrue(UniDatasets.Transport.id in studentAll)
+        assertTrue(UniDatasets.Attendance.id in studentAll)
+        assertTrue(UniDatasets.Surveys.id in studentAll)
+        assertTrue(UniDatasets.Devices.id in studentAll)
+        assertTrue(UniDatasets.Contacts.id in studentAll)
+        assertFalse(UniDatasets.LibraryMovements.id in studentAll)
+        assertFalse(UniDatasets.LibrarySpaces.id in studentAll)
+        assertEquals(
+            setOf(UniDatasets.LibraryMovements.id, UniDatasets.LibrarySpaces.id),
+            UniPreloadPlan.onDemand.map { it.id }.toSet(),
+        )
+        assertEquals(UniLoadPriority.Interactive, UniLoadPriority.entries.first())
     }
 
     private fun news(id: String, category: String) = UniversityNews(

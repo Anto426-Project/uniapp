@@ -246,6 +246,67 @@ object UniDatasets {
 }
 
 // ============================================================================
+// 4b. Tiered Preload Strategy & Priority Lanes
+// ============================================================================
+
+/** Network execution lane for shared dataset loads. */
+enum class UniLoadPriority {
+    /** User-visible screens, critical Home datasets, and manual refreshes. Uses the primary lane. */
+    Interactive,
+    /** Silent startup warm-up after Home settles. Uses the dedicated low-concurrency lane. */
+    Background,
+    /** Heavy/external-auth or parameterized datasets loaded strictly on-demand. */
+    OnDemand,
+}
+
+/**
+ * Declarative 3-tier loading plan for startup warm-up:
+ * - Tier 1 (Immediate / Interactive): Home & profile datasets loaded first on the primary lane.
+ * - Tier 2 (Background): Remaining portal datasets warmed silently (max 2 concurrent) after Tier 1
+ *   settles, without competing with active user navigation.
+ * - Tier 3 (OnDemand): External-auth library datasets and parameterized detail queries.
+ */
+object UniPreloadPlan {
+    val studentImmediate: List<UniDatasetKey<*>> = listOf(
+        UniDatasets.Student,
+        UniDatasets.Career,
+        UniDatasets.StudyPlan,
+        UniDatasets.Exams,
+        UniDatasets.Taxes,
+    )
+
+    val studentBackground: List<UniDatasetKey<*>> = listOf(
+        UniDatasets.News,
+        UniDatasets.Transport,
+        UniDatasets.Attendance,
+        UniDatasets.Surveys,
+        UniDatasets.Devices,
+        UniDatasets.Contacts,
+    )
+
+    val professorImmediate: List<UniDatasetKey<*>> = listOf(
+        UniDatasets.Professor,
+    )
+
+    val professorBackground: List<UniDatasetKey<*>> = listOf(
+        UniDatasets.News,
+        UniDatasets.Devices,
+        UniDatasets.Contacts,
+    )
+
+    val onDemand: List<UniDatasetKey<*>> = listOf(
+        UniDatasets.LibraryMovements,
+        UniDatasets.LibrarySpaces,
+    )
+
+    fun immediate(isProfessor: Boolean): List<UniDatasetKey<*>> =
+        if (isProfessor) professorImmediate else studentImmediate
+
+    fun background(isProfessor: Boolean): List<UniDatasetKey<*>> =
+        if (isProfessor) professorBackground else studentBackground
+}
+
+// ============================================================================
 // 5. UniCacheEngine: Single Reactive Cache, Policy & Invalidation Engine
 // ============================================================================
 
@@ -256,7 +317,12 @@ class UniCacheEngine(
     val generation: Long = 0,
     concurrency: Int = 8,
     private val nowMillis: () -> Long = { currentEpochMillis() },
+    private val backgroundConcurrency: Int = 2,
 ) : UniGateway by source {
+    init {
+        require(concurrency > 0) { "concurrency must be positive" }
+        require(backgroundConcurrency > 0) { "backgroundConcurrency must be positive" }
+    }
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private data class PreparedNews(val source: List<UniversityNews>, val feed: NewsFeed)
     private val preparedNews = MutableStateFlow<PreparedNews?>(null)
@@ -282,8 +348,9 @@ class UniCacheEngine(
 
     private val guard = Mutex()
     private val network = Semaphore(concurrency)
-    private val backgroundNetwork = Semaphore(2)
+    private val backgroundNetwork = Semaphore(backgroundConcurrency)
     private val entries = linkedMapOf<String, Entry<*>>()
+    private var preloadJob: Job? = null
     private var ticketArchiveJob: Job? = null
     private var closed = false
     private val scheduleRevision = MutableStateFlow(0L)
@@ -297,6 +364,7 @@ class UniCacheEngine(
         var retryAt: Long? = null
         var invalidated = false
         var forcePending = false
+        var interactivePending = false
         var forcing = false
         fun clear() { state.value = UniDataValue(revision = state.value.revision + 1) }
     }
@@ -367,20 +435,34 @@ class UniCacheEngine(
         }
     }
 
-    fun refresh(requests: List<UniDatasetKey<*>>, force: Boolean = false) {
+    fun refresh(
+        requests: List<UniDatasetKey<*>>,
+        force: Boolean = false,
+        priority: UniLoadPriority = UniLoadPriority.Interactive,
+    ) {
         if (closed || !scope.isActive) {
             logCacheDiagnostic("refresh ignored (closed=$closed active=${scope.isActive} gen=$generation ids=${requests.map { it.id }})")
             return
         }
-        scope.launch { refreshRequests(requests, force, invalidated = false) }
+        scope.launch { refreshRequests(requests, force, invalidated = false, priority = priority) }
     }
 
-    private suspend fun refreshRequests(requests: List<UniDatasetKey<*>>, force: Boolean, invalidated: Boolean) {
+    private suspend fun refreshRequests(
+        requests: List<UniDatasetKey<*>>,
+        force: Boolean,
+        invalidated: Boolean,
+        priority: UniLoadPriority = UniLoadPriority.Interactive,
+    ): List<Deferred<*>> {
+        val jobs = mutableListOf<Deferred<*>>()
         for (request in requests.distinctBy { it.id }) {
             val entry = acquire(request)
-            try { start(entry, force, invalidated) }
-            finally { release(entry) }
+            try {
+                start(entry, force, invalidated, priority = priority)?.let { jobs += it }
+            } finally {
+                release(entry)
+            }
         }
+        return jobs
     }
 
     internal suspend fun invalidate(requests: List<UniDatasetKey<*>>) {
@@ -392,23 +474,97 @@ class UniCacheEngine(
                     entry.retryAt = null
                     entry.leases > 1 || entry.job != null
                 }
-                if (needed) start(entry, force = true, invalidated = true)
+                if (needed) start(entry, force = true, invalidated = true, priority = UniLoadPriority.Interactive)
             } finally { release(entry) }
         }
     }
 
-    fun preload(isProfessor: Boolean) = refresh(
-        if (isProfessor) listOf(UniDatasets.Professor, UniDatasets.News)
-        else listOf(
-            UniDatasets.Student,
-            UniDatasets.Career,
-            UniDatasets.StudyPlan,
-            UniDatasets.Exams,
-            UniDatasets.Taxes,
-            UniDatasets.News,
-        ),
-        force = false,
-    )
+    /**
+     * Runs the 2-stage startup warm-up:
+     * 1. Tier 1 ([UniPreloadPlan.immediate]) starts immediately in parallel on the primary
+     *    [UniLoadPriority.Interactive] lane so Home renders as fast as possible.
+     * 2. Once Tier 1 settles, Tier 2 ([UniPreloadPlan.background]) warms remaining portal datasets
+     *    in bounded waves ([backgroundConcurrency] at a time) on the dedicated
+     *    [UniLoadPriority.Background] lane, never blocking user navigation.
+     */
+    fun preload(isProfessor: Boolean) {
+        if (closed || !scope.isActive) {
+            logCacheDiagnostic("preload ignored (closed=$closed active=${scope.isActive} gen=$generation)")
+            return
+        }
+        preload(
+            immediate = UniPreloadPlan.immediate(isProfessor),
+            background = UniPreloadPlan.background(isProfessor),
+        )
+    }
+
+    internal fun preload(
+        immediate: List<UniDatasetKey<*>>,
+        background: List<UniDatasetKey<*>>,
+    ) {
+        if (closed || !scope.isActive) {
+            logCacheDiagnostic("preload ignored (closed=$closed active=${scope.isActive} gen=$generation)")
+            return
+        }
+        preloadJob?.cancel()
+        preloadJob = scope.launch {
+            // Tier 1: Critical Home & identity datasets on the primary Interactive lane.
+            val immediateJobs = refreshRequests(
+                requests = immediate,
+                force = false,
+                invalidated = false,
+                priority = UniLoadPriority.Interactive,
+            )
+            immediateJobs.forEach { deferred ->
+                try {
+                    deferred.await()
+                } catch (error: CancellationException) {
+                    if (!currentCoroutineContext().isActive) throw error
+                } catch (_: Throwable) {
+                    // Individual dataset errors must never prevent Tier 2 warm-up.
+                }
+            }
+
+            // Tier 2: Secondary portal datasets on the isolated low-concurrency Background lane.
+            val pending = background.distinctBy { it.id }
+            if (pending.isEmpty()) return@launch
+            val queueLock = Mutex()
+            var nextIndex = 0
+            val workerCount = backgroundConcurrency.coerceAtMost(pending.size)
+            coroutineScope {
+                repeat(workerCount) {
+                    launch {
+                        while (true) {
+                            ensureActive()
+                            val request = queueLock.withLock {
+                                if (nextIndex >= pending.size) null else pending[nextIndex++]
+                            } ?: break
+                            val entry = acquire(request)
+                            val job = try {
+                                start(
+                                    entry = entry,
+                                    force = false,
+                                    invalidated = false,
+                                    priority = UniLoadPriority.Background,
+                                )
+                            } finally {
+                                release(entry)
+                            }
+                            if (job != null) {
+                                try {
+                                    job.await()
+                                } catch (error: CancellationException) {
+                                    if (!currentCoroutineContext().isActive) throw error
+                                } catch (_: Throwable) {
+                                    // Retried when the user opens that section or on next TTL cycle.
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private val mutablePortrait = MutableStateFlow<ByteArray?>(null)
     val portrait = mutablePortrait.asStateFlow()
@@ -488,6 +644,7 @@ class UniCacheEngine(
         entry: Entry<T>,
         force: Boolean,
         invalidated: Boolean = false,
+        priority: UniLoadPriority = UniLoadPriority.Interactive,
     ): Deferred<T>? = guard.withLock {
         if (closed) {
             logCacheDiagnostic("start rejected (closed) id=${entry.request.id} gen=$generation force=$force")
@@ -495,6 +652,7 @@ class UniCacheEngine(
         }
         entry.job?.let {
             if (invalidated || (force && !entry.forcing)) entry.forcePending = true
+            if (priority == UniLoadPriority.Interactive) entry.interactivePending = true
             if (force) logCacheDiagnostic("start coalesced into in-flight job id=${entry.request.id} gen=$generation forcing=${entry.forcing} pending=${entry.forcePending}")
             return@withLock it
         }
@@ -507,6 +665,7 @@ class UniCacheEngine(
         entry.forcing = effectiveForce
         entry.invalidated = false
         entry.forcePending = false
+        entry.interactivePending = priority == UniLoadPriority.Interactive
         entry.state.value = entry.state.value.copy(refreshing = true, error = null)
         val completion = CompletableDeferred<T>(scope.coroutineContext[Job])
         entry.job = completion
@@ -530,15 +689,19 @@ class UniCacheEngine(
                     }
                 }
                 var mustRefresh = effectiveForce
+                var currentPriority = priority
                 while (true) {
                     guard.withLock {
                         mustRefresh = mustRefresh || entry.forcePending
+                        if (entry.interactivePending) currentPriority = UniLoadPriority.Interactive
                         entry.forcePending = false
+                        entry.interactivePending = false
                         entry.forcing = mustRefresh
                     }
+                    val lane = if (currentPriority == UniLoadPriority.Background) backgroundNetwork else network
                     val result = try {
                         Result.success(
-                            network.withPermit {
+                            lane.withPermit {
                                 val timeoutMillis = if (entry.request.id.startsWith("library-")) 95_000L else 45_000L
                                 withTimeout(timeoutMillis) {
                                     entry.request.load(source, mustRefresh)
@@ -673,6 +836,7 @@ class UniCacheEngine(
     suspend fun close() {
         guard.withLock {
             closed = true
+            preloadJob?.cancel()
             ticketArchiveJob?.cancel()
             scope.cancel()
             entries.values.forEach { it.clear() }
