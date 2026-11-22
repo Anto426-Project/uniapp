@@ -1,10 +1,19 @@
 package com.anto426.uniapp.ui.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -19,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
@@ -53,6 +64,7 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
+import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
@@ -64,6 +76,7 @@ import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigat
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteSelector
+import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.components.selection.slider.LiquidSlider
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
@@ -441,7 +454,6 @@ fun ThemeScreen(
     }
 
     val haptics = LocalHapticFeedback.current
-    val colorScheme = MaterialTheme.colorScheme
     val performance = LocalLiquidGlassPerformance.current
     val effectiveQualityTier = performance.opticalQualityTier ?: performance.qualityTier
     val effectiveQualityLabel = when (effectiveQualityTier) {
@@ -468,9 +480,9 @@ fun ThemeScreen(
     )
 
     UniScreenColumn {
-        // 1. Live UniApp Monet Preview Card (always visible above category tabs)
+        // 1. Compact Studio Summary Banner (single-surface, zero nested glass cards)
         UniAnimatedEntrance(order = 0) {
-            LiveThemePreviewCard(
+            ThemeStudioHeaderCard(
                 paletteLabel = paletteLabel,
                 modeLabel = modeLabel,
                 backgroundTitle = selectedBackground.title,
@@ -485,7 +497,7 @@ fun ThemeScreen(
             onTabSelected = { selectedCategory = it },
         )
 
-        // 3. Active Category Content
+        // 3. Categorized Controls
         UniTabContentHost(
             selectedTab = selectedCategory,
             tabCount = categoryTabs.size,
@@ -493,11 +505,11 @@ fun ThemeScreen(
         ) { category ->
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 when (category) {
                     0 -> {
-                        ThemeModeGroup(
+                        ThemeModeVisualSection(
                             selectedMode = uiState.themeMode,
                             onThemeModeSelected = onThemeModeSelected,
                         )
@@ -509,14 +521,6 @@ fun ThemeScreen(
                     }
 
                     1 -> {
-                        ThemeGlassCustomizationGroup(
-                            qualityChoices = qualityChoices,
-                            selectedQuality = selectedQuality,
-                            effectiveQualityLabel = effectiveQualityLabel,
-                            onQualitySelected = onGlassQualitySelected,
-                            liquidIntensity = uiState.liquidIntensity,
-                            onLiquidIntensityChanged = onLiquidIntensityChanged,
-                        )
                         ThemeBackgroundGroup(
                             backgroundChoices = backgroundChoices,
                             selectedBackground = selectedBackground,
@@ -528,6 +532,14 @@ fun ThemeScreen(
                             showBackgroundVignette = uiState.showBackgroundVignette,
                             onBackgroundVignetteChanged = onBackgroundVignetteChanged,
                             reducedMotion = uiState.reducedMotion,
+                        )
+                        ThemeGlassCustomizationGroup(
+                            qualityChoices = qualityChoices,
+                            selectedQuality = selectedQuality,
+                            effectiveQualityLabel = effectiveQualityLabel,
+                            onQualitySelected = onGlassQualitySelected,
+                            liquidIntensity = uiState.liquidIntensity,
+                            onLiquidIntensityChanged = onLiquidIntensityChanged,
                         )
                     }
 
@@ -553,64 +565,185 @@ fun ThemeScreen(
             }
         }
 
-        // 4. Ripristina valori predefiniti
-        UniInsetGroup(entranceOrder = 3) {
-            UniInsetRow(
-                title = stringResource(Res.string.ui_theme_reset_short),
-                icon = LiquidIcons.Refresh,
-                iconTint = colorScheme.primary,
-                onClick = {
-                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                    onReset()
-                },
-                showDivider = false,
+        // 4. Full-width Outlined Glass Reset Action
+        LiquidButton(
+            text = stringResource(Res.string.ui_theme_reset_short),
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onReset()
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = LiquidIcons.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            variant = LiquidButtonVariant.Outlined,
+            size = LiquidButtonSize.Medium,
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 50.dp),
+        )
+    }
+}
+
+/**
+ * Single-layer Theme Studio header: live Monet token swatches + active configuration at a glance.
+ * Avoids card-in-card glass nesting while preserving clear contrast in both light and dark modes.
+ */
+@Composable
+private fun ThemeStudioHeaderCard(
+    paletteLabel: String,
+    modeLabel: String,
+    backgroundTitle: String,
+    activeQualityLabel: String,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val primaryState = animateColorAsState(targetValue = colorScheme.primary, label = "studioPrimary")
+    val secondaryState = animateColorAsState(targetValue = colorScheme.secondary, label = "studioSecondary")
+    val tertiaryState = animateColorAsState(targetValue = colorScheme.tertiary, label = "studioTertiary")
+    val cardShape = remember { RoundedRectangle(24.dp) }
+    val iconShape = remember { RoundedRectangle(14.dp) }
+
+    LiquidCard(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = cardShape,
+        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.22f)),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = LiquidIcons.Palette,
+                contentDescription = null,
+                tint = colorScheme.primary,
+                modifier = Modifier.liquidIconContainer(
+                    containerSize = 44.dp,
+                    iconSize = 21.dp,
+                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                    shape = iconShape,
+                ),
             )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    text = paletteLabel,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "$modeLabel · $backgroundTitle",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                LiquidBadge(
+                    text = activeQualityLabel,
+                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                    contentColor = colorScheme.primary,
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TokenSwatchDot(colorState = primaryState)
+                    TokenSwatchDot(colorState = secondaryState)
+                    TokenSwatchDot(colorState = tertiaryState)
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ThemeModeGroup(
+private fun TokenSwatchDot(colorState: State<Color>) {
+    Box(
+        modifier = Modifier
+            .size(10.dp)
+            .clip(CircleShape)
+            .drawBehind { drawRect(colorState.value) },
+    )
+}
+
+@Composable
+private fun ThemeSectionLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.9.sp,
+        ),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
+}
+
+/**
+ * Tactile 3-up glass theme mode selector (System / Light / Dark) with crisp icon badges.
+ */
+@Composable
+private fun ThemeModeVisualSection(
     selectedMode: AppThemeMode,
     onThemeModeSelected: (AppThemeMode) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val haptics = LocalHapticFeedback.current
-    val modeEntries = listOf(
+    val tileShape = remember { RoundedRectangle(20.dp) }
+    val modes = listOf(
         Triple(AppThemeMode.System, stringResource(Res.string.ui_theme_mode_system), ThemeIcons.AutoMode),
         Triple(AppThemeMode.Light, stringResource(Res.string.ui_theme_mode_light), ThemeIcons.LightMode),
         Triple(AppThemeMode.Dark, stringResource(Res.string.ui_theme_mode_dark), ThemeIcons.DarkMode),
     )
 
-    UniInsetGroup(
-        title = stringResource(Res.string.ui_theme_mode_group),
-        entranceOrder = 1,
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        ThemeSectionLabel(stringResource(Res.string.ui_theme_mode_group))
+
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            modeEntries.forEach { (mode, title, icon) ->
+            modes.forEach { (mode, title, icon) ->
                 val isSelected = selectedMode == mode
                 LiquidCard(
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 11.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 14.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .defaultMinSize(minHeight = 46.dp)
+                        .defaultMinSize(minHeight = 88.dp)
                         .semantics(mergeDescendants = true) {
                             role = Role.RadioButton
                             selected = isSelected
                         },
-                    shape = Capsule(),
+                    shape = tileShape,
                     border = BorderStroke(
                         width = if (isSelected) 1.5.dp else 0.75.dp,
-                        color = if (isSelected) colorScheme.primary.copy(alpha = 0.78f) else colorScheme.outlineVariant.copy(alpha = 0.25f),
+                        color = if (isSelected) colorScheme.primary else colorScheme.outlineVariant.copy(alpha = 0.25f),
                     ),
-                    colors = LiquidCardDefaults.colors(
-                        containerColor = if (isSelected) colorScheme.primary.copy(alpha = 0.14f) else Color.Transparent,
-                    ),
+                    colors = if (isSelected) {
+                        LiquidCardDefaults.colors(containerColor = colorScheme.primary.copy(alpha = 0.12f))
+                    } else {
+                        LiquidCardDefaults.colors()
+                    },
                     onClick = {
                         if (!isSelected) {
                             haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
@@ -618,21 +751,30 @@ private fun ThemeModeGroup(
                         }
                     },
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.liquidIconContainer(
+                                containerSize = 36.dp,
+                                iconSize = 18.dp,
+                                containerColor = if (isSelected) {
+                                    colorScheme.primary.copy(alpha = 0.16f)
+                                } else {
+                                    colorScheme.onSurface.copy(alpha = 0.06f)
+                                },
+                                shape = CircleShape,
+                            ),
                         )
                         Text(
                             text = title,
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             color = if (isSelected) colorScheme.primary else colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -642,149 +784,6 @@ private fun ThemeModeGroup(
             }
         }
     }
-}
-
-@Composable
-private fun LiveThemePreviewCard(
-    paletteLabel: String,
-    modeLabel: String,
-    backgroundTitle: String,
-    activeQualityLabel: String,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    val primaryState = animateColorAsState(targetValue = colorScheme.primary, label = "themePreviewPrimary")
-    val secondaryState = animateColorAsState(targetValue = colorScheme.secondary, label = "themePreviewSecondary")
-    val tertiaryState = animateColorAsState(targetValue = colorScheme.tertiary, label = "themePreviewTertiary")
-    val cardShape = remember { RoundedRectangle(26.dp) }
-    val tileShape = remember { RoundedRectangle(16.dp) }
-
-    LiquidCard(
-        contentPadding = PaddingValues(18.dp),
-        modifier = Modifier.fillMaxWidth(),
-        shape = cardShape,
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.24f)),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Palette,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 38.dp,
-                        iconSize = 19.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.16f),
-                        shape = RoundedRectangle(11.dp),
-                    ),
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = paletteLabel,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = "$modeLabel • $backgroundTitle",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                LiquidBadge(
-                    text = activeQualityLabel,
-                    containerColor = colorScheme.primary.copy(alpha = 0.15f),
-                    contentColor = colorScheme.primary,
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                LiquidCard(
-                    contentPadding = PaddingValues(12.dp),
-                    modifier = Modifier.weight(1f),
-                    shape = tileShape,
-                    border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = stringResource(Res.string.ui_average),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "28.5",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = colorScheme.onSurface,
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.72f)
-                                .height(6.dp)
-                                .clip(Capsule())
-                                .drawBehind { drawRect(primaryState.value) },
-                        )
-                    }
-                }
-
-                LiquidCard(
-                    contentPadding = PaddingValues(12.dp),
-                    modifier = Modifier.weight(1f),
-                    shape = tileShape,
-                    border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.25f)),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = stringResource(Res.string.ui_monet_palette),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            TokenDot(colorState = primaryState)
-                            TokenDot(colorState = secondaryState)
-                            TokenDot(colorState = tertiaryState)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.55f)
-                                .height(6.dp)
-                                .clip(Capsule())
-                                .drawBehind { drawRect(secondaryState.value.copy(alpha = 0.70f)) },
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TokenDot(colorState: State<Color>) {
-    Box(
-        modifier = Modifier
-            .size(18.dp)
-            .clip(CircleShape)
-            .drawBehind { drawRect(colorState.value) },
-    )
 }
 
 @Composable
@@ -810,7 +809,6 @@ private fun ThemeColorGroup(
 
     UniInsetGroup(
         title = stringResource(Res.string.ui_theme_selection_title),
-        entranceOrder = 2,
     ) {
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_material_you_title),
@@ -838,7 +836,7 @@ private fun ThemeColorGroup(
             },
             title = null,
             showBadge = false,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
         )
 
         LiquidHorizontalDivider(
@@ -854,55 +852,36 @@ private fun ThemeColorGroup(
                 stringResource(Res.string.ui_colors_subtitle)
             },
             icon = LiquidIcons.Palette,
-            iconTint = colorScheme.primary,
+            iconTint = if (isCustomActive) customColor else colorScheme.primary,
             onClick = onNavigateToColorLab,
             showDivider = false,
+            trailingContent = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (isCustomActive) {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(customColor)
+                                .border(1.5.dp, colorScheme.onSurface.copy(alpha = 0.25f), CircleShape),
+                        )
+                    }
+                    Icon(
+                        imageVector = LiquidIcons.ChevronRight,
+                        contentDescription = null,
+                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.50f),
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            },
         )
     }
 }
 
-@Composable
-private fun ThemeGlassCustomizationGroup(
-    qualityChoices: List<ThemeOptionChoice<LiquidGlassQualityTier?>>,
-    selectedQuality: ThemeOptionChoice<LiquidGlassQualityTier?>,
-    effectiveQualityLabel: String,
-    onQualitySelected: (LiquidGlassQualityTier?) -> Unit,
-    liquidIntensity: Float,
-    onLiquidIntensityChanged: (Float) -> Unit,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    val qualitySubtitle = if (selectedQuality.value == null) {
-        "${selectedQuality.title} · $effectiveQualityLabel"
-    } else {
-        selectedQuality.title
-    }
-    UniInsetGroup(
-        title = stringResource(Res.string.ui_theme_glass_group),
-        entranceOrder = 1,
-    ) {
-        ThemeDropdownRow(
-            title = stringResource(Res.string.ui_theme_glass_quality),
-            selected = selectedQuality,
-            selectedSubtitle = qualitySubtitle,
-            items = qualityChoices,
-            icon = LiquidIcons.Star,
-            iconTint = colorScheme.primary,
-            onItemSelected = onQualitySelected,
-            showDivider = true,
-        )
-        ThemeSliderRow(
-            title = stringResource(Res.string.ui_theme_liquid_intensity),
-            valueLabel = "${(liquidIntensity * 100f).roundToInt()}%",
-            value = liquidIntensity,
-            onValueChange = onLiquidIntensityChanged,
-            valueRange = 0f..1f,
-            icon = ThemeIcons.Sparkles,
-            iconTint = colorScheme.secondary,
-            showDivider = false,
-        )
-    }
-}
-
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ThemeBackgroundGroup(
     backgroundChoices: List<ThemeOptionChoice<LiquidBackgroundEffect>>,
@@ -917,20 +896,85 @@ private fun ThemeBackgroundGroup(
     reducedMotion: Boolean,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
     val roundedSpeed = (backgroundSpeedFactor * 10f).roundToInt() / 10f
+
     UniInsetGroup(
         title = stringResource(Res.string.ui_theme_background_group),
-        entranceOrder = 2,
     ) {
-        ThemeDropdownRow(
-            title = stringResource(Res.string.ui_theme_engine_group),
-            selected = selectedBackground,
-            items = backgroundChoices,
-            icon = ThemeIcons.Wallpaper,
-            iconTint = colorScheme.primary,
-            onItemSelected = onBackgroundStyleSelected,
-            showDivider = true,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = ThemeIcons.Wallpaper,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 36.dp,
+                        iconSize = 18.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                        shape = RoundedRectangle(10.dp),
+                    ),
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_theme_engine_group),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = selectedBackground.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                backgroundChoices.forEach { choice ->
+                    key(choice.value) {
+                        val isSelected = choice.value == selectedBackground.value
+                        LiquidChip(
+                            label = choice.title,
+                            selected = isSelected,
+                            leadingIcon = if (isSelected) LiquidIcons.Check else null,
+                            onClick = {
+                                if (!isSelected) {
+                                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                    onBackgroundStyleSelected(choice.value)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        LiquidHorizontalDivider(
+            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+            color = colorScheme.outlineVariant.copy(alpha = 0.25f),
         )
+
         ThemeSliderRow(
             title = stringResource(Res.string.ui_theme_glow_intensity),
             valueLabel = "${(backgroundIntensity * 100f).roundToInt()}%",
@@ -966,6 +1010,113 @@ private fun ThemeBackgroundGroup(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ThemeGlassCustomizationGroup(
+    qualityChoices: List<ThemeOptionChoice<LiquidGlassQualityTier?>>,
+    selectedQuality: ThemeOptionChoice<LiquidGlassQualityTier?>,
+    effectiveQualityLabel: String,
+    onQualitySelected: (LiquidGlassQualityTier?) -> Unit,
+    liquidIntensity: Float,
+    onLiquidIntensityChanged: (Float) -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    val qualityStatus = if (selectedQuality.value == null) {
+        "${selectedQuality.title} · $effectiveQualityLabel"
+    } else {
+        selectedQuality.description
+    }
+
+    UniInsetGroup(
+        title = stringResource(Res.string.ui_theme_glass_group),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = LiquidIcons.Star,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 36.dp,
+                        iconSize = 18.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                        shape = RoundedRectangle(10.dp),
+                    ),
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_theme_glass_quality),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = qualityStatus,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                qualityChoices.forEach { choice ->
+                    key(choice.value) {
+                        val isSelected = choice.value == selectedQuality.value
+                        LiquidChip(
+                            label = choice.title,
+                            selected = isSelected,
+                            leadingIcon = if (isSelected) LiquidIcons.Check else null,
+                            onClick = {
+                                if (!isSelected) {
+                                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                    onQualitySelected(choice.value)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        LiquidHorizontalDivider(
+            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+            color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+        )
+
+        ThemeSliderRow(
+            title = stringResource(Res.string.ui_theme_liquid_intensity),
+            valueLabel = "${(liquidIntensity * 100f).roundToInt()}%",
+            value = liquidIntensity,
+            onValueChange = onLiquidIntensityChanged,
+            valueRange = 0f..1f,
+            icon = ThemeIcons.Sparkles,
+            iconTint = colorScheme.secondary,
+            showDivider = false,
+        )
+    }
+}
+
 @Composable
 private fun ThemeNavigationBarGroup(
     showLabels: Boolean,
@@ -974,10 +1125,73 @@ private fun ThemeNavigationBarGroup(
     onAutoHideChanged: (Boolean) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val previewShape = remember { RoundedRectangle(16.dp) }
+    val previewItems = listOf(
+        LiquidIcons.Home to stringResource(Res.string.ui_app_name),
+        LiquidIcons.MenuBook to stringResource(Res.string.nav_route_didactics_title),
+        LiquidIcons.Info to stringResource(Res.string.nav_route_services_title),
+        LiquidIcons.Settings to stringResource(Res.string.nav_route_settings_title),
+    )
+
     UniInsetGroup(
         title = stringResource(Res.string.ui_theme_navbar_group),
-        entranceOrder = 1,
     ) {
+        // Live compact navbar preview (flat surface inside group — zero nested LiquidCard)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .clip(previewShape)
+                .background(colorScheme.onSurface.copy(alpha = 0.05f))
+                .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.22f), previewShape)
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                previewItems.forEachIndexed { idx, (icon, label) ->
+                    val active = idx == 0
+                    val itemShape = remember { Capsule() }
+                    Column(
+                        modifier = Modifier
+                            .clip(itemShape)
+                            .background(if (active) colorScheme.primary.copy(alpha = 0.14f) else Color.Transparent)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (active) colorScheme.primary else colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        AnimatedVisibility(
+                            visible = showLabels,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically(),
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                                color = if (active) colorScheme.primary else colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        LiquidHorizontalDivider(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            color = colorScheme.outlineVariant.copy(alpha = 0.22f),
+        )
+
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_navbar_labels_title),
             subtitle = stringResource(Res.string.ui_theme_navbar_labels_sub),
@@ -1015,7 +1229,6 @@ private fun ThemeAnimationsGroup(
     val colorScheme = MaterialTheme.colorScheme
     UniInsetGroup(
         title = stringResource(Res.string.ui_theme_animations_group),
-        entranceOrder = 2,
     ) {
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_reduced_motion_title),
@@ -1032,7 +1245,7 @@ private fun ThemeAnimationsGroup(
                 text = stringResource(Res.string.ui_theme_page_motion_reduced_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
         } else {
             ThemeDropdownRow(
@@ -1042,7 +1255,7 @@ private fun ThemeAnimationsGroup(
                 icon = ThemeIcons.PageTransition,
                 iconTint = colorScheme.primary,
                 onItemSelected = onTransitionSelected,
-                showDivider = true,
+                showDivider = false,
             )
             ThemeTransitionPreviewRow(
                 transition = selectedMotion.value,
@@ -1060,7 +1273,7 @@ private fun ThemeAnimationsGroup(
                 icon = ThemeIcons.ElementEntrance,
                 iconTint = colorScheme.secondary,
                 onItemSelected = onEntranceSelected,
-                showDivider = showEntrancePreview,
+                showDivider = false,
             )
             if (showEntrancePreview) {
                 ThemeEntrancePreviewRow(
@@ -1080,8 +1293,8 @@ private fun ThemeTransitionPreviewRow(
     val haptics = LocalHapticFeedback.current
     var previewPage by remember { mutableIntStateOf(0) }
     var forward by remember { mutableStateOf(true) }
-    val cardShape = remember { RoundedRectangle(18.dp) }
-    val iconShape = remember { RoundedRectangle(11.dp) }
+    val surfaceShape = remember { RoundedRectangle(16.dp) }
+    val iconShape = remember { RoundedRectangle(10.dp) }
     val pageTitles = listOf(
         stringResource(Res.string.ui_home_career_eyebrow),
         stringResource(Res.string.ui_career_open_stats),
@@ -1091,8 +1304,8 @@ private fun ThemeTransitionPreviewRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1112,7 +1325,7 @@ private fun ThemeTransitionPreviewRow(
                 LiquidIconButton(
                     icon = LiquidIcons.ChevronLeft,
                     contentDescription = stringResource(Res.string.ui_theme_transition_preview_prev),
-                    size = 34.dp,
+                    size = 44.dp,
                     iconSize = 18.dp,
                     variant = LiquidIconButtonVariant.Ghost,
                     onClick = {
@@ -1124,7 +1337,7 @@ private fun ThemeTransitionPreviewRow(
                 LiquidIconButton(
                     icon = LiquidIcons.ChevronRight,
                     contentDescription = stringResource(Res.string.ui_theme_transition_preview_next),
-                    size = 34.dp,
+                    size = 44.dp,
                     iconSize = 18.dp,
                     variant = LiquidIconButtonVariant.Ghost,
                     onClick = {
@@ -1154,54 +1367,61 @@ private fun ThemeTransitionPreviewRow(
                 1 -> colorScheme.tertiary
                 else -> colorScheme.secondary
             }
-            LiquidCard(
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-                shape = cardShape,
-                border = BorderStroke(1.dp, accent.copy(alpha = 0.24f)),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = accent,
-                        modifier = Modifier.liquidIconContainer(
-                            containerSize = 36.dp,
-                            iconSize = 18.dp,
-                            containerColor = accent.copy(alpha = 0.14f),
-                            shape = iconShape,
-                        ),
+            // Flat tinted preview container (no nested LiquidCard glass layer)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(surfaceShape)
+                    .background(accent.copy(alpha = 0.08f))
+                    .border(1.dp, accent.copy(alpha = 0.24f), surfaceShape)
+                    .liquidClickable(
+                        shape = surfaceShape,
+                        onClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            forward = true
+                            previewPage = (previewPage + 1) % 3
+                        },
                     )
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            text = pageTitles[page],
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = transitionName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    LiquidBadge(
-                        text = "${page + 1}/3",
-                        containerColor = accent.copy(alpha = 0.14f),
-                        contentColor = accent,
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 36.dp,
+                        iconSize = 18.dp,
+                        containerColor = accent.copy(alpha = 0.16f),
+                        shape = iconShape,
+                    ),
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = pageTitles[page],
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = transitionName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
+                LiquidBadge(
+                    text = "${page + 1}/3",
+                    containerColor = accent.copy(alpha = 0.16f),
+                    contentColor = accent,
+                )
             }
         }
     }
@@ -1221,7 +1441,7 @@ private fun ThemeEntrancePreviewRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(
@@ -1258,36 +1478,35 @@ private fun ThemeEntrancePreviewRow(
                     replayKey = replayCount to animation,
                     modifier = Modifier.weight(1f),
                 ) {
-                    LiquidCard(
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
-                        shape = tileShape,
-                        border = BorderStroke(1.dp, accent.copy(alpha = 0.24f)),
-                        modifier = Modifier.fillMaxWidth(),
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(tileShape)
+                            .background(accent.copy(alpha = 0.08f))
+                            .border(1.dp, accent.copy(alpha = 0.22f), tileShape)
+                            .padding(horizontal = 10.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalAlignment = Alignment.Start,
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                            horizontalAlignment = Alignment.Start,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .drawBehind { drawRect(accent) },
-                            )
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface,
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.75f)
-                                    .height(4.dp)
-                                    .clip(Capsule())
-                                    .drawBehind { drawRect(accent.copy(alpha = 0.45f)) },
-                            )
-                        }
+                        Box(
+                            modifier = Modifier
+                                .size(9.dp)
+                                .clip(CircleShape)
+                                .drawBehind { drawRect(accent) },
+                        )
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.onSurface,
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.75f)
+                                .height(4.dp)
+                                .clip(Capsule())
+                                .drawBehind { drawRect(accent.copy(alpha = 0.50f)) },
+                        )
                     }
                 }
             }
