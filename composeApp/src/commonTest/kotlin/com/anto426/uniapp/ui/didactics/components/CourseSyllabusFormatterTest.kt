@@ -81,4 +81,65 @@ class CourseSyllabusFormatterTest {
         assertEquals(3, blocks.size)
         assertTrue(blocks.all { it is MarkdownBlock.ListItem })
     }
+
+    @Test
+    fun promotesStandaloneDublinDescriptorsWithoutColonsAndFormatsModulesAndCfuBlocks() {
+        val raw = """
+            Conoscenza e capacità di comprensione
+            Lo studente conoscerà i metodi numerici.
+
+            I Modulo – Basi di dati relazionali
+            CFU 1 - Introduzione al Calcolo Numerico
+            Risoluzione di un problema del mondo reale.
+            CFU 2
+            Dallo schema concettuale allo schema relazionale.
+        """.trimIndent()
+
+        val formatted = CourseSyllabusFormatter.formatSectionMarkdown(raw)
+        val blocks = DocumentMarkdownParser.parseMarkdownBlocks(formatted)
+
+        assertTrue(blocks.contains(MarkdownBlock.Heading(4, "Conoscenza e capacità di comprensione")))
+        assertTrue(blocks.contains(MarkdownBlock.Heading(2, "I Modulo – Basi di dati relazionali")))
+        assertTrue(blocks.contains(MarkdownBlock.Heading(4, "CFU 1 · Introduzione al Calcolo Numerico")))
+        assertTrue(blocks.contains(MarkdownBlock.Heading(4, "CFU 2")))
+    }
+
+    @Test
+    fun convertsCinecaTabSeparatedVerificationGridIntoMarkdownTableBlock() {
+        val raw = """
+            Verifica delle conoscenze:
+
+            Descrittore	Argomenti	Modalità di accertamento
+            Descrittore 1 - Conoscenza	Sorgenti di errore	Prova orale
+            Descrittore 2 - Applicazione	Risoluzione di sistemi lineari
+            e metodi iterativi	Prova scritta
+        """.trimIndent()
+
+        val formatted = CourseSyllabusFormatter.formatSectionMarkdown(raw)
+        val blocks = DocumentMarkdownParser.parseMarkdownBlocks(formatted)
+        val table = blocks.filterIsInstance<MarkdownBlock.TableBlock>().single()
+
+        assertEquals(listOf("Descrittore", "Argomenti", "Modalità di accertamento"), table.headers)
+        assertEquals(2, table.rows.size)
+        assertEquals("Risoluzione di sistemi lineari e metodi iterativi", table.rows[1][1])
+        assertEquals("Prova scritta", table.rows[1][2])
+    }
+
+    @Test
+    fun mergesWrappedBibliographyAuthorsAndKeepsIntroParagraphSeparate() {
+        val raw = """
+            Nel corso della prima lezione il docente inquadrerà i libri di testo.
+            Paolo Atzeni, Basi di dati, McGraw-Hill, 2013.
+              Jim Gray, Andreas Reuter,
+            Transaction Processing: Concepts and Techniques. Morgan Kaufmann 1993.
+        """.trimIndent()
+
+        val formatted = CourseSyllabusFormatter.formatSectionMarkdown(raw, preserveLineBreaksAsList = true)
+        val blocks = DocumentMarkdownParser.parseMarkdownBlocks(formatted)
+
+        assertTrue(blocks.first() is MarkdownBlock.Paragraph)
+        val items = blocks.filterIsInstance<MarkdownBlock.ListItem>()
+        assertEquals(2, items.size)
+        assertTrue(items[1].text.contains("Jim Gray, Andreas Reuter, Transaction Processing"))
+    }
 }
