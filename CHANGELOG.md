@@ -1,3 +1,11 @@
+## [2.1.1] - 2026-11-22 (build set by CI)
+
+- **Dettaglio insegnamenti arricchito.** Programma, prerequisiti e descrizioni dei corsi ora supportano formattazione HTML e Markdown con titoli, elenchi ed enfasi per una lettura più ordinata.
+- **Banner aggiornamenti rifinito.** Migliorate le transizioni di stato e gli indicatori di verifica, con barra di avanzamento fluida di Liquid Monet allineata al colore d’accento del tema.
+- **Impostazioni, Informazioni e Aggiornamenti uniformati.** Righe compatte di altezza uniforme con etichette e sottotitoli ridotti su una sola riga in tutte e dieci le lingue. In Impostazioni la voce Aggiornamenti mostra sempre la versione installata lasciando l’avviso al badge «Nuovo», e i Dispositivi connessi si aggiornano automaticamente all’apertura.
+- **Simulatore voti e Carriera allineati.** Allineato il limite del bonus punti laurea nel simulatore e uniformati colori e badge degli esami superati nel libretto.
+- **Architettura dati e navigazione modulari.** Suddivisi gateway dati, builder dei contratti e instradamento delle schermate in moduli dedicati per dominio funzionale, mantenendo invariate tutte le funzioni dell’app.
+
 ## [2.1.0] - 2026-11-22 (build set by CI)
 
 - **Tema Studio completamente ridisegnato.** La schermata Tema è ora organizzata in tre schede (**Stile**, **Effetti** e **Interfaccia**) con intestazione dal vivo dei token Monet, menu a tendina per sfondo Liquid e qualità ottica, controllo della velocità di animazione dello sfondo e **Orbital Pulse** impostato come nuovo sfondo predefinito in cima all’elenco.
