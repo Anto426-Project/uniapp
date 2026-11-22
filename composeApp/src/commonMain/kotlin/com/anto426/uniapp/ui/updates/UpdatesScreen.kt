@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.updates.UpdateState
@@ -24,6 +25,7 @@ fun UpdatesScreen(
     onRetry: () -> Unit,
     onOpenUpdate: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onToggleDebugMandatory: (Boolean) -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
@@ -90,6 +92,31 @@ fun UpdatesScreen(
             }
 
             UpdateChangelogRow(onOpenChangelog)
+        }
+
+        if (uiState.canSimulateMandatoryUpdate) {
+            UniInsetGroup(
+                title = "Debug",
+                entranceOrder = 2,
+            ) {
+                UniInsetRow(
+                    title = "Simula aggiornamento obbligatorio",
+                    subtitle = "Mostra il flusso bloccante in build debug",
+                    icon = LiquidIcons.Lock,
+                    iconTint = if (uiState.isDebugMandatorySimulated) glassColors.warning else colorScheme.primary,
+                    showDivider = false,
+                    titleMaxLines = 1,
+                    subtitleMaxLines = 1,
+                    minHeight = 64.dp,
+                    onClick = { onToggleDebugMandatory(!uiState.isDebugMandatorySimulated) },
+                    trailingContent = {
+                        LiquidSwitch(
+                            checked = uiState.isDebugMandatorySimulated,
+                            onCheckedChange = onToggleDebugMandatory,
+                        )
+                    },
+                )
+            }
         }
     }
 }

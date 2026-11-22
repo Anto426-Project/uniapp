@@ -40,6 +40,8 @@ data class AppUpdateUiState(
     val totalMb: Float = 0f,
     val availableUpdateKey: String? = null,
     val showUpdateSheet: Boolean = false,
+    val canSimulateMandatoryUpdate: Boolean = false,
+    val isDebugMandatorySimulated: Boolean = false,
 ) {
     val isUpdateAvailable: Boolean
         get() = bannerState == UpdateState.AVAILABLE || availableUpdateKey != null
@@ -92,6 +94,10 @@ internal class AppUpdateViewModel(
                 -> Unit
             }
         }
+    }
+
+    fun setDebugMandatorySimulation(enabled: Boolean) {
+        controller.setDebugMandatorySimulation(enabled)
     }
 
     fun openUpdate() {
@@ -150,5 +156,7 @@ internal fun AppUpdateState.toUiState(): AppUpdateUiState {
             "${it.channel}:${it.latestVersionCode}:${it.latestVersion}:${it.isMandatory}"
         },
         errorMessage = message,
+        canSimulateMandatoryUpdate = installedBuild.isDebuggable,
+        isDebugMandatorySimulated = isDebugMandatorySimulationActive,
     )
 }

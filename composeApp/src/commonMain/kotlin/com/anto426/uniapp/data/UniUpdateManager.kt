@@ -43,8 +43,46 @@ internal class UniUpdateManager(
 ) {
     private val operationLock = Mutex()
     private var lastCheckedAtMillis: Long? = null
+    private var preSimulationState: AppUpdateState? = null
     private val mutableState = MutableStateFlow(AppUpdateState(installedBuild = installedBuild))
     val state: StateFlow<AppUpdateState> = mutableState.asStateFlow()
+
+    /** Debug-only in-memory toggle to exercise the blocking mandatory update flow. Strict no-op in release builds. */
+    fun setDebugMandatorySimulation(enabled: Boolean) {
+        val current = mutableState.value
+        if (!current.installedBuild.isDebuggable) return
+        if (enabled == current.debugMandatorySimulation) return
+        if (enabled) {
+            preSimulationState = current
+            val baseInfo = current.updateInfo
+            val simulatedVersion = "${current.installedBuild.versionName}-debug"
+            val simulatedCode = (current.installedBuild.versionCode ?: 1) + 1
+            mutableState.value = current.copy(
+                phase = AppUpdatePhase.Available,
+                updateInfo = UniAppUpdateManifest(
+                    latestVersion = simulatedVersion,
+                    latestVersionCode = simulatedCode,
+                    isUpdateAvailable = true,
+                    isMandatory = true,
+                    downloadUrl = baseInfo?.downloadUrl?.takeIf { it.startsWith("https://", ignoreCase = true) }
+                        ?: "https://example.invalid/uniapp-debug-mandatory.apk",
+                    notes = baseInfo?.notes?.takeIf(String::isNotBlank)
+                        ?: "Simulazione debug di un aggiornamento obbligatorio.",
+                    publishedAt = baseInfo?.publishedAt,
+                    channel = baseInfo?.channel ?: APP_CHANNEL_STABLE,
+                ),
+                message = null,
+                downloadedBytes = 0,
+                totalBytes = null,
+                debugMandatorySimulation = true,
+            )
+        } else {
+            val restored = preSimulationState?.copy(debugMandatorySimulation = false)
+                ?: AppUpdateState(installedBuild = current.installedBuild)
+            preSimulationState = null
+            mutableState.value = restored
+        }
+    }
 
     suspend fun observeInstallation() {
         launcher.updates.collect { progress ->
@@ -66,6 +104,7 @@ internal class UniUpdateManager(
         if (!operationLock.tryLock()) return
         val previous = mutableState.value
         try {
+            if (previous.isDebugMandatorySimulationActive) return
             val now = nowMillis()
             val lastChecked = lastCheckedAtMillis
             if (!force && lastChecked != null && now - lastChecked in 0 until policy.maxAgeMillis &&

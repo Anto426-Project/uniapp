@@ -171,7 +171,8 @@ internal fun AppNavigationHost(
         sessionState == AppSessionState.Initializing ||
             (authenticatedAccount != null && ownedRepository == null) ||
             !navigator.canRender(sessionRoute)
-    val isMandatoryUpdate = updateUiState.isMandatory && !runtime.appInfo.isDebuggable
+    val isMandatoryUpdate = updateUiState.isMandatory &&
+        (!runtime.appInfo.isDebuggable || updateUiState.isDebugMandatorySimulated)
     val route = navigator.visibleRoute(isMandatoryUpdate)
     val isChangelog = route == AppRoute.Changelog
     val showSessionDialogs = !isChangelog && !isMandatoryUpdate
@@ -396,6 +397,7 @@ internal fun AppNavigationHost(
                             onCancelUnlock = sessionViewModel::cancelUnlock,
                             onRetryUpdate = updateViewModel::refresh,
                             onOpenUpdate = updateViewModel::openUpdate,
+                            onToggleDebugMandatoryUpdate = updateViewModel::setDebugMandatorySimulation,
                             themeUiState = themeUiState,
                             onThemeModeSelected = themeViewModel::selectThemeMode,
                             onThemeSelected = themeViewModel::selectTheme,
@@ -448,6 +450,7 @@ internal fun AppNavigationHost(
                         onRetry = updateViewModel::refresh,
                         onOpenUpdate = updateViewModel::openUpdate,
                         onOpenChangelog = openChangelog,
+                        onToggleDebugMandatory = updateViewModel::setDebugMandatorySimulation,
                     )
                     isResolvingSessionRoute -> AppLoadingState()
                     else -> {

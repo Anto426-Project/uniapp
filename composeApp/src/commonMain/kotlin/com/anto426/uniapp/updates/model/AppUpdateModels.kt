@@ -55,6 +55,7 @@ data class AppUpdateState(
     val message: String? = null,
     val downloadedBytes: Long = 0,
     val totalBytes: Long? = null,
+    val debugMandatorySimulation: Boolean = false,
 ) {
     val isBusy: Boolean
         get() = phase in setOf(
@@ -67,9 +68,12 @@ data class AppUpdateState(
     val canStartUpdate: Boolean
         get() = phase == AppUpdatePhase.Available && updateInfo?.isUpdateAvailable == true && downloadUrl != null
 
+    val isDebugMandatorySimulationActive: Boolean
+        get() = installedBuild.isDebuggable && debugMandatorySimulation
+
     val isMandatory: Boolean
         get() =
-            !installedBuild.isDebuggable &&
+            (!installedBuild.isDebuggable || isDebugMandatorySimulationActive) &&
                 updateInfo?.isMandatory == true &&
                 phase != AppUpdatePhase.UpToDate
 

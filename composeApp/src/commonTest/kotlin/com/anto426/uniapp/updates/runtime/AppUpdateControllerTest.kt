@@ -180,6 +180,45 @@ class AppUpdateControllerTest {
         assertTrue(controller.state.value.isMandatory)
     }
 
+    @Test
+    fun debugMandatorySimulationWorksOnlyOnDebuggableBuildsAndRestoresPreviousState() = runTest {
+        val debugController = UniUpdateManager(
+            source = UniUpdateManifestLoader { _ -> updateInfo(isAvailable = false, isMandatory = false) },
+            installedBuild = InstalledAppBuild("2.1.1", 211, isDebuggable = true),
+            launcher = successfulLauncher(),
+        )
+        debugController.refresh()
+        assertEquals(AppUpdatePhase.UpToDate, debugController.state.value.phase)
+        assertFalse(debugController.state.value.isMandatory)
+
+        debugController.setDebugMandatorySimulation(true)
+        assertTrue(debugController.state.value.isDebugMandatorySimulationActive)
+        assertTrue(debugController.state.value.isMandatory)
+        assertEquals(AppUpdatePhase.Available, debugController.state.value.phase)
+        assertTrue(debugController.state.value.canStartUpdate)
+
+        // Background refresh must not wipe active debug simulation.
+        debugController.refresh()
+        assertTrue(debugController.state.value.isMandatory)
+
+        debugController.setDebugMandatorySimulation(false)
+        assertFalse(debugController.state.value.isDebugMandatorySimulationActive)
+        assertFalse(debugController.state.value.isMandatory)
+        assertEquals(AppUpdatePhase.UpToDate, debugController.state.value.phase)
+
+        // Strict no-op in release builds.
+        val releaseController = UniUpdateManager(
+            source = UniUpdateManifestLoader { _ -> updateInfo(isAvailable = false, isMandatory = false) },
+            installedBuild = InstalledAppBuild("2.1.1", 211, isDebuggable = false),
+            launcher = successfulLauncher(),
+        )
+        releaseController.refresh()
+        releaseController.setDebugMandatorySimulation(true)
+        assertFalse(releaseController.state.value.isDebugMandatorySimulationActive)
+        assertFalse(releaseController.state.value.isMandatory)
+        assertEquals(AppUpdatePhase.UpToDate, releaseController.state.value.phase)
+    }
+
     private fun controller(
         source: UniUpdateManifestLoader,
         launcher: PlatformUpdateLauncher = successfulLauncher(),

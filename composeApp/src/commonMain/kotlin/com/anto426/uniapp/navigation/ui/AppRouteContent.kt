@@ -115,6 +115,7 @@ internal fun AppRouteContent(
     onCancelUnlock: () -> Unit,
     onRetryUpdate: () -> Unit,
     onOpenUpdate: () -> Unit,
+    onToggleDebugMandatoryUpdate: (Boolean) -> Unit = {},
     themeUiState: ThemeUiState,
     onThemeModeSelected: (AppThemeMode) -> Unit,
     onThemeSelected: (Int) -> Unit,
@@ -273,6 +274,7 @@ internal fun AppRouteContent(
                 onRetry = onRetryUpdate,
                 onOpenUpdate = onOpenUpdate,
                 onOpenChangelog = { navigator.navigate(AppRoute.Changelog) },
+                onToggleDebugMandatory = onToggleDebugMandatoryUpdate,
             )
         AppRoute.Changelog -> ChangelogRoute(updateUiState, viewModelKey)
     }
