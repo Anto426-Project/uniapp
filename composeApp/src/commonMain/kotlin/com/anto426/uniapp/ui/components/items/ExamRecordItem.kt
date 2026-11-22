@@ -25,7 +25,6 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.ExamRecord
 import com.kyant.shapes.RoundedRectangle
 
@@ -36,21 +35,11 @@ fun ExamRecordItem(
     onClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val glassColors = LiquidGlassTheme.colors
     val rowShape = remember { RoundedRectangle(16.dp) }
-    val numericGrade = exam.grade.trim().toIntOrNull()
     val hasDetails = exam.code.isNotBlank()
 
-    val accentColor = when {
-        exam.lode -> colorScheme.tertiary
-        numericGrade != null && numericGrade >= 28 -> colorScheme.primary
-        else -> glassColors.success
-    }
-    val badgeBg = when {
-        exam.lode -> colorScheme.tertiaryContainer
-        numericGrade != null && numericGrade >= 28 -> colorScheme.primaryContainer
-        else -> glassColors.success.copy(alpha = 0.16f)
-    }
+    val accentColor = colorScheme.primary
+    val badgeBg = colorScheme.primary.copy(alpha = 0.14f)
 
     val metadata = listOfNotNull(
         exam.cfu.takeIf { it.isNotBlank() },
