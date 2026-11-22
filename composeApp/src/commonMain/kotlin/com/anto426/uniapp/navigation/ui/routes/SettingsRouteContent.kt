@@ -107,11 +107,6 @@ internal fun SettingsRouteContent(
         accountUiState = accountSwitcherUiState,
         installedVersion = updateUiState.installedVersion,
         hasUpdateAvailable = updateUiState.isUpdateAvailable,
-        updateSubtitle = if (updateUiState.isUpdateAvailable) {
-            updateUiState.statusText?.let { stringResource(it) } ?: stringResource(Res.string.msg_aggiornamento_disponibile)
-        } else {
-            null
-        },
         onSelectAccount = accountSwitcherViewModel::selectAccount,
         onRemoveAccount = accountSwitcherViewModel::requestAccountRemoval,
         onAddAccount = accountSwitcherViewModel::addAccount,

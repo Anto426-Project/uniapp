@@ -57,7 +57,6 @@ fun SettingsScreen(
     accountUiState: AccountSwitcherUiState = AccountSwitcherUiState(),
     installedVersion: String = "",
     hasUpdateAvailable: Boolean = false,
-    updateSubtitle: String? = null,
     onSelectAccount: (String) -> Unit = {},
     onRemoveAccount: (String) -> Unit,
     onAddAccount: () -> Unit = {},
@@ -96,11 +95,7 @@ fun SettingsScreen(
         ?: accountUiState.accounts.firstOrNull()
 
     val realVersion = installedVersion.ifBlank { "2.0" }
-    val effectiveUpdateSubtitle = if (hasUpdateAvailable && !updateSubtitle.isNullOrBlank()) {
-        updateSubtitle
-    } else {
-        stringResource(Res.string.ui_version_number, realVersion)
-    }
+    val effectiveUpdateSubtitle = stringResource(Res.string.ui_version_number, realVersion)
 
     UniScreenColumn {
         // 0. Active Account Hero Card (pieno spazio al nome completo + cambio account rapido)
@@ -211,7 +206,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_security),
             entranceOrder = 1,
         ) {
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_connected_devices),
                 subtitle = stringResource(Res.string.ui_active_sessions),
                 icon = LiquidIcons.Lock,
@@ -219,7 +214,7 @@ fun SettingsScreen(
                 onClick = onOpenDevices,
                 showDivider = true,
             )
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_biometric_security),
                 subtitle = when {
                     uiState.isBiometricAuthenticating -> stringResource(Res.string.ui_biometric_authenticating)
@@ -251,7 +246,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_appearance),
             entranceOrder = 2,
         ) {
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_theme_colors),
                 subtitle = stringResource(Res.string.ui_theme_subtitle),
                 icon = LiquidIcons.Palette,
@@ -259,7 +254,7 @@ fun SettingsScreen(
                 onClick = onOpenTheme,
                 showDivider = true,
             )
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_push_notifications),
                 subtitle = stringResource(Res.string.ui_academic_alerts),
                 icon = LiquidIcons.Notifications,
@@ -272,7 +267,7 @@ fun SettingsScreen(
                     )
                 },
             )
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_language_title),
                 subtitle = stringResource(Res.string.ui_language_current),
                 icon = LiquidIcons.Info,
@@ -287,7 +282,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_system_and_info),
             entranceOrder = 3,
         ) {
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_updates),
                 subtitle = effectiveUpdateSubtitle,
                 icon = LiquidIcons.Refresh,
@@ -315,7 +310,7 @@ fun SettingsScreen(
                     }
                 } else null,
             )
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_app_information),
                 subtitle = stringResource(Res.string.ui_app_information_subtitle),
                 icon = LiquidIcons.Info,
@@ -330,7 +325,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_project_contribute_group),
             entranceOrder = 4,
         ) {
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.msg_diventa_un_collaboratore),
                 subtitle = stringResource(Res.string.msg_invia_una_pull_request_con_correzioni_traduzioni_o),
                 icon = LiquidIcons.Star,
@@ -338,7 +333,7 @@ fun SettingsScreen(
                 onClick = onOpenContribute,
                 showDivider = true,
             )
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_project_report_ideas),
                 subtitle = stringResource(Res.string.msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una),
                 icon = LiquidIcons.Feedback,
@@ -352,12 +347,11 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_session_title),
             entranceOrder = 5,
         ) {
-            UniInsetRow(
+            SettingsOptionRow(
                 title = stringResource(Res.string.ui_sign_out),
                 icon = LiquidIcons.Close,
                 onClick = onRequestSignOut,
                 showDivider = false,
-                titleMaxLines = 2,
             )
         }
     }
@@ -462,4 +456,28 @@ fun SettingsScreen(
             },
         )
     }
+}
+
+@Composable
+private fun SettingsOptionRow(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    subtitle: String? = null,
+    iconTint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
+    onClick: (() -> Unit)? = null,
+    showDivider: Boolean = true,
+    trailingContent: (@Composable () -> Unit)? = null,
+) {
+    UniInsetRow(
+        title = title,
+        subtitle = subtitle,
+        icon = icon,
+        iconTint = iconTint,
+        onClick = onClick,
+        showDivider = showDivider,
+        titleMaxLines = 1,
+        subtitleMaxLines = 1,
+        minHeight = 64.dp,
+        trailingContent = trailingContent,
+    )
 }

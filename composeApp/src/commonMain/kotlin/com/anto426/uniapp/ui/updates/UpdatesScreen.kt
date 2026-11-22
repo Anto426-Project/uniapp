@@ -75,6 +75,9 @@ fun UpdatesScreen(
                 icon = LiquidIcons.Check,
                 iconTint = if (isUpToDate) glassColors.success else colorScheme.primary,
                 showDivider = uiState.supportsPackageVerification || !uiState.isMandatory,
+                titleMaxLines = 1,
+                subtitleMaxLines = 1,
+                minHeight = 64.dp,
                 trailingContent = {
                     val accent = if (isUpToDate) glassColors.success else colorScheme.primary
                     LiquidBadge(

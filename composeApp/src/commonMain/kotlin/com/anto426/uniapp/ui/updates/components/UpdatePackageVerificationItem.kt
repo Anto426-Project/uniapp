@@ -43,6 +43,9 @@ internal fun UpdatePackageVerificationItem(
         icon = LiquidIcons.Lock,
         iconTint = if (status == PackageVerificationStatus.Passed) glassColors.success else colorScheme.tertiary,
         showDivider = showDivider,
+        titleMaxLines = 1,
+        subtitleMaxLines = 1,
+        minHeight = 64.dp,
         trailingContent = {
             when (status) {
                 PackageVerificationStatus.Checking -> CircularProgressIndicator(
@@ -71,6 +74,8 @@ internal fun UpdateChangelogRow(onOpenChangelog: () -> Unit) {
         iconTint = MaterialTheme.colorScheme.secondary,
         onClick = onOpenChangelog,
         showDivider = false,
-        titleMaxLines = 2,
+        titleMaxLines = 1,
+        subtitleMaxLines = 1,
+        minHeight = 64.dp,
     )
 }
