@@ -28,6 +28,7 @@ import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
 import com.anto426.uniapp.ui.components.display.UniBentoStatTile
 import com.anto426.uniapp.ui.components.items.DidacticItem
 import com.anto426.uniapp.ui.components.items.DidacticRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -45,11 +46,12 @@ fun ProfessorDidacticsContent(
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
     UniScreenColumn {
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            contentPadding = 18.dp,
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(24.dp),
+                contentPadding = 18.dp,
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -115,38 +117,44 @@ fun ProfessorDidacticsContent(
                 }
             }
         }
+        }
 
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_professor_didactics_tools),
-            subtitle = stringResource(Res.string.ui_professor_didactics_tools_subtitle),
-        )
+        UniAnimatedEntrance(order = 1) {
+            Column(
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_professor_didactics_tools),
+                    subtitle = stringResource(Res.string.ui_professor_didactics_tools_subtitle),
+                )
 
-        Column(
-            modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_teachings),
-                        subtitle = stringResource(Res.string.ui_professor_teachings_subtitle),
-                        icon = LiquidIcons.MenuBook,
-                        badgeCount = uiState.teachingCount.takeIf { it > 0 },
-                        iconColor = colorScheme.primary,
-                        onClick = onOpenTeachings,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_exam_rounds),
-                        subtitle = stringResource(Res.string.ui_professor_exam_rounds_subtitle),
-                        icon = LiquidIcons.Calendar,
-                        badgeCount = uiState.openExamRounds.takeIf { it > 0 },
-                        iconColor = colorScheme.tertiary,
-                        onClick = onOpenExams,
-                    )
-                },
-            )
+                DidacticRow(
+                    item1 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_professor_teachings),
+                            subtitle = stringResource(Res.string.ui_professor_teachings_subtitle),
+                            icon = LiquidIcons.MenuBook,
+                            badgeCount = uiState.teachingCount.takeIf { it > 0 },
+                            iconColor = colorScheme.primary,
+                            onClick = onOpenTeachings,
+                        )
+                    },
+                    item2 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_professor_exam_rounds),
+                            subtitle = stringResource(Res.string.ui_professor_exam_rounds_subtitle),
+                            icon = LiquidIcons.Calendar,
+                            badgeCount = uiState.openExamRounds.takeIf { it > 0 },
+                            iconColor = colorScheme.tertiary,
+                            onClick = onOpenExams,
+                        )
+                    },
+                )
+            }
+        }
+
+        UniAnimatedEntrance(order = 2) {
             DidacticRow(
                 item1 = {
                     DidacticItem(
@@ -169,6 +177,9 @@ fun ProfessorDidacticsContent(
                     )
                 },
             )
+        }
+
+        UniAnimatedEntrance(order = 3) {
             DidacticRow(
                 item1 = {
                     DidacticItem(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -44,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
@@ -58,17 +61,14 @@ import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgr
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.components.layout.expandablecontent.LiquidExpandableContent
-import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.GradesUiState
 import com.anto426.uniapp.didactics.presentation.TargetFeasibility
-import com.anto426.uniapp.model.didactics.SimulationItem
-import com.anto426.unisdk.model.formatAcademicTwoDecimals as toFixedTwoDecimals
-import com.anto426.uniapp.ui.components.display.UniBentoStatTile
+import com.anto426.uniapp.data.contract.SimulationItem
+import com.anto426.uniapp.data.contract.toFixedTwoDecimals
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
-import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.kyant.shapes.RoundedRectangle
 import kotlin.math.roundToInt
@@ -283,19 +283,6 @@ fun SimulationTab(
                 leadingIcon = { Icon(LiquidIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            UniHorizontalChipRow {
-                LiquidChip(label = stringResource(Res.string.ui_grades_preset_all_30), onClick = { onSetAllGrades(30) })
-                LiquidChip(label = stringResource(Res.string.ui_grades_preset_all_28), onClick = { onSetAllGrades(28) })
-                LiquidChip(label = stringResource(Res.string.ui_grades_preset_all_24), onClick = { onSetAllGrades(24) })
-                LiquidChip(label = stringResource(Res.string.ui_grades_preset_current_average), onClick = onApplyCurrentAverage)
-                if (hasScenario) {
-                    LiquidChip(
-                        label = stringResource(Res.string.ui_grades_preset_reset),
-                        leadingIcon = LiquidIcons.Refresh,
-                        onClick = onResetSimulation,
-                    )
-                }
-            }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 uiState.simulationItems.forEach { item ->
                     key(item.id) {
@@ -322,7 +309,7 @@ fun SimulationTab(
                 isAddDialogOpen = false
             },
             baseAverage = uiState.projectedAverage,
-            baseCfu = uiState.totalProjectedCfu,
+            baseCfu = uiState.totalCurrentCfu + uiState.activeSimulatedCfu,
             baseGraduation = uiState.projectedGraduationBase,
         )
     }
@@ -468,18 +455,6 @@ private fun SimulationExamCard(
                         minValue = 18,
                         maxValue = 31,
                     )
-
-                    UniHorizontalChipRow(bleed = 14.dp, clipToBounds = true) {
-                        listOf(18, 21, 24, 26, 27, 28, 29, 30, 31).forEach { option ->
-                            key(option) {
-                                LiquidChip(
-                                    label = simulationGradeLabel(option),
-                                    selected = item.grade == option,
-                                    onClick = { onGradeChange(option) },
-                                )
-                            }
-                        }
-                    }
 
                     if (item.isCustom) {
                         LiquidHorizontalDivider(color = colors.onSurface.copy(alpha = 0.06f))
@@ -726,27 +701,14 @@ fun GraduationTargetTab(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CompactParameterRow(
-                        label = stringResource(Res.string.ui_grades_target_degree_vote),
-                        formattedValue = targetLabel,
-                        value = uiState.targetDegree,
-                        onValueChange = onTargetDegreeChange,
-                        minValue = 66,
-                        maxValue = 111,
-                    )
-                    UniHorizontalChipRow(bleed = 18.dp, clipToBounds = true) {
-                        listOf(100, 105, 108, 110, 111).forEach { preset ->
-                            key(preset) {
-                                LiquidChip(
-                                    label = graduationGradeLabel(preset),
-                                    selected = uiState.targetDegree == preset,
-                                    onClick = { onTargetDegreeChange(preset) },
-                                )
-                            }
-                        }
-                    }
-                }
+                CompactParameterRow(
+                    label = stringResource(Res.string.ui_grades_target_degree_vote),
+                    formattedValue = targetLabel,
+                    value = uiState.targetDegree,
+                    onValueChange = onTargetDegreeChange,
+                    minValue = 66,
+                    maxValue = 111,
+                )
 
                 LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
@@ -873,7 +835,6 @@ fun SimulationChartTab(
     uiState: GradesUiState,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val glassColors = LiquidGlassTheme.colors
     val cardShape = remember { RoundedRectangle(24.dp) }
 
     val tierColors = listOf(
@@ -887,81 +848,49 @@ fun SimulationChartTab(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // 1. Concrete Academic Insights (2x2 Bento Grid — real info upfront)
-        if (uiState.currentExams.isNotEmpty()) {
-            val highestLabel = if (uiState.highestGrade > 0) simulationGradeLabel(uiState.highestGrade) else "—"
-            val highestSubtitle = uiState.highestGradeCourses.takeIf(String::isNotBlank)
-                ?.let { stringResource(Res.string.ui_grades_highest_grade_courses_format, it) }
-            val honorsSubtitle = if (uiState.lodeCount > 0) {
-                stringResource(Res.string.ui_grades_honors_count_format, uiState.lodeCount)
-            } else {
-                stringResource(Res.string.ui_grades_recorded_exams_count, uiState.currentExams.size)
-            }
-            val trendVal = uiState.recentTrend.toDouble()
-            val trendDisplay = if (uiState.currentExams.size < 2) {
-                "—"
-            } else if (trendVal >= 0.0) {
-                stringResource(Res.string.ui_stats_trend_points_positive, trendVal.toFixedTwoDecimals())
-            } else {
-                stringResource(Res.string.ui_stats_trend_points_negative, trendVal.toFixedTwoDecimals())
-            }
-            val trendAccent = when {
-                uiState.currentExams.size < 2 -> colorScheme.onSurfaceVariant
-                trendVal >= 0.0 -> glassColors.success
-                else -> colorScheme.error
-            }
+        // 1. Non-duplicated Grade Extremes (hero card already shows exams count, CFU progress & recent trend)
+        if (uiState.highestGrade > 0) {
+            val highestLabel = simulationGradeLabel(uiState.highestGrade)
+            val highestUnit = if (uiState.highestGrade >= 31) null else "/30"
+            val highestCourse = uiState.highestGradeCourses.takeIf(String::isNotBlank)
+            val showLowest = uiState.lowestGrade > 0 && uiState.lowestGrade != uiState.highestGrade
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+            if (showLowest) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    UniBentoStatTile(
+                    GradeExtremeTile(
                         label = stringResource(Res.string.ui_stats_highest_grade),
                         value = highestLabel,
-                        suffix = highestSubtitle,
+                        unit = highestUnit,
+                        subtitle = highestCourse,
                         icon = LiquidIcons.Star,
                         accentColor = colorScheme.primary,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
-                    UniBentoStatTile(
-                        label = stringResource(Res.string.ui_stats_passed_exams),
-                        value = uiState.currentExams.size.toString(),
-                        suffix = honorsSubtitle,
-                        icon = LiquidIcons.Check,
-                        accentColor = colorScheme.tertiary,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    UniBentoStatTile(
-                        label = stringResource(Res.string.ui_stats_cfu_summary_title),
-                        value = "${uiState.totalCurrentCfu}/${uiState.degreeCfuTarget}",
-                        suffix = if (uiState.remainingDegreeCfu > 0) {
-                            stringResource(Res.string.ui_grades_cfu_remaining_format, uiState.remainingDegreeCfu)
-                        } else {
-                            "${(uiState.careerProgress * 100f).roundToInt()}%"
-                        },
-                        icon = LiquidIcons.MenuBook,
+                    GradeExtremeTile(
+                        label = stringResource(Res.string.ui_stats_lowest_grade),
+                        value = simulationGradeLabel(uiState.lowestGrade),
+                        unit = if (uiState.lowestGrade >= 31) null else "/30",
+                        subtitle = uiState.lowestGradeCourses.takeIf(String::isNotBlank),
+                        icon = LiquidIcons.KeyboardArrowDown,
                         accentColor = colorScheme.secondary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    UniBentoStatTile(
-                        label = stringResource(Res.string.ui_stats_recent_trend),
-                        value = trendDisplay,
-                        suffix = stringResource(Res.string.ui_stats_recent_trend_desc),
-                        icon = LiquidIcons.Refresh,
-                        accentColor = trendAccent,
-                        valueColor = trendAccent,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
+            } else {
+                GradeExtremeTile(
+                    label = stringResource(Res.string.ui_stats_highest_grade),
+                    value = highestLabel,
+                    unit = highestUnit,
+                    subtitle = highestCourse,
+                    icon = LiquidIcons.Star,
+                    accentColor = colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
 
@@ -1109,6 +1038,82 @@ fun SimulationChartTab(
                     color = colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(20.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GradeExtremeTile(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    unit: String? = null,
+    subtitle: String? = null,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val tileShape = remember { RoundedRectangle(20.dp) }
+    LiquidCard(
+        modifier = modifier,
+        shape = tileShape,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = label.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp,
+                    letterSpacing = 0.5.sp,
+                    color = colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Black,
+                        fontFeatureSettings = "tnum",
+                    ),
+                    color = colorScheme.onSurface,
+                    maxLines = 1,
+                )
+                if (!unit.isNullOrBlank()) {
+                    Text(
+                        text = unit,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 3.dp),
+                        maxLines = 1,
+                    )
+                }
+            }
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

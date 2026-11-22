@@ -35,9 +35,11 @@ import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.items.DidacticItem
 import com.anto426.uniapp.ui.components.items.DidacticRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.ProfessorDidacticsContent
 import com.anto426.uniapp.ui.didactics.components.YearProgress
+import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -75,14 +77,15 @@ fun DidacticsScreen(
 
     UniScreenColumn {
         // 1. Academic Degree Summary Card (Liquid-Monet 2.0.39: card -> Statistiche, badge -> Carriera)
-        LiquidCard(
-            contentPadding = PaddingValues(18.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(clip = false),
-            shape = RoundedRectangle(24.dp),
-            onClick = onOpenGrades,
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                contentPadding = PaddingValues(18.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
+                shape = RoundedRectangle(24.dp),
+                onClick = onOpenGrades,
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -188,9 +191,10 @@ fun DidacticsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
+                        val cfuPercent = (uiState.progress * 100f).roundToInt().coerceIn(0, 100)
                         UniCircularProgressRing(
                             progress = uiState.progress,
-                            centerText = "${(uiState.progress * 100).toInt()}%",
+                            centerText = "$cfuPercent%",
                             subtitleText = "CFU",
                             size = 68.dp,
                             strokeWidth = 6.dp,
@@ -216,7 +220,7 @@ fun DidacticsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(Res.string.ui_didactics_career_progress_percent, (uiState.progress * 100).toInt()),
+                        text = stringResource(Res.string.ui_didactics_career_progress_percent, (uiState.progress * 100f).roundToInt().coerceIn(0, 100)),
                         style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
                     )
@@ -240,74 +244,89 @@ fun DidacticsScreen(
                 }
             }
         }
+        }
 
         // 2. Carriera e valutazioni in Apple Inset Grouped List (zero troncamenti)
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_didactics_section_career_evaluations),
-            subtitle = stringResource(Res.string.ui_didactics_section_career_evaluations_sub),
-        )
+        UniAnimatedEntrance(order = 1) {
+            Column(
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_didactics_section_career_evaluations),
+                    subtitle = stringResource(Res.string.ui_didactics_section_career_evaluations_sub),
+                )
 
-        UniInsetGroup(cornerRadius = 22.dp) {
-            UniInsetRow(
-                title = stringResource(Res.string.nav_route_transcripts_title),
-                subtitle = stringResource(Res.string.nav_route_transcripts_subtitle),
-                icon = LiquidIcons.MenuBook,
-                iconTint = colorScheme.primary,
-                onClick = onOpenTranscripts,
-                showDivider = true,
-            )
-            UniInsetRow(
-                title = stringResource(Res.string.nav_route_grades_title),
-                subtitle = stringResource(Res.string.ui_didactics_grades_sub),
-                icon = LiquidIcons.Assignment,
-                iconTint = colorScheme.tertiary,
-                onClick = onOpenGrades,
-                showDivider = true,
-            )
-            UniInsetRow(
-                title = stringResource(Res.string.ui_didactics_taxes_title),
-                subtitle = stringResource(Res.string.ui_didactics_taxes_sub),
-                icon = LiquidIcons.CreditCard,
-                iconTint = glassColors.warning,
-                onClick = onOpenTaxes,
-                showDivider = false,
-            )
+                UniInsetGroup(
+                    cornerRadius = 22.dp,
+                    animateEntrance = false,
+                ) {
+                    UniInsetRow(
+                        title = stringResource(Res.string.nav_route_transcripts_title),
+                        subtitle = stringResource(Res.string.nav_route_transcripts_subtitle),
+                        icon = LiquidIcons.MenuBook,
+                        iconTint = colorScheme.primary,
+                        onClick = onOpenTranscripts,
+                        showDivider = true,
+                    )
+                    UniInsetRow(
+                        title = stringResource(Res.string.nav_route_grades_title),
+                        subtitle = stringResource(Res.string.ui_didactics_grades_sub),
+                        icon = LiquidIcons.Assignment,
+                        iconTint = colorScheme.tertiary,
+                        onClick = onOpenGrades,
+                        showDivider = true,
+                    )
+                    UniInsetRow(
+                        title = stringResource(Res.string.ui_didactics_taxes_title),
+                        subtitle = stringResource(Res.string.ui_didactics_taxes_sub),
+                        icon = LiquidIcons.CreditCard,
+                        iconTint = glassColors.warning,
+                        onClick = onOpenTaxes,
+                        showDivider = false,
+                    )
+                }
+            }
         }
 
         // 3. Esami e aula in griglia Bento compatta 2×2
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_didactics_section_exams_classroom),
-            subtitle = stringResource(Res.string.ui_didactics_section_exams_classroom_sub),
-        )
+        UniAnimatedEntrance(order = 2) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_didactics_section_exams_classroom),
+                    subtitle = stringResource(Res.string.ui_didactics_section_exams_classroom_sub),
+                )
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(clip = false),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_didactics_exams_title),
-                        subtitle = stringResource(Res.string.ui_didactics_exams_sub),
-                        icon = LiquidIcons.Calendar,
-                        badgeCount = uiState.openExamRounds.takeIf { it > 0 },
-                        iconColor = colorScheme.primary,
-                        onClick = onOpenExams,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_didactics_attendance_title),
-                        subtitle = stringResource(Res.string.ui_didactics_attendance_sub),
-                        icon = LiquidIcons.QrCode,
-                        iconColor = colorScheme.tertiary,
-                        onClick = onOpenAttendance,
-                    )
-                },
-            )
+                DidacticRow(
+                    item1 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_didactics_exams_title),
+                            subtitle = stringResource(Res.string.ui_didactics_exams_sub),
+                            icon = LiquidIcons.Calendar,
+                            badgeCount = uiState.openExamRounds.takeIf { it > 0 },
+                            iconColor = colorScheme.primary,
+                            onClick = onOpenExams,
+                        )
+                    },
+                    item2 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_didactics_attendance_title),
+                            subtitle = stringResource(Res.string.ui_didactics_attendance_sub),
+                            icon = LiquidIcons.QrCode,
+                            iconColor = colorScheme.tertiary,
+                            onClick = onOpenAttendance,
+                        )
+                    },
+                )
+            }
+        }
 
+        UniAnimatedEntrance(order = 3) {
             DidacticRow(
                 item1 = {
                     DidacticItem(

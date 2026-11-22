@@ -26,9 +26,10 @@ import com.anto426.uniapp.didactics.presentation.AcademicSection
 import com.anto426.uniapp.didactics.presentation.AcademicSectionUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
-import com.anto426.uniapp.model.didactics.AcademicContentItem
+import com.anto426.uniapp.data.contract.AcademicContentItem
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -75,11 +76,12 @@ fun AcademicSectionScreen(
     val visibleItems = uiState.visibleItems
 
     UniScreenColumn {
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -167,14 +169,17 @@ fun AcademicSectionScreen(
                 }
             }
         }
+        }
 
-        LiquidSectionHeader(
-            title = sectionTitle,
-            subtitle = stringResource(Res.string.ui_professor_items_count, visibleItems.size),
-        )
+        UniAnimatedEntrance(order = 1) {
+            LiquidSectionHeader(
+                title = sectionTitle,
+                subtitle = stringResource(Res.string.ui_professor_items_count, visibleItems.size),
+            )
+        }
 
         if (visibleItems.isEmpty()) {
-            UniInsetGroup {
+            UniInsetGroup(entranceOrder = 1) {
                 UniInsetRow(
                     title = stringResource(Res.string.ui_professor_empty_title),
                     subtitle = stringResource(Res.string.ui_state_empty_academic_section),
@@ -183,7 +188,7 @@ fun AcademicSectionScreen(
                 )
             }
         } else {
-            UniInsetGroup {
+            UniInsetGroup(entranceOrder = 1) {
                 visibleItems.forEachIndexed { index, item ->
                     key("${item.id}|${item.code}|${item.title}|${item.date}|$index") {
                         val rowSubtitle = buildList {

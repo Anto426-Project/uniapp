@@ -20,12 +20,13 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.QuestionnairesUiState
-import com.anto426.uniapp.model.didactics.QuestionnaireData
+import com.anto426.uniapp.data.contract.QuestionnaireData
 import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
 import com.anto426.uniapp.ui.components.items.QuestionnaireItem
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -106,13 +107,16 @@ fun QuestionnairesScreen(
     val isEmpty = uiState.pending.isEmpty() && uiState.completed.isEmpty() && uiState.unavailable.isEmpty()
 
     UniScreenColumn {
-        QuestionnairesExpressiveHero()
+        UniAnimatedEntrance(order = 0) {
+            QuestionnairesExpressiveHero()
+        }
 
         if (uiState.pending.isNotEmpty()) {
             QuestionnaireSectionGroup(
                 title = stringResource(Res.string.ui_questionnaires_pending),
                 subtitle = stringResource(Res.string.ui_questionnaires_pending_subtitle),
                 items = uiState.pending,
+                entranceOrder = 1,
                 onItemClick = onQuestionnaireClick,
             )
         }
@@ -122,6 +126,7 @@ fun QuestionnairesScreen(
                 title = stringResource(Res.string.ui_questionnaires_completed),
                 subtitle = stringResource(Res.string.ui_questionnaires_completed_subtitle),
                 items = uiState.completed,
+                entranceOrder = 2,
             )
         }
 
@@ -130,11 +135,12 @@ fun QuestionnairesScreen(
                 title = stringResource(Res.string.ui_questionnaires_unavailable),
                 subtitle = stringResource(Res.string.ui_questionnaires_unavailable_desc),
                 items = uiState.unavailable,
+                entranceOrder = 3,
             )
         }
 
         if (isEmpty) {
-            UniInsetGroup {
+            UniInsetGroup(entranceOrder = 1) {
                 UniInsetRow(
                     title = stringResource(Res.string.ui_questionnaires_empty_title),
                     subtitle = stringResource(Res.string.ui_questionnaires_empty_desc),
@@ -153,14 +159,17 @@ private fun QuestionnaireSectionGroup(
     title: String,
     subtitle: String,
     items: List<QuestionnaireData>,
+    entranceOrder: Int = 0,
     onItemClick: ((QuestionnaireData) -> Unit)? = null,
 ) {
-    LiquidSectionHeader(
-        title = title,
-        subtitle = subtitle,
-    )
+    UniAnimatedEntrance(order = entranceOrder) {
+        LiquidSectionHeader(
+            title = title,
+            subtitle = subtitle,
+        )
+    }
 
-    UniInsetGroup {
+    UniInsetGroup(entranceOrder = entranceOrder) {
         items.forEachIndexed { index, data ->
             key("${data.code}|${data.course}|$index") {
                 QuestionnaireItem(

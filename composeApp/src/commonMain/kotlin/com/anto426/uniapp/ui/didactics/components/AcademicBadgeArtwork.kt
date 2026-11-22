@@ -33,10 +33,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.uniapp.codes.QrCodeStyle
-import com.anto426.uniapp.codes.CodeGenerator
 import com.kyant.shapes.RoundedRectangle
-import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
 
 /** Engraved contour ribbons, cached at the card size; the QR quiet zone stays opaque. */
 @Composable
@@ -163,35 +160,6 @@ internal fun AcademicBadgeQr(value: String, modifier: Modifier = Modifier) {
             style = QrCodeStyle.Artistic,
         )
     }
-}
-
-/** The barcode belongs to the front of the badge; its encoded value is never changed. */
-@Composable
-internal fun AcademicBadgeBarcode(
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    val qrPalette = rememberUniQrThemePalette()
-    val barcodePainter = remember(value, qrPalette) {
-        value.takeIf(String::isNotBlank)?.let { encoded ->
-            runCatching {
-                CodeGenerator().barcode(
-                    value = encoded,
-                    barColor = qrPalette.module,
-                    backgroundColor = qrPalette.plate,
-                )
-            }.getOrNull()
-        }
-    } ?: return
-
-    UniThemedBarcodePlate(
-        codeValue = value,
-        painter = barcodePainter,
-        contentDescription = stringResource(Res.string.ui_badge_barcode),
-        qrPalette = qrPalette,
-        modifier = modifier.fillMaxWidth(),
-        barcodeHeight = 46.dp,
-    )
 }
 
 /** Soft, clutter-free theme-tinted barcode plate with plain monospace code underneath. */

@@ -22,8 +22,8 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.didactics.AcademicContentItem
-import com.anto426.uniapp.model.didactics.ThesisData
+import com.anto426.uniapp.data.contract.AcademicContentItem
+import com.anto426.uniapp.data.contract.ThesisData
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn

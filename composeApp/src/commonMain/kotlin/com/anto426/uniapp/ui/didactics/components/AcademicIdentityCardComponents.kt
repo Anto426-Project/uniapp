@@ -85,7 +85,7 @@ fun AcademicIdentityBannerCard(
     val displayState = uiState.copy(fullName = identity.name, photoData = identity.photo)
     UniHeroGlassCard(
         modifier = modifier,
-        height = if (uiState.isProfessor || uiState.badgeBarcodeValue.isBlank()) 370.dp else 450.dp,
+        height = 370.dp,
         flipTrigger = UniHeroFlipTrigger.CLICK,
         frontContent = {
             AcademicBadgeArtwork(Modifier.fillMaxSize())
@@ -262,10 +262,6 @@ private fun AcademicIdentityFrontFace(
                 containerColor = colorScheme.primaryContainer.copy(alpha = 0.65f),
                 contentColor = colorScheme.primary,
             )
-        }
-
-        if (!uiState.isProfessor) {
-            AcademicBadgeBarcode(uiState.badgeBarcodeValue)
         }
 
         // Bottom Tap to Flip Hint

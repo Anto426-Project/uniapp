@@ -29,10 +29,12 @@ import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigat
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.model.didactics.CourseStatus
-import com.anto426.uniapp.model.didactics.StudyCourse
-import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.data.contract.CourseStatus
+import com.anto426.uniapp.data.contract.StudyCourse
+import com.anto426.uniapp.data.contract.ContactData
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniTabContentHost
 import com.anto426.uniapp.ui.didactics.components.CourseDataTab
 import com.anto426.uniapp.ui.didactics.components.CourseProfessorTab
 import com.anto426.uniapp.ui.didactics.components.CourseProgramTab
@@ -73,10 +75,11 @@ fun CourseDetailScreen(
     )
 
     UniScreenColumn {
-        LiquidCard(
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -218,6 +221,7 @@ fun CourseDetailScreen(
                 }
             }
         }
+        }
 
         LiquidTabBar(
             items = tabs,
@@ -225,14 +229,21 @@ fun CourseDetailScreen(
             onTabSelected = { selectedTab = it },
         )
 
-        when (selectedTab) {
-            0 -> CourseProgramTab(course = course)
-            1 -> CourseProfessorTab(
-                course = course,
-                professorContact = professorContact,
-                onContactClick = onContactClick,
-            )
-            else -> CourseDataTab(course = course)
+        UniTabContentHost(
+            selectedTab = selectedTab,
+            tabCount = tabs.size,
+            onTabSelected = { selectedTab = it },
+            label = "CourseDetailTabs",
+        ) { tab ->
+            when (tab) {
+                0 -> CourseProgramTab(course = course)
+                1 -> CourseProfessorTab(
+                    course = course,
+                    professorContact = professorContact,
+                    onContactClick = onContactClick,
+                )
+                else -> CourseDataTab(course = course)
+            }
         }
     }
 }

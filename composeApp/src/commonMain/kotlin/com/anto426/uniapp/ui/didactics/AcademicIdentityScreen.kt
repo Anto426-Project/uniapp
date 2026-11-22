@@ -8,6 +8,7 @@ import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.AcademicIdentityBannerCard
 import org.jetbrains.compose.resources.stringResource
@@ -68,19 +69,23 @@ fun AcademicIdentityScreen(uiState: AcademicIdentityUiState) {
 
     UniScreenColumn {
         // 1. Hero Tessera Digitale (3D Flip Front/Back)
-        AcademicIdentityBannerCard(
-            uiState = uiState,
-        )
+        UniAnimatedEntrance(order = 0) {
+            AcademicIdentityBannerCard(
+                uiState = uiState,
+            )
+        }
 
         // 2. Dettagli Accademici
-        LiquidSectionHeader(
-            title = stringResource(
-                if (uiState.isProfessor) Res.string.ui_professor_id_details_title
-                else Res.string.ui_student_id_details_title,
-            ),
-        )
+        UniAnimatedEntrance(order = 1) {
+            LiquidSectionHeader(
+                title = stringResource(
+                    if (uiState.isProfessor) Res.string.ui_professor_id_details_title
+                    else Res.string.ui_student_id_details_title,
+                ),
+            )
+        }
 
-        UniInsetGroup {
+        UniInsetGroup(entranceOrder = 2) {
             detailRows.forEachIndexed { index, (title, value, iconPair) ->
                 UniInsetRow(
                     title = title,

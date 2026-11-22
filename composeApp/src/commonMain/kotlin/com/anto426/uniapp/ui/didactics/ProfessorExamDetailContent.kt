@@ -22,10 +22,12 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.didactics.AcademicContentItem
+import com.anto426.uniapp.data.contract.AcademicContentItem
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniTabContentHost
 import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -60,11 +62,12 @@ internal fun ProfessorExamDetailContent(
     )
 
     UniScreenColumn {
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -163,6 +166,7 @@ internal fun ProfessorExamDetailContent(
                 }
             }
         }
+        }
 
         LiquidTabBar(
             items = tabs,
@@ -170,10 +174,22 @@ internal fun ProfessorExamDetailContent(
             onTabSelected = onTabSelected,
         )
 
-        when (selectedTab.coerceIn(0, tabs.lastIndex)) {
-            0 -> ProfessorBookingsTabContent(item = item)
-            1 -> ProfessorCommissionTabContent(item = item)
-            else -> ProfessorSessionInfoTabContent(item = item)
+        UniTabContentHost(
+            selectedTab = selectedTab,
+            tabCount = tabs.size,
+            onTabSelected = onTabSelected,
+            label = "ProfessorExamTabs",
+        ) { tab ->
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                when (tab) {
+                    0 -> ProfessorBookingsTabContent(item = item)
+                    1 -> ProfessorCommissionTabContent(item = item)
+                    else -> ProfessorSessionInfoTabContent(item = item)
+                }
+            }
         }
     }
 }

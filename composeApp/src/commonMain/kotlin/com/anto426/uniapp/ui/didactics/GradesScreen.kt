@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,7 +36,11 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.GradesUiState
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniTabContentHost
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.anto426.uniapp.ui.didactics.components.GradesActions
 import com.anto426.uniapp.ui.didactics.components.GraduationTargetTab
 import com.anto426.uniapp.ui.didactics.components.SimulationChartTab
@@ -90,61 +97,90 @@ fun GradesScreen(
             },
         )
 
-        when (activeTabIndex) {
-            1 -> SimulationTab(
-                uiState = uiState,
-                onToggleItem = onToggleSimulationItem,
-                onGradeChange = onSimulatedGradeChanged,
-                onCfuChange = onSimulatedCfuChanged,
-                onAddCustomExam = onAddCustomExam,
-                onRemoveCustomExam = onRemoveCustomExam,
-                onSetAllGrades = onSetAllGrades,
-                onApplyCurrentAverage = onApplyCurrentAverage,
-                onResetSimulation = onResetSimulation,
-            )
+        UniTabContentHost(
+            selectedTab = activeTabIndex,
+            tabCount = tabs.size,
+            onTabSelected = { index ->
+                if (index == 0) includeSimulatedAnalytics = false
+                onTabSelected(index)
+            },
+            swipeEnabled = false,
+            label = "GradesTabs",
+        ) { tab ->
+            when (tab) {
+                1 -> SimulationTab(
+                    uiState = uiState,
+                    onToggleItem = onToggleSimulationItem,
+                    onGradeChange = onSimulatedGradeChanged,
+                    onCfuChange = onSimulatedCfuChanged,
+                    onAddCustomExam = onAddCustomExam,
+                    onRemoveCustomExam = onRemoveCustomExam,
+                    onSetAllGrades = onSetAllGrades,
+                    onApplyCurrentAverage = onApplyCurrentAverage,
+                    onResetSimulation = onResetSimulation,
+                )
 
-            2 -> GraduationTargetTab(
-                uiState = uiState,
-                onTargetDegreeChange = onTargetDegreeChanged,
-                onThesisPointsChange = onThesisPointsChanged,
-                onBonusPointsChange = onBonusPointsChanged,
-            )
+                2 -> GraduationTargetTab(
+                    uiState = uiState,
+                    onTargetDegreeChange = onTargetDegreeChanged,
+                    onThesisPointsChange = onThesisPointsChanged,
+                    onBonusPointsChange = onBonusPointsChanged,
+                )
 
-            else -> {
-                val chart = uiState.chartState(showProjectedAnalytics)
+                else -> Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    if (uiState.activeSimulatedCount > 0) {
+                        val scopeOptions = listOf(
+                            false to stringResource(Res.string.ui_grades_scope_real),
+                            true to "${stringResource(Res.string.ui_grades_projection)} (${uiState.activeSimulatedCount})",
+                        )
+                        GradesActions {
+                            scopeOptions.forEach { (isProjected, label) ->
+                                key(isProjected) {
+                                    val selected = showProjectedAnalytics == isProjected
+                                    LiquidChip(
+                                        label = label,
+                                        selected = selected,
+                                        leadingIcon = if (selected) LiquidIcons.Check else null,
+                                        onClick = {
+                                            includeSimulatedAnalytics = isProjected
+                                            if (uiState.selectedTab == 3 && !isProjected) {
+                                                onTabSelected(0)
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
 
-                if (uiState.activeSimulatedCount > 0) {
-                    val scopeOptions = listOf(
-                        false to stringResource(Res.string.ui_grades_scope_real),
-                        true to "${stringResource(Res.string.ui_grades_projection)} (${uiState.activeSimulatedCount})",
-                    )
-                    GradesActions {
-                        scopeOptions.forEach { (isProjected, label) ->
-                            key(isProjected) {
-                                val selected = showProjectedAnalytics == isProjected
-                                LiquidChip(
-                                    label = label,
-                                    selected = selected,
-                                    leadingIcon = if (selected) LiquidIcons.Check else null,
-                                    onClick = {
-                                        includeSimulatedAnalytics = isProjected
-                                        if (uiState.selectedTab == 3 && !isProjected) {
-                                            onTabSelected(0)
-                                        }
-                                    },
+                    UniContentHost(
+                        targetState = showProjectedAnalytics,
+                        modifier = Modifier.fillMaxWidth(),
+                        transition = UniMotion.inlineContentTransition,
+                        label = "GradesAnalyticsScope",
+                    ) { projected ->
+                        val chart = uiState.chartState(projected)
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            UniAnimatedEntrance(order = 0) {
+                                GradesAnalyticsHeroCard(
+                                    chart = chart,
+                                    projected = projected,
+                                    deltaAverage = uiState.deltaAverage,
                                 )
+                            }
+
+                            UniAnimatedEntrance(order = 1) {
+                                SimulationChartTab(uiState = chart)
                             }
                         }
                     }
                 }
-
-                GradesAnalyticsHeroCard(
-                    chart = chart,
-                    projected = showProjectedAnalytics,
-                    deltaAverage = uiState.deltaAverage,
-                )
-
-                SimulationChartTab(uiState = chart)
             }
         }
     }
@@ -239,7 +275,7 @@ private fun GradesAnalyticsHeroCard(
                             )
                         } else {
                             LiquidBadge(
-                                text = stringResource(Res.string.ui_career_exams_count, chart.currentExams.size),
+                                text = stringResource(Res.string.ui_career_exams_count, chart.totalPassedExamsCount),
                                 containerColor = colors.primary.copy(alpha = 0.13f),
                                 contentColor = colors.primary,
                             )
@@ -268,14 +304,16 @@ private fun GradesAnalyticsHeroCard(
             LiquidHorizontalDivider(color = colors.onSurface.copy(alpha = 0.08f))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 HeroCompactMetric(
                     label = stringResource(Res.string.ui_stats_arithmetic_average),
                     value = gradeMetric(chart.currentArithmeticAverage),
                     valueColor = colors.onSurface,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                 )
                 HeroCompactMetric(
                     label = stringResource(Res.string.ui_stats_weighting_spread),
@@ -285,7 +323,7 @@ private fun GradesAnalyticsHeroCard(
                         weightingSpread >= 0.0 -> glass.success
                         else -> colors.error
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                 )
                 HeroCompactMetric(
                     label = stringResource(Res.string.ui_stats_recent_trend),
@@ -295,7 +333,7 @@ private fun GradesAnalyticsHeroCard(
                         trend >= 0.0 -> glass.success
                         else -> colors.error
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                 )
             }
 
@@ -354,13 +392,13 @@ private fun HeroCompactMetric(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
@@ -371,6 +409,7 @@ private fun HeroCompactMetric(
             ),
             color = valueColor,
             maxLines = 1,
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }

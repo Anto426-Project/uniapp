@@ -26,9 +26,9 @@ import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContai
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.model.didactics.CourseStatus
-import com.anto426.uniapp.model.didactics.StudyCourse
-import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.data.contract.CourseStatus
+import com.anto426.uniapp.data.contract.StudyCourse
+import com.anto426.uniapp.data.contract.ContactData
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.kyant.shapes.RoundedRectangle

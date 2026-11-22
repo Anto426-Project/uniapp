@@ -24,6 +24,7 @@ import com.anto426.uniapp.didactics.presentation.AcademicItemDetailUiState
 import com.anto426.uniapp.didactics.presentation.AcademicSection
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.ThesisDetailContent
 import com.kyant.shapes.RoundedRectangle
@@ -66,11 +67,12 @@ fun AcademicItemDetailScreen(
     }
 
     UniScreenColumn {
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -137,13 +139,16 @@ fun AcademicItemDetailScreen(
                 }
             }
         }
+        }
 
         if (fields.isNotEmpty()) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_academic_item_details),
-            )
+            UniAnimatedEntrance(order = 1) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_academic_item_details),
+                )
+            }
 
-            UniInsetGroup {
+            UniInsetGroup(entranceOrder = 1) {
                 fields.forEachIndexed { index, (label, value) ->
                     UniInsetRow(
                         title = label,

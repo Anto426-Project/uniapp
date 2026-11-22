@@ -19,7 +19,7 @@ import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
 import com.anto426.liquidmonet.components.selection.checkbox.LiquidCheckbox
 import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
-import com.anto426.uniapp.model.didactics.QuestionnaireQuestion
+import com.anto426.uniapp.data.contract.QuestionnaireQuestion
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 

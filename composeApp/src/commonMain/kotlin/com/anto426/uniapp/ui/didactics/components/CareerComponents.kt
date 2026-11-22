@@ -34,7 +34,7 @@ import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.ALL_ACADEMIC_YEARS
-import com.anto426.uniapp.model.didactics.CourseStatus
+import com.anto426.uniapp.data.contract.CourseStatus
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.kyant.shapes.RoundedRectangle

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,10 +28,14 @@ import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.items.AttendanceItem
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.ui.components.state.AppLoadingState
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.anto426.uniapp.ui.didactics.components.AttendanceSummaryHeroCard
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.anto426.uniapp.ui.scanner.UniQrScannerDialog
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -60,72 +65,89 @@ fun AttendanceScreen(
         onClearRegistrationStatus()
     }
 
-    when {
-        uiState.loadState == FeatureLoadState.Loading && uiState.records.isEmpty() -> {
-            AppLoadingState()
-        }
+    val screenPhase = when {
+        uiState.loadState == FeatureLoadState.Loading && uiState.records.isEmpty() -> 0
+        uiState.loadState == FeatureLoadState.Error && uiState.records.isEmpty() -> 1
+        else -> 2
+    }
 
-        uiState.loadState == FeatureLoadState.Error && uiState.records.isEmpty() -> {
-            UniExpressiveStatusState(
+    UniContentHost(
+        targetState = screenPhase,
+        modifier = Modifier.fillMaxSize(),
+        transition = UniMotion.inlineContentTransition,
+        suppressElementEntrance = false,
+        contentAlignment = Alignment.TopStart,
+        label = "AttendanceScreenPhase",
+    ) { phase ->
+        when (phase) {
+            0 -> AppLoadingState()
+
+            1 -> UniExpressiveStatusState(
                 isError = true,
                 title = stringResource(Res.string.ui_state_error_title),
                 description = uiState.errorMessage ?: stringResource(Res.string.ui_state_error_desc),
                 actionLabel = stringResource(Res.string.ui_retry),
                 onActionClick = onRetry,
             )
-        }
 
-        else -> {
-            UniScreenColumn {
-                if (uiState.isRegistering) {
-                    LiquidCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedRectangle(20.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                    ) {
-                        Row(
+            else -> {
+                UniScreenColumn {
+                    if (uiState.isRegistering) {
+                        LiquidCard(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            shape = RoundedRectangle(20.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
                         ) {
-                            LiquidLoading(
-                                style = LiquidLoadingStyle.Dots,
-                                size = LiquidLoadingSize.Small,
-                            )
-                            Text(
-                                text = stringResource(Res.string.ui_attendance_dialog_title),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                LiquidLoading(
+                                    style = LiquidLoadingStyle.Dots,
+                                    size = LiquidLoadingSize.Small,
+                                )
+                                Text(
+                                    text = stringResource(Res.string.ui_attendance_dialog_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
                         }
                     }
-                }
 
-                if (uiState.records.isEmpty()) {
-                    UniExpressiveStatusState(
-                        title = stringResource(Res.string.ui_attendance_empty_title),
-                        description = stringResource(Res.string.ui_attendance_empty_desc),
-                        mainIcon = LiquidIcons.QrCode,
-                        actionLabel = stringResource(Res.string.ui_attendance_action_scan),
-                        onActionClick = onOpenCameraScanner,
-                        inline = true,
-                    )
-                } else {
-                    AttendanceSummaryHeroCard(uiState = uiState)
+                    if (uiState.records.isEmpty()) {
+                        UniExpressiveStatusState(
+                            title = stringResource(Res.string.ui_attendance_empty_title),
+                            description = stringResource(Res.string.ui_attendance_empty_desc),
+                            mainIcon = LiquidIcons.QrCode,
+                            actionLabel = stringResource(Res.string.ui_attendance_action_scan),
+                            onActionClick = onOpenCameraScanner,
+                            inline = true,
+                        )
+                    } else {
+                        UniAnimatedEntrance(order = 0) {
+                            AttendanceSummaryHeroCard(uiState = uiState)
+                        }
 
-                    LiquidSectionHeader(
-                        title = stringResource(Res.string.ui_attendance_title),
-                        subtitle = stringResource(Res.string.ui_attendance_subtitle),
-                    )
+                        UniAnimatedEntrance(order = 1) {
+                            LiquidSectionHeader(
+                                title = stringResource(Res.string.ui_attendance_title),
+                                subtitle = stringResource(Res.string.ui_attendance_subtitle),
+                            )
+                        }
 
-                    Column(
-                        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        uiState.records.forEachIndexed { index, data ->
-                            key(data.course, index) {
-                                AttendanceItem(data)
+                        Column(
+                            modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            uiState.records.forEachIndexed { index, data ->
+                                key(data.course, index) {
+                                    UniAnimatedEntrance(order = uniListEntranceOrder(index, offset = 1)) {
+                                        AttendanceItem(data)
+                                    }
+                                }
                             }
                         }
                     }

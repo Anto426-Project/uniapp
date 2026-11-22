@@ -19,7 +19,9 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.uniapp.didactics.presentation.QuestionnaireDetailUiState
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.ui.didactics.components.SurveyQuestionCard
 
 import org.jetbrains.compose.resources.stringResource
@@ -58,24 +60,28 @@ fun QuestionnaireDetailScreen(
             key = { index, question -> "${question.pageId}|${question.questionId}|$index" },
             contentType = { _, _ -> "survey-question" },
         ) { index, question ->
-            SurveyQuestionCard(
-                index = index,
-                question = question,
-                selectedAnswers = uiState.selectedAnswers[question.questionId].orEmpty(),
-                freeText = uiState.freeTextAnswers[question.questionId].orEmpty(),
-                onAnswerSelected = onAnswerSelected,
-                onFreeTextChanged = onFreeTextChanged,
-            )
+            UniAnimatedEntrance(order = uniListEntranceOrder(index, offset = 1)) {
+                SurveyQuestionCard(
+                    index = index,
+                    question = question,
+                    selectedAnswers = uiState.selectedAnswers[question.questionId].orEmpty(),
+                    freeText = uiState.freeTextAnswers[question.questionId].orEmpty(),
+                    onAnswerSelected = onAnswerSelected,
+                    onFreeTextChanged = onFreeTextChanged,
+                )
+            }
         }
 
         item(key = "survey-submit", contentType = "survey-submit") {
-            LiquidButton(
-                text = if (uiState.submitted) stringResource(Res.string.ui_questionnaire_submitted) else stringResource(Res.string.ui_questionnaire_submit),
-                onClick = onSubmit,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.submitted,
-                isLoading = uiState.isSubmitting,
-            )
+            UniAnimatedEntrance(order = 0) {
+                LiquidButton(
+                    text = if (uiState.submitted) stringResource(Res.string.ui_questionnaire_submitted) else stringResource(Res.string.ui_questionnaire_submit),
+                    onClick = onSubmit,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !uiState.submitted,
+                    isLoading = uiState.isSubmitting,
+                )
+            }
         }
     }
 }

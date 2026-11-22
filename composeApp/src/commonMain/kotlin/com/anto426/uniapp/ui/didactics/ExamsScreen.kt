@@ -1,25 +1,33 @@
 package com.anto426.uniapp.ui.didactics
 
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.data.contract.AcademicContentItem
 import com.anto426.uniapp.didactics.presentation.ExamsUiState
 import com.anto426.uniapp.ui.components.items.ExamSessionItem
 import com.anto426.uniapp.ui.components.items.ProfessorExamItem
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
-import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniTabContentHost
+import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
-import com.anto426.uniapp.model.didactics.AcademicContentItem
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -53,49 +61,57 @@ fun ExamsScreen(
         ),
     )
 
-    UniScreenLazyColumn {
+    UniScreenColumn {
         if (!uiState.isProfessor && showTabs) {
-            item(key = "exam-tabs", contentType = "exam-tabs") {
-                LiquidTabBar(
-                    items = studentTabs,
-                    selectedIndex = uiState.selectedTab,
-                    onTabSelected = onTabSelected,
-                )
-            }
+            LiquidTabBar(
+                items = studentTabs,
+                selectedIndex = uiState.selectedTab.coerceIn(0, studentTabs.lastIndex),
+                onTabSelected = onTabSelected,
+            )
         }
 
         if (uiState.isProfessor) {
-            professorExamsContentItems(
+            ProfessorExamsTabContent(
                 rounds = uiState.visibleProfessorExamRounds,
                 onProfessorExamClick = onProfessorExamClick,
             )
         } else {
-            studentExamsContentItems(
-                uiState = uiState,
-                bookableFilter = bookableFilter,
-                onBookableFilterChange = { bookableFilter = it },
-                onToggleBooking = onToggleBooking,
-                onAddToCalendar = onAddToCalendar,
-            )
+            UniTabContentHost(
+                selectedTab = uiState.selectedTab,
+                tabCount = studentTabs.size,
+                onTabSelected = if (showTabs) onTabSelected else null,
+                label = "ExamsScreenTabs",
+            ) { tab ->
+                StudentExamsTabContent(
+                    uiState = uiState,
+                    tabIndex = tab,
+                    bookableFilter = bookableFilter,
+                    onBookableFilterChange = { bookableFilter = it },
+                    onToggleBooking = onToggleBooking,
+                    onAddToCalendar = onAddToCalendar,
+                )
+            }
         }
     }
 }
 
-fun LazyListScope.professorExamsContentItems(
+@Composable
+fun ProfessorExamsTabContent(
     rounds: List<AcademicContentItem>,
     onProfessorExamClick: (AcademicContentItem) -> Unit,
 ) {
-    if (rounds.isEmpty()) {
-        item(key = "professor-exam-empty", contentType = "empty-state") {
+    Column(
+        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (rounds.isEmpty()) {
             UniExpressiveStatusState(
                 title = stringResource(Res.string.ui_no_exams_in_section),
                 description = stringResource(Res.string.ui_no_exams_in_section_description),
                 inline = true,
                 mainIcon = LiquidIcons.Calendar,
             )
-        }
-    } else {
-        item(key = "professor-exams-header", contentType = "section-header") {
+        } else {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_professor_exam_rounds),
                 subtitle = stringResource(
@@ -103,47 +119,43 @@ fun LazyListScope.professorExamsContentItems(
                     rounds.size,
                 ),
             )
-        }
-        itemsIndexed(
-            items = rounds,
-            key = { index, exam -> "professor-exam|${exam.id}|${exam.title}|$index" },
-            contentType = { _, _ -> "professor-exam" },
-        ) { _, exam ->
-            ProfessorExamItem(
-                exam = exam,
-                onClickDetail = { onProfessorExamClick(exam) },
-            )
+            rounds.forEachIndexed { index, exam ->
+                key("professor-exam|${exam.id}|${exam.title}|$index") {
+                    UniAnimatedEntrance(order = uniListEntranceOrder(index)) {
+                        ProfessorExamItem(
+                            exam = exam,
+                            onClickDetail = { onProfessorExamClick(exam) },
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-fun LazyListScope.studentExamsContentItems(
+@Composable
+fun StudentExamsTabContent(
     uiState: ExamsUiState,
+    tabIndex: Int,
     bookableFilter: ExamBookableFilter,
     onBookableFilterChange: (ExamBookableFilter) -> Unit,
     onToggleBooking: (String) -> Unit,
     onAddToCalendar: (String) -> Unit,
 ) {
+    val tabExams = uiState.exams.filter { it.isBooked == (tabIndex == 1) }
     val openNowExamsCount = uiState.exams.count { !it.isBooked && it.canBook }
     val openingSoonExamsCount = uiState.exams.count { !it.isBooked && !it.canBook }
 
-    val displayedStudentExams = if (uiState.selectedTab == 0) {
-        when (bookableFilter) {
-            ExamBookableFilter.ALL -> uiState.visibleExams
-            ExamBookableFilter.OPEN_NOW -> uiState.visibleExams.filter { it.canBook }
-            ExamBookableFilter.OPENING_SOON -> uiState.visibleExams.filter { !it.canBook }
-        }
-    } else {
-        uiState.visibleExams
-    }
-
-    if (uiState.selectedTab == 0 && uiState.visibleExams.isNotEmpty()) {
-        item(key = "student-exam-filters", contentType = "filter-chips") {
+    Column(
+        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (tabIndex == 0 && tabExams.isNotEmpty()) {
             val filterOptions = listOf(
                 Triple(
                     ExamBookableFilter.ALL,
                     stringResource(Res.string.ui_exams_all_filter),
-                    uiState.visibleExams.size,
+                    tabExams.size,
                 ),
                 Triple(
                     ExamBookableFilter.OPEN_NOW,
@@ -170,42 +182,61 @@ fun LazyListScope.studentExamsContentItems(
                 }
             }
         }
-    }
 
-    if (displayedStudentExams.isEmpty()) {
-        item(key = "exam-empty-${uiState.selectedTab}-$bookableFilter", contentType = "empty-state") {
-            UniExpressiveStatusState(
-                title = stringResource(Res.string.ui_no_exams_in_section),
-                description = stringResource(Res.string.ui_no_exams_in_section_description),
-                inline = true,
-                mainIcon = LiquidIcons.Calendar,
-            )
-        }
-    } else {
-        item(key = "student-exams-header-${uiState.selectedTab}", contentType = "section-header") {
-            LiquidSectionHeader(
-                title = if (uiState.selectedTab == 1) {
-                    stringResource(Res.string.ui_booked_exams)
+        val effectiveFilter = if (tabIndex == 0) bookableFilter else ExamBookableFilter.ALL
+        UniContentHost(
+            targetState = effectiveFilter,
+            modifier = Modifier.fillMaxWidth(),
+            isForward = { from, to -> to.ordinal >= from.ordinal },
+            label = "StudentExamsFilter",
+        ) { activeFilter ->
+            val displayedStudentExams = if (tabIndex == 0) {
+                when (activeFilter) {
+                    ExamBookableFilter.ALL -> tabExams
+                    ExamBookableFilter.OPEN_NOW -> tabExams.filter { it.canBook }
+                    ExamBookableFilter.OPENING_SOON -> tabExams.filter { !it.canBook }
+                }
+            } else {
+                tabExams
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (displayedStudentExams.isEmpty()) {
+                    UniExpressiveStatusState(
+                        title = stringResource(Res.string.ui_no_exams_in_section),
+                        description = stringResource(Res.string.ui_no_exams_in_section_description),
+                        inline = true,
+                        mainIcon = LiquidIcons.Calendar,
+                    )
                 } else {
-                    stringResource(Res.string.ui_bookable_exams)
-                },
-                subtitle = stringResource(
-                    Res.string.ui_professor_rounds_count,
-                    displayedStudentExams.size,
-                ),
-            )
-        }
-        itemsIndexed(
-            items = displayedStudentExams,
-            key = { index, exam -> "exam|${exam.id}|${exam.date}|${exam.time}|$index" },
-            contentType = { _, _ -> "exam-session" },
-        ) { _, exam ->
-            ExamSessionItem(
-                exam = exam,
-                isMutating = uiState.mutatingExamId != null,
-                onToggleBooking = { onToggleBooking(exam.id) },
-                onAddToCalendar = { onAddToCalendar(exam.id) },
-            )
+                    LiquidSectionHeader(
+                        title = if (tabIndex == 1) {
+                            stringResource(Res.string.ui_booked_exams)
+                        } else {
+                            stringResource(Res.string.ui_bookable_exams)
+                        },
+                        subtitle = stringResource(
+                            Res.string.ui_professor_rounds_count,
+                            displayedStudentExams.size,
+                        ),
+                    )
+                    displayedStudentExams.forEachIndexed { index, exam ->
+                        key("exam|${exam.id}|${exam.date}|${exam.time}|$index") {
+                            UniAnimatedEntrance(order = uniListEntranceOrder(index)) {
+                                ExamSessionItem(
+                                    exam = exam,
+                                    isMutating = uiState.mutatingExamId != null,
+                                    onToggleBooking = { onToggleBooking(exam.id) },
+                                    onAddToCalendar = { onAddToCalendar(exam.id) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
