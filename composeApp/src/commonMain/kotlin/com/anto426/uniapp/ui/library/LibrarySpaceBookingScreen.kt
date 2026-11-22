@@ -1,19 +1,12 @@
 package com.anto426.uniapp.ui.library
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,13 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceItem
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
@@ -37,8 +31,8 @@ import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingSize
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingStyle
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
-import com.anto426.liquidmonet.components.selection.chip.LiquidChip
-import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
+import com.anto426.liquidmonet.components.selection.checkbox.LiquidCheckbox
+import com.anto426.liquidmonet.components.selection.select.LiquidSelect
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.library.presentation.LibrarySpaceBookingUiState
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
@@ -47,7 +41,6 @@ import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LibrarySpaceBookingScreen(
     uiState: LibrarySpaceBookingUiState,
@@ -64,6 +57,9 @@ fun LibrarySpaceBookingScreen(
     val colorScheme = MaterialTheme.colorScheme
     val overview = uiState.overview ?: return
     val fieldShape = RoundedRectangle(16.dp)
+    val selectedType = overview.types.firstOrNull { it.id == uiState.selectedTypeId }
+    val selectedOwner = uiState.owners.firstOrNull { it.id == uiState.selectedOwnerId }
+    val selectedResource = uiState.resources.firstOrNull { it.id == uiState.selectedResourceId }
 
     LaunchedEffect(uiState.bookingCompleted) {
         if (uiState.bookingCompleted) {
@@ -72,128 +68,67 @@ fun LibrarySpaceBookingScreen(
     }
 
     UniScreenColumn {
-        // Step 1: Tipologia, Sede e Risorsa
+        // Step 1: Tipologia, Sede e Risorsa (LiquidSelect)
         UniAnimatedEntrance(order = 0) {
             LiquidCard(
                 shape = RoundedRectangle(24.dp),
                 contentPadding = PaddingValues(18.dp),
             ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                StepCardHeader(
-                    title = stringResource(Res.string.ui_library_booking_step_1),
-                    icon = LiquidIcons.Home,
-                )
-
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = stringResource(Res.string.ui_library_booking_type_title),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorScheme.onSurfaceVariant,
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    StepCardHeader(
+                        title = stringResource(Res.string.ui_library_booking_step_1),
+                        icon = LiquidIcons.Home,
                     )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        overview.types.forEach { option ->
-                            val selected = uiState.selectedTypeId == option.id
-                            LiquidChip(
-                                label = option.label,
-                                selected = selected,
-                                leadingIcon = if (selected) LiquidIcons.Check else null,
-                                onClick = { onSelectType(option.id) },
+
+                    LiquidSelect(
+                        items = overview.types,
+                        selectedItem = selectedType,
+                        onItemSelected = { onSelectType(it.id) },
+                        label = stringResource(Res.string.ui_library_booking_type_title),
+                        itemLabel = { it.label },
+                        leadingIcon = LiquidIcons.MenuBook,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    if (uiState.owners.isNotEmpty()) {
+                        LiquidSelect(
+                            items = uiState.owners,
+                            selectedItem = selectedOwner,
+                            onItemSelected = { onSelectOwner(it.id) },
+                            label = stringResource(Res.string.ui_library_booking_owner_title),
+                            itemLabel = { it.label },
+                            leadingIcon = LiquidIcons.Home,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    if (uiState.isLoadingSelection) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            LiquidLoading(
+                                style = LiquidLoadingStyle.Dots,
+                                size = LiquidLoadingSize.Medium,
+                                message = stringResource(Res.string.ui_loading),
                             )
                         }
-                    }
-                }
-
-                if (uiState.owners.isNotEmpty()) {
-                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = stringResource(Res.string.ui_library_booking_owner_title),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant,
+                    } else if (uiState.resources.isNotEmpty()) {
+                        LiquidSelect(
+                            items = uiState.resources,
+                            selectedItem = selectedResource,
+                            onItemSelected = { onSelectResource(it.id) },
+                            label = stringResource(Res.string.ui_library_booking_resource_title),
+                            itemLabel = { it.label },
+                            leadingIcon = LiquidIcons.Star,
+                            modifier = Modifier.fillMaxWidth(),
                         )
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            uiState.owners.forEach { owner ->
-                                val selected = uiState.selectedOwnerId == owner.id
-                                LiquidChip(
-                                    label = owner.label,
-                                    selected = selected,
-                                    leadingIcon = if (selected) LiquidIcons.Check else null,
-                                    onClick = { onSelectOwner(owner.id) },
-                                )
-                            }
-                        }
-                    }
-                }
-
-                if (uiState.isLoadingSelection) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        LiquidLoading(
-                            style = LiquidLoadingStyle.Dots,
-                            size = LiquidLoadingSize.Medium,
-                            message = stringResource(Res.string.ui_loading),
-                        )
-                    }
-                } else if (uiState.resources.isNotEmpty()) {
-                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = stringResource(Res.string.ui_library_booking_resource_title),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        uiState.resources.forEach { resource ->
-                            val selected = uiState.selectedResourceId == resource.id
-                            val itemShape = RoundedRectangle(14.dp)
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(itemShape)
-                                    .border(
-                                        width = if (selected) 1.5.dp else 1.dp,
-                                        color = if (selected) {
-                                            colorScheme.primary
-                                        } else {
-                                            colorScheme.outlineVariant.copy(alpha = 0.30f)
-                                        },
-                                        shape = itemShape,
-                                    )
-                                    .clickable { onSelectResource(resource.id) }
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = resource.label,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                    color = if (selected) colorScheme.primary else colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                LiquidRadioButton(
-                                    selected = selected,
-                                    onClick = { onSelectResource(resource.id) },
-                                )
-                            }
-                        }
                     }
                 }
             }
         }
-        }
 
-        // Step 2: Fasce orarie
+        // Step 2: Fasce orarie (LiquidPreferenceItem + LiquidCheckbox)
         val calendar = uiState.calendar
         if (uiState.isLoadingCalendar || calendar != null) {
             LiquidCard(
@@ -239,67 +174,32 @@ fun LibrarySpaceBookingScreen(
                                 icon = LiquidIcons.Calendar,
                             )
                         } else {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                calendar.slots.forEach { slot ->
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                calendar.slots.forEachIndexed { index, slot ->
                                     val selected = slot.slotId in uiState.selectedSlotIds
-                                    val slotShape = RoundedRectangle(16.dp)
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(slotShape)
-                                            .border(
-                                                width = if (selected) 1.5.dp else 1.dp,
-                                                color = if (selected) {
-                                                    colorScheme.primary
-                                                } else {
-                                                    colorScheme.outlineVariant.copy(alpha = 0.30f)
-                                                },
-                                                shape = slotShape,
+                                    val subtitle = buildList {
+                                        slot.dateLabel?.takeIf(String::isNotBlank)?.let(::add)
+                                        (slot.seatsLabel ?: slot.description)
+                                            .takeIf(String::isNotBlank)
+                                            ?.let(::add)
+                                    }.joinToString(" · ").takeIf(String::isNotBlank)
+
+                                    LiquidPreferenceItem(
+                                        title = slot.timeLabel,
+                                        subtitle = subtitle,
+                                        icon = LiquidIcons.Time,
+                                        onClick = { onToggleSlot(slot.slotId) },
+                                        trailingContent = {
+                                            LiquidCheckbox(
+                                                checked = selected,
+                                                onCheckedChange = { onToggleSlot(slot.slotId) },
                                             )
-                                            .clickable { onToggleSlot(slot.slotId) }
-                                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.weight(1f),
-                                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            ) {
-                                                Text(
-                                                    text = slot.timeLabel,
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                                                    color = if (selected) colorScheme.primary else colorScheme.onSurface,
-                                                )
-                                                slot.dateLabel?.takeIf(String::isNotBlank)?.let { dateLabel ->
-                                                    LiquidBadge(
-                                                        text = dateLabel,
-                                                        containerColor = colorScheme.secondary.copy(alpha = 0.14f),
-                                                        contentColor = colorScheme.secondary,
-                                                    )
-                                                }
-                                            }
-                                            val secondary = slot.seatsLabel ?: slot.description
-                                            if (secondary.isNotBlank()) {
-                                                Text(
-                                                    text = secondary,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = colorScheme.onSurfaceVariant,
-                                                )
-                                            }
-                                        }
-                                        Spacer(Modifier.width(8.dp))
-                                        if (selected) {
-                                            Icon(
-                                                imageVector = LiquidIcons.Check,
-                                                contentDescription = null,
-                                                tint = colorScheme.primary,
-                                                modifier = Modifier.size(18.dp),
-                                            )
-                                        }
+                                        },
+                                    )
+                                    if (index < calendar.slots.lastIndex) {
+                                        LiquidHorizontalDivider(
+                                            color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+                                        )
                                     }
                                 }
                             }
@@ -362,36 +262,26 @@ fun LibrarySpaceBookingScreen(
                     }
 
                     selectedSlotsRequiringDevice.forEach { slot ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.34f), fieldShape),
-                        ) {
-                            LiquidTextField(
-                                value = uiState.deviceAddresses[slot.slotId].orEmpty(),
-                                onValueChange = { onUpdateDeviceAddress(slot.slotId, it) },
-                                type = LiquidTextFieldType.Text,
-                                label = "${stringResource(Res.string.ui_library_device_address_label)} (${slot.timeLabel})",
-                                placeholder = stringResource(Res.string.ui_library_device_address_placeholder),
-                                shape = fieldShape,
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, colorScheme.outlineVariant.copy(alpha = 0.34f), fieldShape),
-                    ) {
                         LiquidTextField(
-                            value = uiState.note,
-                            onValueChange = onUpdateNote,
+                            value = uiState.deviceAddresses[slot.slotId].orEmpty(),
+                            onValueChange = { onUpdateDeviceAddress(slot.slotId, it) },
                             type = LiquidTextFieldType.Text,
-                            label = stringResource(Res.string.ui_library_booking_note_label),
-                            placeholder = stringResource(Res.string.ui_library_booking_note_placeholder),
+                            label = "${stringResource(Res.string.ui_library_device_address_label)} (${slot.timeLabel})",
+                            placeholder = stringResource(Res.string.ui_library_device_address_placeholder),
                             shape = fieldShape,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
+
+                    LiquidTextField(
+                        value = uiState.note,
+                        onValueChange = onUpdateNote,
+                        type = LiquidTextFieldType.Text,
+                        label = stringResource(Res.string.ui_library_booking_note_label),
+                        placeholder = stringResource(Res.string.ui_library_booking_note_placeholder),
+                        shape = fieldShape,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
 
                     LiquidButton(
                         text = stringResource(
@@ -414,7 +304,7 @@ fun LibrarySpaceBookingScreen(
 @Composable
 private fun StepCardHeader(
     title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
