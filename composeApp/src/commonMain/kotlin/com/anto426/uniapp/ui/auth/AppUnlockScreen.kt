@@ -183,7 +183,7 @@ internal fun AppUnlockScreen(
         // 2. Master Glass Authentication Card
         LiquidCard(
             shape = RoundedRectangle(28.dp),
-            contentPadding = 24.dp,
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -321,18 +321,18 @@ internal fun AppPasswordSetupScreen(
     }
 
     UniScreenColumn(modifier = Modifier.imePadding()) {
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(4.dp))
 
         // 1. Brand Presentation Header (coerente con AppUnlockScreen)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LiquidAvatar(
-                size = 80.dp,
+                size = 72.dp,
                 icon = LiquidIcons.Lock,
             )
 
@@ -345,7 +345,7 @@ internal fun AppPasswordSetupScreen(
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Black,
                         letterSpacing = (-0.8).sp,
-                        fontSize = 32.sp,
+                        fontSize = 30.sp,
                     ),
                     color = colorScheme.onSurface,
                 )
@@ -370,7 +370,7 @@ internal fun AppPasswordSetupScreen(
         // 2. Master Glass PIN Setup Card
         LiquidCard(
             shape = RoundedRectangle(28.dp),
-            contentPadding = 24.dp,
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
