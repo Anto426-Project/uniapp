@@ -47,16 +47,20 @@ import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.library.model.LibraryCatalogBook
-import com.anto426.uniapp.library.model.LibraryCatalogPage
-import com.anto426.uniapp.library.model.LibraryMovementItem
-import com.anto426.uniapp.library.model.LibrarySpaceBooking
+import com.anto426.uniapp.data.contract.LibraryCatalogBook
+import com.anto426.uniapp.data.contract.LibraryCatalogPage
+import com.anto426.uniapp.data.contract.LibraryMovementItem
+import com.anto426.uniapp.data.contract.LibrarySpaceBooking
 import com.anto426.uniapp.library.presentation.LibraryUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.UniTabContentHost
 import com.anto426.uniapp.ui.components.state.FeatureStateContent
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -108,31 +112,38 @@ fun LibraryScreen(
             onTabSelected = onTabSelected,
         )
 
-        when (uiState.selectedTab) {
-            0 -> LibraryCatalogTab(
-                uiState = uiState,
-                onQueryChange = onQueryChange,
-                onSearch = onSearch,
-                onBookClick = onBookClick,
-            )
+        UniTabContentHost(
+            selectedTab = uiState.selectedTab,
+            tabCount = tabs.size,
+            onTabSelected = onTabSelected,
+            label = "LibraryTabs",
+        ) { tab ->
+            when (tab) {
+                0 -> LibraryCatalogTab(
+                    uiState = uiState,
+                    onQueryChange = onQueryChange,
+                    onSearch = onSearch,
+                    onBookClick = onBookClick,
+                )
 
-            1 -> LibraryLoansTab(
-                uiState = uiState,
-                onRefresh = onRefreshMovements,
-                onRequestCancel = onRequestCancelMovement,
-                onConfirmCancel = onConfirmCancelMovement,
-                onDismissCancel = onDismissCancelMovement,
-                onRenew = onRenewMovement,
-            )
+                1 -> LibraryLoansTab(
+                    uiState = uiState,
+                    onRefresh = onRefreshMovements,
+                    onRequestCancel = onRequestCancelMovement,
+                    onConfirmCancel = onConfirmCancelMovement,
+                    onDismissCancel = onDismissCancelMovement,
+                    onRenew = onRenewMovement,
+                )
 
-            else -> LibrarySpacesTab(
-                uiState = uiState,
-                onRefresh = onRefreshSpaces,
-                onOpenSpaceBooking = onOpenSpaceBooking,
-                onRequestCancel = onRequestCancelBooking,
-                onConfirmCancel = onConfirmCancelBooking,
-                onDismissCancel = onDismissCancelBooking,
-            )
+                else -> LibrarySpacesTab(
+                    uiState = uiState,
+                    onRefresh = onRefreshSpaces,
+                    onOpenSpaceBooking = onOpenSpaceBooking,
+                    onRequestCancel = onRequestCancelBooking,
+                    onConfirmCancel = onConfirmCancelBooking,
+                    onDismissCancel = onDismissCancelBooking,
+                )
+            }
         }
     }
 }
@@ -149,10 +160,11 @@ private fun LibraryCatalogTab(
     val fieldShape = RoundedRectangle(16.dp)
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        LiquidCard(
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -251,144 +263,165 @@ private fun LibraryCatalogTab(
                 }
             }
         }
+        }
 
-        when {
-            uiState.isSearching -> {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    LiquidLoading(
-                        style = LiquidLoadingStyle.Dots,
-                        size = LiquidLoadingSize.Large,
-                        message = stringResource(Res.string.ui_loading),
-                    )
-                }
-            }
-
-            uiState.catalogError != null -> {
-                LiquidEmptyState(
-                    title = stringResource(Res.string.ui_state_error_title),
-                    description = uiState.catalogError,
-                    icon = LiquidIcons.Warning,
-                    actionButtonText = stringResource(Res.string.ui_retry),
-                    onActionClick = {
-                        onSearch(uiState.submittedQuery.ifBlank { uiState.query }, uiState.currentPage)
-                    },
-                )
-            }
-
-            !uiState.hasSearched -> {
-                LiquidSectionHeader(
-                    title = stringResource(Res.string.ui_library_branches_title),
-                    subtitle = stringResource(Res.string.ui_library_branches_subtitle),
-                )
-                UniInsetGroup(cornerRadius = 22.dp) {
-                    UniInsetRow(
-                        title = stringResource(Res.string.ui_library_branch_campobasso),
-                        subtitle = stringResource(Res.string.ui_library_branch_campobasso_sub),
-                        icon = LiquidIcons.Home,
-                        iconTint = colorScheme.primary,
-                        trailingContent = {
-                            LiquidBadge(
-                                text = "MOLBU",
-                                containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                                contentColor = colorScheme.primary,
+        val catalogViewState = when {
+            uiState.isSearching -> 0
+            uiState.catalogError != null -> 1
+            !uiState.hasSearched -> 2
+            uiState.books.isEmpty() -> 3
+            else -> 10 + uiState.currentPage
+        }
+        UniContentHost(
+            targetState = catalogViewState,
+            modifier = Modifier.fillMaxWidth(),
+            transition = UniMotion.inlineContentTransition,
+            isForward = { from, to -> to >= from },
+            label = "LibraryCatalogState",
+        ) { viewState ->
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                when (viewState) {
+                    0 -> {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            LiquidLoading(
+                                style = LiquidLoadingStyle.Dots,
+                                size = LiquidLoadingSize.Large,
+                                message = stringResource(Res.string.ui_loading),
                             )
-                        },
-                        showDivider = true,
-                    )
-                    UniInsetRow(
-                        title = stringResource(Res.string.ui_library_branch_pesche),
-                        subtitle = stringResource(Res.string.ui_library_branch_pesche_sub),
-                        icon = LiquidIcons.MenuBook,
-                        iconTint = colorScheme.secondary,
-                        trailingContent = {
-                            LiquidBadge(
-                                text = "MOLBA",
-                                containerColor = colorScheme.secondary.copy(alpha = 0.12f),
-                                contentColor = colorScheme.secondary,
-                            )
-                        },
-                        showDivider = true,
-                    )
-                    UniInsetRow(
-                        title = stringResource(Res.string.ui_library_branch_termoli),
-                        subtitle = stringResource(Res.string.ui_library_branch_termoli_sub),
-                        icon = LiquidIcons.MenuBook,
-                        iconTint = colorScheme.tertiary,
-                        trailingContent = {
-                            LiquidBadge(
-                                text = "MOLBT",
-                                containerColor = colorScheme.tertiary.copy(alpha = 0.12f),
-                                contentColor = colorScheme.tertiary,
-                            )
-                        },
-                        showDivider = false,
-                    )
-                }
-            }
-
-            uiState.books.isEmpty() -> {
-                LiquidEmptyState(
-                    title = stringResource(Res.string.ui_library_results_empty),
-                    description = stringResource(Res.string.ui_library_results_empty_desc),
-                    icon = LiquidIcons.Search,
-                )
-            }
-
-            else -> {
-                LiquidSectionHeader(
-                    title = uiState.submittedQuery.ifBlank { stringResource(Res.string.ui_library_results_title) },
-                    subtitle = "${stringResource(Res.string.ui_library_results_count, uiState.totalResults)} · ${
-                        stringResource(Res.string.ui_library_page_label, uiState.currentPage)
-                    }",
-                )
-
-                UniInsetGroup(cornerRadius = 22.dp) {
-                    uiState.books.forEachIndexed { index, book ->
-                        LibraryBookListRow(
-                            book = book,
-                            onClick = { onBookClick(book) },
-                        )
-                        if (index < uiState.books.lastIndex) {
-                            LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
                         }
                     }
-                }
 
-                if (uiState.currentPage > 1 || uiState.totalResults > LibraryCatalogPage.PAGE_SIZE) {
-                    val hasNext = uiState.currentPage * LibraryCatalogPage.PAGE_SIZE < uiState.totalResults
-                    LiquidCard(
-                        shape = RoundedRectangle(20.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            LiquidButton(
-                                text = stringResource(Res.string.ui_library_prev_page),
-                                onClick = { onSearch(uiState.submittedQuery, uiState.currentPage - 1) },
-                                enabled = uiState.currentPage > 1 && !uiState.isSearching,
-                                variant = LiquidButtonVariant.Secondary,
-                                size = LiquidButtonSize.Small,
-                                modifier = Modifier.weight(1f),
+                    1 -> {
+                        LiquidEmptyState(
+                            title = stringResource(Res.string.ui_state_error_title),
+                            description = uiState.catalogError.orEmpty(),
+                            icon = LiquidIcons.Warning,
+                            actionButtonText = stringResource(Res.string.ui_retry),
+                            onActionClick = {
+                                onSearch(uiState.submittedQuery.ifBlank { uiState.query }, uiState.currentPage)
+                            },
+                        )
+                    }
+
+                    2 -> {
+                        LiquidSectionHeader(
+                            title = stringResource(Res.string.ui_library_branches_title),
+                            subtitle = stringResource(Res.string.ui_library_branches_subtitle),
+                        )
+                        UniInsetGroup(cornerRadius = 22.dp) {
+                            UniInsetRow(
+                                title = stringResource(Res.string.ui_library_branch_campobasso),
+                                subtitle = stringResource(Res.string.ui_library_branch_campobasso_sub),
+                                icon = LiquidIcons.Home,
+                                iconTint = colorScheme.primary,
+                                trailingContent = {
+                                    LiquidBadge(
+                                        text = "MOLBU",
+                                        containerColor = colorScheme.primary.copy(alpha = 0.12f),
+                                        contentColor = colorScheme.primary,
+                                    )
+                                },
+                                showDivider = true,
                             )
-                            LiquidBadge(
-                                text = stringResource(Res.string.ui_library_page_label, uiState.currentPage),
-                                containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                                contentColor = colorScheme.primary,
+                            UniInsetRow(
+                                title = stringResource(Res.string.ui_library_branch_pesche),
+                                subtitle = stringResource(Res.string.ui_library_branch_pesche_sub),
+                                icon = LiquidIcons.MenuBook,
+                                iconTint = colorScheme.secondary,
+                                trailingContent = {
+                                    LiquidBadge(
+                                        text = "MOLBA",
+                                        containerColor = colorScheme.secondary.copy(alpha = 0.12f),
+                                        contentColor = colorScheme.secondary,
+                                    )
+                                },
+                                showDivider = true,
                             )
-                            LiquidButton(
-                                text = stringResource(Res.string.ui_library_next_page),
-                                onClick = { onSearch(uiState.submittedQuery, uiState.currentPage + 1) },
-                                enabled = hasNext && !uiState.isSearching,
-                                variant = LiquidButtonVariant.Secondary,
-                                size = LiquidButtonSize.Small,
-                                modifier = Modifier.weight(1f),
+                            UniInsetRow(
+                                title = stringResource(Res.string.ui_library_branch_termoli),
+                                subtitle = stringResource(Res.string.ui_library_branch_termoli_sub),
+                                icon = LiquidIcons.MenuBook,
+                                iconTint = colorScheme.tertiary,
+                                trailingContent = {
+                                    LiquidBadge(
+                                        text = "MOLBT",
+                                        containerColor = colorScheme.tertiary.copy(alpha = 0.12f),
+                                        contentColor = colorScheme.tertiary,
+                                    )
+                                },
+                                showDivider = false,
                             )
+                        }
+                    }
+
+                    3 -> {
+                        LiquidEmptyState(
+                            title = stringResource(Res.string.ui_library_results_empty),
+                            description = stringResource(Res.string.ui_library_results_empty_desc),
+                            icon = LiquidIcons.Search,
+                        )
+                    }
+
+                    else -> {
+                        LiquidSectionHeader(
+                            title = uiState.submittedQuery.ifBlank { stringResource(Res.string.ui_library_results_title) },
+                            subtitle = "${stringResource(Res.string.ui_library_results_count, uiState.totalResults)} · ${
+                                stringResource(Res.string.ui_library_page_label, uiState.currentPage)
+                            }",
+                        )
+
+                        UniInsetGroup(cornerRadius = 22.dp) {
+                            uiState.books.forEachIndexed { index, book ->
+                                LibraryBookListRow(
+                                    book = book,
+                                    onClick = { onBookClick(book) },
+                                )
+                                if (index < uiState.books.lastIndex) {
+                                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
+                                }
+                            }
+                        }
+
+                        if (uiState.currentPage > 1 || uiState.totalResults > LibraryCatalogPage.PAGE_SIZE) {
+                            val hasNext = uiState.currentPage * LibraryCatalogPage.PAGE_SIZE < uiState.totalResults
+                            LiquidCard(
+                                shape = RoundedRectangle(20.dp),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    LiquidButton(
+                                        text = stringResource(Res.string.ui_library_prev_page),
+                                        onClick = { onSearch(uiState.submittedQuery, uiState.currentPage - 1) },
+                                        enabled = uiState.currentPage > 1 && !uiState.isSearching,
+                                        variant = LiquidButtonVariant.Secondary,
+                                        size = LiquidButtonSize.Small,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    LiquidBadge(
+                                        text = stringResource(Res.string.ui_library_page_label, uiState.currentPage),
+                                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                                        contentColor = colorScheme.primary,
+                                    )
+                                    LiquidButton(
+                                        text = stringResource(Res.string.ui_library_next_page),
+                                        onClick = { onSearch(uiState.submittedQuery, uiState.currentPage + 1) },
+                                        enabled = hasNext && !uiState.isSearching,
+                                        variant = LiquidButtonVariant.Secondary,
+                                        size = LiquidButtonSize.Small,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -709,10 +742,11 @@ private fun LibrarySpacesTab(
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        LiquidCard(
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -760,6 +794,7 @@ private fun LibrarySpacesTab(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+        }
         }
 
         FeatureStateContent(

@@ -26,7 +26,7 @@ import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContai
 import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.model.didactics.ExamRecord
+import com.anto426.uniapp.data.contract.ExamRecord
 import com.kyant.shapes.RoundedRectangle
 
 @Composable

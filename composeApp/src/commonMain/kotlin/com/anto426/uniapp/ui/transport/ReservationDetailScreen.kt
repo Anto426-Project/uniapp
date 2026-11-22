@@ -6,13 +6,14 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.codes.CodeFormat
-import com.anto426.uniapp.model.transport.TransportReservation
-import com.anto426.uniapp.model.transport.TripDirection
+import com.anto426.uniapp.data.contract.TransportReservation
+import com.anto426.uniapp.data.contract.TripDirection
 import com.anto426.uniapp.transport.presentation.TicketImageUiState
 import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.transport.components.ReservationHeroBackFace
 import com.anto426.uniapp.ui.transport.components.ReservationHeroFrontFace
@@ -96,31 +97,37 @@ fun ReservationDetailScreen(
 
     UniScreenColumn {
         // 1. Hero Ticket Card with 3D Flip
-        UniHeroGlassCard(
-            height = 370.dp,
-            flipTrigger = UniHeroFlipTrigger.CLICK,
-            frontContent = {
-                ReservationHeroFrontFace(
-                    reservation = reservation,
-                )
-            },
-            backContent = {
-                ReservationHeroBackFace(
-                    reservation = reservation,
-                    code = imageState.codes.firstOrNull { it.format == CodeFormat.Qr && it.canRegenerate }
-                        ?: imageState.codes.firstOrNull { it.canRegenerate && it.format != CodeFormat.Unsupported },
-                )
-            },
-        )
+        UniAnimatedEntrance(order = 0) {
+            UniHeroGlassCard(
+                height = 370.dp,
+                flipTrigger = UniHeroFlipTrigger.CLICK,
+                frontContent = {
+                    ReservationHeroFrontFace(
+                        reservation = reservation,
+                    )
+                },
+                backContent = {
+                    ReservationHeroBackFace(
+                        reservation = reservation,
+                        code = imageState.codes.firstOrNull { it.format == CodeFormat.Qr && it.canRegenerate }
+                            ?: imageState.codes.firstOrNull { it.canRegenerate && it.format != CodeFormat.Unsupported },
+                    )
+                },
+            )
+        }
 
-        TransportTicketActions(imageState, onReloadImage)
+        UniAnimatedEntrance(order = 1) {
+            TransportTicketActions(imageState, onReloadImage)
+        }
 
         // 2. Dettagli Biglietto e Viaggio
-        LiquidSectionHeader(
-            title = stringResource(Res.string.ui_trip_details),
-        )
+        UniAnimatedEntrance(order = 2) {
+            LiquidSectionHeader(
+                title = stringResource(Res.string.ui_trip_details),
+            )
+        }
 
-        UniInsetGroup {
+        UniInsetGroup(entranceOrder = 2) {
             detailRows.forEachIndexed { index, (title, value, iconPair) ->
                 UniInsetRow(
                     title = title,

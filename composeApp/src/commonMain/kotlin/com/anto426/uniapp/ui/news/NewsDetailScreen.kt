@@ -29,11 +29,12 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.navigation.ui.NewsDetailActionHost
 import com.anto426.uniapp.navigation.ui.NewsDetailActions
 import com.anto426.uniapp.ui.components.items.resolveNewsCategoryVisuals
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.document.RichMarkdownDocument
 import com.anto426.uniapp.ui.share.rememberTextSharer
-import com.anto426.unisdk.model.NewsContentFormatter
-import com.anto426.unisdk.model.newsSourceUrlOrNull
+import com.anto426.uniapp.data.contract.NewsContentFormatter
+import com.anto426.uniapp.data.contract.newsSourceUrlOrNull
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource
@@ -112,43 +113,45 @@ internal fun NewsDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // 1. Testata essenziale e titolo di forte rilievo tipografico (senza contenitore card)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+            UniAnimatedEntrance(order = 0) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text(
-                        text = visuals.label.uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = visuals.color,
-                        maxLines = 1,
-                    )
-                    if (visuals.subtitle.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
                         Text(
-                            text = "• ${visuals.subtitle}",
+                            text = visuals.label.uppercase(),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            color = visuals.color,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (visuals.subtitle.isNotBlank()) {
+                            Text(
+                                text = "• ${visuals.subtitle}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+
+                    if (title.isNotBlank()) {
+                        Text(
+                            text = NewsContentFormatter.formatTitle(title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 26.sp,
+                            lineHeight = 33.sp,
+                            color = colorScheme.onSurface,
                         )
                     }
-                }
-
-                if (title.isNotBlank()) {
-                    Text(
-                        text = NewsContentFormatter.formatTitle(title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 26.sp,
-                        lineHeight = 33.sp,
-                        color = colorScheme.onSurface,
-                    )
                 }
             }
 
@@ -157,70 +160,74 @@ internal fun NewsDetailScreen(
             // 2. Corpo dell'articolo formattato direttamente su pagina
             val bodyMarkdown = formatted.articleMarkdown.ifBlank { formatted.summaryText }
             if (bodyMarkdown.isNotBlank()) {
-                RichMarkdownDocument(
-                    markdown = bodyMarkdown,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                )
+                UniAnimatedEntrance(order = 1) {
+                    RichMarkdownDocument(
+                        markdown = bodyMarkdown,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                    )
+                }
             }
 
             // 3. Allegati / documenti estratti
             if (formatted.attachments.isNotEmpty() && onOpenSource != null) {
                 Spacer(Modifier.height(2.dp))
                 LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    formatted.attachments.forEach { attachment ->
-                        val host = remember(attachment.url) {
-                            runCatching { Url(attachment.url).host.removePrefix("www.") }.getOrNull().orEmpty()
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedRectangle(14.dp))
-                                .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
-                                .clickable { onOpenSource(attachment.url) }
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Icon(
-                                imageVector = LiquidIcons.Assignment,
-                                contentDescription = null,
-                                tint = visuals.color,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(1.dp),
+                UniAnimatedEntrance(order = 2) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        formatted.attachments.forEach { attachment ->
+                            val host = remember(attachment.url) {
+                                runCatching { Url(attachment.url).host.removePrefix("www.") }.getOrNull().orEmpty()
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedRectangle(14.dp))
+                                    .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                                    .clickable { onOpenSource(attachment.url) }
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
-                                Text(
-                                    text = attachment.label,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                Icon(
+                                    imageVector = LiquidIcons.Assignment,
+                                    contentDescription = null,
+                                    tint = visuals.color,
+                                    modifier = Modifier.size(18.dp),
                                 )
-                                if (host.isNotBlank()) {
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                                ) {
                                     Text(
-                                        text = host,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = colorScheme.onSurfaceVariant,
+                                        text = attachment.label,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = colorScheme.onSurface,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
+                                    if (host.isNotBlank()) {
+                                        Text(
+                                            text = host,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
                                 }
+                                Icon(
+                                    imageVector = LiquidIcons.ChevronRight,
+                                    contentDescription = null,
+                                    tint = colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp),
+                                )
                             }
-                            Icon(
-                                imageVector = LiquidIcons.ChevronRight,
-                                contentDescription = null,
-                                tint = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp),
-                            )
                         }
                     }
                 }

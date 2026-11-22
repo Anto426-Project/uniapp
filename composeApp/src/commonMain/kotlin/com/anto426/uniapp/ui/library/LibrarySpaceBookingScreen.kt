@@ -41,6 +41,7 @@ import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.library.presentation.LibrarySpaceBookingUiState
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -72,10 +73,11 @@ fun LibrarySpaceBookingScreen(
 
     UniScreenColumn {
         // Step 1: Tipologia, Sede e Risorsa
-        LiquidCard(
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 StepCardHeader(
                     title = stringResource(Res.string.ui_library_booking_step_1),
@@ -188,6 +190,7 @@ fun LibrarySpaceBookingScreen(
                     }
                 }
             }
+        }
         }
 
         // Step 2: Fasce orarie

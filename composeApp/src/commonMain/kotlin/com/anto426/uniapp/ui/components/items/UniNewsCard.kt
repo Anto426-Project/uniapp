@@ -37,8 +37,8 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.model.news.NewsItem
-import com.anto426.unisdk.model.NewsContentFormatter
+import com.anto426.uniapp.data.contract.NewsItem
+import com.anto426.uniapp.data.contract.NewsContentFormatter
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource

@@ -5,11 +5,13 @@ import androidx.compose.runtime.Composable
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.data.contract.ContactData
 import com.anto426.uniapp.services.presentation.ContactsUiState
 import com.anto426.uniapp.ui.components.items.ContactItem
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -67,17 +69,21 @@ fun ContactsScreen(
                 } else {
                     stringResource(Res.string.ui_contacts_available, categoryFiltered.size)
                 }
-                LiquidSectionHeader(
-                    title = selectedCategory.ifBlank { stringResource(Res.string.ui_contacts_title) },
-                    subtitle = subtitle,
-                )
+                UniAnimatedEntrance(order = 0) {
+                    LiquidSectionHeader(
+                        title = selectedCategory.ifBlank { stringResource(Res.string.ui_contacts_title) },
+                        subtitle = subtitle,
+                    )
+                }
             }
             itemsIndexed(
                 items = categoryFiltered,
                 key = { index, item -> "contact|${item.email}|${item.name}|$index" },
                 contentType = { _, _ -> "contact-item" },
-            ) { _, contact ->
-                ContactItem(contact) { onContactClick(contact) }
+            ) { index, contact ->
+                UniAnimatedEntrance(order = uniListEntranceOrder(index, offset = 1)) {
+                    ContactItem(contact) { onContactClick(contact) }
+                }
             }
         }
     }

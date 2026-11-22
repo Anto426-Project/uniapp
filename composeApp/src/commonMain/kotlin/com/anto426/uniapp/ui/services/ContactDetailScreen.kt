@@ -29,10 +29,11 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.error
-import com.anto426.uniapp.model.services.ContactData
-import com.anto426.uniapp.model.services.contactDialUri
+import com.anto426.uniapp.data.contract.ContactData
+import com.anto426.uniapp.data.contract.contactDialUri
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.encodeURLParameter
@@ -93,11 +94,12 @@ fun ContactDetailScreen(contact: ContactData) {
 
     UniScreenColumn {
         // Hero Card Contatto
-        LiquidCard(
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-            border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.20f)),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+                border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.20f)),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -212,9 +214,14 @@ fun ContactDetailScreen(contact: ContactData) {
                 }
             }
         }
+        }
 
         if (contactFields.isNotEmpty()) {
-            ContactDetailGroup(Res.string.ui_contact_info_group, contactFields) { uri ->
+            ContactDetailGroup(
+                title = Res.string.ui_contact_info_group,
+                fields = contactFields,
+                entranceOrder = 1,
+            ) { uri ->
                 try {
                     uriHandler.openUri(uri)
                 } catch (_: Exception) {
@@ -224,7 +231,11 @@ fun ContactDetailScreen(contact: ContactData) {
         }
 
         if (locationFields.isNotEmpty()) {
-            ContactDetailGroup(Res.string.ui_contact_location_group, locationFields)
+            ContactDetailGroup(
+                title = Res.string.ui_contact_location_group,
+                fields = locationFields,
+                entranceOrder = if (contactFields.isNotEmpty()) 2 else 1,
+            )
         }
     }
 }
@@ -240,9 +251,13 @@ private data class ContactDetailField(
 private fun ContactDetailGroup(
     title: StringResource,
     fields: List<ContactDetailField>,
+    entranceOrder: Int = 0,
     onOpenUri: (String) -> Unit = {},
 ) {
-    UniInsetGroup(title = stringResource(title)) {
+    UniInsetGroup(
+        title = stringResource(title),
+        entranceOrder = entranceOrder,
+    ) {
         fields.forEachIndexed { index, field ->
             UniInsetRow(
                 title = stringResource(field.label),

@@ -7,12 +7,14 @@ import androidx.compose.runtime.remember
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.news.NewsItem
+import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.news.presentation.NewsFilter
 import com.anto426.uniapp.news.presentation.NewsUiState
 import com.anto426.uniapp.ui.components.items.UniNewsCard
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -42,6 +44,7 @@ fun NewsScreen(
     val showFeaturedLead = trimmedQuery.isBlank() && filteredNews.size >= 2
     val featuredNews = if (showFeaturedLead) filteredNews.first() else null
     val listNews = if (showFeaturedLead) filteredNews.drop(1) else filteredNews
+    val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
 
     UniScreenLazyColumn {
         if (uiState.filters.size > 1) {
@@ -87,17 +90,18 @@ fun NewsScreen(
             }
         } else {
             if (featuredNews != null) {
-                item(key = "news-featured-${featuredNews.key}", contentType = "featured-news") {
-                    UniNewsCard(
-                        news = featuredNews,
-                        onClick = { onNewsSelected(featuredNews) },
-                        featured = true,
-                    )
+                item(key = "news-featured-${uiState.selectedTab}-${featuredNews.key}", contentType = "featured-news") {
+                    UniAnimatedEntrance(order = 0) {
+                        UniNewsCard(
+                            news = featuredNews,
+                            onClick = { onNewsSelected(featuredNews) },
+                            featured = true,
+                        )
+                    }
                 }
             }
 
             if (listNews.isNotEmpty()) {
-                val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
                 item(key = "news-section-header-${uiState.selectedTab}-$showFeaturedLead", contentType = "section-header") {
                     val activeLabel = when (activeFilter) {
                         NewsFilter.University -> stringResource(Res.string.ui_news_university)
@@ -110,23 +114,29 @@ fun NewsScreen(
                     } else {
                         stringResource(Res.string.ui_news_count_format, filteredNews.size)
                     }
-                    LiquidSectionHeader(
-                        title = activeLabel,
-                        subtitle = countLabel,
-                    )
+                    UniAnimatedEntrance(order = if (featuredNews != null) 1 else 0) {
+                        LiquidSectionHeader(
+                            title = activeLabel,
+                            subtitle = countLabel,
+                        )
+                    }
                 }
 
                 itemsIndexed(
                     items = listNews,
                     contentType = { _, _ -> "news-card" },
-                    key = { index, news -> news.key.ifBlank { "${news.title}|$index" } },
-                ) { _, news ->
-                    UniNewsCard(
-                        news = news,
-                        onClick = { onNewsSelected(news) },
-                        homeCard = false,
-                        featured = false,
-                    )
+                    key = { index, news -> "${uiState.selectedTab}|${news.key.ifBlank { news.title }}|$index" },
+                ) { index, news ->
+                    UniAnimatedEntrance(
+                        order = uniListEntranceOrder(index, offset = if (featuredNews != null) 1 else 0),
+                    ) {
+                        UniNewsCard(
+                            news = news,
+                            onClick = { onNewsSelected(news) },
+                            homeCard = false,
+                            featured = false,
+                        )
+                    }
                 }
             }
         }

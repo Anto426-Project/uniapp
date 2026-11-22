@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.transport.TransportReservation
-import com.anto426.uniapp.model.transport.TripDirection
+import com.anto426.uniapp.data.contract.TransportReservation
+import com.anto426.uniapp.data.contract.TripDirection
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

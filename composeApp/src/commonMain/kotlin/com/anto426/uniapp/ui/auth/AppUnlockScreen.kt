@@ -43,6 +43,7 @@ import com.anto426.uniapp.settings.presentation.SettingsViewModel
 import com.anto426.uniapp.ui.components.account.LocalAccountAvatars
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
@@ -90,13 +91,14 @@ internal fun AppUnlockScreen(
         Spacer(Modifier.height(12.dp))
 
         // 1. Account Welcome Header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
             if (displayName != null || avatar != null) {
                 UniAccountAvatar(
                     imageData = avatar?.bytes,
@@ -175,6 +177,7 @@ internal fun AppUnlockScreen(
                     )
                 }
             }
+        }
         }
 
         // 2. Master Glass Authentication Card

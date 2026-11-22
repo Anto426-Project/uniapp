@@ -59,7 +59,7 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.home.presentation.HomeDashboardUiState
 import com.anto426.uniapp.model.home.QuickActionItem
-import com.anto426.uniapp.model.news.NewsItem
+import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
@@ -67,6 +67,7 @@ import com.anto426.uniapp.ui.components.items.UniNewsCard
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -310,7 +311,7 @@ fun HomeSummarySection(
                     }
                 }
             } else {
-                val cfuPercentage = (uiState.progress * 100).toInt().coerceIn(0, 100)
+                val cfuPercentage = (uiState.progress * 100f).roundToInt().coerceIn(0, 100)
                 val targetCfuLabel = uiState.targetCfu.takeIf { it > 0 }?.toString() ?: "—"
                 Column(
                     modifier = Modifier

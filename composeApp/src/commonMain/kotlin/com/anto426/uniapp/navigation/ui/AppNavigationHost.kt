@@ -115,8 +115,8 @@ internal fun AppNavigationHost(
     val authenticatedAccount = (sessionState as? AppSessionState.Authenticated)?.account
     val accountId = authenticatedAccount?.accountId.orEmpty()
     val profileId = authenticatedAccount?.activeProfileId
-    val accountRepository = accountId.takeIf(String::isNotBlank)?.let { runtime.repositoryFor(it, profileId) }
-        ?: runtime.defaultRepository
+    val ownedRepository = accountId.takeIf(String::isNotBlank)?.let { runtime.repositoryFor(it, profileId) }
+    val accountRepository = ownedRepository ?: runtime.defaultRepository
     val dataGeneration = accountRepository.generation
     val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
     val attendanceScannerActionHost = remember(accountId, profileId, dataGeneration) { AttendanceScannerActionHost() }
@@ -168,7 +168,9 @@ internal fun AppNavigationHost(
     val sessionRoute = navigator.sessionRoute
     // Wait for reconciliation before rendering restored session content.
     val isResolvingSessionRoute =
-        sessionState == AppSessionState.Initializing || !navigator.canRender(sessionRoute)
+        sessionState == AppSessionState.Initializing ||
+            (authenticatedAccount != null && ownedRepository == null) ||
+            !navigator.canRender(sessionRoute)
     val isMandatoryUpdate = updateUiState.isMandatory && !runtime.appInfo.isDebuggable
     val route = navigator.visibleRoute(isMandatoryUpdate)
     val isChangelog = route == AppRoute.Changelog
@@ -188,7 +190,10 @@ internal fun AppNavigationHost(
     val topLevelRoutes = appTopLevelRoutes
     val topLevelNavigationItems = topLevelRoutes.map { item ->
         val presentation = item.presentation(isProfessor)
-        LiquidNavigationItem(label = presentation.title, icon = presentation.icon)
+        LiquidNavigationItem(
+            label = if (themeUiState.navBarShowLabels) presentation.title else "",
+            icon = presentation.icon,
+        )
     }
 
     LaunchedEffect(sessionState) { navigator.reconcile() }
@@ -197,11 +202,18 @@ internal fun AppNavigationHost(
         scrollBehavior.state.heightOffset = 0f
         scrollBehavior.state.contentOffset = 0f
     }
+    LaunchedEffect(themeUiState.navBarAutoHide) {
+        if (!themeUiState.navBarAutoHide) {
+            shellViewModel.updateNavigationBarVisibility(true)
+        }
+    }
 
+    val navBarAutoHideState = rememberUpdatedState(themeUiState.navBarAutoHide)
     val navigationBarScrollConnection =
         remember(shellViewModel) {
             object : NestedScrollConnection {
                 override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    if (!navBarAutoHideState.value) return Offset.Zero
                     when {
                         available.y < -2f -> shellViewModel.updateNavigationBarVisibility(false)
                         available.y > 2f -> shellViewModel.updateNavigationBarVisibility(true)
@@ -280,7 +292,7 @@ internal fun AppNavigationHost(
                         selectedIndex = selectedIndex,
                         onItemSelected = { navigator.selectTopLevel(topLevelRoutes[it]) },
                         items = topLevelNavigationItems,
-                        visible = shellUiState.isNavigationBarVisible,
+                        visible = !themeUiState.navBarAutoHide || shellUiState.isNavigationBarVisible,
                     )
                 }
             }
@@ -395,6 +407,9 @@ internal fun AppNavigationHost(
                             onBackgroundIntensityChanged = themeViewModel::setBackgroundIntensity,
                             onBackgroundSpeedChanged = themeViewModel::setBackgroundSpeedFactor,
                             onBackgroundVignetteChanged = themeViewModel::setBackgroundVignette,
+                            onNavBarShowLabelsChanged = themeViewModel::setNavBarShowLabels,
+                            onNavBarAutoHideChanged = themeViewModel::setNavBarAutoHide,
+                            onElementEntranceSelected = themeViewModel::selectElementEntrance,
                             onResetTheme = themeViewModel::reset,
                             onCustomColorSelected = themeViewModel::selectCustomColor,
                             languageUiState = languageUiState,

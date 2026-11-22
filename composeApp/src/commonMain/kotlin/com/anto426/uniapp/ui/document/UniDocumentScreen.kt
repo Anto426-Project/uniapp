@@ -44,7 +44,9 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.legal.LegalSectionData
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.updates.presentation.ChangelogUiState
 import com.kyant.shapes.RoundedRectangle
 
@@ -195,23 +197,27 @@ fun UniSectionedDocumentScreen(
         ) {
             val hasHeader = !title.isNullOrBlank() || !intro.isNullOrBlank()
             if (hasHeader) {
-                DocumentHeaderContent(
-                    title = title,
-                    subtitle = subtitle,
-                    headerBadge = headerBadge,
-                    intro = intro,
-                )
+                UniAnimatedEntrance(order = 0) {
+                    DocumentHeaderContent(
+                        title = title,
+                        subtitle = subtitle,
+                        headerBadge = headerBadge,
+                        intro = intro,
+                    )
+                }
             }
 
             visibleSections.forEachIndexed { index, (sectionTitle, sectionBody) ->
                 if (hasHeader || index > 0) {
                     LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
                 }
-                DocumentSectionBlock(
-                    title = sectionTitle,
-                    body = sectionBody,
-                    indexLabel = "${index + 1}",
-                )
+                UniAnimatedEntrance(order = uniListEntranceOrder(index, offset = if (hasHeader) 1 else 0)) {
+                    DocumentSectionBlock(
+                        title = sectionTitle,
+                        body = sectionBody,
+                        indexLabel = "${index + 1}",
+                    )
+                }
             }
 
             if (!footerActionTitle.isNullOrBlank() && onFooterActionClick != null) {
@@ -310,14 +316,16 @@ fun UniDocumentScreen(
         ) {
             val hasHeader = !title.isNullOrBlank() || !leadingIntro.isNullOrBlank()
             if (hasHeader) {
-                DocumentHeaderContent(
-                    title = title,
-                    subtitle = subtitle,
-                    headerBadge = headerBadge,
-                    intro = leadingIntro,
-                    accentColor = defaultAccent,
-                    colorizeTitle = headerAccentColor != null,
-                )
+                UniAnimatedEntrance(order = 0) {
+                    DocumentHeaderContent(
+                        title = title,
+                        subtitle = subtitle,
+                        headerBadge = headerBadge,
+                        intro = leadingIntro,
+                        accentColor = defaultAccent,
+                        colorizeTitle = headerAccentColor != null,
+                    )
+                }
             }
 
             if (hasExplicitSections) {
@@ -326,24 +334,28 @@ fun UniDocumentScreen(
                         LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
                     }
                     val sectionAccent = sectionAccentResolver?.invoke(section.title, index) ?: defaultAccent
-                    DocumentSectionBlock(
-                        title = section.title,
-                        body = section.body,
-                        accentColor = sectionAccent,
-                        colorizeTitle = sectionAccentResolver != null,
-                    )
+                    UniAnimatedEntrance(order = uniListEntranceOrder(index, offset = if (hasHeader) 1 else 0)) {
+                        DocumentSectionBlock(
+                            title = section.title,
+                            body = section.body,
+                            accentColor = sectionAccent,
+                            colorizeTitle = sectionAccentResolver != null,
+                        )
+                    }
                 }
             } else {
                 if (hasHeader) {
                     LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
                 }
-                RichMarkdownDocument(
-                    markdown = content,
-                    accentColor = defaultAccent,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                )
+                UniAnimatedEntrance(order = if (hasHeader) 1 else 0) {
+                    RichMarkdownDocument(
+                        markdown = content,
+                        accentColor = defaultAccent,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                    )
+                }
             }
 
             if (bottomContent != null) {

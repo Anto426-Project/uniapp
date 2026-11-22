@@ -21,13 +21,13 @@ import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
 import com.anto426.uniapp.didactics.presentation.ExamsHistoryViewModel
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.components.layout.UniScreenLazyColumn
+import com.anto426.uniapp.ui.components.layout.UniTabContentHost
 import com.anto426.uniapp.ui.didactics.ExamBookableFilter
 import com.anto426.uniapp.ui.didactics.ExamHistoryFilter
+import com.anto426.uniapp.ui.didactics.ExamsHistoryTabContent
+import com.anto426.uniapp.ui.didactics.StudentExamsTabContent
 import com.anto426.uniapp.ui.didactics.StudyPlanContent
 import com.anto426.uniapp.ui.didactics.TranscriptsContent
-import com.anto426.uniapp.ui.didactics.examsHistoryContentItems
-import com.anto426.uniapp.ui.didactics.studentExamsContentItems
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,6 +81,7 @@ import com.anto426.uniapp.settings.presentation.SettingsViewModel
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
+import com.anto426.liquidmonet.components.layout.screenentrance.LiquidScreenEntranceAnimation
 import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.transport.presentation.TransportBookingViewModel
@@ -169,6 +170,9 @@ internal fun AppRouteContent(
     onBackgroundIntensityChanged: (Float) -> Unit = {},
     onBackgroundSpeedChanged: (Float) -> Unit = {},
     onBackgroundVignetteChanged: (Boolean) -> Unit = {},
+    onNavBarShowLabelsChanged: (Boolean) -> Unit = {},
+    onNavBarAutoHideChanged: (Boolean) -> Unit = {},
+    onElementEntranceSelected: (LiquidScreenEntranceAnimation) -> Unit = {},
     onResetTheme: () -> Unit,
     onCustomColorSelected: (Color) -> Unit = {},
     languageUiState: LanguageUiState,
@@ -477,46 +481,53 @@ internal fun AppRouteContent(
                     selectedIndex = selectedPane,
                     onTabSelected = { selectedPane = it },
                 )
-                if (selectedPane == 0) {
-                    val model = viewModel(key = "$viewModelKey-completed") { TranscriptsViewModel(dataSource) }
-                    val state by model.uiState.collectAsStateWithLifecycle()
-                    FeatureStateContent(
-                        state = state.loadState,
-                        errorMessage = state.errorMessage,
-                        onRetry = { model.refresh(force = true) },
-                        emptyTitle = stringResource(Res.string.ui_grades_verbalized_empty),
-                        emptyMessage = stringResource(Res.string.ui_state_empty_transcripts),
-                        emptyActionLabel = stringResource(Res.string.ui_career_plan),
-                        onEmptyActionClick = { selectedPane = 1 },
-                        inline = true,
-                    ) {
-                        TranscriptsContent(
-                            uiState = state,
-                            onYearSelected = model::selectYear,
-                            onExamClick = { exam ->
-                                if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
-                            },
-                            onOpenGrades = { navigator.navigate(AppRoute.Grades) },
-                        )
-                    }
-                } else {
-                    val model = viewModel(key = "$viewModelKey-plan") { StudyPlanViewModel(dataSource) }
-                    val state by model.uiState.collectAsStateWithLifecycle()
-                    FeatureStateContent(
-                        state = state.loadState,
-                        errorMessage = state.errorMessage,
-                        onRetry = { model.refresh(force = true) },
-                        emptyMessage = stringResource(Res.string.ui_state_empty_study_plan),
-                        inline = true,
-                    ) {
-                        StudyPlanContent(
-                            uiState = state,
-                            onYearSelected = model::selectYear,
-                            onCourseClick = { course ->
-                                if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id))
-                            },
-                            onStatusFilterChanged = model::selectStatusFilter,
-                        )
+                UniTabContentHost(
+                    selectedTab = selectedPane,
+                    tabCount = tabs.size,
+                    onTabSelected = { selectedPane = it },
+                    label = "TranscriptsTabs",
+                ) { pane ->
+                    if (pane == 0) {
+                        val model = viewModel(key = "$viewModelKey-completed") { TranscriptsViewModel(dataSource) }
+                        val state by model.uiState.collectAsStateWithLifecycle()
+                        FeatureStateContent(
+                            state = state.loadState,
+                            errorMessage = state.errorMessage,
+                            onRetry = { model.refresh(force = true) },
+                            emptyTitle = stringResource(Res.string.ui_grades_verbalized_empty),
+                            emptyMessage = stringResource(Res.string.ui_state_empty_transcripts),
+                            emptyActionLabel = stringResource(Res.string.ui_career_plan),
+                            onEmptyActionClick = { selectedPane = 1 },
+                            inline = true,
+                        ) {
+                            TranscriptsContent(
+                                uiState = state,
+                                onYearSelected = model::selectYear,
+                                onExamClick = { exam ->
+                                    if (exam.code.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(exam.code))
+                                },
+                                onOpenGrades = { navigator.navigate(AppRoute.Grades) },
+                            )
+                        }
+                    } else {
+                        val model = viewModel(key = "$viewModelKey-plan") { StudyPlanViewModel(dataSource) }
+                        val state by model.uiState.collectAsStateWithLifecycle()
+                        FeatureStateContent(
+                            state = state.loadState,
+                            errorMessage = state.errorMessage,
+                            onRetry = { model.refresh(force = true) },
+                            emptyMessage = stringResource(Res.string.ui_state_empty_study_plan),
+                            inline = true,
+                        ) {
+                            StudyPlanContent(
+                                uiState = state,
+                                onYearSelected = model::selectYear,
+                                onCourseClick = { course ->
+                                    if (course.id.isNotBlank()) navigator.navigate(AppRoute.CourseDetail(course.id))
+                                },
+                                onStatusFilterChanged = model::selectStatusFilter,
+                            )
+                        }
                     }
                 }
             }
@@ -550,6 +561,9 @@ internal fun AppRouteContent(
                 onBackgroundIntensityChanged = onBackgroundIntensityChanged,
                 onBackgroundSpeedChanged = onBackgroundSpeedChanged,
                 onBackgroundVignetteChanged = onBackgroundVignetteChanged,
+                onNavBarShowLabelsChanged = onNavBarShowLabelsChanged,
+                onNavBarAutoHideChanged = onNavBarAutoHideChanged,
+                onElementEntranceSelected = onElementEntranceSelected,
                 onReset = onResetTheme,
                 onNavigateToColorLab = { navigator.navigate(AppRoute.Colors) },
             )
@@ -848,55 +862,52 @@ internal fun AppRouteContent(
                     ),
                     LiquidNavigationItem(stringResource(Res.string.msg_storico)),
                 )
-                UniScreenLazyColumn {
-                    item(key = "exams-tab-bar", contentType = "tab-bar") {
-                        LiquidTabBar(
-                            items = examTabs,
-                            selectedIndex = state.selectedTab,
-                            onTabSelected = model::selectTab,
-                            modifier = Modifier.padding(bottom = 4.dp),
-                        )
-                    }
-                    if (state.selectedTab == 2) {
-                        if (historyState.loadState != FeatureLoadState.Content) {
-                            item(key = "exams-history-state-${historyState.loadState}", contentType = "feature-state") {
-                                FeatureStateContent(
-                                    state = historyState.loadState,
-                                    errorMessage = historyState.errorMessage,
-                                    onRetry = { history.refresh(force = true) },
-                                    emptyTitle = stringResource(Res.string.ui_history_empty_title),
-                                    emptyMessage = stringResource(Res.string.ui_history_empty_desc),
-                                    inline = true,
-                                ) {}
+                UniScreenColumn {
+                    LiquidTabBar(
+                        items = examTabs,
+                        selectedIndex = state.selectedTab.coerceIn(0, examTabs.lastIndex),
+                        onTabSelected = model::selectTab,
+                    )
+                    UniTabContentHost(
+                        selectedTab = state.selectedTab,
+                        tabCount = examTabs.size,
+                        onTabSelected = model::selectTab,
+                        label = "ExamsRouteTabs",
+                    ) { tab ->
+                        if (tab == 2) {
+                            FeatureStateContent(
+                                state = historyState.loadState,
+                                errorMessage = historyState.errorMessage,
+                                onRetry = { history.refresh(force = true) },
+                                emptyTitle = stringResource(Res.string.ui_history_empty_title),
+                                emptyMessage = stringResource(Res.string.ui_history_empty_desc),
+                                inline = true,
+                            ) {
+                                ExamsHistoryTabContent(
+                                    uiState = historyState,
+                                    filter = historyFilter,
+                                    onFilterSelected = { historyFilter = it },
+                                )
                             }
                         } else {
-                            examsHistoryContentItems(
-                                uiState = historyState,
-                                filter = historyFilter,
-                                onFilterSelected = { historyFilter = it },
-                            )
-                        }
-                    } else {
-                        if (state.loadState != FeatureLoadState.Content) {
-                            item(key = "exams-state-${state.selectedTab}-${state.loadState}", contentType = "feature-state") {
-                                FeatureStateContent(
-                                    state = state.loadState,
-                                    errorMessage = state.errorMessage,
-                                    onRetry = { model.refresh(force = true) },
-                                    emptyMessage = stringResource(Res.string.ui_state_empty_exams),
-                                    inline = true,
-                                ) {}
+                            FeatureStateContent(
+                                state = state.loadState,
+                                errorMessage = state.errorMessage,
+                                onRetry = { model.refresh(force = true) },
+                                emptyMessage = stringResource(Res.string.ui_state_empty_exams),
+                                inline = true,
+                            ) {
+                                StudentExamsTabContent(
+                                    uiState = state,
+                                    tabIndex = tab,
+                                    bookableFilter = bookableFilter,
+                                    onBookableFilterChange = { bookableFilter = it },
+                                    onToggleBooking = model::toggleBooking,
+                                    onAddToCalendar = { examId ->
+                                        model.openCalendar(examId, uriHandler::openUri)
+                                    },
+                                )
                             }
-                        } else {
-                            studentExamsContentItems(
-                                uiState = state,
-                                bookableFilter = bookableFilter,
-                                onBookableFilterChange = { bookableFilter = it },
-                                onToggleBooking = model::toggleBooking,
-                                onAddToCalendar = { examId ->
-                                    model.openCalendar(examId, uriHandler::openUri)
-                                },
-                            )
                         }
                     }
                 }
@@ -1097,6 +1108,11 @@ internal fun AppRouteContent(
             LaunchedEffect(devicesUiState.canDisconnectAll, disconnectAllUiState.isDisconnecting) {
                 if (!devicesUiState.canDisconnectAll && !disconnectAllUiState.isDisconnecting) {
                     disconnectAllViewModel.dismissConfirmation()
+                }
+            }
+            LaunchedEffect(disconnectAllUiState.refreshRevision) {
+                if (disconnectAllUiState.refreshRevision > 0) {
+                    devicesViewModel.refresh(force = true)
                 }
             }
             FeatureStateContent(

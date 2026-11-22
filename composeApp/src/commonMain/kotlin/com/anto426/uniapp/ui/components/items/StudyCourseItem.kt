@@ -25,8 +25,8 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.didactics.CourseStatus
-import com.anto426.uniapp.model.didactics.StudyCourse
+import com.anto426.uniapp.data.contract.CourseStatus
+import com.anto426.uniapp.data.contract.StudyCourse
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

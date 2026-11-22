@@ -37,8 +37,8 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.motion.LiquidMotion
 import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.model.didactics.AttendanceData
-import com.anto426.uniapp.model.didactics.SingleAttendanceEntry
+import com.anto426.uniapp.data.contract.AttendanceData
+import com.anto426.uniapp.data.contract.SingleAttendanceEntry
 import com.kyant.shapes.RoundedRectangle
 import kotlin.math.round
 import org.jetbrains.compose.resources.stringResource

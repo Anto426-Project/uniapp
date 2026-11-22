@@ -21,7 +21,7 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.didactics.AcademicContentItem
+import com.anto426.uniapp.data.contract.AcademicContentItem
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

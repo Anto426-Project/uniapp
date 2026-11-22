@@ -33,8 +33,8 @@ import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.glass.LiquidGlassRole
 import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.transport.TransportReservation
-import com.anto426.uniapp.model.transport.TripDirection
+import com.anto426.uniapp.data.contract.TransportReservation
+import com.anto426.uniapp.data.contract.TripDirection
 import com.anto426.uniapp.codes.DecodedCode
 import com.anto426.uniapp.codes.CodeFormat
 import com.anto426.uniapp.ui.didactics.components.UniAppBrandLogo

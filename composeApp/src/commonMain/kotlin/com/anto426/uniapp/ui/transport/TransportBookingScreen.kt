@@ -51,12 +51,13 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.selection.radiobutton.LiquidRadioButton
 import com.anto426.liquidmonet.components.selection.select.LiquidSelect
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.transport.TripBookingDirection
+import com.anto426.uniapp.data.contract.TripBookingDirection
 import com.anto426.uniapp.transport.presentation.TransportBookingUiState
 import com.anto426.uniapp.transport.presentation.isTransportBookingDateAllowed
 import com.anto426.uniapp.transport.presentation.isTransportDateBooked
 import com.anto426.uniapp.transport.presentation.transportBookingWindow
 import com.anto426.uniapp.transport.presentation.transportRouteStopsFor
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.kyant.shapes.RoundedRectangle
 import kotlin.time.Clock
@@ -129,7 +130,8 @@ fun TransportBookingScreen(
 
     UniScreenColumn {
         // 1. Selezione Tratta
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        UniAnimatedEntrance(order = 0) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LiquidSectionHeader(
                 title = stringResource(Res.string.ui_trip_route),
                 subtitle = stringResource(Res.string.ui_transport_route_subtitle),
@@ -195,20 +197,23 @@ fun TransportBookingScreen(
                 }
             }
         }
+        }
 
         // 2. Selezione Direzione (Come Aspetto e Modalità in Temi con Radio Button)
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_transport_direction_title),
-                subtitle = stringResource(Res.string.ui_transport_direction_subtitle),
-                size = LiquidSectionHeaderSize.Small,
-            )
+        UniAnimatedEntrance(order = 1) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                LiquidSectionHeader(
+                    title = stringResource(Res.string.ui_transport_direction_title),
+                    subtitle = stringResource(Res.string.ui_transport_direction_subtitle),
+                    size = LiquidSectionHeaderSize.Small,
+                )
 
-            BookingDirectionSelector(
-                selectedDirection = selectedDirection,
-                onDirectionSelected = { selectedDirection = it },
-                modifier = Modifier.fillMaxWidth(),
-            )
+                BookingDirectionSelector(
+                    selectedDirection = selectedDirection,
+                    onDirectionSelected = { selectedDirection = it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
 
         // 3. Calendario Multi-Selezione Date

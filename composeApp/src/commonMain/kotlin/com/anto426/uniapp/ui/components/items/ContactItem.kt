@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.data.contract.ContactData
 import com.kyant.shapes.RoundedRectangle
 
 @Composable

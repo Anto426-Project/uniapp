@@ -33,10 +33,11 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.library.model.LibraryBookCopyAction
+import com.anto426.uniapp.data.contract.LibraryBookCopyAction
 import com.anto426.uniapp.library.presentation.LibraryBookDetailUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
 import com.kyant.shapes.RoundedRectangle
@@ -83,10 +84,11 @@ fun LibraryBookDetailScreen(
     }
 
     UniScreenColumn {
-        LiquidCard(
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -185,6 +187,7 @@ fun LibraryBookDetailScreen(
                     }
                 }
             }
+        }
         }
 
         if (uiState.submissionResult != null) {

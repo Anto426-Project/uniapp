@@ -32,6 +32,7 @@ fun ServicesScreen(
         if (uiState.studentServices.isNotEmpty()) {
             UniSection(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                entranceOrder = 0,
             ) {
                 uiState.studentServices
                     .chunked(2)
@@ -41,12 +42,15 @@ fun ServicesScreen(
 
         // 2. Portali digitali esterni in stile Apple Inset Grouped List
         if (uiState.universityPortals.isNotEmpty()) {
-            UniSection(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            UniSection(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                entranceOrder = 1,
+            ) {
                 LiquidSectionHeader(
                     title = stringResource(Res.string.ui_services_portals_title),
                     subtitle = stringResource(Res.string.ui_services_portals_sub),
                 )
-                UniInsetGroup(cornerRadius = 22.dp) {
+                UniInsetGroup(cornerRadius = 22.dp, animateEntrance = false) {
                     uiState.universityPortals.forEachIndexed { index, portal ->
                         val navTarget = portal.id.ifBlank { portal.title }
                         UniInsetRow(

@@ -30,6 +30,8 @@ import com.anto426.uniapp.services.presentation.TaxesFilter
 import com.anto426.uniapp.services.presentation.TaxesUiState
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.items.TaxPaymentList
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
@@ -48,17 +50,16 @@ fun TaxesScreen(
     val hasPending = uiState.pendingPayments.isNotEmpty()
     val statusColor = if (hasPending) glassColors.warning else glassColors.success
 
-    val showPending = uiState.filter != TaxesFilter.PAID && uiState.pendingPayments.isNotEmpty()
-    val showPaid = uiState.filter != TaxesFilter.PENDING && uiState.paidPayments.isNotEmpty()
     val totalInstallments = uiState.pendingPayments.size + uiState.paidPayments.size
 
     UniScreenColumn {
         // 1. Situazione Contribuzione Hero Card
-        LiquidCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(24.dp),
-            contentPadding = PaddingValues(18.dp),
-        ) {
+        UniAnimatedEntrance(order = 0) {
+            LiquidCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedRectangle(24.dp),
+                contentPadding = PaddingValues(18.dp),
+            ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -187,6 +188,7 @@ fun TaxesScreen(
                 }
             }
         }
+        }
 
         // 2. Filter Chips (unclipped)
         val filterOptions = listOf(
@@ -210,29 +212,58 @@ fun TaxesScreen(
         }
 
         // 3. Installments Lists
-        if (showPending) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_pending_section),
-                subtitle = stringResource(Res.string.ui_pending_section_subtitle),
-            )
-            TaxPaymentList(uiState.pendingPayments)
-        }
+        UniContentHost(
+            targetState = uiState.filter,
+            modifier = Modifier.fillMaxWidth(),
+            isForward = { from, to -> to.ordinal >= from.ordinal },
+            label = "TaxesFilterSwitcher",
+        ) { activeFilter ->
+            val filterShowsPending = activeFilter != TaxesFilter.PAID && uiState.pendingPayments.isNotEmpty()
+            val filterShowsPaid = activeFilter != TaxesFilter.PENDING && uiState.paidPayments.isNotEmpty()
 
-        if (showPaid) {
-            LiquidSectionHeader(
-                title = stringResource(Res.string.ui_paid_section),
-                subtitle = "${stringResource(Res.string.ui_taxes_amount_paid_label)}: ${uiState.paidTotalLabel}",
-            )
-            TaxPaymentList(uiState.paidPayments)
-        }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                if (filterShowsPending) {
+                    UniAnimatedEntrance(order = 1) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            LiquidSectionHeader(
+                                title = stringResource(Res.string.ui_pending_section),
+                                subtitle = stringResource(Res.string.ui_pending_section_subtitle),
+                            )
+                            TaxPaymentList(uiState.pendingPayments)
+                        }
+                    }
+                }
 
-        if (!showPending && !showPaid) {
-            UniExpressiveStatusState(
-                title = stringResource(Res.string.ui_taxes_filter_empty),
-                description = stringResource(Res.string.ui_taxes_filter_empty_desc),
-                inline = true,
-                mainIcon = LiquidIcons.CreditCard,
-            )
+                if (filterShowsPaid) {
+                    UniAnimatedEntrance(order = if (filterShowsPending) 2 else 1) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            LiquidSectionHeader(
+                                title = stringResource(Res.string.ui_paid_section),
+                                subtitle = "${stringResource(Res.string.ui_taxes_amount_paid_label)}: ${uiState.paidTotalLabel}",
+                            )
+                            TaxPaymentList(uiState.paidPayments)
+                        }
+                    }
+                }
+
+                if (!filterShowsPending && !filterShowsPaid) {
+                    UniExpressiveStatusState(
+                        title = stringResource(Res.string.ui_taxes_filter_empty),
+                        description = stringResource(Res.string.ui_taxes_filter_empty_desc),
+                        inline = true,
+                        mainIcon = LiquidIcons.CreditCard,
+                    )
+                }
+            }
         }
 
         // 4. Footer Note

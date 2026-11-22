@@ -53,6 +53,7 @@ import com.anto426.uniapp.auth.presentation.LoginUiState
 import com.anto426.uniapp.ui.components.account.UniSavedAccountsSheet
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.account.model.UniLoginProfileOption
 import org.jetbrains.compose.resources.stringResource
@@ -87,51 +88,53 @@ fun LoginScreen(
         Spacer(Modifier.height(4.dp))
 
         // 1. Brand Presentation Header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            LiquidAvatar(
-                size = 74.dp,
-                icon = LiquidIcons.Lock,
-            )
-
+        UniAnimatedEntrance(order = 0) {
             Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = stringResource(Res.string.ui_app_name),
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = (-0.8).sp,
-                        fontSize = 30.sp,
-                    ),
-                    color = colorScheme.onSurface,
+                LiquidAvatar(
+                    size = 74.dp,
+                    icon = LiquidIcons.Lock,
                 )
 
-                Text(
-                    text = stringResource(Res.string.ui_login_portal_subtitle),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                    color = colorScheme.primary,
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.ui_app_name),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-0.8).sp,
+                            fontSize = 30.sp,
+                        ),
+                        color = colorScheme.onSurface,
+                    )
 
-                Text(
-                    text = stringResource(Res.string.ui_login_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
+                    Text(
+                        text = stringResource(Res.string.ui_login_portal_subtitle),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                        color = colorScheme.primary,
+                    )
+
+                    Text(
+                        text = stringResource(Res.string.ui_login_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
 
         if (accountUiState.accounts.isNotEmpty()) {
-            UniInsetGroup {
+            UniInsetGroup(entranceOrder = 1) {
                 UniInsetRow(
                     title = stringResource(Res.string.ui_login_quick_switch),
                     subtitle = stringResource(Res.string.ui_accounts_saved_sub),

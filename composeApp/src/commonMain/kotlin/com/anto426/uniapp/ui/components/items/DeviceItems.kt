@@ -30,8 +30,8 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.model.settings.DeviceInfo
-import com.anto426.uniapp.model.settings.DeviceType
+import com.anto426.uniapp.data.contract.DeviceInfo
+import com.anto426.uniapp.data.contract.DeviceType
 import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 
