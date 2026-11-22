@@ -64,8 +64,6 @@ internal class AppNotificationManager(
         permissions.refresh()
     }
 
-    internal val boundOwnerId: String? get() = binding.value.accountId
-
     /** The SDK may read this during login; a token is visible only for the consenting owner. */
     internal fun backendToken(): String? {
         val current = binding.value

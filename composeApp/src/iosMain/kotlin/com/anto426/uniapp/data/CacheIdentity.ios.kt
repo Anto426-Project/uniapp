@@ -18,3 +18,5 @@ internal actual fun cacheIdentityDigest(value: String): String {
     }
     return digest.joinToString("") { it.toUByte().toString(16).padStart(2, '0') }
 }
+
+internal actual fun logCacheDiagnostic(message: String) = Unit

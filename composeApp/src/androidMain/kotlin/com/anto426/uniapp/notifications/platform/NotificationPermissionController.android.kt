@@ -9,11 +9,13 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anto426.uniapp.notifications.model.NotificationAuthorizationStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,32 +25,39 @@ import kotlinx.coroutines.flow.asStateFlow
 internal actual fun rememberPlatformNotificationPermissionController(): NotificationPermissionController {
     val context = LocalContext.current
     val activity = context.findActivity()
-    val controller = remember(context.applicationContext, activity) {
-        AndroidNotificationPermissionController(context.applicationContext, activity)
+    val controller = viewModel {
+        AndroidNotificationPermissionController(context.applicationContext)
     }
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             controller.permissionRequestCompleted()
         }
-    SideEffect {
+    DisposableEffect(controller, permissionLauncher, activity) {
         controller.permissionRequester = {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
-        controller.refresh()
+        controller.shouldShowPermissionRationale = {
+            activity?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) == true
+        }
+        onDispose {
+            controller.permissionRequester = null
+            controller.shouldShowPermissionRationale = null
+        }
     }
+    SideEffect { controller.refresh() }
     return controller
 }
 
 private class AndroidNotificationPermissionController(
     private val context: Context,
-    private val activity: Activity?,
-) : NotificationPermissionController {
+) : ViewModel(), NotificationPermissionController {
     private val preferences =
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
     private val mutableAuthorizationStatus =
         MutableStateFlow(resolveAuthorizationStatus())
 
-    var permissionRequester: () -> Unit = {}
+    var permissionRequester: (() -> Unit)? = null
+    var shouldShowPermissionRationale: (() -> Boolean)? = null
 
     override val authorizationStatus: StateFlow<NotificationAuthorizationStatus> =
         mutableAuthorizationStatus.asStateFlow()
@@ -68,8 +77,9 @@ private class AndroidNotificationPermissionController(
             refresh()
             return
         }
+        val request = permissionRequester ?: return
         preferences.edit().putBoolean(KEY_PERMISSION_REQUESTED, true).apply()
-        permissionRequester()
+        request()
     }
 
     override fun setRegistrationEnabled(enabled: Boolean) {
@@ -99,7 +109,7 @@ private class AndroidNotificationPermissionController(
             PackageManager.PERMISSION_GRANTED
         ) {
             NotificationAuthorizationStatus.Authorized
-        } else if (activity?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) == true ||
+        } else if (shouldShowPermissionRationale?.invoke() == true ||
             preferences.getBoolean(KEY_PERMISSION_REQUESTED, false)
         ) {
             NotificationAuthorizationStatus.Denied
