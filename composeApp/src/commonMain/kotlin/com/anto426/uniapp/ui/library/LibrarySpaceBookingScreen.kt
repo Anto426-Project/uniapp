@@ -7,15 +7,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
@@ -25,7 +22,6 @@ import com.anto426.liquidmonet.components.cards.preferenceitem.LiquidPreferenceI
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoading
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingSize
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingStyle
@@ -37,6 +33,7 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.library.presentation.LibrarySpaceBookingUiState
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.library.components.StepCardHeader
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -298,37 +295,5 @@ fun LibrarySpaceBookingScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun StepCardHeader(
-    title: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = colorScheme.primary,
-            modifier = Modifier.liquidIconContainer(
-                containerSize = 34.dp,
-                iconSize = 18.dp,
-                containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                shape = RoundedRectangle(10.dp),
-            ),
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = colorScheme.onSurface,
-        )
     }
 }
