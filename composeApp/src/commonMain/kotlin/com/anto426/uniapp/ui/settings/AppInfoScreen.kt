@@ -67,6 +67,7 @@ fun AppInfoScreen(
                 ),
                 statusBadge = bannerStatusBadge,
                 statusIsHighlight = isUpdateAvailable,
+                statusIsMandatory = updateUiState?.isMandatory == true,
                 onClick = onOpenUpdates,
             )
         }

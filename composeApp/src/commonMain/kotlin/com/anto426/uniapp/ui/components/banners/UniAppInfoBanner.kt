@@ -5,6 +5,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +20,7 @@ import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.ui.components.cards.UniHeroCardPalette
 import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
+import com.anto426.uniapp.ui.components.cards.heroTextAccent
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
 
 /**
@@ -35,6 +37,7 @@ fun UniAppInfoBanner(
     buildInfo: String? = null,
     statusBadge: String? = null,
     statusIsHighlight: Boolean = false,
+    statusIsMandatory: Boolean = false,
     onClick: (() -> Unit)? = null,
     palette: UniHeroCardPalette = rememberUniHeroCardPalette(),
 ) {
@@ -44,6 +47,12 @@ fun UniAppInfoBanner(
         else -> 92
     }
     val glassColors = LiquidGlassTheme.colors
+    val warmAccent = remember(palette) { palette.warm.heroTextAccent() }
+    val statusDotColor = when {
+        statusIsMandatory -> glassColors.warning
+        statusIsHighlight -> warmAccent
+        else -> glassColors.success
+    }
 
     UniHeroGlassCard(
         modifier = modifier,
@@ -62,7 +71,7 @@ fun UniAppInfoBanner(
                 if (!statusBadge.isNullOrBlank()) {
                     MinimalStatusIndicatorRow(
                         text = statusBadge,
-                        dotColor = if (statusIsHighlight) glassColors.warning else glassColors.success,
+                        dotColor = statusDotColor,
                     )
                 }
 
