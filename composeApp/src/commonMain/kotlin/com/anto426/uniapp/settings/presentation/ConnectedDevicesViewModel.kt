@@ -8,13 +8,13 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.DeviceInfo
+import com.anto426.uniapp.data.contract.toDeviceInfo
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toDeviceInfo
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.uniapp.model.settings.DeviceInfo
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.FeatureLoadState

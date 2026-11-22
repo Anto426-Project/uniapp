@@ -6,15 +6,14 @@ import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.AcademicContentItem
+import com.anto426.uniapp.data.contract.ExamSession
+import com.anto426.uniapp.data.examsContract
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toAcademicDashboardData
-import com.anto426.uniapp.data.toExamSessions
-import com.anto426.unisdk.model.filterUpcomingExamRounds
+import com.anto426.uniapp.data.professorContract
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
-import com.anto426.uniapp.model.didactics.AcademicContentItem
-import com.anto426.uniapp.model.didactics.ExamSession
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -28,7 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import com.anto426.uniapp.localization.readAppString
+import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 data class ExamsUiState(
@@ -69,20 +68,18 @@ class ExamsViewModel(
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
             if (account?.isProfessor == true) {
-                val rounds = snapshot.require(UniDatasets.Professor).toAcademicDashboardData().examRounds
-                mutableUiState.value =
-                    mutableUiState.value.copy(
-                        isProfessor = true,
-                        professorExamRounds = rounds,
-                        loadState = if (rounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
-                    )
+                val rounds = snapshot.professorContract(requireDashboard = true).examRounds
+                mutableUiState.value = mutableUiState.value.copy(
+                    isProfessor = true,
+                    professorExamRounds = rounds,
+                    loadState = if (rounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                )
                 return@observeIn
             }
-            val rounds = snapshot.require(UniDatasets.Exams)
-            val upcomingRounds = rounds.filterUpcomingExamRounds(today())
+            val exams = snapshot.examsContract(today = today(), requireRounds = true)
             mutableUiState.value = mutableUiState.value.copy(
-                exams = upcomingRounds.toExamSessions(),
-                loadState = if (upcomingRounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                exams = exams.upcomingRounds,
+                loadState = if (exams.upcomingRounds.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
@@ -90,7 +87,7 @@ class ExamsViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_gli_appelli) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_gli_appelli) },
             )
         }
     }
@@ -111,7 +108,7 @@ class ExamsViewModel(
         viewModelScope.launch {
             try {
                 if (!session.isBooked && !session.canBook) {
-                    toastSink.error(readAppString(Res.string.ui_exam_not_yet_bookable))
+                    toastSink.error(getString(Res.string.ui_exam_not_yet_bookable))
                     return@launch
                 }
                 val message = repository.didactics.toggleExamBooking(examId, today())
@@ -119,7 +116,7 @@ class ExamsViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.userMessage { readAppString(Res.string.msg_operazione_sull_appello_non_riuscita) }
+                val message = error.userMessage { getString(Res.string.msg_operazione_sull_appello_non_riuscita) }
                 toastSink.error(message)
             } finally {
                 mutableUiState.value = mutableUiState.value.copy(mutatingExamId = null)
@@ -131,12 +128,12 @@ class ExamsViewModel(
         val url = mutableUiState.value.exams.firstOrNull { it.id == examId }?.calendarUrl
         viewModelScope.launch {
             if (url == null) {
-                toastSink.error(readAppString(Res.string.ui_exam_calendar_date_missing))
+                toastSink.error(getString(Res.string.ui_exam_calendar_date_missing))
                 return@launch
             }
             try { openUrl(url) }
             catch (error: CancellationException) { throw error }
-            catch (_: Exception) { toastSink.error(readAppString(Res.string.ui_exam_calendar_open_failed)) }
+            catch (_: Exception) { toastSink.error(getString(Res.string.ui_exam_calendar_open_failed)) }
         }
     }
 }

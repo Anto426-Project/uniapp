@@ -5,8 +5,8 @@ import uniapp.composeapp.generated.resources.*
 
 import androidx.compose.runtime.Immutable
 import com.anto426.uniapp.data.UniAppInitialData
+import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.model.home.QuickActionItem
-import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
 
 @Immutable

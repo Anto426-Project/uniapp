@@ -1,16 +1,13 @@
 package com.anto426.uniapp.services.presentation
 
-import com.anto426.uniapp.localization.readAppString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.ContactData
+import com.anto426.uniapp.data.contract.toContacts
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toContacts
-import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
@@ -18,7 +15,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
 
 data class ContactDetailUiState(
     val contact: ContactData? = null,
@@ -40,8 +38,6 @@ class ContactDetailViewModel(
         try {
             val contacts = snapshot.require(UniDatasets.Contacts).toContacts()
             val contact = contacts.firstOrNull { it.detailKey == contactId }
-                // Retain routes saved by versions that used email or display name.
-                ?: contacts.firstOrNull { it.email == contactId || it.name == contactId }
             mutableUiState.value = mutableUiState.value.copy(
                 contact = contact,
                 loadState = if (contact == null) FeatureLoadState.Empty else FeatureLoadState.Content,
@@ -52,10 +48,9 @@ class ContactDetailViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_il_contatto) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_contatto) },
             )
         }
-
     }
 
     fun refresh(force: Boolean = false) {

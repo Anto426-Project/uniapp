@@ -1,10 +1,10 @@
 package com.anto426.uniapp.ui.news
 
 import com.anto426.uniapp.data.UniDatasets
-import com.anto426.uniapp.data.toNewsItems
-import com.anto426.unisdk.model.NewsContentFormatter
+import com.anto426.uniapp.data.contract.toNewsItems
+import com.anto426.uniapp.data.contract.NewsContentFormatter
 import com.anto426.unisdk.model.UniversityNews
-import com.anto426.unisdk.model.newsSourceUrlOrNull
+import com.anto426.uniapp.data.contract.newsSourceUrlOrNull
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlin.test.Test

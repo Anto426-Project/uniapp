@@ -34,7 +34,7 @@ class TaxesRefreshTest : com.anto426.uniapp.testing.ResourceTest() {
                     return Taxes("0", emptyList())
                 }
             }
-            val viewModel = TaxesViewModel(source.asUniRepository(backgroundScope))
+            val viewModel = TaxesViewModel(source)
             advanceUntilIdle()
             assertEquals(listOf(false), flags)
             assertEquals(FeatureLoadState.Empty, viewModel.uiState.value.loadState)

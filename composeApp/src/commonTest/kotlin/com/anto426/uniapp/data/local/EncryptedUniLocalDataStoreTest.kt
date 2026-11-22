@@ -7,6 +7,7 @@ import com.anto426.uniapp.account.storage.UniAccountStore
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class EncryptedUniLocalDataStoreTest {
@@ -28,6 +29,18 @@ class EncryptedUniLocalDataStoreTest {
 
         store.remove(LocalDataScope.Application, UniAppDataKeys.ThemeCustomColor)
         assertNull(store.read(LocalDataScope.Application, UniAppDataKeys.ThemeCustomColor))
+    }
+
+    @Test
+    fun corruptedOrMalformedLocalEntriesSelfHealAndFallbackToDefault() = runTest {
+        val factory = MemorySecureStorageFactory()
+        val manager = SecureStorageManager(factory, "uniapp-test")
+        val accounts = UniAccountStore(manager)
+        accounts.writeApplicationData("application.${UniAppDataKeys.ThemeSelection.name}", "not-an-int".encodeToByteArray())
+        val store = EncryptedUniLocalDataStore(accounts)
+
+        assertEquals(0, store.read(LocalDataScope.Application, UniAppDataKeys.ThemeSelection))
+        assertFalse(factory.open("uniapp-test.vault.application-data").contains("local.v1.application.${UniAppDataKeys.ThemeSelection.name}"))
     }
 
     private fun createStore(): UniLocalDataStore {

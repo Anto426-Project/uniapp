@@ -8,12 +8,12 @@ import com.anto426.uniapp.codes.createCodeReader
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.TransportReservation
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toReservations
+import com.anto426.uniapp.data.transportContract
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
-import com.anto426.uniapp.model.transport.TransportReservation
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
@@ -60,7 +60,7 @@ class ReservationDetailViewModel(
     private val dataRequests = listOf(UniDatasets.Transport)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         try {
-            val reservation = snapshot.require(UniDatasets.Transport).toReservations().firstOrNull { it.id == reservationId }
+            val reservation = snapshot.transportContract(requireTransport = true).reservations.firstOrNull { it.id == reservationId }
             mutableUiState.value = mutableUiState.value.copy(
                 reservation = reservation,
                 loadState = if (reservation == null) FeatureLoadState.Empty else FeatureLoadState.Content,

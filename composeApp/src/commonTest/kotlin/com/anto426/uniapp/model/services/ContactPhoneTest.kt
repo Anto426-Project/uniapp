@@ -1,5 +1,6 @@
 package com.anto426.uniapp.model.services
 
+import com.anto426.uniapp.data.contract.contactDialUri
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

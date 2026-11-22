@@ -1,13 +1,12 @@
 package com.anto426.uniapp.transport.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
-import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.bookedTransportRequests
+import com.anto426.uniapp.data.contract.bookedTransportRequests
 import com.anto426.uniapp.feedback.runtime.AppToastKind
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
-import com.anto426.uniapp.model.transport.TripBookingDirection
-import com.anto426.uniapp.model.transport.TripBookingRequest
+import com.anto426.uniapp.data.contract.TripBookingDirection
+import com.anto426.uniapp.data.contract.TripBookingRequest
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportBookingRequest
@@ -111,7 +110,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), AppToastSink { message -> resultMessage.complete(message) }, today = { friday })
+            val model = TransportBookingViewModel(source, AppToastSink { message -> resultMessage.complete(message) }, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             assertTrue(model.uiState.value.routes.isNotEmpty())
@@ -147,7 +146,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), today = { friday })
+            val model = TransportBookingViewModel(source, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             assertTrue(model.uiState.value.routes.isNotEmpty())
@@ -179,7 +178,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     return TransportActionResult.Completed
                 }
             }
-            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), today = { friday })
+            val model = TransportBookingViewModel(source, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             val monday = LocalDate(2026, 9, 28)
@@ -210,7 +209,7 @@ class TransportBookingPolicyTest : com.anto426.uniapp.testing.ResourceTest() {
                     return TransportActionResult.AlreadyExists
                 }
             }
-            val model = TransportBookingViewModel(source.asUniRepository(backgroundScope), AppToastSink { warning.complete(it) }, today = { friday })
+            val model = TransportBookingViewModel(source, AppToastSink { warning.complete(it) }, today = { friday })
             backgroundScope.launch { model.uiState.collect() }
             advanceUntilIdle()
             val monday = LocalDate(2026, 9, 28)

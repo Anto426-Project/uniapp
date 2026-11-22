@@ -1,7 +1,7 @@
 package com.anto426.uniapp.services.presentation
 
 import androidx.compose.runtime.Immutable
-import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.data.contract.ContactData
 import com.anto426.uniapp.presentation.FeatureLoadState
 
 @Immutable

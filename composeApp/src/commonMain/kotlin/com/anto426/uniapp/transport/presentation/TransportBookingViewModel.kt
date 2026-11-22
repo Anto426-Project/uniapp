@@ -5,30 +5,28 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.TRANSPORT_BOOKING_DAYS_AHEAD as CONTRACT_TRANSPORT_BOOKING_DAYS_AHEAD
+import com.anto426.uniapp.data.contract.TransportRouteOption
+import com.anto426.uniapp.data.contract.TransportRouteStops
+import com.anto426.uniapp.data.contract.TripBookingDirection
+import com.anto426.uniapp.data.contract.TripBookingOutcome
+import com.anto426.uniapp.data.contract.TripBookingRequest
+import com.anto426.uniapp.data.contract.isTransportBookingDateAllowed as contractIsTransportBookingDateAllowed
+import com.anto426.uniapp.data.contract.isTransportDateBooked as contractIsTransportDateBooked
+import com.anto426.uniapp.data.contract.resolveTransportRouteStops
+import com.anto426.uniapp.data.contract.transportBookingRequests as contractTransportBookingRequests
+import com.anto426.uniapp.data.contract.transportBookingWindow as contractTransportBookingWindow
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.resolveTransportRouteStops
-import com.anto426.uniapp.data.toSdkDirection
-import com.anto426.uniapp.data.toSdkRequest
-import com.anto426.uniapp.data.toTransportOverview
-import com.anto426.uniapp.data.toTripBookingRequest
+import com.anto426.uniapp.data.transportContract
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.uniapp.model.transport.TransportRouteOption
-import com.anto426.uniapp.model.transport.TransportRouteStops
-import com.anto426.uniapp.model.transport.TripBookingDirection
-import com.anto426.uniapp.model.transport.TripBookingOutcome
-import com.anto426.uniapp.model.transport.TripBookingRequest
+import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.transport.TRANSPORT_BOOKING_DAYS_AHEAD as SDK_TRANSPORT_BOOKING_DAYS_AHEAD
-import com.anto426.unisdk.transport.isTransportBookingDateAllowed as sdkIsTransportBookingDateAllowed
-import com.anto426.unisdk.transport.isTransportDateBooked as sdkIsTransportDateBooked
-import com.anto426.unisdk.transport.transportBookingRequests as sdkTransportBookingRequests
-import com.anto426.unisdk.transport.transportBookingWindow as sdkTransportBookingWindow
 import kotlin.time.Clock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +36,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 data class TransportBookingUiState(
@@ -68,7 +65,7 @@ class TransportBookingViewModel(
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val transport = snapshot.require(UniDatasets.Transport).toTransportOverview()
+            val transport = snapshot.transportContract(requireTransport = true)
             val routes = transport.routes
             routesByLabel = routes.associateBy(TransportRouteOption::label)
             val selectedRoute = mutableUiState.value.selectedRoute.takeIf { it in routesByLabel }
@@ -175,33 +172,26 @@ class TransportBookingViewModel(
     }
 }
 
-internal const val TRANSPORT_BOOKING_DAYS_AHEAD = SDK_TRANSPORT_BOOKING_DAYS_AHEAD
+internal const val TRANSPORT_BOOKING_DAYS_AHEAD = CONTRACT_TRANSPORT_BOOKING_DAYS_AHEAD
 
 internal fun transportBookingWindow(today: LocalDate): List<LocalDate> =
-    sdkTransportBookingWindow(today)
+    contractTransportBookingWindow(today)
 
 internal fun isTransportBookingDateAllowed(date: LocalDate, today: LocalDate): Boolean =
-    sdkIsTransportBookingDateAllowed(date, today)
+    contractIsTransportBookingDateAllowed(date, today)
 
 internal fun isTransportDateBooked(
     date: LocalDate,
     routeCode: String,
     direction: TripBookingDirection,
     bookedRequests: Set<TripBookingRequest>,
-): Boolean = sdkIsTransportDateBooked(
-    date = date,
-    routeCode = routeCode,
-    direction = direction.toSdkDirection(),
-    bookedRequests = bookedRequests.map(TripBookingRequest::toSdkRequest).toSet(),
-)
+): Boolean = contractIsTransportDateBooked(date, routeCode, direction, bookedRequests)
 
 internal fun transportBookingRequests(
     routeCode: String,
     dates: List<LocalDate>,
     direction: TripBookingDirection,
-): List<TripBookingRequest> =
-    sdkTransportBookingRequests(routeCode, dates, direction.toSdkDirection())
-        .map { it.toTripBookingRequest() }
+): List<TripBookingRequest> = contractTransportBookingRequests(routeCode, dates, direction)
 
 internal fun transportRouteStopsFor(
     routeLabel: String,

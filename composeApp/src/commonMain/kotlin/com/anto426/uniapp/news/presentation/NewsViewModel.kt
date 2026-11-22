@@ -9,8 +9,8 @@ import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 import com.anto426.uniapp.presentation.onRefreshFailure
-import com.anto426.uniapp.model.news.NewsFeed
-import com.anto426.uniapp.model.news.NewsItem
+import com.anto426.uniapp.data.contract.NewsFeed
+import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CoroutineDispatcher

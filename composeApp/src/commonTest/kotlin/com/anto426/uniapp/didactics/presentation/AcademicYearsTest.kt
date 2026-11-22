@@ -2,8 +2,8 @@ package com.anto426.uniapp.didactics.presentation
 
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.toExamRecords
-import com.anto426.uniapp.data.toStudyYears
+import com.anto426.uniapp.data.contract.toExamRecords
+import com.anto426.uniapp.data.contract.toStudyYears
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.unisdk.model.Career
 import com.anto426.unisdk.model.CareerExam
@@ -208,9 +208,9 @@ class AcademicYearsTest {
         val inglese = courses.first { it.id == "ENG" }
         val fisica = courses.first { it.id == "FIS" }
 
-        assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED, inglese.status)
+        assertEquals(com.anto426.uniapp.data.contract.CourseStatus.COMPLETED, inglese.status)
         assertEquals("Idoneo", inglese.grade)
-        assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.PLANNED, fisica.status)
+        assertEquals(com.anto426.uniapp.data.contract.CourseStatus.PLANNED, fisica.status)
         assertNull(fisica.grade)
     }
 

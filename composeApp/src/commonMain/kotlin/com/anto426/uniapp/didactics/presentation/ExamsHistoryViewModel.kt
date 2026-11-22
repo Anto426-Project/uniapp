@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.buildExamHistory
+import com.anto426.uniapp.data.contract.PastExam
+import com.anto426.uniapp.data.examsContract
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.model.didactics.PastExam
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import com.anto426.uniapp.localization.readAppString
+import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 data class ExamsHistoryUiState(
@@ -42,11 +42,7 @@ class ExamsHistoryViewModel(
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val exams = buildExamHistory(
-                snapshot.require(UniDatasets.Career).exams,
-                snapshot.value(UniDatasets.Exams).orEmpty(),
-                today(),
-            )
+            val exams = snapshot.examsContract(today = today(), requireCareer = true).history
             mutableUiState.value = ExamsHistoryUiState(
                 exams = exams,
                 loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
@@ -57,7 +53,7 @@ class ExamsHistoryViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_lo_storico_esami) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_lo_storico_esami) },
             )
         }
     }

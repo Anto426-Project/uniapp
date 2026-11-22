@@ -1,9 +1,9 @@
 package com.anto426.uniapp.didactics.data
 
+import com.anto426.uniapp.data.contract.SimulationItem
 import com.anto426.uniapp.data.local.LocalDataScope
 import com.anto426.uniapp.data.local.UniAppDataKeys
 import com.anto426.uniapp.data.local.UniLocalDataStore
-import com.anto426.uniapp.model.didactics.SimulationItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred

@@ -7,10 +7,10 @@ import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
-import com.anto426.uniapp.library.model.LibraryBookingOption
-import com.anto426.uniapp.library.model.LibraryCatalogBook
-import com.anto426.uniapp.library.model.LibraryMovementItem
-import com.anto426.uniapp.library.model.LibrarySpaceBooking
+import com.anto426.uniapp.data.contract.LibraryBookingOption
+import com.anto426.uniapp.data.contract.LibraryCatalogBook
+import com.anto426.uniapp.data.contract.LibraryMovementItem
+import com.anto426.uniapp.data.contract.LibrarySpaceBooking
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException

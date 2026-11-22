@@ -5,12 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.extractThesisData
+import com.anto426.uniapp.data.contract.AcademicContentItem
+import com.anto426.uniapp.data.contract.ThesisData
+import com.anto426.uniapp.data.contract.extractThesisData
+import com.anto426.uniapp.data.contract.orderedAcademicDetailFields
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.orderedAcademicDetailFields
-import com.anto426.uniapp.data.toAcademicDashboardData
-import com.anto426.uniapp.model.didactics.AcademicContentItem
-import com.anto426.uniapp.model.didactics.ThesisData
+import com.anto426.uniapp.data.professorContract
+import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -19,7 +20,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 data class AcademicItemDetailUiState(
@@ -46,14 +46,13 @@ class AcademicItemDetailViewModel(
         mutableUiState.value =
             mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val dashboard = snapshot.require(UniDatasets.Professor).toAcademicDashboardData()
-            val candidates =
-                when (section) {
-                    AcademicSection.Teachings -> dashboard.teachings
-                    AcademicSection.ExamRounds -> dashboard.examRounds
-                    AcademicSection.Theses -> dashboard.theses
-                    AcademicSection.Reports -> dashboard.reports
-                }
+            val professor = snapshot.professorContract(requireDashboard = true)
+            val candidates = when (section) {
+                AcademicSection.Teachings -> professor.teachings
+                AcademicSection.ExamRounds -> professor.examRounds
+                AcademicSection.Theses -> professor.theses
+                AcademicSection.Reports -> professor.reports
+            }
             val item = candidates.firstOrNull { it.academicItemKey() == itemKey }
             val thesisData = if (item != null && section == AcademicSection.Theses) extractThesisData(item) else null
             val detailFields = item?.orderedAcademicDetailFields(section).orEmpty()

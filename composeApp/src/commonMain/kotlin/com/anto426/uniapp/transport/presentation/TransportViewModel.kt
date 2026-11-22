@@ -5,10 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.TransportDayGroup
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toReservations
-import com.anto426.uniapp.model.transport.TransportReservation
-import com.anto426.uniapp.model.transport.TripDirection
+import com.anto426.uniapp.data.transportContract
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -17,14 +16,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.anto426.uniapp.localization.readAppString
+import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
-data class TransportDayUiState(
-    val date: String,
-    val reservations: List<TransportReservation>,
-    val directionSummary: String,
-)
+typealias TransportDayUiState = TransportDayGroup
 
 data class TransportUiState(
     val days: List<TransportDayUiState> = emptyList(),
@@ -42,10 +37,10 @@ class TransportViewModel(private val dataSource: UniGateway) : ViewModel() {
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val reservations = snapshot.require(UniDatasets.Transport).toReservations()
+            val transport = snapshot.transportContract(requireTransport = true)
             mutableUiState.value = TransportUiState(
-                days = reservations.toDayStates(),
-                loadState = if (reservations.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                days = transport.days,
+                loadState = if (transport.reservations.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
@@ -53,7 +48,7 @@ class TransportViewModel(private val dataSource: UniGateway) : ViewModel() {
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_prenotazioni_trasporto) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_prenotazioni_trasporto) },
             )
         }
     }
@@ -62,19 +57,3 @@ class TransportViewModel(private val dataSource: UniGateway) : ViewModel() {
         repository.transport.refresh(force)
     }
 }
-
-private fun List<TransportReservation>.toDayStates(): List<TransportDayUiState> =
-    groupBy(TransportReservation::date).map { (date, reservations) ->
-        val outgoing = reservations.count { it.direction == TripDirection.ANDATA }
-        val returning = reservations.count { it.direction == TripDirection.RITORNO }
-        val summary =
-            buildList {
-                if (outgoing > 0) add("$outgoing Andata")
-                if (returning > 0) add("$returning Ritorno")
-            }.joinToString(" • ")
-        TransportDayUiState(
-            date = date,
-            reservations = reservations,
-            directionSummary = summary.ifBlank { "${reservations.size} corse" },
-        )
-    }

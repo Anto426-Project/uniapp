@@ -1,6 +1,6 @@
 package com.anto426.uniapp.data
 
-import com.anto426.uniapp.library.model.*
+import com.anto426.uniapp.data.contract.*
 import com.anto426.unisdk.model.*
 import com.anto426.unisdk.transport.*
 

@@ -1,6 +1,7 @@
 package com.anto426.uniapp.data
 
-import com.anto426.uniapp.model.services.ContactData
+import com.anto426.uniapp.data.contract.ContactData
+import com.anto426.uniapp.data.contract.toContacts
 import com.anto426.unisdk.model.UniversityContact
 import kotlin.test.Test
 import kotlin.test.assertEquals

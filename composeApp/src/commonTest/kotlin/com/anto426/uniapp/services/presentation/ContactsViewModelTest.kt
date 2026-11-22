@@ -66,7 +66,7 @@ class ContactsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
                     dummyContacts
             }
 
-            val viewModel = ContactsViewModel(source.asUniRepository(backgroundScope))
+            val viewModel = ContactsViewModel(source)
             advanceUntilIdle()
 
             val state = viewModel.uiState.value

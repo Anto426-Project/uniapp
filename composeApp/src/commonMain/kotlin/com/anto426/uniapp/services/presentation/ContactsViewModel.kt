@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.ContactData
+import com.anto426.uniapp.data.contract.toContacts
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toContacts
-import com.anto426.uniapp.model.services.ContactData
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure

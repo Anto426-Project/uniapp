@@ -5,10 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.QuestionnaireData
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toQuestionnaireDataList
-import com.anto426.uniapp.model.didactics.QuestionnaireData
-import com.anto426.uniapp.model.didactics.QuestionnaireStatus
+import com.anto426.uniapp.data.surveysContract
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -17,7 +16,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.anto426.uniapp.localization.readAppString
+import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 data class QuestionnairesUiState(
@@ -42,12 +41,12 @@ class QuestionnairesViewModel(private val dataSource: UniGateway) : ViewModel() 
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val questionnaires = snapshot.require(UniDatasets.Surveys).toQuestionnaireDataList()
+            val surveys = snapshot.surveysContract(requireSurveys = true)
             mutableUiState.value = QuestionnairesUiState(
-                pending = questionnaires.filter { it.status == QuestionnaireStatus.PENDING },
-                completed = questionnaires.filter { it.status == QuestionnaireStatus.COMPLETED },
-                unavailable = questionnaires.filter { it.status == QuestionnaireStatus.UNAVAILABLE },
-                loadState = if (questionnaires.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                pending = surveys.pending,
+                completed = surveys.completed,
+                unavailable = surveys.unavailable,
+                loadState = if (surveys.all.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
@@ -55,7 +54,7 @@ class QuestionnairesViewModel(private val dataSource: UniGateway) : ViewModel() 
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_i_questionari) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_i_questionari) },
             )
         }
     }

@@ -8,9 +8,9 @@ import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.uniapp.library.model.LibraryBookingOption
-import com.anto426.uniapp.library.model.LibraryBookingOverview
-import com.anto426.uniapp.library.model.LibrarySpaceCalendar
+import com.anto426.uniapp.data.contract.LibraryBookingOption
+import com.anto426.uniapp.data.contract.LibraryBookingOverview
+import com.anto426.uniapp.data.contract.LibrarySpaceCalendar
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException

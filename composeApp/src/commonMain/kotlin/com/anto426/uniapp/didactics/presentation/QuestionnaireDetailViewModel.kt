@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.QuestionnaireForm
+import com.anto426.uniapp.data.contract.toQuestionnaireForm
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toQuestionnaireForm
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.feedback.runtime.success
 import com.anto426.uniapp.feedback.runtime.warning
-import com.anto426.uniapp.model.didactics.QuestionnaireForm
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure

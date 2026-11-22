@@ -8,7 +8,7 @@ import com.anto426.uniapp.data.UniDataSnapshot
 import com.anto426.uniapp.data.UniDatasetKey
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.toNewsItems
+import com.anto426.uniapp.data.contract.toNewsItems
 import com.anto426.uniapp.didactics.presentation.AcademicIdentityViewModel
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
 import com.anto426.uniapp.presentation.FeatureLoadState
@@ -143,6 +143,31 @@ class ScopedDataRepositoryTest {
         backgroundScope.launch { data.maintainFreshData() }
         runCurrent()
         advanceTimeBy(1_000); runCurrent()
+        assertEquals(2, calls)
+        data.close()
+    }
+
+    @Test
+    fun anEarlyWakeUpReschedulesTheVisibleRefresh() = runTest {
+        var clockOffset = 0L
+        var calls = 0
+        val request = UniDatasetKey("scheduled", policy = UniCachePolicy(100)) { _ -> ++calls }
+        val data = UniCacheEngine(
+            FakeUniAppDataSource(), backgroundScope,
+            nowMillis = { testScheduler.currentTime + clockOffset },
+        )
+        backgroundScope.launch { data.observe(listOf(request)).collect() }
+        backgroundScope.launch { data.maintainFreshData() }
+        runCurrent()
+        assertEquals(1, calls)
+
+        advanceTimeBy(90)
+        clockOffset = -40
+        advanceTimeBy(10)
+        runCurrent()
+        assertEquals(1, calls)
+        advanceTimeBy(40)
+        runCurrent()
         assertEquals(2, calls)
         data.close()
     }

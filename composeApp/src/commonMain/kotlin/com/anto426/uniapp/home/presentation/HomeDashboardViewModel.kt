@@ -1,18 +1,19 @@
 package com.anto426.uniapp.home.presentation
 
-import com.anto426.uniapp.localization.readAppString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.account.model.UniAccountSummary
-import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.academicContract
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.NewsItem
+import com.anto426.uniapp.data.examsContract
+import com.anto426.uniapp.data.identityContract
 import com.anto426.uniapp.data.observeIn
+import com.anto426.uniapp.data.professorContract
+import com.anto426.uniapp.data.taxesContract
 import com.anto426.uniapp.model.home.QuickActionItem
-import com.anto426.uniapp.model.news.NewsItem
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
 
 class HomeDashboardViewModel(
     private val dataSource: UniGateway,
@@ -49,6 +52,7 @@ class HomeDashboardViewModel(
         listOf(
             UniDatasets.Student,
             UniDatasets.Career,
+            UniDatasets.StudyPlan,
             UniDatasets.Taxes,
             UniDatasets.Exams,
             UniDatasets.News,
@@ -56,47 +60,48 @@ class HomeDashboardViewModel(
     }
 
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, partial = true, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        val failure = snapshot.firstError?.userMessage { readAppString(Res.string.msg_impossibile_aggiornare_la_panoramica) }
+        val failure = snapshot.firstError?.userMessage { getString(Res.string.msg_impossibile_aggiornare_la_panoramica) }
         val preparedNews = snapshot.value(UniDatasets.News)?.let {
             repository.didactics.prepareNews(it, preparationDispatcher)
         }
         mutableUiState.update { current ->
             var next = current.copy(errorMessage = failure)
-            snapshot.value(UniDatasets.Student)?.let { student ->
+            if (account?.isProfessor != true && (snapshot.value(UniDatasets.Student) != null || account != null)) {
+                val identity = snapshot.identityContract(account)
                 next = next.copy(
-                    profileName = student.fullName,
-                    matricola = student.matricola.orEmpty(),
-                    profileInitials = student.initials,
-                    departmentName = student.departmentName.orEmpty(),
-                    degreeName = student.degreeName.orEmpty(),
+                    profileName = identity.fullName,
+                    matricola = identity.matricola,
+                    profileInitials = identity.initials,
+                    departmentName = identity.departmentName,
+                    degreeName = identity.degreeName,
+                    loadState = if (snapshot.value(UniDatasets.Student) != null) FeatureLoadState.Content else next.loadState,
+                )
+            }
+            if (snapshot.value(UniDatasets.Career) != null || snapshot.value(UniDatasets.StudyPlan) != null) {
+                val academic = snapshot.academicContract(defaultTargetCfu = 180)
+                next = next.copy(
+                    academicYear = academic.academicYearLabel,
+                    acquiredCfu = academic.acquiredCfu.toString(),
+                    targetCfu = academic.targetCfu,
+                    degreeBase = academic.degreeBaseLabel,
+                    average = academic.averageLabel,
+                    completedExams = academic.completedExamsCount,
+                    progress = academic.progress,
                     loadState = FeatureLoadState.Content,
                 )
             }
-            snapshot.value(UniDatasets.Career)?.let { career ->
-                val target = career.resolveTargetCfu(defaultTarget = 0)
-                val acquired = career.acquiredCfuValue
+            if (snapshot.value(UniDatasets.Taxes) != null) {
+                val taxes = snapshot.taxesContract()
                 next = next.copy(
-                    academicYear = career.year,
-                    acquiredCfu = acquired.toString(),
-                    targetCfu = target,
-                    degreeBase = career.degreeBase ?: "—",
-                    average = career.average,
-                    completedExams = career.validExams.size,
-                    progress = career.resolveProgress(defaultTarget = 0),
-                    loadState = FeatureLoadState.Content,
-                )
-            }
-            snapshot.value(UniDatasets.Taxes)?.let { taxes ->
-                next = next.copy(
-                    dueAmount = taxes.dueAmount,
+                    dueAmount = taxes.rawDueAmount,
                     nextTaxLabel = taxes.nextUnpaidInstallmentLabel,
                 )
             }
-            snapshot.value(UniDatasets.Exams)?.let { rounds ->
-                val upcoming = rounds.firstOrNull { it.open && !it.booked }
+            if (snapshot.value(UniDatasets.Exams) != null) {
+                val exams = snapshot.examsContract()
                 next = next.copy(
-                    openExamRounds = rounds.count { it.open && !it.booked },
-                    nextExamLabel = upcoming?.let { "${it.courseName} • ${it.dateTime}" }.orEmpty(),
+                    openExamRounds = exams.openBookableCount,
+                    nextExamLabel = exams.nextOpenExamLabel,
                 )
             }
             preparedNews?.let { feed ->
@@ -104,23 +109,22 @@ class HomeDashboardViewModel(
                 next = next.copy(news = items, activeNewsIndex = next.activeNewsIndex.coerceIn(0, items.lastIndex.coerceAtLeast(0)))
             }
             if (account?.isProfessor == true) {
-                val profile = account.profiles.firstOrNull { it.profileId == account.activeProfileId }
-                    ?: account.profiles.firstOrNull { it.type == UniProfileRole.PROFESSOR }
+                val identity = snapshot.identityContract(account)
                 next = next.copy(
                     isProfessor = true,
-                    profileName = account.displayName,
-                    profileInitials = account.displayName.initials(),
-                    matricola = account.serverUserId,
-                    departmentName = profile?.departmentName.orEmpty(),
-                    degreeName = profile?.departmentName.orEmpty(),
+                    profileName = identity.fullName,
+                    profileInitials = identity.initials,
+                    matricola = identity.matricola,
+                    departmentName = identity.departmentName,
+                    degreeName = identity.degreeName,
                 )
-                snapshot.value(UniDatasets.Professor)?.let { dashboard ->
-                    val round = dashboard.examRounds.firstOrNull()
+                if (snapshot.value(UniDatasets.Professor) != null) {
+                    val professor = snapshot.professorContract()
                     next = next.copy(
-                        teachingCount = dashboard.teachings.size,
-                        thesisCount = dashboard.theses.size,
-                        openExamRounds = dashboard.examRounds.size,
-                        nextExamLabel = round?.subtitle ?: round?.title.orEmpty(),
+                        teachingCount = professor.teachingCount,
+                        thesisCount = professor.thesisCount,
+                        openExamRounds = professor.openExamRoundsCount,
+                        nextExamLabel = professor.nextExamLabel,
                         loadState = FeatureLoadState.Content,
                     )
                 }
@@ -204,9 +208,4 @@ class HomeDashboardViewModel(
     private companion object {
         const val MIN_ACTIONS = 2
     }
-
-
 }
-
-private fun String.initials(): String =
-    split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")

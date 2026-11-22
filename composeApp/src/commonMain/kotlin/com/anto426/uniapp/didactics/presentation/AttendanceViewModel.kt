@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.attendanceContract
+import com.anto426.uniapp.data.contract.AttendanceData
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toAttendanceData
-import com.anto426.uniapp.model.didactics.AttendanceData
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
@@ -49,10 +49,10 @@ class AttendanceViewModel(private val dataSource: UniGateway) : ViewModel() {
             errorMessage = null,
         )
         try {
-            val records = snapshot.require(UniDatasets.Attendance).toAttendanceData()
+            val attendance = snapshot.attendanceContract(requireAttendance = true)
             mutableUiState.value = mutableUiState.value.copy(
-                records = records,
-                loadState = if (records.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                records = attendance.courses,
+                loadState = if (attendance.courses.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
                 errorMessage = null,
             )
             snapshot.throwIfFailed()

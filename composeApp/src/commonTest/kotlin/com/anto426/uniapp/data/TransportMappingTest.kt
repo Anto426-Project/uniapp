@@ -1,5 +1,6 @@
 package com.anto426.uniapp.data
 
+import com.anto426.uniapp.data.contract.toReservations
 import com.anto426.unisdk.transport.TransportBooking
 import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportRoute

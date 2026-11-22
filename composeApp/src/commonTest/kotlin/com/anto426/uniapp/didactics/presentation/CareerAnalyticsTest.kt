@@ -1,7 +1,7 @@
 package com.anto426.uniapp.didactics.presentation
 
-import com.anto426.uniapp.model.didactics.GradeExam
-import com.anto426.uniapp.model.didactics.SimulationItem
+import com.anto426.uniapp.data.contract.GradeExam
+import com.anto426.uniapp.data.contract.SimulationItem
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

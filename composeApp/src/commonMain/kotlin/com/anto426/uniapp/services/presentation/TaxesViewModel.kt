@@ -5,19 +5,19 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.TaxPaymentData
+import com.anto426.uniapp.data.contract.formatTaxCurrencyLabel as contractFormatTaxCurrencyLabel
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toTaxPayments
-import com.anto426.uniapp.model.services.TaxPaymentData
+import com.anto426.uniapp.data.taxesContract
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
-import com.anto426.unisdk.model.formatTaxCurrencyLabel as sdkFormatTaxCurrencyLabel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.anto426.uniapp.localization.readAppString
+import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 enum class TaxesFilter {
@@ -48,18 +48,16 @@ class TaxesViewModel(private val dataSource: UniGateway) : ViewModel() {
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val taxes = snapshot.require(UniDatasets.Taxes)
-            val payments = taxes.toTaxPayments()
-
+            val taxes = snapshot.taxesContract(requireTaxes = true)
             mutableUiState.value = TaxesUiState(
-                pendingPayments = payments.filterNot(TaxPaymentData::isPaid),
-                paidPayments = payments.filter(TaxPaymentData::isPaid),
-                dueAmountLabel = taxes.formattedDueAmount,
-                paidTotalLabel = taxes.formattedPaidAmount,
+                pendingPayments = taxes.pendingPayments,
+                paidPayments = taxes.paidPayments,
+                dueAmountLabel = taxes.dueAmountLabel,
+                paidTotalLabel = taxes.paidTotalLabel,
                 paidProgress = taxes.paidProgress,
-                nextDueDate = taxes.nextDeadline,
+                nextDueDate = taxes.nextDueDate,
                 filter = mutableUiState.value.filter,
-                loadState = if (payments.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                loadState = if (taxes.allPayments.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.throwIfFailed()
         } catch (error: CancellationException) {
@@ -67,12 +65,15 @@ class TaxesViewModel(private val dataSource: UniGateway) : ViewModel() {
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_tasse) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_le_tasse) },
             )
         }
     }
 
     fun refresh(force: Boolean = false) {
+        if (mutableUiState.value.loadState == FeatureLoadState.Error) {
+            mutableUiState.value = mutableUiState.value.copy(loadState = FeatureLoadState.Loading, errorMessage = null)
+        }
         sharedData.refresh(dataRequests, force)
     }
 
@@ -82,4 +83,4 @@ class TaxesViewModel(private val dataSource: UniGateway) : ViewModel() {
 }
 
 internal fun formatTaxCurrencyLabel(raw: String): String =
-    sdkFormatTaxCurrencyLabel(raw)
+    contractFormatTaxCurrencyLabel(raw)

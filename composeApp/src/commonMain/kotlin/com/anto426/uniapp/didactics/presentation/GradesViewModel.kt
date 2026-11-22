@@ -1,22 +1,19 @@
 package com.anto426.uniapp.didactics.presentation
 
-import com.anto426.uniapp.localization.readAppString
-import uniapp.composeapp.generated.resources.*
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.liquidmonet.components.charts.model.LiquidChartEntry
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.academicContract
 import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toGradeExams
+import com.anto426.uniapp.data.contract.GradeExam
+import com.anto426.uniapp.data.contract.SimulationItem
 import com.anto426.uniapp.data.local.LocalDataScope
+import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.didactics.data.GradeSimulationRepository
 import com.anto426.uniapp.feedback.runtime.AppToastSink
 import com.anto426.uniapp.feedback.runtime.error
-import com.anto426.uniapp.model.didactics.GradeExam
-import com.anto426.uniapp.model.didactics.SimulationItem
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -27,7 +24,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.round
+import org.jetbrains.compose.resources.getString
+import uniapp.composeapp.generated.resources.*
 
 enum class TargetFeasibility {
     EASY,
@@ -46,6 +44,8 @@ data class GradesUiState(
     val selectedTab: Int = 0,
     val officialAverage: Double? = null,
     val officialDegreeBase: Double? = null,
+    val acquiredCareerCfu: Int = 0,
+    val completedCareerExamsCount: Int = 0,
     val chartBaselineCount: Int? = null,
     val chartBaselineAverage: Double? = null,
     val currentExams: List<GradeExam> = emptyList(),
@@ -64,6 +64,8 @@ data class GradesUiState(
         copy(
             currentExams = currentExams + activeSimulatedItems.map { GradeExam("(Sim.) " + it.name, it.grade, it.cfu) },
             simulationItems = emptyList(),
+            acquiredCareerCfu = totalProjectedCfu,
+            completedCareerExamsCount = totalPassedExamsCount + activeSimulatedCount,
             chartBaselineCount = currentExams.size,
             chartBaselineAverage = currentAverage,
             officialAverage = projectedAverage,
@@ -73,12 +75,16 @@ data class GradesUiState(
 
     val highestGradeCourses: String get() = currentExams.filter { it.grade == highestGrade }
         .joinToString(limit = 2) { it.name }
+    val lowestGradeCourses: String get() = currentExams.filter { it.grade == lowestGrade }
+        .joinToString(limit = 2) { it.name }
     val recentTrend: Float get() {
         val entries = weightedAverageEntries
         return if (entries.size < 2) 0f else entries.last().value - entries[(entries.lastIndex - 3).coerceAtLeast(0)].value
     }
 
     val totalCurrentCfu: Int get() = currentExams.sumOf { it.cfu }
+    val effectiveAcquiredCfu: Int get() = maxOf(acquiredCareerCfu, totalCurrentCfu)
+    val totalPassedExamsCount: Int get() = maxOf(completedCareerExamsCount, currentExams.size)
     val currentWeightedSum: Int get() = currentExams.sumOf { it.grade.coerceAtMost(30) * it.cfu }
     val currentAverage: Double
         get() = officialAverage?.takeIf { it.isFinite() && it > 0.0 }
@@ -97,14 +103,14 @@ data class GradesUiState(
     val activeSimulatedItems: List<SimulationItem> get() = simulationItems.filter { it.isEnabled && it.grade >= 18 }
     val activeSimulatedCount: Int get() = activeSimulatedItems.size
     val activeSimulatedCfu: Int get() = activeSimulatedItems.sumOf { it.cfu }
-    val totalProjectedCfu: Int get() = totalCurrentCfu + activeSimulatedCfu
+    val totalProjectedCfu: Int get() = effectiveAcquiredCfu + activeSimulatedCfu
 
     val projectedAverage: Double
         get() {
-            val totalCfu = totalProjectedCfu
-            if (totalCfu == 0) return currentAverage
+            val totalGradedCfu = totalCurrentCfu + activeSimulatedCfu
+            if (totalGradedCfu == 0) return currentAverage
             val simulatedWeightedSum = activeSimulatedItems.sumOf { it.grade.coerceAtMost(30) * it.cfu }
-            return (currentAverage * totalCurrentCfu + simulatedWeightedSum) / totalCfu
+            return (currentAverage * totalCurrentCfu + simulatedWeightedSum) / totalGradedCfu
         }
 
     val projectedGraduationBase: Double get() = currentGraduationBase + (projectedAverage - currentAverage) * 110.0 / 30.0
@@ -114,7 +120,7 @@ data class GradesUiState(
     val careerProgress: Float
         get() = if (degreeCfuTarget <= 0) 0f else (totalProjectedCfu.toFloat() / degreeCfuTarget.toFloat()).coerceIn(0f, 1f)
 
-    val remainingDegreeCfu: Int get() = (degreeCfuTarget - totalCurrentCfu).coerceAtLeast(0)
+    val remainingDegreeCfu: Int get() = (degreeCfuTarget - effectiveAcquiredCfu).coerceAtLeast(0)
 
     val targetScoreEffective: Double get() = if (targetDegree >= 110) 110.0 else targetDegree.toDouble()
     val neededGraduationBase: Double get() = (targetScoreEffective - thesisPoints - bonusPoints).coerceAtLeast(66.0)
@@ -125,7 +131,7 @@ data class GradesUiState(
             val remaining = remainingDegreeCfu
             if (remaining <= 0) return currentAverage
             if (totalCurrentCfu <= 0) return neededFinalAverage
-            val targetTotalWeightedSum = neededFinalAverage * degreeCfuTarget
+            val targetTotalWeightedSum = neededFinalAverage * (totalCurrentCfu + remaining)
             val currentSum = currentAverage * totalCurrentCfu
             return ((targetTotalWeightedSum - currentSum) / remaining).coerceAtLeast(18.0)
         }
@@ -166,7 +172,6 @@ data class GradesUiState(
         GradeExam("(Sim.) " + it.name, it.grade, it.cfu)
     }
 
-    /** The last recorded point and all following projections share the official baseline. */
     private val weightedChartValues: List<Float> get() {
         val anchorCount = chartBaselineCount ?: currentExams.size
         val anchorAverage = (chartBaselineAverage ?: officialAverage)?.takeIf { it.isFinite() && it > 0.0 }
@@ -257,41 +262,31 @@ internal class GradesViewModel(
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val career = snapshot.require(UniDatasets.Career)
-            val studyPlan = runCatching { snapshot.require(UniDatasets.StudyPlan) }.getOrNull()
-            val examRounds = runCatching { snapshot.require(UniDatasets.Exams) }.getOrNull().orEmpty()
-
-            val currentExams = career.toGradeExams()
-            val targetCfu = career.cfuTarget ?: 180
-
+            val academic = snapshot.academicContract(requireCareer = true, defaultTargetCfu = 180)
             val draft = simulationDraft ?: simulationRepository.load(simulationOwner)
                 .associateBy { it.id }.also { simulationDraft = it }
-            val passedTitles = currentExams.map { it.name.normalizedTitle() }.toSet()
 
-            val planItems = studyPlan?.courses.orEmpty()
-                .filterNot { it.completed || it.title.normalizedTitle() in passedTitles }
-                .map { course ->
-                    val id = course.adsceId?.takeIf { it.isNotBlank() }?.let { "plan-id:$it" }
-                        ?: "plan-title:${course.title.normalizedTitle()}"
-                    suggestedSimulation(id, course.title, course.cfu ?: 6, draft)
-                }
-                .distinctBy { it.id }
-
-            val suggested = planItems.ifEmpty {
-                examRounds.filterNot { it.booked || it.courseName.normalizedTitle() in passedTitles }
-                    .map { round ->
-                        suggestedSimulation("round:${round.courseName.normalizedTitle()}", round.courseName, 6, draft)
-                    }
-                    .distinctBy { it.id }
+            val suggested = academic.simulatableCourses.map { base ->
+                val saved = draft[base.id]
+                SimulationItem(
+                    id = base.id,
+                    name = base.name,
+                    cfu = (saved?.cfu ?: base.cfu).coerceIn(1, 30),
+                    grade = (saved?.grade ?: base.grade).coerceIn(18, 31),
+                    isEnabled = saved?.isEnabled ?: false,
+                    isCustom = false,
+                )
             }
 
             mutableUiState.update { state ->
                 state.copy(
-                    currentExams = currentExams,
-                    officialAverage = career.averageValue,
-                    officialDegreeBase = career.degreeBaseValue,
+                    currentExams = academic.gradedExams,
+                    officialAverage = academic.averageValue,
+                    officialDegreeBase = academic.degreeBaseValue,
+                    acquiredCareerCfu = academic.acquiredCfu,
+                    completedCareerExamsCount = academic.completedExamsCount,
                     simulationItems = suggested + draft.values.filter { it.isCustom },
-                    degreeCfuTarget = targetCfu,
+                    degreeCfuTarget = academic.targetCfu,
                     loadState = FeatureLoadState.Content,
                 )
             }
@@ -301,10 +296,9 @@ internal class GradesViewModel(
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_voti_e_simulazione) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_voti_e_simulazione) },
             )
         }
-
     }
 
     fun refresh(force: Boolean = false) {
@@ -336,7 +330,7 @@ internal class GradesViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                val message = readAppString(Res.string.msg_impossibile_salvare_la_simulazione)
+                val message = getString(Res.string.msg_impossibile_salvare_la_simulazione)
                 if (revision == simulationWriteRevision) toastSink.error(message)
             }
         }
@@ -357,9 +351,17 @@ internal class GradesViewModel(
     }
 
     fun addCustomExam(name: String, cfu: Int, grade: Int) = editSimulation { items ->
+        val normalizedSlug = name.lowercase().trim().ifEmpty { "custom" }
+        val existingIds = items.mapTo(HashSet()) { it.id }
+        var suffix = items.size + 1
+        var candidateId = "custom-$normalizedSlug-$suffix"
+        while (candidateId in existingIds) {
+            suffix++
+            candidateId = "custom-$normalizedSlug-$suffix"
+        }
         items + SimulationItem(
-            id = "custom:${kotlin.random.Random.nextLong()}",
-            name = name.trim().ifBlank { "Esame Personalizzato" },
+            id = candidateId,
+            name = name.trim().ifEmpty { "Esame personalizzato" },
             cfu = cfu.coerceIn(1, 30),
             grade = grade.coerceIn(18, 31),
             isEnabled = true,
@@ -378,7 +380,7 @@ internal class GradesViewModel(
 
     fun applyCurrentAveragePreset() {
         val avg = mutableUiState.value.currentAverage
-        val nearestGrade = if (avg > 0.0) round(avg).toInt().coerceIn(18, 30) else 27
+        val nearestGrade = if (avg > 0.0) kotlin.math.round(avg).toInt().coerceIn(18, 30) else 27
         setAllSimulatedGrades(nearestGrade)
     }
 
@@ -386,36 +388,23 @@ internal class GradesViewModel(
         items.map { it.copy(isEnabled = false) }
     }
 
+    fun enableAllSimulations() = editSimulation { items ->
+        items.map { it.copy(isEnabled = true) }
+    }
+
     fun updateTargetDegree(target: Int) {
-        mutableUiState.value = mutableUiState.value.copy(targetDegree = target.coerceIn(66, 111))
+        mutableUiState.update { it.copy(targetDegree = target.coerceIn(66, 111)) }
     }
 
     fun updateThesisPoints(points: Int) {
-        mutableUiState.value = mutableUiState.value.copy(thesisPoints = points.coerceIn(0, 15))
+        mutableUiState.update { it.copy(thesisPoints = points.coerceIn(0, 15)) }
     }
 
     fun updateBonusPoints(points: Int) {
-        mutableUiState.value = mutableUiState.value.copy(bonusPoints = points.coerceIn(0, 10))
+        mutableUiState.update { it.copy(bonusPoints = points.coerceIn(0, 5)) }
+    }
+
+    fun updateDegreeCfuTarget(cfu: Int) {
+        mutableUiState.update { it.copy(degreeCfuTarget = cfu.coerceIn(60, 360)) }
     }
 }
-
-private fun suggestedSimulation(
-    id: String,
-    name: String,
-    credits: Int,
-    draft: Map<String, SimulationItem>,
-): SimulationItem {
-    val saved = draft[id]
-    return SimulationItem(
-        id = id,
-        name = name,
-        cfu = saved?.cfu ?: credits,
-        grade = saved?.grade ?: 28,
-        isEnabled = saved?.isEnabled ?: false,
-    )
-}
-
-private fun String.normalizedTitle(): String = trim().lowercase()
-
-private fun String?.academicNumber(): Double? = this?.trim()?.replace(',', '.')
-    ?.substringBefore('/')?.trim()?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }

@@ -5,9 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.AcademicContentItem
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toAcademicDashboardData
-import com.anto426.uniapp.model.didactics.AcademicContentItem
+import com.anto426.uniapp.data.professorContract
+import com.anto426.uniapp.localization.readAppString
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import com.anto426.uniapp.localization.readAppString
 import uniapp.composeapp.generated.resources.*
 
 enum class AcademicSection {
@@ -58,14 +58,13 @@ class AcademicSectionViewModel(
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
         try {
-            val dashboard = snapshot.require(UniDatasets.Professor).toAcademicDashboardData()
-            val items =
-                when (section) {
-                    AcademicSection.Teachings -> dashboard.teachings
-                    AcademicSection.ExamRounds -> dashboard.examRounds
-                    AcademicSection.Theses -> dashboard.theses
-                    AcademicSection.Reports -> dashboard.reports
-                }
+            val professor = snapshot.professorContract(requireDashboard = true)
+            val items = when (section) {
+                AcademicSection.Teachings -> professor.teachings
+                AcademicSection.ExamRounds -> professor.examRounds
+                AcademicSection.Theses -> professor.theses
+                AcademicSection.Reports -> professor.reports
+            }
             mutableUiState.update {
                 it.copy(
                     items = items,

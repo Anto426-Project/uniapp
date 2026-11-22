@@ -4,7 +4,7 @@ import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.asUniRepository
 import com.anto426.uniapp.feedback.runtime.AppToastKind
 import com.anto426.uniapp.feedback.runtime.AppToastManager
-import com.anto426.uniapp.library.model.*
+import com.anto426.uniapp.data.contract.*
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.testing.ResourceTest
 import kotlinx.coroutines.Dispatchers

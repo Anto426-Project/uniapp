@@ -7,10 +7,10 @@ import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.model.UniProfileRole
 import com.anto426.uniapp.data.FakeUniAppDataSource
 import com.anto426.uniapp.data.asUniRepository
-import com.anto426.uniapp.data.buildExamHistory
+import com.anto426.uniapp.data.contract.buildExamHistory
 import com.anto426.uniapp.data.local.FakeUniLocalDataStore
 import com.anto426.uniapp.data.local.LocalDataScope
-import com.anto426.uniapp.data.toAcademicContentItem
+import com.anto426.uniapp.data.contract.toAcademicContentItem
 import com.anto426.uniapp.didactics.data.GradeSimulationRepository
 import com.anto426.uniapp.feedback.runtime.AppToastMessage
 import com.anto426.uniapp.feedback.runtime.AppToastSink
@@ -25,7 +25,7 @@ import com.anto426.uniapp.didactics.presentation.AcademicItemDetailViewModel
 import com.anto426.uniapp.didactics.presentation.AcademicSection
 import com.anto426.uniapp.didactics.presentation.academicItemKey
 import com.anto426.uniapp.home.presentation.HomeDashboardViewModel
-import com.anto426.uniapp.model.didactics.PastExamStatus
+import com.anto426.uniapp.data.contract.PastExamStatus
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionViewModel
 import com.anto426.uniapp.services.presentation.TaxesViewModel
 import com.anto426.uniapp.transport.presentation.TransportViewModel
@@ -193,8 +193,8 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals(2, viewModel.uiState.value.totalCoursesCount)
         assertEquals(9, viewModel.uiState.value.acquiredCfu)
         assertEquals(180, viewModel.uiState.value.totalCfu)
-        viewModel.selectStatusFilter(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED)
-        assertEquals(com.anto426.uniapp.model.didactics.CourseStatus.COMPLETED, viewModel.uiState.value.statusFilter)
+        viewModel.selectStatusFilter(com.anto426.uniapp.data.contract.CourseStatus.COMPLETED)
+        assertEquals(com.anto426.uniapp.data.contract.CourseStatus.COMPLETED, viewModel.uiState.value.statusFilter)
         viewModel.selectYear(0)
         assertEquals(1, viewModel.uiState.value.displayedYears.single().yearNumber)
         viewModel.selectYear(1)
@@ -658,6 +658,161 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals(thesisItem, thesisDetail.uiState.value.item)
         examDetail.uiState.first { it.loadState != FeatureLoadState.Loading }
         assertEquals(examItem, examDetail.uiState.value.item)
+    }
+
+    @Test
+    fun academicMetricsAreIdenticalAcrossAllScreensAndExcludeUnpassedLibrettoRows() = runViewModelTest {
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadStudentDetails(forceRefresh: Boolean) =
+                StudentDetails(
+                    fullName = "Ada Lovelace",
+                    matricola = "165432",
+                    degreeName = "Ingegneria Informatica",
+                    departmentName = "Dipartimento di Ingegneria",
+                )
+
+            override suspend fun loadCareer(forceRefresh: Boolean) =
+                Career(
+                    average = "29.0",
+                    degreeBase = "106.33",
+                    cfu = "24 / 180",
+                    cfuTarget = 180,
+                    year = "2° anno",
+                    status = "Attiva",
+                    exams = listOf(
+                        CareerExam("Analisi", "30", "01/02/2025", 9, "A"),
+                        CareerExam("Fisica", "28", "20/06/2025", 9, "B"),
+                        CareerExam("Inglese", "IDONEO", "10/07/2025", 6, "E"),
+                        // Unpassed /libretto rows returned by Esse3 with "-" grade and "-" date:
+                        CareerExam("Reti di Calcolatori", "-", "-", 9, "R"),
+                        CareerExam("Sistemi Operativi", "", "-", 9, "S"),
+                    ),
+                )
+
+            override suspend fun loadStudyPlan(forceRefresh: Boolean) =
+                StudyPlan(
+                    listOf(
+                        StudyPlanCourse("Analisi", cfu = 9, year = 1, completed = true, adsceId = "A"),
+                        StudyPlanCourse("Fisica", cfu = 9, year = 1, completed = true, adsceId = "B"),
+                        StudyPlanCourse("Inglese", cfu = 6, year = 1, completed = true, adsceId = "E"),
+                        StudyPlanCourse("Reti di Calcolatori", cfu = 9, year = 2, completed = false, adsceId = "R"),
+                        StudyPlanCourse("Sistemi Operativi", cfu = 9, year = 2, completed = false, adsceId = "S"),
+                    ),
+                )
+        }
+
+        val simRepo = GradeSimulationRepository(FakeUniLocalDataStore(), backgroundScope)
+        val repo = source.asUniRepository(backgroundScope, simulations = simRepo)
+        val home = HomeDashboardViewModel(repo, emptyList(), preparationDispatcher = Dispatchers.Main)
+        val didactics = DidacticsDashboardViewModel(repo)
+        val transcripts = TranscriptsViewModel(repo)
+        val studyPlan = StudyPlanViewModel(repo)
+        val grades = GradesViewModel(
+            dataSource = repo,
+            simulationRepository = simRepo,
+            simulationOwner = LocalDataScope.Profile("account", "career"),
+            toastSink = AppToastSink.None,
+        )
+        val history = buildExamHistory(
+            careerExams = source.loadCareer(false).exams,
+            rounds = emptyList(),
+            today = LocalDate(2026, 9, 5),
+        )
+        advanceUntilIdle()
+
+        // 1. All screens agree on 24 acquired CFU / 180 target CFU
+        assertEquals("24", home.uiState.value.acquiredCfu)
+        assertEquals(180, home.uiState.value.targetCfu)
+        assertEquals(24, didactics.uiState.value.acquiredCfu)
+        assertEquals(180, didactics.uiState.value.targetCfu)
+        assertEquals(24, transcripts.uiState.value.acquiredCfu)
+        assertEquals(180, transcripts.uiState.value.targetCfu)
+        assertEquals(24, studyPlan.uiState.value.acquiredCfu)
+        assertEquals(180, studyPlan.uiState.value.totalCfu)
+        assertEquals(24, grades.uiState.value.effectiveAcquiredCfu)
+        assertEquals(24, grades.uiState.value.totalProjectedCfu)
+        assertEquals(180, grades.uiState.value.degreeCfuTarget)
+        assertEquals(156, grades.uiState.value.remainingDegreeCfu)
+
+        // 2. All screens agree on 3 passed exams (2 numeric + 1 idoneità), never counting unpassed "-" rows
+        assertEquals(3, home.uiState.value.completedExams)
+        assertEquals(3, didactics.uiState.value.completedExams)
+        assertEquals(3, transcripts.uiState.value.totalExamsCount)
+        assertEquals(3, studyPlan.uiState.value.completedCount)
+        assertEquals(3, grades.uiState.value.totalPassedExamsCount)
+        assertEquals(2, grades.uiState.value.currentExams.size)
+        assertEquals(3, history.size)
+
+        // 3. Unpassed courses are simulatable and not in transcript or exam history
+        assertEquals(
+            listOf("Analisi", "Fisica", "Inglese"),
+            transcripts.uiState.value.examsByYear.values.flatten().map { it.name },
+        )
+        assertEquals(
+            listOf("Reti di Calcolatori", "Sistemi Operativi"),
+            grades.uiState.value.simulationItems.map { it.name },
+        )
+    }
+
+    @Test
+    fun studyPlanAndHomeAlwaysAgreeOnPassedExamCountEvenWithDuplicateOrStalePlanRows() = runViewModelTest {
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadStudentDetails(forceRefresh: Boolean) =
+                StudentDetails(fullName = "Ada Lovelace", matricola = "165432", degreeName = "Informatica")
+
+            override suspend fun loadCareer(forceRefresh: Boolean) =
+                Career(
+                    average = "28.0",
+                    degreeBase = "102.67",
+                    cfu = "96 / 180",
+                    cfuTarget = 180,
+                    year = "3° anno",
+                    status = "Attiva",
+                    exams = List(16) { index ->
+                        CareerExam("Esame ${index + 1}", "28", "01/02/2026", 6, "ID-${index + 1}")
+                    } + listOf(
+                        CareerExam("Tesi di Laurea", "-", "-", 6, "ID-17"),
+                    ),
+                )
+
+            override suspend fun loadStudyPlan(forceRefresh: Boolean) =
+                StudyPlan(
+                    courses = List(16) { index ->
+                        StudyPlanCourse(
+                            title = "Esame ${index + 1}",
+                            cfu = 6,
+                            year = (index / 6) + 1,
+                            completed = true,
+                            adsceId = "ID-${index + 1}",
+                        )
+                    } + listOf(
+                        // Duplicate entry from /piani with different year and no adsceId
+                        StudyPlanCourse(title = "Esame 1", cfu = 6, year = 3, completed = false, adsceId = null),
+                        // Unpassed activity erroneously flagged completed=true in plan payload (e.g. stato="P")
+                        StudyPlanCourse(title = "Tesi di Laurea", cfu = 6, year = 3, completed = true, adsceId = "ID-17"),
+                        StudyPlanCourse(title = "Sistemi Distribuiti", cfu = 6, year = 3, completed = false, adsceId = "ID-18"),
+                    ),
+                )
+        }
+
+        val repo = source.asUniRepository(backgroundScope)
+        val home = HomeDashboardViewModel(repo, emptyList(), preparationDispatcher = Dispatchers.Main)
+        val studyPlan = StudyPlanViewModel(repo)
+        val didactics = DidacticsDashboardViewModel(repo)
+        val transcripts = TranscriptsViewModel(repo)
+        advanceUntilIdle()
+
+        assertEquals(16, home.uiState.value.completedExams)
+        assertEquals(16, didactics.uiState.value.completedExams)
+        assertEquals(16, transcripts.uiState.value.totalExamsCount)
+        assertEquals(16, studyPlan.uiState.value.completedCount)
+        assertEquals(18, studyPlan.uiState.value.totalCoursesCount)
+        assertEquals(
+            16,
+            studyPlan.uiState.value.years.sumOf { y ->
+                y.courses.count { it.status == com.anto426.uniapp.data.contract.CourseStatus.COMPLETED }
+            },
+        )
     }
 
     private fun professorAccount() =

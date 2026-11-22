@@ -4,11 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anto426.uniapp.data.UniDatasets
 import com.anto426.uniapp.data.UniGateway
+import com.anto426.uniapp.data.academicContract
 import com.anto426.uniapp.data.asUniRepository
+import com.anto426.uniapp.data.contract.ExamRecord
 import com.anto426.uniapp.data.observeIn
-import com.anto426.uniapp.data.toExamRecords
-import com.anto426.uniapp.data.toGradeExams
-import com.anto426.uniapp.model.didactics.ExamRecord
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.onRefreshFailure
@@ -17,7 +16,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.anto426.uniapp.localization.readAppString
+import org.jetbrains.compose.resources.getString
 import uniapp.composeapp.generated.resources.*
 
 const val ALL_ACADEMIC_YEARS = -1
@@ -57,19 +56,8 @@ class TranscriptsViewModel(private val dataSource: UniGateway) : ViewModel() {
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null)
         try {
-            val career = snapshot.require(UniDatasets.Career)
-            val plan = try {
-                snapshot.require(UniDatasets.StudyPlan)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-                null
-            }
-            val exams = career.toExamRecords(plan)
-            val examsByYear = exams.groupBy { it.year }
-            val planYears = plan?.availableYears.orEmpty()
-            val availableYears = (planYears + examsByYear.keys).distinct()
-                .sortedWith(compareBy<Int> { it == 0 }.thenBy { it })
+            val academic = snapshot.academicContract(requireCareer = true, defaultTargetCfu = 180)
+            val availableYears = academic.availableYears
             val previous = mutableUiState.value
             val hasPreviousData = previous.examsByYear.isNotEmpty() || previous.studyPlanYears.isNotEmpty()
             val currentYear = previous.selectedYear
@@ -81,16 +69,16 @@ class TranscriptsViewModel(private val dataSource: UniGateway) : ViewModel() {
             }
 
             mutableUiState.value = mutableUiState.value.copy(
-                examsByYear = examsByYear,
+                examsByYear = academic.examsByYear,
                 selectedYear = selectedYear,
-                studyPlanYears = planYears,
-                averageLabel = career.displayAverage,
-                degreeBaseLabel = career.displayDegreeBase,
-                acquiredCfu = career.resolveAcquiredCfu(plan),
-                targetCfu = career.resolveTargetCfu(plan, defaultTarget = 180),
-                totalExamsCount = exams.size,
-                lodeCount = career.lodeCount,
-                loadState = if (exams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
+                studyPlanYears = academic.studyPlanYears,
+                averageLabel = academic.averageLabel,
+                degreeBaseLabel = academic.degreeBaseLabel,
+                acquiredCfu = academic.acquiredCfu,
+                targetCfu = academic.targetCfu,
+                totalExamsCount = academic.transcriptExams.size,
+                lodeCount = academic.lodeCount,
+                loadState = if (academic.transcriptExams.isEmpty()) FeatureLoadState.Empty else FeatureLoadState.Content,
             )
             snapshot.state(UniDatasets.Career).error?.let { throw it }
         } catch (error: CancellationException) {
@@ -98,7 +86,7 @@ class TranscriptsViewModel(private val dataSource: UniGateway) : ViewModel() {
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
                 loadState = mutableUiState.value.loadState.onRefreshFailure(),
-                errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_il_libretto) },
+                errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_il_libretto) },
             )
         }
     }
