@@ -1,6 +1,5 @@
 ﻿package com.anto426.uniapp.ui.settings
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,12 +26,14 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.motion.LiquidMotion
+import com.anto426.liquidmonet.motion.animateLiquidColorAsState
 import com.anto426.uniapp.settings.presentation.ColorLabUiState
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.settings.components.ColorLabHeroCard
 import com.anto426.uniapp.ui.settings.components.ColorLabHexAndRecentsGroup
@@ -96,7 +97,11 @@ fun ColorLabScreen(
 
     val activeColor = remember(hue, saturation, brightness) { hsvToColor(hue, saturation, brightness) }
     // Keep as State<Color> so animation ticks stay in Draw phase (kmp-compose-motion / performance).
-    val animatedActiveColorState = animateColorAsState(targetValue = activeColor, label = "colorLabSeed")
+    val animatedActiveColorState = animateLiquidColorAsState(
+        targetValue = activeColor,
+        animationSpec = LiquidMotion.snappySpring(),
+        label = "colorLabSeed",
+    )
 
     fun commitHsv(nextHue: Float, nextSat: Float, nextVal: Float) {
         hue = nextHue.coerceIn(0f, 360f)
@@ -157,7 +162,7 @@ fun ColorLabScreen(
             }
         }
 
-        LiquidAnimatedSwitcher(
+        UniContentHost(
             targetState = activeTab,
             mode = LiquidSwitcherMode.Tab,
             isForward = { from, to -> to.ordinal >= from.ordinal },

@@ -25,7 +25,8 @@ def validate(root=None):
             if ('LiquidAnimatedSwitcher(' in code and path.name not in ('UniUpdateBanner.kt', 'UniContentHost.kt')) or (
                     'rememberLiquidContentTransition<' in code and path.name != 'AppNavigationHost.kt'):
                 errors.append(f'{relative}: changing content must use a shared content host')
-            if re.search(r'\bLiquid(?:Section|Screen)Entrance\s*\(', code):
+            if re.search(r'\bLiquidScreenEntrance\s*\(', code) or (
+                    re.search(r'\bLiquidSectionEntrance\s*\(', code) and path.name != 'UniSection.kt'):
                 errors.append(f'{relative}: page entrances belong to the general navigation host')
             if re.search(r'LiquidSwitcherTransition\.(?!None\b)\w+', code) and path.name != 'UniMotion.kt':
                 errors.append(f'{relative}: choose the SDK preset in UniMotion')

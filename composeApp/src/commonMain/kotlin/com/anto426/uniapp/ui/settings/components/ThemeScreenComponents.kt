@@ -1,12 +1,6 @@
 package com.anto426.uniapp.ui.settings.components
 
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,11 +53,9 @@ import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.interaction.liquidClickable
-import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidAnimatedSwitcher
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherTransition
 import com.anto426.liquidmonet.components.layout.screenentrance.LiquidScreenEntranceAnimation
-import com.anto426.liquidmonet.components.layout.sectionentrance.LiquidSectionEntrance
 import com.anto426.liquidmonet.components.menu.dropdownmenu.LiquidDropdownMenu
 import com.anto426.liquidmonet.components.menu.menuitem.LiquidMenuItem
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
@@ -76,10 +68,13 @@ import com.anto426.liquidmonet.glass.overlay.rememberLiquidGlassOverlayAnchorSta
 import com.anto426.liquidmonet.glass.runtime.LiquidGlassQualityTier
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.motion.LiquidMotion
+import com.anto426.liquidmonet.motion.animateLiquidColorAsState
 import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import kotlin.math.roundToInt
@@ -105,9 +100,21 @@ internal fun ThemeStudioHeaderCard(
     activeQualityLabel: String,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val primaryState = animateColorAsState(targetValue = colorScheme.primary, label = "studioPrimary")
-    val secondaryState = animateColorAsState(targetValue = colorScheme.secondary, label = "studioSecondary")
-    val tertiaryState = animateColorAsState(targetValue = colorScheme.tertiary, label = "studioTertiary")
+    val primaryState = animateLiquidColorAsState(
+        targetValue = colorScheme.primary,
+        animationSpec = LiquidMotion.snappySpring(),
+        label = "studioPrimary",
+    )
+    val secondaryState = animateLiquidColorAsState(
+        targetValue = colorScheme.secondary,
+        animationSpec = LiquidMotion.snappySpring(),
+        label = "studioSecondary",
+    )
+    val tertiaryState = animateLiquidColorAsState(
+        targetValue = colorScheme.tertiary,
+        animationSpec = LiquidMotion.snappySpring(),
+        label = "studioTertiary",
+    )
     val cardShape = remember { RoundedRectangle(24.dp) }
     val iconShape = remember { RoundedRectangle(14.dp) }
 
@@ -543,11 +550,7 @@ internal fun ThemeNavigationBarGroup(
                             tint = if (active) colorScheme.primary else colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
                         )
-                        AnimatedVisibility(
-                            visible = showLabels,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically(),
-                        ) {
+                        if (showLabels) {
                             Text(
                                 text = label,
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
@@ -724,11 +727,12 @@ private fun ThemeTransitionPreviewRow(
             }
         }
 
-        LiquidAnimatedSwitcher(
+        UniContentHost(
             targetState = previewPage,
             transition = transition,
             mode = LiquidSwitcherMode.Screen,
             isForward = { _, _ -> forward },
+            suppressElementEntrance = false,
             modifier = Modifier.fillMaxWidth(),
             label = "themeTransitionPreview",
         ) { page ->
@@ -847,10 +851,10 @@ private fun ThemeEntrancePreviewRow(
         ) {
             previewLabels.forEachIndexed { index, label ->
                 val accent = previewAccents[index]
-                LiquidSectionEntrance(
-                    animation = animation,
-                    delayMillis = LiquidMotion.sectionDelayMillis(index),
+                UniAnimatedEntrance(
+                    order = index,
                     replayKey = replayCount to animation,
+                    animationOverride = animation,
                     modifier = Modifier.weight(1f),
                 ) {
                     Column(

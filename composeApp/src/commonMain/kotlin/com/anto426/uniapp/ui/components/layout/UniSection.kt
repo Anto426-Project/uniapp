@@ -49,15 +49,16 @@ fun UniAnimatedEntrance(
     order: Int = 0,
     modifier: Modifier = Modifier,
     replayKey: Any? = Unit,
+    animationOverride: LiquidScreenEntranceAnimation? = null,
     content: @Composable () -> Unit,
 ) {
-    val animation = LocalUniElementEntrance.current
+    val animation = animationOverride ?: LocalUniElementEntrance.current
     if (animation == LiquidScreenEntranceAnimation.None) {
         content()
     } else {
         val epoch = LocalUniEntranceEpoch.current
-        val delayMillis = remember(order, replayKey) {
-            if (epoch == null || epoch()) order.coerceIn(0, 6) * 45 else 0
+        val delayMillis = remember(order, replayKey, animationOverride) {
+            if (animationOverride != null || epoch == null || epoch()) order.coerceIn(0, 6) * 45 else 0
         }
         LiquidSectionEntrance(
             modifier = modifier,
