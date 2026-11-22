@@ -1596,6 +1596,7 @@
     <string name="ui_transport_next_ride_label">Next scheduled ride</string>
     <string name="ui_transport_rides_count_format">%1$d rides</string>
     <string name="ui_transport_clear_selection">Clear</string>
+    <string name="ui_transport_no_date_selected">No date selected</string>
     <string name="ui_transport_seat_reserved_title">Seat reserved</string>
     <string name="ui_transport_seat_reserved_desc">Guaranteed onboard seat reserved for the selected dates</string>
     <string name="ui_transport_filter_empty">No rides found</string>

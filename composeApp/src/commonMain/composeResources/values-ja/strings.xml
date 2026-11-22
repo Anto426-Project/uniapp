@@ -1596,6 +1596,7 @@
     <string name="ui_transport_next_ride_label">次回予定の便</string>
     <string name="ui_transport_rides_count_format">%1$d 便</string>
     <string name="ui_transport_clear_selection">クリア</string>
+    <string name="ui_transport_no_date_selected">日付未選択</string>
     <string name="ui_transport_seat_reserved_title">座席予約済み</string>
     <string name="ui_transport_seat_reserved_desc">選択した日付の車内座席が確保・予約されています</string>
     <string name="ui_transport_filter_empty">便が見つかりません</string>

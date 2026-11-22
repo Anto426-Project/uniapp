@@ -255,6 +255,7 @@ fun TransportBookingScreen(
                 showTodayAction = false,
                 showClearAction = true,
                 clearActionLabel = stringResource(Res.string.ui_transport_clear_selection),
+                emptySelectionLabel = stringResource(Res.string.ui_transport_no_date_selected),
                 modifier = Modifier.fillMaxWidth(),
             )
         }

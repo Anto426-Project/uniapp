@@ -1596,6 +1596,7 @@
     <string name="ui_transport_next_ride_label">Prossima corsa in programma</string>
     <string name="ui_transport_rides_count_format">%1$d corse</string>
     <string name="ui_transport_clear_selection">Azzera</string>
+    <string name="ui_transport_no_date_selected">Nessuna data</string>
     <string name="ui_transport_seat_reserved_title">Posto a sedere prenotato</string>
     <string name="ui_transport_seat_reserved_desc">Posto garantito e riservato a bordo per le date selezionate</string>
     <string name="ui_transport_filter_empty">Nessuna corsa trovata</string>

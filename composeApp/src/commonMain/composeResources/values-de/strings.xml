@@ -1596,6 +1596,7 @@
     <string name="ui_transport_next_ride_label">Nächste geplante Fahrt</string>
     <string name="ui_transport_rides_count_format">%1$d Fahrten</string>
     <string name="ui_transport_clear_selection">Zurücksetzen</string>
+    <string name="ui_transport_no_date_selected">Kein Datum ausgewählt</string>
     <string name="ui_transport_seat_reserved_title">Sitzplatz reserviert</string>
     <string name="ui_transport_seat_reserved_desc">Garantierter Sitzplatz an Bord für die ausgewählten Tage reserviert</string>
     <string name="ui_transport_filter_empty">Keine Fahrten gefunden</string>

@@ -1596,6 +1596,7 @@
     <string name="ui_transport_next_ride_label">Najbliższy zaplanowany przejazd</string>
     <string name="ui_transport_rides_count_format">%1$d przejazdów</string>
     <string name="ui_transport_clear_selection">Wyczyść</string>
+    <string name="ui_transport_no_date_selected">Brak daty</string>
     <string name="ui_transport_seat_reserved_title">Miejsce siedzące zarezerwowane</string>
     <string name="ui_transport_seat_reserved_desc">Gwarantowane miejsce siedzące w pojeździe na wybrane daty</string>
     <string name="ui_transport_filter_empty">Nie znaleziono przejazdów</string>

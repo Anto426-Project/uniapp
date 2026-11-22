@@ -1596,6 +1596,7 @@
     <string name="ui_transport_next_ride_label">Próxima viagem agendada</string>
     <string name="ui_transport_rides_count_format">%1$d viagens</string>
     <string name="ui_transport_clear_selection">Limpar</string>
+    <string name="ui_transport_no_date_selected">Nenhuma data</string>
     <string name="ui_transport_seat_reserved_title">Lugar reservado</string>
     <string name="ui_transport_seat_reserved_desc">Lugar garantido e reservado a bordo para as datas selecionadas</string>
     <string name="ui_transport_filter_empty">Nenhuma viagem encontrada</string>
