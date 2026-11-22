@@ -1597,6 +1597,14 @@
     <string name="ui_transport_rides_count_format">%1$d 趟班次</string>
     <string name="ui_transport_clear_selection">清除</string>
     <string name="ui_transport_no_date_selected">未选择日期</string>
+    <string name="ui_calendar_months_full">一月,二月,三月,四月,五月,六月,七月,八月,九月,十月,十一月,十二月</string>
+    <string name="ui_calendar_months_short">1月,2月,3月,4月,5月,6月,7月,8月,9月,10月,11月,12月</string>
+    <string name="ui_calendar_weekdays_short">周一,周二,周三,周四,周五,周六,周日</string>
+    <string name="ui_calendar_weekdays_initial">一,二,三,四,五,六,日</string>
+    <string name="ui_calendar_today">今天</string>
+    <string name="ui_calendar_selected_dates_count">已选 %1$d 天</string>
+    <string name="ui_calendar_prev_month">上个月</string>
+    <string name="ui_calendar_next_month">下个月</string>
     <string name="ui_transport_seat_reserved_title">座位已预订</string>
     <string name="ui_transport_seat_reserved_desc">已为所选日期保留车上保障座位</string>
     <string name="ui_transport_filter_empty">未找到班次</string>

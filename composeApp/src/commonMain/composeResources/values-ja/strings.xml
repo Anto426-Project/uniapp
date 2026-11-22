@@ -1597,6 +1597,14 @@
     <string name="ui_transport_rides_count_format">%1$d 便</string>
     <string name="ui_transport_clear_selection">クリア</string>
     <string name="ui_transport_no_date_selected">日付未選択</string>
+    <string name="ui_calendar_months_full">1月,2月,3月,4月,5月,6月,7月,8月,9月,10月,11月,12月</string>
+    <string name="ui_calendar_months_short">1月,2月,3月,4月,5月,6月,7月,8月,9月,10月,11月,12月</string>
+    <string name="ui_calendar_weekdays_short">月,火,水,木,金,土,日</string>
+    <string name="ui_calendar_weekdays_initial">月,火,水,木,金,土,日</string>
+    <string name="ui_calendar_today">今日</string>
+    <string name="ui_calendar_selected_dates_count">%1$d日選択</string>
+    <string name="ui_calendar_prev_month">前の月</string>
+    <string name="ui_calendar_next_month">次の月</string>
     <string name="ui_transport_seat_reserved_title">座席予約済み</string>
     <string name="ui_transport_seat_reserved_desc">選択した日付の車内座席が確保・予約されています</string>
     <string name="ui_transport_filter_empty">便が見つかりません</string>

@@ -1597,6 +1597,14 @@
     <string name="ui_transport_rides_count_format">%1$d corse</string>
     <string name="ui_transport_clear_selection">Azzera</string>
     <string name="ui_transport_no_date_selected">Nessuna data</string>
+    <string name="ui_calendar_months_full">Gennaio,Febbraio,Marzo,Aprile,Maggio,Giugno,Luglio,Agosto,Settembre,Ottobre,Novembre,Dicembre</string>
+    <string name="ui_calendar_months_short">Gen,Feb,Mar,Apr,Mag,Giu,Lug,Ago,Set,Ott,Nov,Dic</string>
+    <string name="ui_calendar_weekdays_short">Lun,Mar,Mer,Gio,Ven,Sab,Dom</string>
+    <string name="ui_calendar_weekdays_initial">L,M,M,G,V,S,D</string>
+    <string name="ui_calendar_today">Oggi</string>
+    <string name="ui_calendar_selected_dates_count">%1$d date</string>
+    <string name="ui_calendar_prev_month">Mese precedente</string>
+    <string name="ui_calendar_next_month">Mese successivo</string>
     <string name="ui_transport_seat_reserved_title">Posto a sedere prenotato</string>
     <string name="ui_transport_seat_reserved_desc">Posto garantito e riservato a bordo per le date selezionate</string>
     <string name="ui_transport_filter_empty">Nessuna corsa trovata</string>

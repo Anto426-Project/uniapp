@@ -1597,6 +1597,14 @@
     <string name="ui_transport_rides_count_format">%1$d viajes</string>
     <string name="ui_transport_clear_selection">Limpiar</string>
     <string name="ui_transport_no_date_selected">Ninguna fecha</string>
+    <string name="ui_calendar_months_full">Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre</string>
+    <string name="ui_calendar_months_short">Ene,Feb,Mar,Abr,May,Jun,Jul,Ago,Sep,Oct,Nov,Dic</string>
+    <string name="ui_calendar_weekdays_short">Lun,Mar,Mié,Jue,Vie,Sáb,Dom</string>
+    <string name="ui_calendar_weekdays_initial">L,M,X,J,V,S,D</string>
+    <string name="ui_calendar_today">Hoy</string>
+    <string name="ui_calendar_selected_dates_count">%1$d fechas</string>
+    <string name="ui_calendar_prev_month">Mes anterior</string>
+    <string name="ui_calendar_next_month">Mes siguiente</string>
     <string name="ui_transport_seat_reserved_title">Plaza reservada</string>
     <string name="ui_transport_seat_reserved_desc">Plaza garantizada y reservada a bordo para las fechas seleccionadas</string>
     <string name="ui_transport_filter_empty">No se encontraron trayectos</string>

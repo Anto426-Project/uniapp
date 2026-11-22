@@ -36,9 +36,9 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.pickers.datepicker.LiquidDatePicker
-import com.anto426.liquidmonet.components.pickers.datepicker.rememberLiquidDatePickerLabels
 import com.anto426.liquidmonet.components.pickers.datepicker.rememberLiquidDatePickerState
 import com.anto426.liquidmonet.components.pickers.datepicker.state.LiquidDatePickerFilter
+import com.anto426.liquidmonet.components.pickers.datepicker.state.LiquidDatePickerLabels
 import com.anto426.liquidmonet.components.pickers.datepicker.state.LiquidDateSelectionMode
 import com.anto426.liquidmonet.components.selection.select.LiquidSelect
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -122,7 +122,47 @@ fun TransportBookingScreen(
         filter = dateFilter,
     )
     val availableSelectedDates = datePickerState.selectedDates
-    val datePickerLabels = rememberLiquidDatePickerLabels()
+    val defaultDatePickerLabels = LiquidDatePickerLabels.Default
+    val monthsFullRaw = stringResource(Res.string.ui_calendar_months_full)
+    val monthsShortRaw = stringResource(Res.string.ui_calendar_months_short)
+    val weekdaysShortRaw = stringResource(Res.string.ui_calendar_weekdays_short)
+    val weekdaysInitialRaw = stringResource(Res.string.ui_calendar_weekdays_initial)
+    val clearLabel = stringResource(Res.string.ui_transport_clear_selection)
+    val emptySelectionLabel = stringResource(Res.string.ui_transport_no_date_selected)
+    val todayLabel = stringResource(Res.string.ui_calendar_today)
+    val selectedDatesCountPattern = stringResource(Res.string.ui_calendar_selected_dates_count, 0)
+    val prevMonthLabel = stringResource(Res.string.ui_calendar_prev_month)
+    val nextMonthLabel = stringResource(Res.string.ui_calendar_next_month)
+    val datePickerLabels = remember(
+        defaultDatePickerLabels,
+        monthsFullRaw,
+        monthsShortRaw,
+        weekdaysShortRaw,
+        weekdaysInitialRaw,
+        clearLabel,
+        emptySelectionLabel,
+        todayLabel,
+        selectedDatesCountPattern,
+        prevMonthLabel,
+        nextMonthLabel,
+    ) {
+        val parsedMonthsFull = monthsFullRaw.split(',').map(String::trim).filter(String::isNotEmpty)
+        val parsedMonthsShort = monthsShortRaw.split(',').map(String::trim).filter(String::isNotEmpty)
+        val parsedWeekdaysShort = weekdaysShortRaw.split(',').map(String::trim).filter(String::isNotEmpty)
+        val parsedWeekdaysInitial = weekdaysInitialRaw.split(',').map(String::trim).filter(String::isNotEmpty)
+        defaultDatePickerLabels.copy(
+            monthNames = if (parsedMonthsFull.size == 12) parsedMonthsFull else defaultDatePickerLabels.monthNames,
+            shortMonthNames = if (parsedMonthsShort.size == 12) parsedMonthsShort else defaultDatePickerLabels.shortMonthNames,
+            shortWeekdayNames = if (parsedWeekdaysShort.size == 7) parsedWeekdaysShort else defaultDatePickerLabels.shortWeekdayNames,
+            weekdayInitials = if (parsedWeekdaysInitial.size == 7) parsedWeekdaysInitial else defaultDatePickerLabels.weekdayInitials,
+            emptySelection = emptySelectionLabel,
+            todayAction = todayLabel,
+            clearAction = clearLabel,
+            selectedCountFormat = { count -> selectedDatesCountPattern.replace("0", count.toString()) },
+            previousMonthDescription = prevMonthLabel,
+            nextMonthDescription = nextMonthLabel,
+        )
+    }
     val monthNamesShort = datePickerLabels.shortMonthNames
     val directionTabs = listOf(
         LiquidNavigationItem(
@@ -251,8 +291,6 @@ fun TransportBookingScreen(
                 allowYearSelection = false,
                 showTodayAction = false,
                 showClearAction = true,
-                clearActionLabel = stringResource(Res.string.ui_transport_clear_selection),
-                emptySelectionLabel = stringResource(Res.string.ui_transport_no_date_selected),
                 modifier = Modifier.fillMaxWidth(),
             )
         }
