@@ -137,6 +137,7 @@ internal fun AppRouteContent(
     reservationDeleteActionHost: ReservationDeleteActionHost,
     attendanceScannerActionHost: AttendanceScannerActionHost,
     newsDetailActionHost: NewsDetailActionHost? = null,
+    connectedDevicesActionHost: ConnectedDevicesActionHost? = null,
     navigator: AppNavigator,
     sessionController: UniSessionController,
     accountSwitcherViewModel: AccountSwitcherViewModel,
@@ -1115,6 +1116,23 @@ internal fun AppRouteContent(
                     devicesViewModel.refresh(force = true)
                 }
             }
+            val requestDisconnectAll = remember(devicesViewModel, disconnectAllViewModel) {
+                {
+                    if (devicesViewModel.uiState.value.canDisconnectAll) {
+                        disconnectAllViewModel.requestDisconnectAll()
+                    }
+                }
+            }
+            val canShowDisconnectAllAction =
+                devicesUiState.canDisconnectAll && !disconnectAllUiState.isDisconnecting
+            DisposableEffect(connectedDevicesActionHost, canShowDisconnectAllAction, requestDisconnectAll) {
+                if (canShowDisconnectAllAction) {
+                    connectedDevicesActionHost?.register(requestDisconnectAll)
+                }
+                onDispose {
+                    connectedDevicesActionHost?.unregister(requestDisconnectAll)
+                }
+            }
             FeatureStateContent(
                 devicesUiState.loadState,
                 devicesUiState.errorMessage,
@@ -1126,11 +1144,6 @@ internal fun AppRouteContent(
                     onDismissRevocation = devicesViewModel::dismissRevocation,
                     onConfirmRevocation = devicesViewModel::confirmRevocation,
                     disconnectAllUiState = disconnectAllUiState,
-                    onRequestDisconnectAll = {
-                        if (devicesViewModel.uiState.value.canDisconnectAll) {
-                            disconnectAllViewModel.requestDisconnectAll()
-                        }
-                    },
                     onDismissDisconnectAll = disconnectAllViewModel::dismissConfirmation,
                     onConfirmDisconnectAll = {
                         if (devicesViewModel.uiState.value.canDisconnectAll) {

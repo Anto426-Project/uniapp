@@ -12,12 +12,10 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
-import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.data.contract.DeviceInfo
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesUiState
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
-import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
 import com.anto426.uniapp.ui.components.items.ConnectedDevicesSecurityHero
 import com.anto426.uniapp.ui.components.items.CurrentDeviceHero
@@ -34,7 +32,6 @@ fun ConnectedDevicesScreen(
     onDismissRevocation: () -> Unit,
     onConfirmRevocation: () -> Unit,
     disconnectAllUiState: DeviceSessionsActionUiState,
-    onRequestDisconnectAll: () -> Unit,
     onDismissDisconnectAll: () -> Unit,
     onConfirmDisconnectAll: () -> Unit,
 ) {
@@ -73,16 +70,7 @@ fun ConnectedDevicesScreen(
                         } else {
                             null
                         },
-                        showDivider = index < otherDevices.lastIndex || uiState.canDisconnectAll,
-                    )
-                }
-                if (uiState.canDisconnectAll) {
-                    UniInsetRow(
-                        title = stringResource(Res.string.ui_device_disconnect_all_title),
-                        icon = LiquidIcons.Close,
-                        onClick = onRequestDisconnectAll.takeUnless { disconnectAllUiState.isDisconnecting },
-                        showDivider = false,
-                        titleMaxLines = 2,
+                        showDivider = index < otherDevices.lastIndex,
                     )
                 }
             }

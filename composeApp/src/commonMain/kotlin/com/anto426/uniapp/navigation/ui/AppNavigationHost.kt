@@ -121,6 +121,7 @@ internal fun AppNavigationHost(
     val reservationDeleteActionHost = remember(accountId, profileId, dataGeneration) { ReservationDeleteActionHost() }
     val attendanceScannerActionHost = remember(accountId, profileId, dataGeneration) { AttendanceScannerActionHost() }
     val newsDetailActionHost = remember(accountId, profileId, dataGeneration) { NewsDetailActionHost() }
+    val connectedDevicesActionHost = remember(accountId, profileId, dataGeneration) { ConnectedDevicesActionHost() }
     val languageViewModel =
         viewModel(key = "app-language") {
             LanguageViewModel(UniAppInitialData.languages, runtime.localDataStore, toastManager)
@@ -277,6 +278,7 @@ internal fun AppNavigationHost(
                         onRefreshUpdate = updateViewModel::refresh,
                         onOpenAttendanceScanner = { attendanceScannerActionHost.onOpenScanner?.invoke() },
                         newsDetailActionHost = newsDetailActionHost,
+                        connectedDevicesActionHost = connectedDevicesActionHost,
                         account = authenticatedAccount,
                         onSelectProfile = accountSwitcherViewModel::selectProfile,
                     ),
@@ -374,6 +376,7 @@ internal fun AppNavigationHost(
                             reservationDeleteActionHost = reservationDeleteActionHost,
                             attendanceScannerActionHost = attendanceScannerActionHost,
                             newsDetailActionHost = newsDetailActionHost,
+                            connectedDevicesActionHost = connectedDevicesActionHost,
                             navigator = navigator,
                             sessionController = runtime.sessionController,
                             accountSwitcherViewModel = accountSwitcherViewModel,
@@ -579,6 +582,7 @@ private fun topBarActions(
     onRefreshUpdate: () -> Unit,
     onOpenAttendanceScanner: () -> Unit,
     newsDetailActionHost: NewsDetailActionHost,
+    connectedDevicesActionHost: ConnectedDevicesActionHost,
     account: UniAccountSummary?,
     onSelectProfile: (String) -> Unit,
 ): List<LiquidTopBarAction> {
@@ -643,6 +647,17 @@ private fun topBarActions(
                     onClick = onOpenAttendanceScanner,
                 ),
             )
+
+        AppRoute.Devices ->
+            connectedDevicesActionHost.onDisconnectAll?.let { disconnectAll ->
+                listOf(
+                    LiquidTopBarAction(
+                        icon = LiquidIcons.Close,
+                        label = stringResource(Res.string.ui_device_disconnect_all_title),
+                        onClick = disconnectAll,
+                    ),
+                )
+            }.orEmpty()
 
         AppRoute.Transport -> emptyList()
 
