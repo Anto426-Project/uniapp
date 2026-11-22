@@ -359,7 +359,7 @@ internal fun AppNavigationHost(
             val screenPadding =
                 PaddingValues(
                     top = innerPadding.calculateTopPadding() + if (showTopBar) 12.dp else 0.dp,
-                    bottom = if (showBottomBar) 80.dp else 16.dp,
+                    bottom = if (showBottomBar) 80.dp else innerPadding.calculateBottomPadding() + 16.dp,
                 )
             CompositionLocalProvider(
                 LocalAppToastSink provides toastManager,
