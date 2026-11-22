@@ -36,6 +36,7 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.pickers.datepicker.LiquidDatePicker
+import com.anto426.liquidmonet.components.pickers.datepicker.rememberLiquidDatePickerLabels
 import com.anto426.liquidmonet.components.pickers.datepicker.rememberLiquidDatePickerState
 import com.anto426.liquidmonet.components.pickers.datepicker.state.LiquidDatePickerFilter
 import com.anto426.liquidmonet.components.pickers.datepicker.state.LiquidDateSelectionMode
@@ -121,13 +122,8 @@ fun TransportBookingScreen(
         filter = dateFilter,
     )
     val availableSelectedDates = datePickerState.selectedDates
-
-    val monthNamesShort = remember {
-        listOf(
-            "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
-            "Lug", "Ago", "Set", "Ott", "Nov", "Dic",
-        )
-    }
+    val datePickerLabels = rememberLiquidDatePickerLabels()
+    val monthNamesShort = datePickerLabels.shortMonthNames
     val directionTabs = listOf(
         LiquidNavigationItem(
             label = stringResource(Res.string.ui_transport_outbound_short),
@@ -251,6 +247,7 @@ fun TransportBookingScreen(
 
             LiquidDatePicker(
                 state = datePickerState,
+                labels = datePickerLabels,
                 allowYearSelection = false,
                 showTodayAction = false,
                 showClearAction = true,
