@@ -12,8 +12,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -28,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,7 +73,6 @@ import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigat
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteSelector
-import com.anto426.liquidmonet.components.selection.chip.LiquidChip
 import com.anto426.liquidmonet.components.selection.slider.LiquidSlider
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
@@ -881,7 +877,6 @@ private fun ThemeColorGroup(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ThemeBackgroundGroup(
     backgroundChoices: List<ThemeOptionChoice<LiquidBackgroundEffect>>,
@@ -896,83 +891,19 @@ private fun ThemeBackgroundGroup(
     reducedMotion: Boolean,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val haptics = LocalHapticFeedback.current
     val roundedSpeed = (backgroundSpeedFactor * 10f).roundToInt() / 10f
 
     UniInsetGroup(
         title = stringResource(Res.string.ui_theme_background_group),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = ThemeIcons.Wallpaper,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 36.dp,
-                        iconSize = 18.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                        shape = RoundedRectangle(10.dp),
-                    ),
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_theme_engine_group),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = selectedBackground.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                backgroundChoices.forEach { choice ->
-                    key(choice.value) {
-                        val isSelected = choice.value == selectedBackground.value
-                        LiquidChip(
-                            label = choice.title,
-                            selected = isSelected,
-                            leadingIcon = if (isSelected) LiquidIcons.Check else null,
-                            onClick = {
-                                if (!isSelected) {
-                                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                                    onBackgroundStyleSelected(choice.value)
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-        }
-
-        LiquidHorizontalDivider(
-            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-            color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+        ThemeDropdownRow(
+            title = stringResource(Res.string.ui_theme_engine_group),
+            selected = selectedBackground,
+            items = backgroundChoices,
+            icon = ThemeIcons.Wallpaper,
+            iconTint = colorScheme.primary,
+            onItemSelected = onBackgroundStyleSelected,
+            showDivider = true,
         )
 
         ThemeSliderRow(
@@ -1010,7 +941,6 @@ private fun ThemeBackgroundGroup(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ThemeGlassCustomizationGroup(
     qualityChoices: List<ThemeOptionChoice<LiquidGlassQualityTier?>>,
@@ -1021,87 +951,24 @@ private fun ThemeGlassCustomizationGroup(
     onLiquidIntensityChanged: (Float) -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val haptics = LocalHapticFeedback.current
-    val qualityStatus = if (selectedQuality.value == null) {
+    val selectedQualitySubtitle = if (selectedQuality.value == null) {
         "${selectedQuality.title} · $effectiveQualityLabel"
     } else {
-        selectedQuality.description
+        selectedQuality.title
     }
 
     UniInsetGroup(
         title = stringResource(Res.string.ui_theme_glass_group),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Star,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 36.dp,
-                        iconSize = 18.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                        shape = RoundedRectangle(10.dp),
-                    ),
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_theme_glass_quality),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = qualityStatus,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                qualityChoices.forEach { choice ->
-                    key(choice.value) {
-                        val isSelected = choice.value == selectedQuality.value
-                        LiquidChip(
-                            label = choice.title,
-                            selected = isSelected,
-                            leadingIcon = if (isSelected) LiquidIcons.Check else null,
-                            onClick = {
-                                if (!isSelected) {
-                                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                                    onQualitySelected(choice.value)
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-        }
-
-        LiquidHorizontalDivider(
-            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-            color = colorScheme.outlineVariant.copy(alpha = 0.25f),
+        ThemeDropdownRow(
+            title = stringResource(Res.string.ui_theme_glass_quality),
+            selected = selectedQuality,
+            items = qualityChoices,
+            icon = LiquidIcons.Star,
+            iconTint = colorScheme.primary,
+            onItemSelected = onQualitySelected,
+            showDivider = true,
+            selectedSubtitle = selectedQualitySubtitle,
         )
 
         ThemeSliderRow(
