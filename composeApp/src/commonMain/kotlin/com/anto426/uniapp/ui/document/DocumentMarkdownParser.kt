@@ -31,7 +31,9 @@ internal object DocumentMarkdownParser {
     private val detailsSummaryRegex = Regex("""<summary\b[^>]*>([\s\S]*?)</summary>""", RegexOption.IGNORE_CASE)
     private val detailsTagRegex = Regex("""</?details\b[^>]*>""", RegexOption.IGNORE_CASE)
     private val htmlAnchorRegex = Regex("""<a\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)</a>""", RegexOption.IGNORE_CASE)
-    private val htmlHeadingRegex = Regex("""<h([1-4])\b[^>]*>([\s\S]*?)</h\1>""", RegexOption.IGNORE_CASE)
+    private val htmlHeadingRegex = Regex("""<h([1-6])\b[^>]*>([\s\S]*?)</h\1>""", RegexOption.IGNORE_CASE)
+    private val htmlOrderedListRegex = Regex("""<ol\b[^>]*>([\s\S]*?)</ol>""", RegexOption.IGNORE_CASE)
+    private val htmlListItemRegex = Regex("""<li\b[^>]*>([\s\S]*?)</li>""", RegexOption.IGNORE_CASE)
     private val htmlStrongRegex = Regex("""<(strong|b)\b[^>]*>([\s\S]*?)</\1>""", RegexOption.IGNORE_CASE)
     private val htmlEmRegex = Regex("""<(em|i)\b[^>]*>([\s\S]*?)</\1>""", RegexOption.IGNORE_CASE)
     private val htmlCodeRegex = Regex("""<code\b[^>]*>([\s\S]*?)</code>""", RegexOption.IGNORE_CASE)
@@ -45,13 +47,13 @@ internal object DocumentMarkdownParser {
     private val mdHeadingRegex = Regex("""^(#{1,4})\s+(.+)$""")
     private val dividerRegex = Regex("""^(?:---+|===+|\*\*\*+|___+)\s*$""")
     private val fenceOpenRegex = Regex("""^```([A-Za-z0-9_+-]*)\s*$""")
-    private val taskRegex = Regex("""^(?:[-*•]\s+)?\[([ xX])]\s+(.+)$""")
-    private val bulletRegex = Regex("""^[-*•]\s+(.+)$""")
-    private val orderedRegex = Regex("""^(\d+)[.)]\s+(.+)$""")
+    private val taskRegex = Regex("""^(?:[-*•▪◦–—]\s+)?\[([ xX])]\s+(.+)$""")
+    private val bulletRegex = Regex("""^[-*•▪◦·–—➢►]\s+(.+)$""")
+    private val orderedRegex = Regex("""^(\d+|[a-zA-Z])[.)]\s+(.+)$""")
     private val quoteAlertRegex = Regex("""^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)]\s*(.*)$""", RegexOption.IGNORE_CASE)
     private val tableSeparatorCellRegex = Regex("""^:?-{2,}:?$""")
     private val markdownImageLineRegex = Regex("""^!\[[^\]]*]\([^)\n]+\)$""")
-    private val inlineBulletChainRegex = Regex("""\s+[•▪◦]\s+""")
+    private val inlineBulletChainRegex = Regex("""\s+[•▪◦➢►]\s+""")
     private val bareGitHubPullRegex = Regex("""(?<![(\[])https://github\.com/[^\s/]+/[^\s/]+/pull/(\d+)""")
     private val bareGitHubCompareRegex = Regex("""(?<![(\[])https://github\.com/[^\s/]+/[^\s/]+/compare/([^\s)]+)""")
 
@@ -89,9 +91,34 @@ internal object DocumentMarkdownParser {
                 val heading = htmlTagRegex.replace(m.groupValues[2], " ").replace(Regex("""\s+"""), " ").trim()
                 if (heading.isBlank()) "\n\n" else "\n\n${"#".repeat(level)} $heading\n\n"
             }
-            text = htmlStrongRegex.replace(text) { m -> "**${m.groupValues[2].trim()}**" }
-            text = htmlEmRegex.replace(text) { m -> "*${m.groupValues[2].trim()}*" }
-            text = htmlCodeRegex.replace(text) { m -> "`${m.groupValues[1].trim()}`" }
+            text = htmlOrderedListRegex.replace(text) { m ->
+                val items = htmlListItemRegex.findAll(m.groupValues[1]).mapIndexedNotNull { idx, item ->
+                    val cleaned = NewsContentFormatter.decodeHtmlEntities(
+                        htmlTagRegex.replace(
+                            htmlBrRegex.replace(item.groupValues[1], " "),
+                            " ",
+                        ),
+                    ).replace(Regex("""\s+"""), " ").trim()
+                    cleaned.takeIf(String::isNotBlank)?.let { "${idx + 1}. $it" }
+                }.toList()
+                if (items.isEmpty()) "\n\n" else "\n\n${items.joinToString("\n")}\n\n"
+            }
+            text = htmlStrongRegex.replace(text) { m ->
+                val inner = NewsContentFormatter.decodeHtmlEntities(
+                    htmlTagRegex.replace(m.groupValues[2], " "),
+                ).replace('\u00A0', ' ').trim()
+                if (inner.isBlank()) "" else "**$inner**"
+            }
+            text = htmlEmRegex.replace(text) { m ->
+                val inner = NewsContentFormatter.decodeHtmlEntities(
+                    htmlTagRegex.replace(m.groupValues[2], " "),
+                ).replace('\u00A0', ' ').trim()
+                if (inner.isBlank()) "" else "*$inner*"
+            }
+            text = htmlCodeRegex.replace(text) { m ->
+                val inner = m.groupValues[1].trim()
+                if (inner.isBlank()) "" else "`$inner`"
+            }
             text = htmlLiOpenRegex.replace(text, "\n- ")
             text = htmlLiCloseRegex.replace(text, "\n")
             text = htmlBrRegex.replace(text, "\n")
@@ -99,7 +126,7 @@ internal object DocumentMarkdownParser {
             text = htmlTagRegex.replace(text, "")
         }
 
-        text = NewsContentFormatter.decodeHtmlEntities(text)
+        text = NewsContentFormatter.decodeHtmlEntities(text).replace('\u00A0', ' ')
         text = bareGitHubPullRegex.replace(text) { m -> "[#${m.groupValues[1]}](${m.value})" }
         text = bareGitHubCompareRegex.replace(text) { m -> "[${m.groupValues[1]}](${m.value})" }
         if (inlineBulletChainRegex.findAll(text).count() >= 2) {

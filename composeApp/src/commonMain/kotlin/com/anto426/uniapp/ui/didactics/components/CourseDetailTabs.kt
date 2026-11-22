@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
+import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
@@ -30,6 +32,7 @@ import com.anto426.uniapp.data.contract.StudyCourse
 import com.anto426.uniapp.data.contract.ContactData
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.document.components.RichMarkdownDocument
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -108,6 +111,7 @@ fun CourseProgramTab(course: StudyCourse) {
                 title = stringResource(Res.string.ui_course_materials_title),
                 content = course.testiRiferimento,
                 icon = LiquidIcons.MenuBook,
+                preserveLineBreaksAsList = true,
             )
         }
 
@@ -455,29 +459,44 @@ fun CourseDataTab(course: StudyCourse) {
                         color = colorScheme.onSurface,
                     )
                 }
-                Text(
-                    text = course.prerequisiti.ifBlank {
-                        stringResource(Res.string.ui_course_no_prerequisites)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colorScheme.onSurfaceVariant,
-                    lineHeight = 22.sp,
-                )
+                if (course.prerequisiti.isNotBlank()) {
+                    val formattedPrereq = remember(course.prerequisiti) {
+                        CourseSyllabusFormatter.formatSectionMarkdown(course.prerequisiti)
+                    }
+                    RichMarkdownDocument(
+                        markdown = formattedPrereq,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    Text(
+                        text = stringResource(Res.string.ui_course_no_prerequisites),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorScheme.onSurfaceVariant,
+                        lineHeight = 22.sp,
+                    )
+                }
             }
         }
     }
 }
 
 /**
- * Reusable Card for Syllabus Sections with rich text and clean styling.
+ * Reusable Card for Syllabus Sections with rich Markdown/HTML formatting matching News & Documents.
  */
 @Composable
 private fun SyllabusSectionCard(
     title: String,
     content: String,
     icon: ImageVector,
+    preserveLineBreaksAsList: Boolean = false,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val formattedMarkdown = remember(content, preserveLineBreaksAsList) {
+        CourseSyllabusFormatter.formatSectionMarkdown(
+            raw = content,
+            preserveLineBreaksAsList = preserveLineBreaksAsList,
+        )
+    }
 
     LiquidCard(
         shape = RoundedRectangle(20.dp),
@@ -485,17 +504,22 @@ private fun SyllabusSectionCard(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = colorScheme.primary,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.liquidIconContainer(
+                        containerSize = 32.dp,
+                        iconSize = 16.dp,
+                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                        shape = RoundedRectangle(9.dp),
+                    ),
                 )
                 Text(
                     text = title,
@@ -505,11 +529,11 @@ private fun SyllabusSectionCard(
                 )
             }
 
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = colorScheme.onSurface.copy(alpha = 0.88f),
-                lineHeight = 22.sp,
+            LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.22f))
+
+            RichMarkdownDocument(
+                markdown = formattedMarkdown.ifBlank { content.trim() },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
