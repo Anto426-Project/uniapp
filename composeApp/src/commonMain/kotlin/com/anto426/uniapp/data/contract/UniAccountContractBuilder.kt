@@ -44,7 +44,6 @@ import kotlin.math.roundToLong
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -584,8 +583,6 @@ private fun findMatchingProfessorContact(
 // ============================================================================
 
 private val ExamCalendarTimeZone = TimeZone.of("Europe/Rome")
-private val ExamRoundDateTimePattern =
-    Regex("""(\d{2})/(\d{2})/(\d{4})(?:\s+(\d{2}):(\d{2}))?""")
 
 internal fun buildExamsContract(
     rounds: List<ExamRound>,
@@ -1166,13 +1163,6 @@ internal fun TripBookingDirection.toSdkDirection(): TransportDirection =
         TripBookingDirection.OUTBOUND -> TransportDirection.OUTBOUND
         TripBookingDirection.RETURN -> TransportDirection.RETURN
         TripBookingDirection.ROUND_TRIP -> TransportDirection.ROUND_TRIP
-    }
-
-internal fun TransportDirection.toTripBookingDirection(): TripBookingDirection =
-    when (this) {
-        TransportDirection.OUTBOUND -> TripBookingDirection.OUTBOUND
-        TransportDirection.RETURN -> TripBookingDirection.RETURN
-        TransportDirection.ROUND_TRIP -> TripBookingDirection.ROUND_TRIP
     }
 
 internal fun TransportActionResult.toTripBookingOutcome(): TripBookingOutcome =

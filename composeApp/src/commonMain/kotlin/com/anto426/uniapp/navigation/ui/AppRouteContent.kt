@@ -1,4 +1,4 @@
-package com.anto426.uniapp.navigation.ui
+﻿package com.anto426.uniapp.navigation.ui
 
 
 
@@ -12,9 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
@@ -546,7 +544,6 @@ internal fun AppRouteContent(
                 onOpenCookies = { navigator.navigate(AppRoute.Cookies) },
                 onOpenCreatorCredits = { navigator.navigate(AppRoute.Author) },
                 onOpenUpdates = { navigator.navigate(AppRoute.Updates) },
-                onOpenChangelog = { navigator.navigate(AppRoute.Changelog) },
             )
 
         AppRoute.Theme -> {

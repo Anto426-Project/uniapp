@@ -1,6 +1,5 @@
-package com.anto426.uniapp.data
+﻿package com.anto426.uniapp.data
 
-import com.anto426.uniapp.localization.readAppString
 
 import androidx.compose.ui.graphics.Color
 import com.anto426.liquidmonet.components.pickers.paletteselector.LiquidPaletteOption

@@ -1,4 +1,4 @@
-package com.anto426.uniapp.data
+﻿package com.anto426.uniapp.data
 
 import com.anto426.uniapp.account.data.AccountAvatar
 import com.anto426.uniapp.account.data.AccountAvatarStore
@@ -25,8 +25,6 @@ import com.anto426.uniapp.data.contract.TripBookingRequest
 import com.anto426.uniapp.data.contract.UniAcademicContract
 import com.anto426.uniapp.data.contract.UniAccountContract
 import com.anto426.uniapp.data.contract.UniAttendanceContract
-import com.anto426.uniapp.data.contract.UniCampusContract
-import com.anto426.uniapp.data.contract.UniContractOwner
 import com.anto426.uniapp.data.contract.UniDevicesContract
 import com.anto426.uniapp.data.contract.UniExamsContract
 import com.anto426.uniapp.data.contract.UniIdentityContract
@@ -63,8 +61,6 @@ import com.anto426.unisdk.model.LoginCareerOption
 import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.platform.AppInfoProvider
 import com.anto426.unisdk.platform.ProjectInfo
-import com.anto426.unisdk.session.UniCareerProfile
-import com.anto426.unisdk.session.UniUserProfile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -423,37 +419,6 @@ internal fun UniDataSnapshot.devicesContract(): UniDevicesContract {
         hasError = state.error != null,
     )
 }
-
-internal fun UniDataSnapshot.accountContract(
-    account: UniAccountSummary? = null,
-    generation: Long = 0L,
-    today: LocalDate? = null,
-    photoData: ByteArray? = null,
-    newsFeed: NewsFeed = NewsFeed(),
-    defaultTargetCfu: Int = 180,
-): UniAccountContract =
-    UniAccountContract(
-        owner = UniContractOwner(
-            accountId = account?.accountId.orEmpty(),
-            profileId = account?.activeProfileId,
-            role = account?.activeProfileType ?: UniProfileRole.STUDENT,
-            generation = generation,
-            isGuest = account?.isGuest == true,
-        ),
-        identity = identityContract(account = account, photoData = photoData),
-        academic = academicContract(defaultTargetCfu = defaultTargetCfu),
-        exams = examsContract(today = today),
-        professor = professorContract(requireDashboard = false),
-        taxes = taxesContract(requireTaxes = false),
-        surveys = surveysContract(requireSurveys = false),
-        attendance = attendanceContract(requireAttendance = false),
-        transport = transportContract(requireTransport = false),
-        devices = devicesContract(),
-        campus = UniCampusContract(
-            news = newsFeed,
-            contacts = value(UniDatasets.Contacts)?.toContacts().orEmpty(),
-        ),
-    )
 
 // ============================================================================
 // 4. Session Login Profile Mapping

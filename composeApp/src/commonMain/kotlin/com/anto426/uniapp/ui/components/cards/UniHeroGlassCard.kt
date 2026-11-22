@@ -1,6 +1,5 @@
 package com.anto426.uniapp.ui.components.cards
 
-import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 
@@ -52,7 +51,6 @@ import com.anto426.uniapp.ui.components.banners.supportsUniAppRuntimeShader
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.RuntimeShader
 import com.kyant.backdrop.asComposeShader
-import com.kyant.backdrop.backdrops.emptyBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 

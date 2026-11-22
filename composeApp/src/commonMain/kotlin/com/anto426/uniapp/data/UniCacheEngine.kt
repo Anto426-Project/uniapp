@@ -1,4 +1,4 @@
-package com.anto426.uniapp.data
+﻿package com.anto426.uniapp.data
 
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.data.contract.LibraryBookDetail
@@ -7,9 +7,6 @@ import com.anto426.uniapp.data.contract.LibraryCatalogPage
 import com.anto426.uniapp.data.contract.LibraryMovementItem
 import com.anto426.uniapp.data.contract.NewsFeed
 import com.anto426.uniapp.data.contract.toNewsItems
-import com.anto426.uniapp.project.model.GitHubProjectSnapshot
-import com.anto426.uniapp.updates.model.InstalledAppBuild
-import com.anto426.uniapp.updates.model.UniAppUpdateManifest
 import com.anto426.unisdk.model.AttendanceRecord
 import com.anto426.unisdk.model.Career
 import com.anto426.unisdk.model.ConnectedDevice
@@ -25,7 +22,6 @@ import com.anto426.unisdk.model.Taxes
 import com.anto426.unisdk.model.UniversityContact
 import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.platform.currentEpochMillis
-import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportData
 import kotlinx.coroutines.CancellationException

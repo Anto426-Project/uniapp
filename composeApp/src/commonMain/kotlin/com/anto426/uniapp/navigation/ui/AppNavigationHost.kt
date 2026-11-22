@@ -69,7 +69,6 @@ import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.info
 import com.anto426.uniapp.navigation.model.AppRoute
 import com.anto426.uniapp.navigation.model.appTopLevelRoutes
-import com.anto426.uniapp.navigation.model.isTopLevel
 import com.anto426.uniapp.navigation.model.topLevelParent
 import com.anto426.uniapp.navigation.presentation.AppShellViewModel
 import com.anto426.uniapp.navigation.runtime.AppNavigator

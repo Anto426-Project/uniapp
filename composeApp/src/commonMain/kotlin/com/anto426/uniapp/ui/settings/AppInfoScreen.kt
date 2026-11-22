@@ -31,7 +31,6 @@ fun AppInfoScreen(
     onOpenCreatorCredits: () -> Unit,
     onOpenUpdates: () -> Unit,
     onReportBug: () -> Unit = {},
-    onOpenChangelog: () -> Unit = {},
     onOpenSource: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
