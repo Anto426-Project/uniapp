@@ -1,4 +1,4 @@
-package com.anto426.uniapp.ui.didactics
+package com.anto426.uniapp.ui.didactics.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,6 @@ import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.layout.UniTabContentHost
-import com.anto426.uniapp.ui.didactics.components.GradesMetricTile
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*

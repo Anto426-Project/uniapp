@@ -3,7 +3,6 @@ package com.anto426.uniapp.ui.auth
 
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -43,13 +41,14 @@ import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
-import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextField
 import com.anto426.liquidmonet.components.inputs.textfield.LiquidTextFieldType
 import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
 import com.anto426.uniapp.auth.presentation.LoginUiState
+import com.anto426.uniapp.ui.auth.components.AuthFooterLink
+import com.anto426.uniapp.ui.auth.components.UniAuthLabeledField
 import com.anto426.uniapp.ui.components.account.UniSavedAccountsSheet
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
@@ -400,57 +399,6 @@ fun LoginScreen(
                     )
                 }
             },
-        )
-    }
-}
-
-@Composable
-internal fun UniAuthLabeledField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    type: LiquidTextFieldType,
-    label: String,
-    placeholder: String = label,
-    leadingIcon: ImageVector? = null,
-    enabled: Boolean = true,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-) {
-    val fieldShape = remember { RoundedRectangle(16.dp) }
-    LiquidTextField(
-        value = value,
-        onValueChange = onValueChange,
-        type = type,
-        label = label,
-        placeholder = placeholder,
-        leadingIcon = leadingIcon,
-        enabled = enabled,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        shape = fieldShape,
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
-
-@Composable
-private fun AuthFooterLink(
-    label: String,
-    onClick: () -> Unit,
-) {
-    val shape = remember { RoundedRectangle(12.dp) }
-    Box(
-        modifier = Modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .graphicsLayer(clip = false)
-            .liquidClickable(shape = shape, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
         )
     }
 }

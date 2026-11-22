@@ -6,12 +6,14 @@ import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
+import com.anto426.uniapp.model.updates.UpdateState
 import com.anto426.uniapp.ui.components.banners.UniAppUpdateBanner
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.model.updates.UpdateState
+import com.anto426.uniapp.ui.updates.components.UpdateChangelogRow
+import com.anto426.uniapp.ui.updates.components.UpdatePackageVerificationItem
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -36,7 +38,7 @@ fun UpdatesScreen(
     UniScreenColumn {
         if (uiState.isMandatory) {
             UniInsetGroup {
-                ChangelogLink(onOpenChangelog)
+                UpdateChangelogRow(onOpenChangelog)
             }
         }
 
@@ -91,21 +93,8 @@ fun UpdatesScreen(
             }
 
             if (!uiState.isMandatory) {
-                ChangelogLink(onOpenChangelog)
+                UpdateChangelogRow(onOpenChangelog)
             }
         }
     }
-}
-
-@Composable
-private fun ChangelogLink(onOpenChangelog: () -> Unit) {
-    UniInsetRow(
-        title = stringResource(Res.string.nav_route_changelog_title),
-        subtitle = stringResource(Res.string.ui_changelog_subtitle),
-        icon = LiquidIcons.MenuBook,
-        iconTint = MaterialTheme.colorScheme.secondary,
-        onClick = onOpenChangelog,
-        showDivider = false,
-        titleMaxLines = 2,
-    )
 }

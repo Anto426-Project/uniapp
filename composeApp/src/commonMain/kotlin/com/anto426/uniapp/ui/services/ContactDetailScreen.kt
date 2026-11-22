@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,13 +30,12 @@ import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.error
 import com.anto426.uniapp.data.contract.ContactData
 import com.anto426.uniapp.data.contract.contactDialUri
-import com.anto426.uniapp.ui.components.display.UniInsetGroup
-import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.services.components.ContactDetailField
+import com.anto426.uniapp.ui.services.components.ContactDetailGroup
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.encodeURLParameter
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -235,37 +233,6 @@ fun ContactDetailScreen(contact: ContactData) {
                 title = Res.string.ui_contact_location_group,
                 fields = locationFields,
                 entranceOrder = if (contactFields.isNotEmpty()) 2 else 1,
-            )
-        }
-    }
-}
-
-private data class ContactDetailField(
-    val label: StringResource,
-    val value: String,
-    val icon: ImageVector,
-    val uri: String? = null,
-)
-
-@Composable
-private fun ContactDetailGroup(
-    title: StringResource,
-    fields: List<ContactDetailField>,
-    entranceOrder: Int = 0,
-    onOpenUri: (String) -> Unit = {},
-) {
-    UniInsetGroup(
-        title = stringResource(title),
-        entranceOrder = entranceOrder,
-    ) {
-        fields.forEachIndexed { index, field ->
-            UniInsetRow(
-                title = stringResource(field.label),
-                subtitle = field.value,
-                icon = field.icon,
-                iconTint = MaterialTheme.colorScheme.primary,
-                onClick = field.uri?.let { uri -> { onOpenUri(uri) } },
-                showDivider = index < fields.lastIndex,
             )
         }
     }

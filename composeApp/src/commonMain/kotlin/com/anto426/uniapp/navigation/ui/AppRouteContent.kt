@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.navigation.navigationbar.LiquidNavigationItem
 import com.anto426.liquidmonet.components.navigation.tabbar.LiquidTabBar
 import com.anto426.uniapp.didactics.presentation.StudyPlanViewModel
@@ -23,9 +22,9 @@ import com.anto426.uniapp.ui.components.layout.UniTabContentHost
 import com.anto426.uniapp.ui.didactics.ExamBookableFilter
 import com.anto426.uniapp.ui.didactics.ExamHistoryFilter
 import com.anto426.uniapp.ui.didactics.ExamsHistoryTabContent
-import com.anto426.uniapp.ui.didactics.StudentExamsTabContent
 import com.anto426.uniapp.ui.didactics.StudyPlanContent
 import com.anto426.uniapp.ui.didactics.TranscriptsContent
+import com.anto426.uniapp.ui.didactics.components.StudentExamsTabContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle

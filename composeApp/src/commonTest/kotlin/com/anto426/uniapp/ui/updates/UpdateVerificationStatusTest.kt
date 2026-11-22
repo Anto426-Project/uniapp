@@ -1,5 +1,7 @@
 package com.anto426.uniapp.ui.updates
 
+import com.anto426.uniapp.ui.updates.components.PackageVerificationStatus
+import com.anto426.uniapp.ui.updates.components.packageVerificationStatus
 import com.anto426.uniapp.updates.model.AppUpdatePhase
 import com.anto426.uniapp.updates.model.AppUpdateState
 import com.anto426.uniapp.updates.model.InstalledAppBuild

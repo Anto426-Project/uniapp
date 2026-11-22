@@ -1,4 +1,4 @@
-package com.anto426.uniapp.ui.updates
+package com.anto426.uniapp.ui.updates.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,5 +59,18 @@ internal fun UpdatePackageVerificationItem(
                 else -> Unit
             }
         },
+    )
+}
+
+@Composable
+internal fun UpdateChangelogRow(onOpenChangelog: () -> Unit) {
+    UniInsetRow(
+        title = stringResource(Res.string.nav_route_changelog_title),
+        subtitle = stringResource(Res.string.ui_changelog_subtitle),
+        icon = LiquidIcons.MenuBook,
+        iconTint = MaterialTheme.colorScheme.secondary,
+        onClick = onOpenChangelog,
+        showDivider = false,
+        titleMaxLines = 2,
     )
 }

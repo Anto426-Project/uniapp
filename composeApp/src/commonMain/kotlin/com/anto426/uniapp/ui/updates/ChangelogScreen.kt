@@ -17,7 +17,7 @@ import com.anto426.uniapp.ui.components.items.formatCompactNewsDate
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
 import com.anto426.uniapp.ui.document.UniDocumentScreen
-import com.anto426.uniapp.ui.document.toMarkdownString
+import com.anto426.uniapp.ui.document.components.toMarkdownString
 import com.anto426.uniapp.updates.presentation.AppUpdateUiState
 import com.anto426.uniapp.updates.presentation.ChangelogUiState
 import com.anto426.uniapp.updates.presentation.ChangelogViewModel

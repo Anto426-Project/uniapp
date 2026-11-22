@@ -33,13 +33,13 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.components.inputs.otpinput.LiquidOtpInput
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.UniBackHandler
 import com.anto426.uniapp.session.presentation.AppPasswordUnlockError
 import com.anto426.uniapp.session.presentation.AppUnlockUiState
 import com.anto426.uniapp.settings.presentation.AppPasswordSetupError
 import com.anto426.uniapp.settings.presentation.SettingsViewModel
+import com.anto426.uniapp.ui.auth.components.PinInputSection
 import com.anto426.uniapp.ui.components.account.LocalAccountAvatars
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
@@ -462,40 +462,5 @@ internal fun AppPasswordSetupScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun PinInputSection(
-    label: String,
-    pin: String,
-    onPinChange: (String) -> Unit,
-    length: Int,
-    enabled: Boolean,
-    onComplete: ((String) -> Unit)? = null,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        LiquidOtpInput(
-            otpValue = pin,
-            onOtpChange = onPinChange,
-            length = length,
-            obscureText = true,
-            enabled = enabled,
-            cellWidth = 42.dp,
-            cellHeight = 52.dp,
-            spacing = 8.dp,
-            onComplete = onComplete,
-        )
     }
 }

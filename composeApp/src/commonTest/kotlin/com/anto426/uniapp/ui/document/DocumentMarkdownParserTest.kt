@@ -1,6 +1,7 @@
 package com.anto426.uniapp.ui.document
 
 import androidx.compose.ui.graphics.Color
+import com.anto426.uniapp.ui.document.components.parseInlineMarkdown
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

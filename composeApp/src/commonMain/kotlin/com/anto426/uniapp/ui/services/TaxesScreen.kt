@@ -14,7 +14,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,6 +34,7 @@ import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniHorizontalChipRow
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
+import com.anto426.uniapp.ui.services.components.TaxesHeroMetric
 import com.kyant.shapes.RoundedRectangle
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
@@ -286,34 +286,5 @@ fun TaxesScreen(
                 color = colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
             )
         }
-    }
-}
-
-@Composable
-private fun TaxesHeroMetric(
-    label: String,
-    value: String,
-    valueColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = valueColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }

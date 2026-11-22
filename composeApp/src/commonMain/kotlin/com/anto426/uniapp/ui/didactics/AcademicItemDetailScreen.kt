@@ -26,6 +26,7 @@ import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.anto426.uniapp.ui.didactics.components.ProfessorExamDetailContent
 import com.anto426.uniapp.ui.didactics.components.ThesisDetailContent
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource

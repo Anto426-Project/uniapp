@@ -31,7 +31,7 @@ import com.anto426.uniapp.navigation.ui.NewsDetailActions
 import com.anto426.uniapp.ui.components.items.resolveNewsCategoryVisuals
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.ui.document.RichMarkdownDocument
+import com.anto426.uniapp.ui.document.components.RichMarkdownDocument
 import com.anto426.uniapp.ui.share.rememberTextSharer
 import com.anto426.uniapp.data.contract.NewsContentFormatter
 import com.anto426.uniapp.data.contract.newsSourceUrlOrNull
