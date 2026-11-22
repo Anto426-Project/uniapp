@@ -30,11 +30,24 @@ class MotionOwnershipTest(unittest.TestCase):
     def test_allows_sdk_hosts_and_single_shared_preset(self):
         self.source('UniMotion.kt', 'val preset = LiquidSwitcherTransition.Crossfade')
         self.source('AppNavigationHost.kt', 'rememberLiquidContentTransition<Scene<NavKey>>(transition = UniMotion.contentTransition)')
-        self.source('UniUpdateBanner.kt', 'LiquidAnimatedSwitcher(transition = UniMotion.contentTransition)')
         self.source('UniContentHost.kt', 'LiquidAnimatedSwitcher(transition = LocalUniContentTransition.current)')
         self.source('AppScreenTransitions.kt', 'val preset = LiquidSwitcherTransition.None')
         self.source('Section.kt', 'LiquidCard() // fadeIn()\n/* tween(300) */')
         self.assertEqual([], validate(self.root))
+
+    def test_allows_dedicated_update_banner_motion_and_keeps_it_decoupled(self):
+        self.source(
+            'UpdateBannerMotion.kt',
+            'import androidx.compose.animation.*\n'
+            'import androidx.compose.animation.core.*\n'
+            'AnimatedContent()\nrememberInfiniteTransition()\nanimateFloatAsState()',
+        )
+        self.assertEqual([], validate(self.root))
+        self.source(
+            'UpdateBannerMotion.kt',
+            'LiquidAnimatedSwitcher(transition = LiquidSwitcherTransition.LiquidMorph)',
+        )
+        self.assertEqual(2, len(validate(self.root)))
 
     def test_rejects_per_screen_sdk_transitions_and_entrances(self):
         self.source('Screen.kt', 'LiquidAnimatedSwitcher(transition = LiquidSwitcherTransition.FadeThrough)\nLiquidSectionEntrance()')
@@ -46,7 +59,7 @@ class MotionOwnershipTest(unittest.TestCase):
 
     def test_shared_banner_cannot_bypass_raw_motion_checks(self):
         self.source('UniUpdateBanner.kt', 'import androidx.compose.animation.core.*\nrememberInfiniteTransition()\nLiquidAnimatedSwitcher(transition = LiquidSwitcherTransition.LiquidMorph)')
-        self.assertEqual(3, len(validate(self.root)))
+        self.assertEqual(4, len(validate(self.root)))
 
     def test_sdk_scalar_bindings_are_allowed_but_raw_bindings_are_rejected(self):
         self.source('Card.kt', 'animateLiquidFloatAsState()\nanimateLiquidColorAsState()\nanimateLiquidDpAsState()')

@@ -5,6 +5,9 @@ import re
 import sys
 
 
+DEDICATED_BANNER_MOTION_FILES = {'UpdateBannerMotion.kt'}
+
+
 def validate(root=None):
     root = Path(root) if root else Path(__file__).resolve().parents[1]
     errors = []
@@ -14,15 +17,19 @@ def validate(root=None):
                 continue
             code = re.sub(r'/\*.*?\*/|//[^\n]*', '', path.read_text(encoding='utf-8'), flags=re.S)
             relative = path.relative_to(root).as_posix()
-            if re.search(r'^\s*import androidx\.compose\.animation', code, re.M):
+            is_dedicated_banner_motion = path.name in DEDICATED_BANNER_MOTION_FILES
+            if not is_dedicated_banner_motion and re.search(r'^\s*import androidx\.compose\.animation', code, re.M):
                 errors.append(f'{relative}: Compose animation imports belong to the SDK')
-            if re.search(r'\b(?:tween|spring|keyframes|infiniteRepeatable|rememberInfiniteTransition|'
-                         r'Animatable|MutableTransitionState|updateTransition|rememberTransition|'
-                         r'AnimatedContent|AnimatedVisibility|Crossfade|animate(?!Liquid(?:Float|Color|Dp)AsState\b)\w*AsState|'
-                         r'fadeIn|fadeOut|scaleIn|scaleOut|slideIn\w*|slideOut\w*|'
-                         r'expandVertically|shrinkVertically|withAnimation)\s*\(', code):
+            if not is_dedicated_banner_motion and re.search(
+                r'\b(?:tween|spring|keyframes|infiniteRepeatable|rememberInfiniteTransition|'
+                r'Animatable|MutableTransitionState|updateTransition|rememberTransition|'
+                r'AnimatedContent|AnimatedVisibility|Crossfade|animate(?!Liquid(?:Float|Color|Dp)AsState\b)\w*AsState|'
+                r'fadeIn|fadeOut|scaleIn|scaleOut|slideIn\w*|slideOut\w*|'
+                r'expandVertically|shrinkVertically|withAnimation)\s*\(',
+                code,
+            ):
                 errors.append(f'{relative}: replace local animation construction with SDK motion')
-            if ('LiquidAnimatedSwitcher(' in code and path.name not in ('UniUpdateBanner.kt', 'UniContentHost.kt')) or (
+            if ('LiquidAnimatedSwitcher(' in code and path.name != 'UniContentHost.kt') or (
                     'rememberLiquidContentTransition<' in code and path.name != 'AppNavigationHost.kt'):
                 errors.append(f'{relative}: changing content must use a shared content host')
             if re.search(r'\bLiquidScreenEntrance\s*\(', code) or (
