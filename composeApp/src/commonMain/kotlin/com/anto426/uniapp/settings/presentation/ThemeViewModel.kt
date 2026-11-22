@@ -59,7 +59,7 @@ data class ThemeUiState(
         const val DEFAULT_BACKGROUND_INTENSITY = 0.90f
         const val DEFAULT_BACKGROUND_SPEED = 1.0f
 
-        val defaultBackgroundStyles = listOf("Aurora", "Mesh Glow", "Orbital Pulse", "Radiant Beam")
+        val defaultBackgroundStyles = listOf("Orbital Pulse", "Aurora", "Mesh Glow", "Radiant Beam")
         val defaultThemes = buildThemes(null)
 
         fun buildThemes(customColor: Color?): List<ThemeOption> = listOf(

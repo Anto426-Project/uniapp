@@ -240,10 +240,10 @@ internal fun AppNavigationHost(
             val monetSeed = if (themeUiState.selectedThemeIndex == 0) null else themeUiState.resolveMonetSeed()
             LiquidBackground(
                 effect = when (themeUiState.selectedBackgroundStyle) {
+                    "Aurora" -> LiquidBackgroundEffect.Aurora
                     "Mesh Glow" -> LiquidBackgroundEffect.MeshGlow
-                    "Orbital Pulse" -> LiquidBackgroundEffect.OrbitalPulse
                     "Radiant Beam" -> LiquidBackgroundEffect.RadiantBeam
-                    else -> LiquidBackgroundEffect.Aurora
+                    else -> LiquidBackgroundEffect.OrbitalPulse
                 },
                 isDark = isDark,
                 monetSeed = monetSeed,

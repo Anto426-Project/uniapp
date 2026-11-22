@@ -35,7 +35,7 @@ object UniAppDataKeys {
         LocalDataKey(
             name = "theme.background",
             serializer = String.serializer(),
-            defaultValue = "Aurora",
+            defaultValue = "Orbital Pulse",
         )
     val ThemeReducedMotion =
         LocalDataKey(

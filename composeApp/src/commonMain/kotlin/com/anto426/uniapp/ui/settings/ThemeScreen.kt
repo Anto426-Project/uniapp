@@ -363,6 +363,11 @@ fun ThemeScreen(
 ) {
     val backgroundChoices = listOf(
         ThemeOptionChoice(
+            LiquidBackgroundEffect.OrbitalPulse,
+            stringResource(Res.string.ui_theme_background_orbital),
+            stringResource(Res.string.ui_theme_background_orbital_sub),
+        ),
+        ThemeOptionChoice(
             LiquidBackgroundEffect.Aurora,
             stringResource(Res.string.ui_theme_background_aurora),
             stringResource(Res.string.ui_theme_background_aurora_sub),
@@ -371,11 +376,6 @@ fun ThemeScreen(
             LiquidBackgroundEffect.MeshGlow,
             stringResource(Res.string.ui_theme_background_mesh),
             stringResource(Res.string.ui_theme_background_mesh_sub),
-        ),
-        ThemeOptionChoice(
-            LiquidBackgroundEffect.OrbitalPulse,
-            stringResource(Res.string.ui_theme_background_orbital),
-            stringResource(Res.string.ui_theme_background_orbital_sub),
         ),
         ThemeOptionChoice(
             LiquidBackgroundEffect.RadiantBeam,
@@ -1506,10 +1506,10 @@ private fun <T> ThemeDropdownRow(
 }
 
 private fun String.toBackgroundEffect(): LiquidBackgroundEffect = when (this) {
+    "Aurora" -> LiquidBackgroundEffect.Aurora
     "Mesh Glow" -> LiquidBackgroundEffect.MeshGlow
-    "Orbital Pulse" -> LiquidBackgroundEffect.OrbitalPulse
     "Radiant Beam" -> LiquidBackgroundEffect.RadiantBeam
-    else -> LiquidBackgroundEffect.Aurora
+    else -> LiquidBackgroundEffect.OrbitalPulse
 }
 
 private fun LiquidBackgroundEffect.toStyleName(): String = when (this) {
