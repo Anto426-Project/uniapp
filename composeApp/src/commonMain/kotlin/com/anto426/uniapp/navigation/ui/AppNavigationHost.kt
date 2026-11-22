@@ -273,8 +273,6 @@ internal fun AppNavigationHost(
                         navigator = navigator,
                         shellViewModel = shellViewModel,
                         isSearchActive = shellUiState.isSearchActive,
-                        isUpdateBusy = updateUiState.isBusy,
-                        onRefreshUpdate = updateViewModel::refresh,
                         onOpenAttendanceScanner = { attendanceScannerActionHost.onOpenScanner?.invoke() },
                         newsDetailActionHost = newsDetailActionHost,
                         connectedDevicesActionHost = connectedDevicesActionHost,
@@ -577,8 +575,6 @@ private fun topBarActions(
     navigator: AppNavigator,
     shellViewModel: AppShellViewModel,
     isSearchActive: Boolean,
-    isUpdateBusy: Boolean,
-    onRefreshUpdate: () -> Unit,
     onOpenAttendanceScanner: () -> Unit,
     newsDetailActionHost: NewsDetailActionHost,
     connectedDevicesActionHost: ConnectedDevicesActionHost,
@@ -626,15 +622,6 @@ private fun topBarActions(
                             shellViewModel.setSearchActive(true)
                         }
                     },
-                ),
-            )
-
-        AppRoute.Updates ->
-            listOf(
-                LiquidTopBarAction(
-                    icon = LiquidIcons.Refresh,
-                    label = stringResource(Res.string.ui_update_check_action),
-                    onClick = { if (!isUpdateBusy) onRefreshUpdate() },
                 ),
             )
 
