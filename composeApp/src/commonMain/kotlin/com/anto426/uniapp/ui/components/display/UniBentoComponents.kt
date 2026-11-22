@@ -275,6 +275,8 @@ fun UniInsetRow(
     onClick: (() -> Unit)? = null,
     showDivider: Boolean = true,
     titleMaxLines: Int = 1,
+    subtitleMaxLines: Int = 2,
+    minHeight: Dp = 52.dp,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -288,7 +290,7 @@ fun UniInsetRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .graphicsLayer(clip = false)
-                .defaultMinSize(minHeight = 52.dp)
+                .defaultMinSize(minHeight = minHeight)
                 .semantics(mergeDescendants = true) {}
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -325,7 +327,7 @@ fun UniInsetRow(
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 11.5.sp,
                         color = colorScheme.onSurfaceVariant,
-                        maxLines = 2,
+                        maxLines = subtitleMaxLines,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
