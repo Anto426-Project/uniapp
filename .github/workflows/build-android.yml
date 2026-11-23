@@ -37,7 +37,7 @@ jobs:
       - name: Resolve verified SDK binaries
         env:
           GITHUB_TOKEN: ${{ secrets.SDK_READ_TOKEN || secrets.DEPLOY_TOKEN || github.token }}
-        run: python3 scripts/fetch_sdk_binaries.py
+        run: python3 scripts/sdk/fetch_sdk_binaries.py
       - name: Use disk-backed build temporary files
         run: |
           set -euo pipefail
@@ -52,7 +52,7 @@ jobs:
       - name: Validate release tooling and app
         run: |
           set -euo pipefail
-          python3 scripts/validate_release.py
+          python3 scripts/checks/validate_release.py
           ./gradlew --no-daemon --max-workers=2 :composeApp:testAndroidHostTest
       - name: Upload test results
         if: always()
@@ -84,12 +84,12 @@ jobs:
             unset RELEASE_STORE_FILE RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD
           fi
           ./gradlew --no-daemon --no-configuration-cache --max-workers=2 :androidApp:assembleRelease
-          python3 scripts/android_page_sizes.py androidApp/build/outputs/apk/release/*.apk
+          python3 scripts/checks/android_page_sizes.py androidApp/build/outputs/apk/release/*.apk
           if [[ "$signing" == release-key ]]; then
             APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
             for apk in androidApp/build/outputs/apk/release/*.apk; do "$APK_SIGNER" verify --verbose "$apk"; done
           fi
-          python3 scripts/prepare_build_artifact.py android --output publish-input --signing "$signing"
+          python3 scripts/release/prepare_build_artifact.py android --output publish-input --signing "$signing"
       - name: Store Android release for publication
         uses: actions/upload-artifact@v7.0.1
         with:

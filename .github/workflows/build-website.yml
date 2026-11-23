@@ -61,4 +61,4 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Publish only the website
-        run: bash scripts/publish_website.sh
+        run: bash scripts/release/publish_website.sh

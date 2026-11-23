@@ -49,12 +49,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.SDK_READ_TOKEN || secrets.DEPLOY_TOKEN || github.token }}
         run: |
-          python3 scripts/fetch_sdk_binaries.py
+          python3 scripts/sdk/fetch_sdk_binaries.py
           mkdir -p build
           cp .sdk-binaries/resolved.properties build/sdk-binaries.properties
 
       - name: Validate build tooling
-        run: python3 scripts/validate_release.py
+        run: python3 scripts/checks/validate_release.py
 
       - name: Build simulator app
         run: |
@@ -105,7 +105,7 @@ jobs:
           )
 
       - name: Prepare unsigned device and simulator builds
-        run: python3 scripts/prepare_build_artifact.py ios --output publish-input --signing unsigned
+        run: python3 scripts/release/prepare_build_artifact.py ios --output publish-input --signing unsigned
       - name: Store unsigned iOS builds for publication
         uses: actions/upload-artifact@v7.0.1
         with:

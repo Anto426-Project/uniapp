@@ -47,7 +47,7 @@ jobs:
           REQUESTED_PLATFORM: ${{ inputs.platform }}
         with:
           script: |
-            const resolve = require('./scripts/resolve_publish_source.cjs');
+            const resolve = require('./scripts/release/resolve_publish_source.cjs');
             await resolve({github, context, core, platform: process.env.REQUESTED_PLATFORM,
               requestedRunId: process.env.REQUESTED_RUN_ID});
       - name: Checkout exact build release policy
@@ -81,7 +81,7 @@ jobs:
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
           SOURCE_PLATFORM: ${{ steps.source.outputs.platform }}
         run: |
-          python3 scripts/collect_build_artifacts.py --incoming incoming --output publish-plan \
+          python3 scripts/release/collect_build_artifacts.py --incoming incoming --output publish-plan \
             --repository "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID" \
             --platform "$SOURCE_PLATFORM"
       - name: Publish one platform release
@@ -91,7 +91,7 @@ jobs:
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
           SOURCE_PLATFORM: ${{ steps.source.outputs.platform }}
         run: |
-          python3 scripts/publish_builds.py --plan publish-plan/plan.json --repository "$DEPLOY_REPO" \
+          python3 scripts/release/publish_builds.py --plan publish-plan/plan.json --repository "$DEPLOY_REPO" \
             --deploy-directory deploy-repo --policy build-source/update-config.json \
             --source-repo "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID" \
             --platform "$SOURCE_PLATFORM"
