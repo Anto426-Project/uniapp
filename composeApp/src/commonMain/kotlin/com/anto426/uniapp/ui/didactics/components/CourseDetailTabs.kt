@@ -2,44 +2,24 @@ package com.anto426.uniapp.ui.didactics.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.anto426.liquidmonet.components.cards.accordion.LiquidExpandableCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
-import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
-import com.anto426.liquidmonet.components.layout.expandablecontent.LiquidExpandableContent
-import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.components.interaction.liquidClickable
-import com.anto426.liquidmonet.motion.LiquidMotion
-import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.ContactData
 import com.anto426.uniapp.data.contract.StudyCourse
@@ -49,7 +29,6 @@ import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.uniListEntranceOrder
 import com.anto426.uniapp.ui.document.components.RichMarkdownDocument
-import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.encodeURLParameter
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -57,6 +36,7 @@ import uniapp.composeapp.generated.resources.*
 private data class SyllabusSectionSpec(
     val title: String,
     val content: String,
+    val icon: ImageVector,
     val accent: Color,
     val preserveLineBreaksAsList: Boolean = false,
 )
@@ -335,36 +315,37 @@ fun CourseSyllabusSection(course: StudyCourse) {
 
     val sections = buildList {
         if (course.obiettivi.isNotBlank()) {
-            add(SyllabusSectionSpec(obiettiviTitle, course.obiettivi, colorScheme.primary))
+            add(SyllabusSectionSpec(obiettiviTitle, course.obiettivi, LiquidIcons.Star, colorScheme.primary))
         }
         val contentText = if (course.contenuti.isNotBlank()) course.contenuti else course.description
         if (contentText.isNotBlank()) {
-            add(SyllabusSectionSpec(contenutiTitle, contentText, colorScheme.tertiary))
+            add(SyllabusSectionSpec(contenutiTitle, contentText, LiquidIcons.MenuBook, colorScheme.tertiary))
         }
         if (course.modalitaVerifica.isNotBlank()) {
-            add(SyllabusSectionSpec(verificaTitle, course.modalitaVerifica, glassColors.success))
+            add(SyllabusSectionSpec(verificaTitle, course.modalitaVerifica, LiquidIcons.Check, glassColors.success))
         }
         if (course.metodiDidattici.isNotBlank()) {
-            add(SyllabusSectionSpec(metodiTitle, course.metodiDidattici, colorScheme.secondary))
+            add(SyllabusSectionSpec(metodiTitle, course.metodiDidattici, LiquidIcons.Assignment, colorScheme.secondary))
         }
         if (course.testiRiferimento.isNotBlank()) {
             add(
                 SyllabusSectionSpec(
                     title = testiTitle,
                     content = course.testiRiferimento,
+                    icon = LiquidIcons.MenuBook,
                     accent = colorScheme.primary,
                     preserveLineBreaksAsList = true,
                 ),
             )
         }
         if (course.prerequisiti.isNotBlank()) {
-            add(SyllabusSectionSpec(prerequisitiTitle, course.prerequisiti, glassColors.warning))
+            add(SyllabusSectionSpec(prerequisitiTitle, course.prerequisiti, LiquidIcons.Lock, glassColors.warning))
         }
     }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         LiquidSectionHeader(
             title = stringResource(Res.string.ui_course_syllabus_title),
@@ -377,103 +358,30 @@ fun CourseSyllabusSection(course: StudyCourse) {
                 description = stringResource(Res.string.ui_course_syllabus_empty),
             )
         } else {
+            val courseKey = course.id.ifBlank { course.name }
             sections.forEachIndexed { index, spec ->
-                if (index > 0) {
-                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-                }
                 val formattedMarkdown = remember(spec.content, spec.preserveLineBreaksAsList) {
                     CourseSyllabusFormatter.formatSectionMarkdown(
                         raw = spec.content,
                         preserveLineBreaksAsList = spec.preserveLineBreaksAsList,
                     ).ifBlank { spec.content.trim() }
                 }
+                var expanded by rememberSaveable(courseKey, spec.title) { mutableStateOf(index == 0) }
                 UniAnimatedEntrance(order = uniListEntranceOrder(index, offset = 2)) {
-                    CollapsibleSyllabusSection(
-                        courseKey = course.id.ifBlank { course.name },
-                        indexLabel = "${index + 1}",
+                    LiquidExpandableCard(
                         title = spec.title,
-                        markdown = formattedMarkdown,
-                        accentColor = spec.accent,
-                        initiallyExpanded = index == 0,
-                    )
+                        leadingIcon = spec.icon,
+                        isExpanded = expanded,
+                        onExpandedChange = { expanded = it },
+                    ) {
+                        RichMarkdownDocument(
+                            markdown = formattedMarkdown,
+                            accentColor = spec.accent,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun CollapsibleSyllabusSection(
-    courseKey: String,
-    indexLabel: String,
-    title: String,
-    markdown: String,
-    accentColor: Color,
-    initiallyExpanded: Boolean,
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    val glassColors = LiquidGlassTheme.colors
-    val performance = LocalLiquidGlassPerformance.current
-    var expanded by rememberSaveable(courseKey, title) { mutableStateOf(initiallyExpanded) }
-    val headerShape = remember { RoundedRectangle(14.dp) }
-    val chevronRotation by animateLiquidFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        animationSpec = remember(performance) { LiquidMotion.spatialSpring<Float>(performance) },
-        label = "syllabusSectionChevronRotation",
-    )
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .liquidClickable(
-                    shape = headerShape,
-                    role = Role.Button,
-                    onClick = { expanded = !expanded },
-                )
-                .semantics(mergeDescendants = true) {}
-                .padding(horizontal = 4.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(SpanStyle(color = accentColor, fontWeight = FontWeight.Bold)) {
-                        append("$indexLabel. ")
-                    }
-                    append(title)
-                },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                lineHeight = 23.sp,
-                color = colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-
-            Icon(
-                imageVector = LiquidIcons.KeyboardArrowDown,
-                contentDescription = null,
-                tint = if (expanded) accentColor else colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .liquidIconContainer(
-                        containerSize = 28.dp,
-                        iconSize = 18.dp,
-                        containerColor = if (expanded) accentColor.copy(alpha = 0.14f) else glassColors.neutralContainer,
-                        shape = CircleShape,
-                    )
-                    .graphicsLayer { rotationZ = chevronRotation },
-            )
-        }
-
-        LiquidExpandableContent(visible = expanded) {
-            RichMarkdownDocument(
-                markdown = markdown,
-                accentColor = accentColor,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 4.dp),
-            )
         }
     }
 }
