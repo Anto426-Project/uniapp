@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Moon, Sun, X } from 'lucide-react';
 import type { OriginRect, ScreenshotItem } from '@/data/types';
-import { fullPathFor } from '@/data/screenshots';
+import { MONET_THEMES, fullPathFor } from '@/data/screenshots';
 import { withBasePath } from '@/utils/basePath';
 import {
   SPRING_MOMENTUM,
@@ -29,12 +29,11 @@ interface FluidLightboxProps {
 }
 
 /**
- * Interruptible, gesture-driven Apple Lightbox:
- * - Materializes anchored from the tapped screenshot's bounding rect (§7 Spatial Consistency)
- * - Drives background page scale push-back and translucent dimming scrim continuously (§12)
- * - 1:1 vertical drag-to-dismiss with upward rubber-banding and momentum projection (§5, §6, §9)
- * - Horizontal flick switching with velocity handoff
- * - Interruptible mid-flight: grab while closing or snapping back without any jump (§3)
+ * Apple Studio Fullscreen Preview:
+ * - Deep frosted studio backdrop (Dark Pro obsidian / Light frosted alabaster) with zero background bleed
+ * - Compact centered glass toolbar with live Monet theme swatches, Dark/Light toggle, and close action
+ * - Framed concentric phone bezel with snug flanking navigation arrows and interactive dot strip
+ * - Anchored spring open/close, 1:1 drag-to-dismiss, horizontal flick switching, and full keyboard support
  */
 export function FluidLightbox({
   isOpen,
@@ -44,7 +43,7 @@ export function FluidLightbox({
   onChangeIndex,
   onClose,
 }: FluidLightboxProps) {
-  const { reducedMotion, setModalDepth } = useSite();
+  const { theme, setTheme, appearance, toggleAppearance, reducedMotion, setModalDepth } = useSite();
 
   const scrimRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -73,7 +72,7 @@ export function FluidLightbox({
     baseY: 0,
   });
 
-  const item = items[currentIndex];
+  const item = items[currentIndex] || items[0];
   const count = items.length;
 
   const renderFrame = useCallback(() => {
@@ -87,9 +86,8 @@ export function FluidLightbox({
     const y = pos.y.value;
     const baseScale = scaleSpring.value;
 
-    // Continuously telegraph dismissal as the user pulls down (§8)
     const dragProgress = clamp(Math.max(0, y) / 380, 0, 1);
-    const liveScale = baseScale * (1 - dragProgress * 0.18);
+    const liveScale = baseScale * (1 - dragProgress * 0.16);
     const scrimOpacity = clamp((baseScale - 0.5) * 2, 0, 1) * (1 - dragProgress * 0.85);
 
     if (reducedMotion) {
@@ -117,7 +115,6 @@ export function FluidLightbox({
         return;
       }
 
-      // Symmetric exit: if dragged down, continue along release trajectory; otherwise return to origin rect
       if (Math.abs(pos.y.value) > 20 || Math.abs(vy) > 120) {
         pos.animateTo(0, Math.max(window.innerHeight * 0.65, pos.y.value + 220), {
           vy,
@@ -136,9 +133,9 @@ export function FluidLightbox({
             if (closingRef.current) onClose();
           },
         });
-        scale.animateTo(0.45, { config: { damping: 1.0, response: 0.26 } });
+        scale.animateTo(0.48, { config: { damping: 1.0, response: 0.26 } });
       } else {
-        scale.animateTo(0.5, {
+        scale.animateTo(0.55, {
           config: { damping: 1.0, response: 0.24 },
           onRest: () => {
             if (closingRef.current) onClose();
@@ -161,7 +158,6 @@ export function FluidLightbox({
     onChangeIndex(currentIndex < count - 1 ? currentIndex + 1 : 0);
   }, [count, currentIndex, onChangeIndex]);
 
-  // Mount & animate in anchored from originRect
   useEffect(() => {
     if (!isOpen) return;
     closingRef.current = false;
@@ -177,8 +173,8 @@ export function FluidLightbox({
         ? originRect.top + originRect.height / 2 - window.innerHeight / 2
         : reducedMotion
           ? 0
-          : 28;
-    const startScale = reducedMotion ? 1 : originRect ? 0.58 : 0.9;
+          : 24;
+    const startScale = reducedMotion ? 1 : originRect ? 0.62 : 0.92;
 
     const pos = new Spring2D(startX, startY, renderFrame, SPRING_UI, 0.25);
     const scale = new SpringDriver(startScale, renderFrame, SPRING_UI, 0.004);
@@ -217,7 +213,6 @@ export function FluidLightbox({
     const scale = scaleSpringRef.current;
     if (!pos || !scale) return;
 
-    // Interrupt mid-flight even if dismissing!
     closingRef.current = false;
     const liveX = pos.x.value;
     const liveY = pos.y.value;
@@ -299,7 +294,7 @@ export function FluidLightbox({
 
   return (
     <>
-      <div ref={scrimRef} className="modal-scrim" aria-hidden="true" />
+      <div ref={scrimRef} className="lightbox-backdrop" aria-hidden="true" />
       <div
         className="lightbox-layer"
         role="dialog"
@@ -309,65 +304,156 @@ export function FluidLightbox({
           if (e.target === e.currentTarget) dismissAnimated();
         }}
       >
-        <div className="lightbox-chrome-top">
-          <div className="lightbox-pill">
-            <span>{item.title}</span>
-            <span style={{ opacity: 0.6 }}>·</span>
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-              {currentIndex + 1} / {count}
-            </span>
+        {/* Compact Centered Studio Control Bar */}
+        <div className="lightbox-toolbar">
+          <div
+            className="lightbox-swatches"
+            role="group"
+            aria-label="Cambia tema nell'anteprima a schermo intero"
+          >
+            {MONET_THEMES.map((option) => {
+              const active = option.id === theme;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  className="lightbox-swatch-btn"
+                  aria-label={`Tema ${option.label}`}
+                  aria-pressed={active}
+                  title={option.label}
+                  onClick={() => {
+                    hapticSnap(4);
+                    setTheme(option.id);
+                  }}
+                >
+                  <span
+                    className="lightbox-swatch-dot"
+                    style={{ backgroundColor: option.swatchHex }}
+                    aria-hidden="true"
+                  />
+                </button>
+              );
+            })}
           </div>
+
+          <span className="lightbox-toolbar-sep" aria-hidden="true" />
+
+          <button
+            type="button"
+            className="lightbox-mode-btn"
+            aria-label={
+              appearance === 'dark'
+                ? "Passa all'aspetto chiaro nell'anteprima"
+                : "Passa all'aspetto scuro nell'anteprima"
+            }
+            onClick={() => {
+              hapticSnap(4);
+              toggleAppearance();
+            }}
+          >
+            {appearance === 'dark' ? (
+              <>
+                <Sun className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Chiaro</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Scuro</span>
+              </>
+            )}
+          </button>
+
+          <span className="lightbox-toolbar-sep" aria-hidden="true" />
 
           <button
             ref={closeBtnRef}
             type="button"
-            className="lightbox-icon-btn"
+            className="lightbox-close-btn"
             aria-label="Chiudi anteprima"
             onClick={() => dismissAnimated()}
           >
-            <X className="w-5 h-5" aria-hidden="true" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        {count > 1 && (
-          <>
+        {/* Center Studio Stage: Flanking Arrows + Framed Phone */}
+        <div
+          className="lightbox-stage"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) dismissAnimated();
+          }}
+        >
+          {count > 1 && (
             <button
               type="button"
-              className="lightbox-icon-btn lightbox-nav-arrow lightbox-nav-arrow--left"
+              className="lightbox-nav-btn"
               aria-label="Schermata precedente"
               onClick={goPrev}
             >
-              <ChevronLeft className="w-6 h-6" aria-hidden="true" />
+              <ChevronLeft className="w-5 h-5" aria-hidden="true" />
             </button>
+          )}
+
+          <div
+            ref={frameRef}
+            className="lightbox-frame"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerEnd}
+            onPointerCancel={onPointerEnd}
+          >
+            <div className="lightbox-device">
+              <div className="lightbox-device-screen">
+                <img
+                  src={withBasePath(fullPathFor(item.file))}
+                  alt={item.title}
+                  draggable={false}
+                />
+              </div>
+            </div>
+          </div>
+
+          {count > 1 && (
             <button
               type="button"
-              className="lightbox-icon-btn lightbox-nav-arrow lightbox-nav-arrow--right"
+              className="lightbox-nav-btn"
               aria-label="Schermata successiva"
               onClick={goNext}
             >
-              <ChevronRight className="w-6 h-6" aria-hidden="true" />
+              <ChevronRight className="w-5 h-5" aria-hidden="true" />
             </button>
-          </>
-        )}
+          )}
+        </div>
 
-        <div
-          ref={frameRef}
-          className="lightbox-frame"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerEnd}
-          onPointerCancel={onPointerEnd}
-        >
-          <div className="lightbox-image-wrap">
-            <img
-              src={withBasePath(fullPathFor(item.file))}
-              alt={item.title}
-              draggable={false}
-            />
+        {/* Compact Caption + Interactive Dot Strip */}
+        <div className="lightbox-footer">
+          <div className="lightbox-footer-head">
+            <span className="lightbox-footer-title">{item.title}</span>
+            <span className="lightbox-footer-count">
+              {currentIndex + 1} / {count}
+            </span>
           </div>
-          <div className="lightbox-caption">
-            <p className="lightbox-caption-desc">{item.description}</p>
-          </div>
+          <p className="lightbox-caption-desc">{item.description}</p>
+          {count > 1 && (
+            <div className="lightbox-dots" role="tablist" aria-label="Schermate nell'anteprima">
+              {items.map((entry, idx) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === currentIndex}
+                  aria-label={`Mostra ${entry.title}`}
+                  className="screenshot-carousel__dot"
+                  data-active={idx === currentIndex}
+                  onClick={() => {
+                    hapticSnap(4);
+                    onChangeIndex(idx);
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>

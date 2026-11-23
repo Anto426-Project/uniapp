@@ -1,14 +1,16 @@
 'use client';
 
 import React from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { MONET_THEMES, getScreenshots } from '@/data/screenshots';
+import { hapticSnap } from '@/lib/fluid-physics';
 import { useSite } from './SiteShell';
 import { FluidSegmentedControl } from './FluidSegmentedControl';
 import { FluidCarousel } from './FluidCarousel';
 import { FluidReveal } from './FluidReveal';
 
 export function ScreenshotsGallery() {
-  const { theme, setTheme, appearance, reducedMotion, isLightboxOpen, openLightbox } = useSite();
+  const { theme, setTheme, appearance, toggleAppearance, reducedMotion, isLightboxOpen, openLightbox } = useSite();
   const screenshots = getScreenshots(theme, appearance);
 
   return (
@@ -21,13 +23,39 @@ export function ScreenshotsGallery() {
             <p className="type-body">
               Motore dinamico Material You, quattro preset curati e Color Lab su misura, con sfondi animati Orbital Pulse, Aurora, Mesh Glow e Radiant Beam.
             </p>
-            <div className="mt-2">
+            <div className="gallery-controls-row">
               <FluidSegmentedControl
                 options={MONET_THEMES}
                 value={theme}
                 onChange={setTheme}
                 ariaLabel="Scegli il tema delle schermate"
               />
+              <button
+                type="button"
+                className="gallery-appearance-btn"
+                onClick={() => {
+                  hapticSnap(4);
+                  toggleAppearance();
+                }}
+                aria-label={
+                  appearance === 'dark'
+                    ? 'Passa alle schermate in tema chiaro'
+                    : 'Passa alle schermate in tema scuro'
+                }
+                aria-pressed={appearance === 'light'}
+              >
+                {appearance === 'dark' ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Chiaro</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Scuro</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </FluidReveal>

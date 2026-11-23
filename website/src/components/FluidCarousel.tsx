@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import type { OriginRect, ScreenshotItem } from '@/data/types';
 import { previewPathFor } from '@/data/screenshots';
 import { withBasePath } from '@/utils/basePath';
@@ -84,8 +85,9 @@ export function FluidCarousel({
   const measureStride = useCallback(() => {
     const vpWidth = viewportRef.current?.clientWidth || 1000;
     const cardEl = slideRefs.current[0];
-    const cardWidth = cardEl?.offsetWidth || 230;
-    strideRef.current = clamp(Math.min(cardWidth * 0.94, vpWidth * 0.66), 165, 290);
+    const cardWidth = cardEl?.offsetWidth || 256;
+    // Generous flat gallery spacing so flanking screens sit cleanly beside the protagonist without crowding
+    strideRef.current = clamp(Math.min(cardWidth * 1.18, vpWidth * 0.72), 196, 332);
   }, []);
 
   const renderSlides = useCallback(
@@ -94,7 +96,7 @@ export function FluidCarousel({
       const stride = strideRef.current;
       const speedStretch = reducedMotion
         ? 0
-        : clamp(Math.abs(velocitySlidePerSec) * 0.004, 0, 0.02);
+        : clamp(Math.abs(velocitySlidePerSec) * 0.0025, 0, 0.012);
 
       for (let i = 0; i < count; i++) {
         const el = slideRefs.current[i];
@@ -103,34 +105,31 @@ export function FluidCarousel({
         const delta = circularDelta(i, pos, count);
         const absDelta = Math.abs(delta);
 
-        const sign = Math.sign(delta);
-        const compressedDelta =
-          absDelta <= 1 ? delta : sign * (1 + (absDelta - 1) * 0.84);
-        const tx = compressedDelta * stride;
+        // Flat, distortion-free Apple plane (zero 3D rotateY skew)
+        const tx = delta * stride;
 
+        // Calm depth hierarchy: crisp 1.0 protagonist + 0.84 adjacent flanks; distant slides fade out cleanly
         const scale = reducedMotion
           ? absDelta < 0.5
             ? 1
-            : 0.9
-          : clamp(1 - absDelta * 0.14, 0.7, 1);
+            : 0.88
+          : clamp(1 - absDelta * 0.16, 0.76, 1);
 
-        // Smoothly fade the farthest slide right at the wrap seam (absDelta ~ count/2)
-        const seamFade =
-          absDelta > count / 2 - 0.65
-            ? clamp((count / 2 - absDelta) / 0.65, 0, 1)
-            : 1;
-        const opacity =
-          clamp(1 - Math.max(0, absDelta - 0.25) * 0.42, 0.14, 1) * seamFade;
-        const rotateY = reducedMotion ? 0 : clamp(-delta * 10, -22, 22);
-        const zIndex = Math.round(50 - absDelta * 10);
+        let opacity = 0;
+        if (absDelta <= 1) {
+          opacity = 1 - absDelta * 0.54; // 1.0 center -> 0.46 immediate flanks
+        } else if (absDelta < 1.65) {
+          opacity = 0.46 * (1 - (absDelta - 1) / 0.65); // smooth fade to 0 before outer edge
+        }
 
+        const zIndex = Math.round(50 - absDelta * 12);
         const scaleX = scale * (1 + speedStretch);
         const scaleY = scale * (1 - speedStretch * 0.5);
 
-        el.style.transform = `translate3d(calc(-50% + ${tx.toFixed(2)}px), -50%, 0) perspective(1100px) rotateY(${rotateY.toFixed(2)}deg) scale3d(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)}, 1)`;
+        el.style.transform = `translate3d(calc(-50% + ${tx.toFixed(2)}px), -50%, 0) scale3d(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)}, 1)`;
         el.style.opacity = opacity.toFixed(3);
         el.style.zIndex = String(zIndex);
-        el.style.pointerEvents = absDelta < 2.2 ? 'auto' : 'none';
+        el.style.pointerEvents = absDelta < 1.35 ? 'auto' : 'none';
       }
     },
     [count, reducedMotion]
@@ -361,84 +360,115 @@ export function FluidCarousel({
         }
       }}
     >
-      <div
-        ref={viewportRef}
-        className="screenshot-carousel__viewport"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={finishDrag}
-        onPointerCancel={finishDrag}
-      >
-        <div className="screenshot-carousel__stage">
-          {items.map((item, index) => {
-            const isSelected = index === selected;
-            return (
-              <div
-                key={item.id}
-                ref={(el) => {
-                  slideRefs.current[index] = el;
-                }}
-                className="screenshot-carousel__slide"
-                role="group"
-                aria-roledescription="schermata"
-                aria-label={`${index + 1} di ${count}`}
-                data-selected={isSelected}
-              >
-                <button
-                  type="button"
-                  className="screenshot-carousel__card"
-                  tabIndex={isSelected ? 0 : -1}
-                  aria-label={
-                    isSelected
-                      ? `Apri a schermo intero: ${item.title}`
-                      : `Mostra ${item.title}`
-                  }
-                  onClick={(e) => {
-                    if (performance.now() < suppressClickUntilRef.current) return;
-                    setPlaying(false);
-                    if (isSelected) {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      hapticSnap(6);
-                      onOpen(index, {
-                        left: rect.left,
-                        top: rect.top,
-                        width: rect.width,
-                        height: rect.height,
-                      });
-                    } else {
-                      hapticSnap(4);
-                      goToIndexShortest(index);
-                    }
+      <div className="screenshot-carousel__shell">
+        {count > 1 && (
+          <>
+            <button
+              type="button"
+              className="carousel-edge-btn carousel-edge-btn--left"
+              aria-label="Schermata precedente"
+              onClick={() => stepBy(-1, true)}
+            >
+              <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="carousel-edge-btn carousel-edge-btn--right"
+              aria-label="Schermata successiva"
+              onClick={() => stepBy(1, true)}
+            >
+              <ChevronRight className="w-5 h-5" aria-hidden="true" />
+            </button>
+          </>
+        )}
+
+        <div
+          ref={viewportRef}
+          className="screenshot-carousel__viewport"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+        >
+          <div className="screenshot-carousel__halo" aria-hidden="true" />
+          <div className="screenshot-carousel__stage">
+            {items.map((item, index) => {
+              const isSelected = index === selected;
+              return (
+                <div
+                  key={item.id}
+                  ref={(el) => {
+                    slideRefs.current[index] = el;
                   }}
+                  className="screenshot-carousel__slide"
+                  role="group"
+                  aria-roledescription="schermata"
+                  aria-label={`${index + 1} di ${count}`}
+                  data-selected={isSelected}
                 >
-                  <div className="screenshot-carousel__screen">
-                    <CrossfadeImage
-                      src={withBasePath(previewPathFor(item.file))}
-                      alt={item.title}
-                      width={480}
-                      height={1003}
-                      loading={index < 3 ? 'eager' : 'lazy'}
-                      decoding="async"
-                      draggable={false}
-                    />
-                  </div>
-                </button>
-              </div>
-            );
-          })}
+                  <button
+                    type="button"
+                    className="screenshot-carousel__card"
+                    tabIndex={isSelected ? 0 : -1}
+                    aria-label={
+                      isSelected
+                        ? `Apri a schermo intero: ${item.title}`
+                        : `Mostra ${item.title}`
+                    }
+                    onClick={(e) => {
+                      if (performance.now() < suppressClickUntilRef.current) return;
+                      setPlaying(false);
+                      if (isSelected) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        hapticSnap(6);
+                        onOpen(index, {
+                          left: rect.left,
+                          top: rect.top,
+                          width: rect.width,
+                          height: rect.height,
+                        });
+                      } else {
+                        hapticSnap(4);
+                        goToIndexShortest(index);
+                      }
+                    }}
+                  >
+                    <div className="screenshot-carousel__screen">
+                      <CrossfadeImage
+                        src={withBasePath(previewPathFor(item.file))}
+                        alt={item.title}
+                        width={480}
+                        height={1003}
+                        loading={index < 3 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        draggable={false}
+                      />
+                      {isSelected && (
+                        <span className="screenshot-carousel__zoom-hint" aria-hidden="true">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       <div className="screenshot-carousel__meta">
-        <h3 className="type-headline">{activeItem.title}</h3>
+        <div className="screenshot-carousel__meta-head">
+          <h3 className="type-headline">{activeItem.title}</h3>
+          <span
+            className="screenshot-carousel__position"
+            aria-live={playing ? 'off' : 'polite'}
+            aria-atomic="true"
+          >
+            {selected + 1} / {count}
+          </span>
+        </div>
         <p className="type-callout">{activeItem.description}</p>
-        <span
-          className="sr-only screenshot-carousel__position"
-          aria-live={playing ? 'off' : 'polite'}
-          aria-atomic="true"
-        >
-          {selected + 1} / {count}
-        </span>
       </div>
 
       {count > 1 && (
