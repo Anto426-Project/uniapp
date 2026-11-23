@@ -574,7 +574,7 @@ main > section {
 .segmented-control {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   padding: 4px;
   border-radius: var(--radius-full);
@@ -583,17 +583,20 @@ main > section {
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-specular);
+  max-width: 100%;
 }
 
 .segmented-option {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   min-height: 34px;
   padding: 0 13px;
   border-radius: var(--radius-full);
   font-size: 0.82rem;
   font-weight: 500;
+  white-space: nowrap;
   color: var(--text-secondary);
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
@@ -1619,8 +1622,33 @@ main > section {
   }
 }
 
+@media (max-width: 560px) {
+  .hero-pigment-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .segmented-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    padding: 5px;
+    gap: 4px;
+    border-radius: 18px;
+  }
+
+  .segmented-option {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 13px;
+    font-size: 0.84rem;
+  }
+}
+
 @media (max-width: 520px) {
-  .palette-dots:not(.mobile) {
+  .apple-nav-bar .palette-dots {
     display: none;
   }
 
