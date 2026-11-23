@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Dotknij „Skanuj kod QR” powyżej, gdy będziesz w sali, aby zapisać swoją pierwszą obecność.</string>
     <string name="ui_attendance_dialog_title">Zarejestruj obecność</string>
     <string name="ui_attendance_dialog_close">Zamknij</string>
+    <string name="ui_qr_scanner_hint">Umieść kod QR wewnątrz ramki</string>
+    <string name="ui_qr_scanner_torch_on">Wyłącz latarkę</string>
+    <string name="ui_qr_scanner_torch_off">Włącz latarkę</string>
+    <string name="ui_qr_scanner_processing">Przetwarzanie kodu QR...</string>
+    <string name="ui_qr_scanner_manual_input">Wpisz kod ręcznie</string>
+    <string name="ui_qr_scanner_permission_title">Dostęp do aparatu</string>
+    <string name="ui_qr_scanner_permission_body">Zezwól na dostęp do aparatu, aby skanować kody QR.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Aparat wyłączony</string>
+    <string name="ui_qr_scanner_permission_denied_body">Odmówiono dostępu do aparatu. Włącz go w ustawieniach systemu, aby używać skanera QR.</string>
+    <string name="ui_qr_scanner_permission_allow">Zezwól na aparat</string>
+    <string name="ui_qr_scanner_open_settings">Otwórz ustawienia</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Kierunek studiów</string>

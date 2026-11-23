@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Tik hierboven op "QR-code scannen" wanneer je in de collegezaal bent om je eerste aanwezigheid te registreren.</string>
     <string name="ui_attendance_dialog_title">Aanwezigheid registreren</string>
     <string name="ui_attendance_dialog_close">Sluiten</string>
+    <string name="ui_qr_scanner_hint">Plaats de QR-code binnen het kader</string>
+    <string name="ui_qr_scanner_torch_on">Zaklamp uitschakelen</string>
+    <string name="ui_qr_scanner_torch_off">Zaklamp inschakelen</string>
+    <string name="ui_qr_scanner_processing">QR verwerken...</string>
+    <string name="ui_qr_scanner_manual_input">Code handmatig invoeren</string>
+    <string name="ui_qr_scanner_permission_title">Cameratoegang</string>
+    <string name="ui_qr_scanner_permission_body">Geef toegang tot de camera om QR-codes te scannen.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Camera uitgeschakeld</string>
+    <string name="ui_qr_scanner_permission_denied_body">Cameramachtiging is geweigerd. Schakel deze in via de systeeminstellingen om de QR-scanner te gebruiken.</string>
+    <string name="ui_qr_scanner_permission_allow">Camera toestaan</string>
+    <string name="ui_qr_scanner_open_settings">Instellingen openen</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Opleiding</string>

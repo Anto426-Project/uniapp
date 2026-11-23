@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Toca "Escanear código QR" arriba cuando estés en el aula para registrar tu primera asistencia.</string>
     <string name="ui_attendance_dialog_title">Registrar asistencia</string>
     <string name="ui_attendance_dialog_close">Cerrar</string>
+    <string name="ui_qr_scanner_hint">Alinea el código QR dentro del recuadro</string>
+    <string name="ui_qr_scanner_torch_on">Apagar linterna</string>
+    <string name="ui_qr_scanner_torch_off">Encender linterna</string>
+    <string name="ui_qr_scanner_processing">Procesando QR...</string>
+    <string name="ui_qr_scanner_manual_input">Introducir código manualmente</string>
+    <string name="ui_qr_scanner_permission_title">Acceso a la cámara</string>
+    <string name="ui_qr_scanner_permission_body">Permite el acceso a la cámara para encuadrar y leer códigos QR.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Cámara desactivada</string>
+    <string name="ui_qr_scanner_permission_denied_body">Se ha denegado el permiso de la cámara. Actívalo en los ajustes del sistema para usar el escáner QR.</string>
+    <string name="ui_qr_scanner_permission_allow">Permitir cámara</string>
+    <string name="ui_qr_scanner_open_settings">Abrir ajustes</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Titulación</string>

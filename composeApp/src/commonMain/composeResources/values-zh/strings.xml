@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">身处教室时点击上方“扫描二维码”即可完成首次签到。</string>
     <string name="ui_attendance_dialog_title">记录考勤</string>
     <string name="ui_attendance_dialog_close">关闭</string>
+    <string name="ui_qr_scanner_hint">请将二维码对准扫描框内</string>
+    <string name="ui_qr_scanner_torch_on">关闭闪光灯</string>
+    <string name="ui_qr_scanner_torch_off">打开闪光灯</string>
+    <string name="ui_qr_scanner_processing">正在识别二维码...</string>
+    <string name="ui_qr_scanner_manual_input">手动输入代码</string>
+    <string name="ui_qr_scanner_permission_title">相机权限</string>
+    <string name="ui_qr_scanner_permission_body">请允许访问相机以扫描二维码。</string>
+    <string name="ui_qr_scanner_permission_denied_title">相机权限已关闭</string>
+    <string name="ui_qr_scanner_permission_denied_body">相机权限已被拒绝，请在系统设置中开启后使用二维码扫描。</string>
+    <string name="ui_qr_scanner_permission_allow">允许使用相机</string>
+    <string name="ui_qr_scanner_open_settings">打开设置</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">学位课程</string>

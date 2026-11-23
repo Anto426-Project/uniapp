@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">最初の出席を記録するには、教室にいるときに上の「QRコードをスキャン」をタップしてください。</string>
     <string name="ui_attendance_dialog_title">出席を記録</string>
     <string name="ui_attendance_dialog_close">閉じる</string>
+    <string name="ui_qr_scanner_hint">枠内にQRコードを合わせてください</string>
+    <string name="ui_qr_scanner_torch_on">ライトをオフ</string>
+    <string name="ui_qr_scanner_torch_off">ライトをオン</string>
+    <string name="ui_qr_scanner_processing">QRを読み取り中...</string>
+    <string name="ui_qr_scanner_manual_input">コードを手動で入力</string>
+    <string name="ui_qr_scanner_permission_title">カメラへのアクセス</string>
+    <string name="ui_qr_scanner_permission_body">QRコードを読み取るためにカメラへのアクセスを許可してください。</string>
+    <string name="ui_qr_scanner_permission_denied_title">カメラが無効です</string>
+    <string name="ui_qr_scanner_permission_denied_body">カメラの権限が拒否されています。QRスキャナーを使用するにはシステム設定から有効にしてください。</string>
+    <string name="ui_qr_scanner_permission_allow">カメラを許可</string>
+    <string name="ui_qr_scanner_open_settings">設定を開く</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">学位課程</string>

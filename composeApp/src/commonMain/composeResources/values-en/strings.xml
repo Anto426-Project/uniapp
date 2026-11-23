@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Tap "Scan QR Code" above when you are in the classroom to record your first check-in.</string>
     <string name="ui_attendance_dialog_title">Record attendance</string>
     <string name="ui_attendance_dialog_close">Close</string>
+    <string name="ui_qr_scanner_hint">Align the QR code inside the frame</string>
+    <string name="ui_qr_scanner_torch_on">Turn off flashlight</string>
+    <string name="ui_qr_scanner_torch_off">Turn on flashlight</string>
+    <string name="ui_qr_scanner_processing">Processing QR...</string>
+    <string name="ui_qr_scanner_manual_input">Enter code manually</string>
+    <string name="ui_qr_scanner_permission_title">Camera access</string>
+    <string name="ui_qr_scanner_permission_body">Allow camera access to frame and scan QR codes.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Camera disabled</string>
+    <string name="ui_qr_scanner_permission_denied_body">Camera permission was denied. Enable it in system settings to use the QR scanner.</string>
+    <string name="ui_qr_scanner_permission_allow">Allow camera</string>
+    <string name="ui_qr_scanner_open_settings">Open settings</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Degree program</string>

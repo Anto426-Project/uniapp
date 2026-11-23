@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Tocca "Scansiona QR Code" in alto quando sei in aula per registrare la tua prima presenza.</string>
     <string name="ui_attendance_dialog_title">Registra presenza</string>
     <string name="ui_attendance_dialog_close">Chiudi</string>
+    <string name="ui_qr_scanner_hint">Inquadra il codice QR all'interno del riquadro</string>
+    <string name="ui_qr_scanner_torch_on">Spegni torcia</string>
+    <string name="ui_qr_scanner_torch_off">Accendi torcia</string>
+    <string name="ui_qr_scanner_processing">Elaborazione QR...</string>
+    <string name="ui_qr_scanner_manual_input">Inserisci codice manualmente</string>
+    <string name="ui_qr_scanner_permission_title">Accesso alla fotocamera</string>
+    <string name="ui_qr_scanner_permission_body">Consenti l'accesso alla fotocamera per inquadrare e leggere i codici QR.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Fotocamera disabilitata</string>
+    <string name="ui_qr_scanner_permission_denied_body">Il permesso per la fotocamera è stato negato. Abilitalo dalle impostazioni di sistema per usare lo scanner QR.</string>
+    <string name="ui_qr_scanner_permission_allow">Consenti fotocamera</string>
+    <string name="ui_qr_scanner_open_settings">Apri impostazioni</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Corso di laurea</string>

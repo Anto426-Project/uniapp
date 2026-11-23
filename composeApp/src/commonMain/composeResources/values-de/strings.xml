@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Tippe oben auf "QR-Code scannen", wenn du im Hörsaal bist, um deine erste Anwesenheit zu erfassen.</string>
     <string name="ui_attendance_dialog_title">Anwesenheit erfassen</string>
     <string name="ui_attendance_dialog_close">Schließen</string>
+    <string name="ui_qr_scanner_hint">QR-Code innerhalb des Rahmens ausrichten</string>
+    <string name="ui_qr_scanner_torch_on">Taschenlampe ausschalten</string>
+    <string name="ui_qr_scanner_torch_off">Taschenlampe einschalten</string>
+    <string name="ui_qr_scanner_processing">QR wird verarbeitet...</string>
+    <string name="ui_qr_scanner_manual_input">Code manuell eingeben</string>
+    <string name="ui_qr_scanner_permission_title">Kamerazugriff</string>
+    <string name="ui_qr_scanner_permission_body">Erlaube den Kamerazugriff, um QR-Codes zu erfassen und zu scannen.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Kamera deaktiviert</string>
+    <string name="ui_qr_scanner_permission_denied_body">Die Kameraberechtigung wurde verweigert. Aktiviere sie in den Systemeinstellungen, um den QR-Scanner zu nutzen.</string>
+    <string name="ui_qr_scanner_permission_allow">Kamera erlauben</string>
+    <string name="ui_qr_scanner_open_settings">Einstellungen öffnen</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Studiengang</string>

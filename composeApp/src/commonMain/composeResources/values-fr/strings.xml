@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Appuyez sur "Scanner le QR code" ci-dessus lorsque vous êtes en salle pour enregistrer votre première présence.</string>
     <string name="ui_attendance_dialog_title">Enregistrer la présence</string>
     <string name="ui_attendance_dialog_close">Fermer</string>
+    <string name="ui_qr_scanner_hint">Placez le code QR à l'intérieur du cadre</string>
+    <string name="ui_qr_scanner_torch_on">Éteindre la lampe</string>
+    <string name="ui_qr_scanner_torch_off">Allumer la lampe</string>
+    <string name="ui_qr_scanner_processing">Traitement du QR...</string>
+    <string name="ui_qr_scanner_manual_input">Saisir le code manuellement</string>
+    <string name="ui_qr_scanner_permission_title">Accès à la caméra</string>
+    <string name="ui_qr_scanner_permission_body">Autorisez l'accès à la caméra pour cadrer et scanner les codes QR.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Caméra désactivée</string>
+    <string name="ui_qr_scanner_permission_denied_body">L'autorisation de la caméra a été refusée. Activez-la dans les paramètres système pour utiliser le scanner QR.</string>
+    <string name="ui_qr_scanner_permission_allow">Autoriser la caméra</string>
+    <string name="ui_qr_scanner_open_settings">Ouvrir les paramètres</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Formation</string>

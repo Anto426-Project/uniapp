@@ -549,6 +549,17 @@
     <string name="ui_attendance_empty_desc">Toca em "Ler código QR" acima quando estiveres na sala para registar a tua primeira presença.</string>
     <string name="ui_attendance_dialog_title">Registar presença</string>
     <string name="ui_attendance_dialog_close">Fechar</string>
+    <string name="ui_qr_scanner_hint">Alinhe o código QR dentro da moldura</string>
+    <string name="ui_qr_scanner_torch_on">Desligar lanterna</string>
+    <string name="ui_qr_scanner_torch_off">Ligar lanterna</string>
+    <string name="ui_qr_scanner_processing">A processar QR...</string>
+    <string name="ui_qr_scanner_manual_input">Inserir código manualmente</string>
+    <string name="ui_qr_scanner_permission_title">Acesso à câmara</string>
+    <string name="ui_qr_scanner_permission_body">Permita o acesso à câmara para enquadrar e ler códigos QR.</string>
+    <string name="ui_qr_scanner_permission_denied_title">Câmara desativada</string>
+    <string name="ui_qr_scanner_permission_denied_body">A permissão da câmara foi recusada. Ative-a nas definições do sistema para usar o leitor QR.</string>
+    <string name="ui_qr_scanner_permission_allow">Permitir câmara</string>
+    <string name="ui_qr_scanner_open_settings">Abrir definições</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Curso</string>
