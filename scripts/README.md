@@ -36,6 +36,19 @@ python3 scripts/checks/android_page_sizes.py androidApp/build/outputs/apk/releas
 - `generate_deploy_readme.py` — Genera il `README.md` del repository di distribuzione.
 - `resolve_publish_source.cjs` — Modulo Node per GitHub Actions che seleziona solo build `main` completate con successo.
 
+### `media/` — Cattura screenshot dal telefono
+- `capture-phone-screenshots.mjs` — Naviga automaticamente UniApp sul telefono Android collegato via ADB/UIAutomator (con login automatico sull'account demo `demo@uniapp.local` se l'app è disconnessa) per catturare tutti i 4 temi (`sapphire`, `emerald`, `sunset`, `violet`) in entrambi gli aspetti (`dark` e `light`) sulle 8 schermate del sito (`home`, `servizi`, `didattica`, `badge`, `impostazioni`, `aggiornamenti`/`update`, `info`, `crediti` con scorrimento verso il basso — 64 screenshot totali). Taglia automaticamente la barra notifiche superiore (`statusBars`, es. `160px` su `1440×3168`) direttamente sugli screenshot salvati e rigenera anteprime WebP e indice `available-screenshots.json`.
+
+```sh
+node scripts/media/capture-phone-screenshots.mjs --check
+node scripts/media/capture-phone-screenshots.mjs
+node scripts/media/capture-phone-screenshots.mjs --crop-existing
+node scripts/media/capture-phone-screenshots.mjs --appearance light
+node scripts/media/capture-phone-screenshots.mjs --screen info,update,crediti
+node scripts/media/capture-phone-screenshots.mjs --theme sapphire --appearance dark --screen crediti
+node scripts/media/capture-phone-screenshots.mjs --manual
+```
+
 ### `tests/` — Test automatici degli script
 - `test_*.py` — Suite `unittest` per SDK, release, metadati, allineamento 16 KB, motion ownership, Xcode build phase e publish shell.
 - `resolve_publish_source.test.cjs` — Suite `node:test` per `scripts/release/resolve_publish_source.cjs`.
