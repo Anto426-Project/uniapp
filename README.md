@@ -9,9 +9,7 @@
 Esperienza nativa multipiattaforma per gli studenti dell'Università degli Studi del Molise, sviluppata con **Kotlin Multiplatform**, **Compose Multiplatform** e **Liquid Monet**.
 
 <p>
-  <a href="https://anto426-project.github.io/uniapp-upstream/">
-    <img alt="Sito & Download" src="https://img.shields.io/badge/Download-Sito%20Ufficiale-151518?style=for-the-badge&logo=githubpages&logoColor=white" />
-  </a>
+  <a href="https://anto426-project.github.io/uniapp-upstream/"><img alt="Sito Ufficiale" src="https://img.shields.io/badge/Sito%20Ufficiale-24252B?style=for-the-badge&logo=github&logoColor=white" /></a>
   <img alt="Kotlin Multiplatform" src="https://img.shields.io/badge/Kotlin%202.4.21-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" />
   <img alt="Compose Multiplatform" src="https://img.shields.io/badge/Compose%201.12.2-151518?style=for-the-badge&logo=jetpackcompose&logoColor=white" />
   <img alt="Android" src="https://img.shields.io/badge/Android%2010%2B-151518?style=for-the-badge&logo=android&logoColor=3DDC84" />
@@ -122,7 +120,7 @@ UniApp separa le fondamenta tecniche in **SDK precompilati indipendenti**, risol
 | **`firebase-connector-sdk`** | `1.0.11` | Push notification e integrazione Firebase / FCM | Modulo privato |
 
 ### Motion & UI Ownership
-`AppNavigationHost` centralizza la transizione globale Liquid Monet su pagine e sottopagine (`DirectionalHorizontal` come preset predefinito, personalizzabile in *Tema → Sfondo, fisica e animazioni* con pieno rispetto di *Riduci movimento*). Lo script `python3 scripts/check_motion_ownership.py` garantisce che le schermate non introducano animazioni locali incoerenti.
+`AppNavigationHost` centralizza la transizione globale Liquid Monet su pagine e sottopagine (`DirectionalHorizontal` come preset predefinito, personalizzabile in *Tema → Sfondo, fisica e animazioni* con pieno rispetto di *Riduci movimento*). Lo script `python3 scripts/checks/check_motion_ownership.py` garantisce che le schermate non introducano animazioni locali incoerenti.
 
 ---
 
@@ -136,16 +134,16 @@ UniApp separa le fondamenta tecniche in **SDK precompilati indipendenti**, risol
 
 ```sh
 # 1. Scarica e verifica gli archivi Maven degli SDK dichiarati nel catalogo
-python3 scripts/fetch_sdk_binaries.py
+python3 scripts/sdk/fetch_sdk_binaries.py
 
 # 2. Esegui test host e compila l'APK debug Android
 ./gradlew :composeApp:testAndroidHostTest :androidApp:assembleDebug
 
-# 3. Verifica le policy di motion ownership
-python3 scripts/check_motion_ownership.py
+# 3. Esegui test release, stringhe e policy di motion ownership
+python3 scripts/checks/validate_release.py
 ```
 
-Per aggiornare uno SDK è sufficiente modificare la sua versione nella sezione `[versions]` di [`gradle/libs.versions.toml`](./gradle/libs.versions.toml) e rieseguire `python3 scripts/fetch_sdk_binaries.py`.
+Per aggiornare uno SDK è sufficiente modificare la sua versione nella sezione `[versions]` di [`gradle/libs.versions.toml`](./gradle/libs.versions.toml) e rieseguire `python3 scripts/sdk/fetch_sdk_binaries.py`.
 
 ---
 
@@ -160,7 +158,7 @@ composeApp/        Codice condiviso Kotlin & Compose Multiplatform
 iosApp/            Host application Xcode e catalogo AppIcon (Default, Dark, Tinted)
 assets/icon/       Kit completo icone (SVG, Android, Monet, iOS, Play Store, App Store, Web)
 website/           Sito web ufficiale e pagina di distribuzione
-scripts/           Resolver SDK, policy check e automazione release
+scripts/           Script riorganizzati per dominio (sdk/, checks/, release/, tests/)
 docs/              Documentazione tecnica e guide build
 ```
 
@@ -173,6 +171,7 @@ docs/              Documentazione tecnica e guide build
 - [Badge e biglietti](./docs/codes-and-tickets.md) — generazione artistica dei codici, lettura e conservazione degli originali
 - [Segnalazioni e feedback](./docs/github-feedback.md) — come aprire bug report, proposte e contributi
 - [Kit icone e brand](./assets/icon/README.md) — inventario completo dei formati vettoriali e raster
+- [Guida agli script](./scripts/README.md) — organizzazione e comandi di `scripts/`
 
 ---
 

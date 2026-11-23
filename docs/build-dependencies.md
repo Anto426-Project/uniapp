@@ -10,10 +10,10 @@ pubblica autonomamente Android AAR, metadati KMP/Maven e KLIB iOS device/simulat
 2. Pubblicare una nuova versione tramite il workflow dello SDK. Il numero Maven
    è `1.0.<github.run_number>`; i binari già pubblicati non vengono sostituiti.
 3. Impostare quella versione in `[versions]` di `gradle/libs.versions.toml` in UniApp.
-4. Eseguire `python3 scripts/fetch_sdk_binaries.py`, poi le build dell'app.
+4. Eseguire `python3 scripts/sdk/fetch_sdk_binaries.py`, poi le build dell'app.
 
 Il catalogo è l'unica fonte delle versioni. Il downloader legge le coordinate
-da `scripts/sdk_binaries.json`, trova le versioni nel catalogo e scarica la Release
+da `scripts/sdk/sdk_binaries.json`, trova le versioni nel catalogo e scarica la Release
 `v<versione>` esatta. Controlla identità, versione, checksum, percorsi dell'archivio
 e collisioni di classi Android. L'installazione sostituisce atomicamente il
 repository locale; un errore conserva l'installazione precedente.
@@ -90,8 +90,8 @@ Gli aggiornamenti Android continuano a usare gli APK firmati ufficialmente.
 Verifica locale dell'app:
 
 ```sh
-python3 scripts/fetch_sdk_binaries.py
-python3 scripts/validate_release.py
+python3 scripts/sdk/fetch_sdk_binaries.py
+python3 scripts/checks/validate_release.py
 ./gradlew :composeApp:testAndroidHostTest :androidApp:assembleDebug \
   :composeApp:compileKotlinIosArm64 :composeApp:compileKotlinIosSimulatorArm64
 ```
