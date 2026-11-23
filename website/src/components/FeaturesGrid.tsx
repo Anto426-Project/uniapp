@@ -23,8 +23,8 @@ export const FeaturesGrid: React.FC = () => {
       icon: <CalendarCheck className="w-5 h-5" />,
     },
     {
-      title: 'Badge Digitale & QR Code',
-      desc: 'La tua tessera universitaria digitale sempre con te sullo smartphone: genera il QR code per accedere a biblioteche, aule e servizi.',
+      title: 'Badge Digitale & Scanner QR Presenze',
+      desc: 'Tessera universitaria digitale sempre pronta sul dispositivo e scanner QR Liquid Glass personalizzato per registrare le presenze in aula in un istante.',
       icon: <QrCode className="w-5 h-5" />,
     },
     {
@@ -33,23 +33,23 @@ export const FeaturesGrid: React.FC = () => {
       icon: <CreditCard className="w-5 h-5" />,
     },
     {
-      title: 'Navette Campus & Fermate',
-      desc: 'Orari delle corse feriali, fermate sul territorio e prenotazione posti per raggiungere comodamente i campus universitari.',
+      title: 'Navette Campus & Prenotazione Multipla',
+      desc: 'Selettore Andata, Ritorno e A/R, calendario interattivo dei giorni feriali prenotabili, corse garantite e titoli di viaggio sempre a portata di mano.',
       icon: <Bus className="w-5 h-5" />,
     },
     {
-      title: 'Portali di Ateneo a Portata di Mano',
-      desc: 'Accesso rapido a Esse3, Moodle, posta elettronica istituzionale Outlook e rubrica dei docenti da un solo punto.',
+      title: 'Schede Insegnamenti & Portali',
+      desc: 'Programmi completi con sezioni espandibili, moduli CFU, bibliografie e collegamento diretto al Course Catalogue CINECA, oltre a Esse3, Moodle e rubrica docenti.',
       icon: <Globe className="w-5 h-5" />,
     },
     {
-      title: 'Questionari Didattici ANVUR',
-      desc: 'Compilazione guidata dei questionari di valutazione della didattica direttamente nell’app, con salvataggio delle risposte.',
+      title: 'Questionari Didattici OPIS',
+      desc: 'Compilazione guidata dei questionari di valutazione della didattica direttamente nell’app, con salvataggio immediato delle risposte.',
       icon: <ClipboardList className="w-5 h-5" />,
     },
     {
-      title: 'Multi-Account & Modalità Offline',
-      desc: 'Gestisci profili o percorsi di studio differenti con avatar personalizzati e consulta il tuo libretto anche in aula senza connessione.',
+      title: 'Multi-Account, Offline & 10 Lingue',
+      desc: 'Gestisci più carriere con caricamento prioritario intelligente, cache offline per consultare il libretto in aula e interfaccia tradotta in 10 lingue.',
       icon: <Users className="w-5 h-5" />,
     },
   ];

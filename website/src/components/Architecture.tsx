@@ -19,15 +19,15 @@ export const Architecture: React.FC = () => {
             <div className="card-icon-bubble">
               <Sparkles className="w-6 h-6 text-[var(--theme-primary)]" />
             </div>
-            <h3 className="card-title">Design Moderno &amp; Fluido</h3>
+            <h3 className="card-title">Design Moderno &amp; Tema Studio</h3>
             <p className="card-text">
-              Un’interfaccia elegante con componenti in vetro ottico e 4 temi cromatici dinamici (Violet, Sapphire, Emerald, Amber) abbinati al tuo avatar. Creata da zero per essere reattiva, immediata e comoda da consultare in ogni momento della giornata.
+              Componenti in vetro ottico Liquid Monet con sfondi animati, Color Lab personalizzabile e palette dinamiche (Violet, Sapphire, Emerald, Amber). Progettata con Kotlin Multiplatform per offrire un’esperienza fluida e nativa su Android e iOS.
             </p>
             <div className="card-tags">
               <span className="arch-tag highlight">Liquid Monet</span>
-              <span className="arch-tag">Temi Dinamici</span>
-              <span className="arch-tag">Animazioni Fluide</span>
-              <span className="arch-tag">Vetro Ottico</span>
+              <span className="arch-tag">Tema Studio</span>
+              <span className="arch-tag">Android &amp; iOS</span>
+              <span className="arch-tag">10 Lingue</span>
             </div>
           </div>
 

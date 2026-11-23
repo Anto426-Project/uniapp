@@ -99,6 +99,28 @@ function parseChangelog(notes?: string): ChangelogItem[] {
       ];
 }
 
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const tokenRegex = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+  const parts = text.split(tokenRegex);
+  return parts.map((part, idx) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={idx} className="font-semibold text-white">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
+      return (
+        <code key={idx} className="console-code">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <React.Fragment key={idx}>{part}</React.Fragment>;
+  });
+}
+
 export const DownloadHub = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -226,7 +248,7 @@ export const DownloadHub = () => {
           </div>
 
           {/* Right Column: Release Notes / Changelog */}
-          <div className="release-changelog-card">
+          <div id="changelog" className="release-changelog-card">
             {/* Changelog Header */}
             <div className="changelog-deck-header">
               <div className="changelog-deck-title-wrap">
@@ -254,7 +276,7 @@ export const DownloadHub = () => {
                       {item.category}
                     </span>
                     <span className="deck-item-text">
-                      {item.text}
+                      {renderInlineMarkdown(item.text)}
                     </span>
                   </li>
                 ))}

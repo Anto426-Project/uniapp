@@ -15,7 +15,7 @@ export const Hero = () => {
       <div className="container hero-container">
         <div className="hero-content">
           <h1 className="hero-title">
-            L&apos;esperienza universitaria per Android,{' '}
+            L&apos;esperienza universitaria per Android e iOS,{' '}
             <span className="gradient-text">completamente riscritta.</span>
           </h1>
 
