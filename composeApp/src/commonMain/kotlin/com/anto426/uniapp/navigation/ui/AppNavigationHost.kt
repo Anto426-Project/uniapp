@@ -270,8 +270,6 @@ internal fun AppNavigationHost(
                     onHeightChanged = { topBarHeight = it },
                     actionItems = topBarActions(
                         route = route,
-                        isProfessor = isProfessor,
-                        navigator = navigator,
                         shellViewModel = shellViewModel,
                         isSearchActive = shellUiState.isSearchActive,
                         onOpenAttendanceScanner = { attendanceScannerActionHost.onOpenScanner?.invoke() },
@@ -574,8 +572,6 @@ private fun com.anto426.uniapp.navigation.runtime.AppNavigationState.rememberDec
 @Composable
 private fun topBarActions(
     route: AppRoute,
-    isProfessor: Boolean,
-    navigator: AppNavigator,
     shellViewModel: AppShellViewModel,
     isSearchActive: Boolean,
     onOpenAttendanceScanner: () -> Unit,
