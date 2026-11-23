@@ -22,6 +22,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Anto426' }],
   icons: {
     icon: [
+      { url: `${BASE_PATH}/favicon.svg`, type: 'image/svg+xml' },
       { url: `${BASE_PATH}/favicon.ico`, sizes: 'any' },
       { url: `${BASE_PATH}/favicon-32x32.png`, sizes: '32x32', type: 'image/png' },
       { url: `${BASE_PATH}/favicon-192x192.png`, sizes: '192x192', type: 'image/png' },
