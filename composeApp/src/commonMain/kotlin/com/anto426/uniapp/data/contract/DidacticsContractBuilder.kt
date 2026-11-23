@@ -376,12 +376,34 @@ internal fun CourseSyllabus.toStudyCourse(
     val effectiveGrade = passedExam?.grade?.toDisplayExamGrade()
     val effectiveTaf = studyPlanCourse?.category?.takeIf(String::isNotBlank) ?: tipoAttivita.orEmpty()
 
+    val isGenericCourseTitle = adDes.trim().let { raw ->
+        raw.isBlank() ||
+            raw.equals("Attivita Didattica", ignoreCase = true) ||
+            raw.equals("Attività Didattica", ignoreCase = true)
+    }
+    val resolvedCourseName =
+        (if (!isGenericCourseTitle) {
+            adDes.trim()
+        } else {
+            studyPlanCourse?.title?.trim()?.takeIf(String::isNotBlank)
+                ?: careerExam?.name?.trim()?.takeIf(String::isNotBlank)
+                ?: adDes.trim()
+        }).toDisplayCourseTitle()
+
+    val formattedProfessor =
+        professors
+            .mapNotNull { it.trim().takeIf(String::isNotBlank)?.toDisplayAcademicName() }
+            .distinct()
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(", ")
+            ?: professorsLabel?.trim()?.takeIf(String::isNotBlank)?.toDisplayAcademicName().orEmpty()
+
     return StudyCourse(
         id = adsceId,
-        name = adDes,
+        name = resolvedCourseName,
         cfu = effectiveCfu?.let { "$it CFU" }.orEmpty(),
         status = if (isCompleted) CourseStatus.COMPLETED else CourseStatus.ACTIVE,
-        professor = professorsLabel ?: professors.joinToString(", "),
+        professor = formattedProfessor,
         description = listOfNotNull(obiettivi, contenuti).filter(String::isNotBlank).joinToString("\n\n"),
         semester = aaOffId.orEmpty(),
         grade = effectiveGrade,
@@ -418,26 +440,62 @@ internal fun resolveCourseDetailContract(
     return ResolvedCourseDetail(course = course, professorContact = professorContact)
 }
 
+private fun String.toDisplayCourseTitle(): String {
+    val trimmed = trim().replace(Regex("""\s+"""), " ")
+    if (trimmed.isBlank()) return ""
+    val letters = trimmed.filter(Char::isLetter)
+    if (letters.isEmpty() || letters.any(Char::isLowerCase)) return trimmed
+    val smallWords = setOf("di", "e", "ed", "per", "con", "su", "in", "a", "ad", "da", "del", "della", "delle", "degli", "dei", "dello", "al", "alla", "alle", "agli", "ai", "nel", "nella", "nelle", "negli", "nei", "il", "lo", "la", "i", "gli", "le", "un", "una", "uno", "of", "and", "for", "in", "to", "the")
+    val romanNumerals = setOf("I", "II", "III", "IV", "V", "VI")
+    return trimmed.split(" ").mapIndexed { idx, token ->
+        val clean = token.trim()
+        when {
+            clean.isBlank() -> clean
+            clean in romanNumerals -> clean
+            idx > 0 && clean.lowercase() in smallWords -> clean.lowercase()
+            else -> clean.lowercase().replaceFirstChar { ch -> ch.titlecase() }
+        }
+    }.joinToString(" ")
+}
+
+private fun String.toDisplayAcademicName(): String {
+    val trimmed = trim().replace(Regex("""\s+"""), " ")
+    if (trimmed.isBlank()) return ""
+    val letters = trimmed.filter(Char::isLetter)
+    if (letters.isEmpty() || letters.any(Char::isLowerCase)) return trimmed
+    return trimmed.split(" ").joinToString(" ") { word ->
+        word.split("'").joinToString("'") { part ->
+            val lower = part.lowercase()
+            lower.replaceFirstChar { ch -> ch.titlecase() }
+        }
+    }
+}
+
 private fun findMatchingProfessorContact(
     professorName: String,
     contacts: List<ContactData>?,
 ): ContactData? {
     if (professorName.isBlank() || contacts.isNullOrEmpty()) return null
-    val cleanProf = professorName.lowercase()
-        .replace("prof.ssa", "")
-        .replace("prof.", "")
-        .replace("dott.ssa", "")
-        .replace("dott.", "")
-        .replace("ing.", "")
-        .trim()
-    val profTokens = cleanProf.split(" ", "-", ",").map(String::trim).filter { it.length > 2 }
-    if (profTokens.isEmpty()) return null
+    val candidates = professorName.split(",", ";", "/").map(String::trim).filter(String::isNotBlank)
+    for (candidate in candidates) {
+        val cleanProf = candidate.lowercase()
+            .replace("prof.ssa", "")
+            .replace("prof.", "")
+            .replace("dott.ssa", "")
+            .replace("dott.", "")
+            .replace("ing.", "")
+            .trim()
+        val profTokens = cleanProf.split(" ", "-").map(String::trim).filter { it.length > 2 }
+        if (profTokens.isEmpty()) continue
 
-    return contacts.firstOrNull { contact ->
-        val cleanContact = contact.name.lowercase()
-        val contactTokens = cleanContact.split(" ", "-", ",").map(String::trim).filter { it.length > 2 }
-        (profTokens.size >= 2 && profTokens.all { token -> cleanContact.contains(token) }) ||
-            (contactTokens.size >= 2 && contactTokens.all { token -> cleanProf.contains(token) }) ||
-            cleanContact == cleanProf
+        val match = contacts.firstOrNull { contact ->
+            val cleanContact = contact.name.lowercase()
+            val contactTokens = cleanContact.split(" ", "-", ",").map(String::trim).filter { it.length > 2 }
+            (profTokens.size >= 2 && profTokens.all { token -> cleanContact.contains(token) }) ||
+                (contactTokens.size >= 2 && contactTokens.all { token -> cleanProf.contains(token) }) ||
+                cleanContact == cleanProf
+        }
+        if (match != null) return match
     }
+    return null
 }
