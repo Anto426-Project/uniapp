@@ -1,12 +1,5 @@
 package com.anto426.uniapp.ui.scanner
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,7 +63,11 @@ import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoading
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingSize
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingStyle
+import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.motion.LiquidMotion
+import com.anto426.liquidmonet.motion.animateLiquidColorAsState
+import com.anto426.liquidmonet.motion.rememberLiquidAmbientPhase
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
 import com.zscanner.BarcodeResult
@@ -83,7 +80,10 @@ import com.zscanner.permission.ZCameraPermissionState
 import com.zscanner.permission.ZScannerPermissionScope
 import com.zscanner.permission.rememberZScannerPermissionController
 import com.zscanner.rememberZScannerController
+import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -301,19 +301,21 @@ private fun ScannerGlassCircleButton(
     onClick: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val containerColor by animateColorAsState(
+    val performance = LocalLiquidGlassPerformance.current
+    val colorSpec = remember(performance) { LiquidMotion.snappySpring<Color>(performance) }
+    val containerColor by animateLiquidColorAsState(
         targetValue = if (active) colorScheme.primary else ScannerGlassSurface,
-        animationSpec = tween(durationMillis = 200),
+        animationSpec = colorSpec,
         label = "scannerButtonContainer",
     )
-    val contentColor by animateColorAsState(
+    val contentColor by animateLiquidColorAsState(
         targetValue = if (active) colorScheme.onPrimary else Color.White,
-        animationSpec = tween(durationMillis = 200),
+        animationSpec = colorSpec,
         label = "scannerButtonContent",
     )
-    val borderColor by animateColorAsState(
+    val borderColor by animateLiquidColorAsState(
         targetValue = if (active) colorScheme.primary.copy(alpha = 0.7f) else ScannerGlassBorder,
-        animationSpec = tween(durationMillis = 200),
+        animationSpec = colorSpec,
         label = "scannerButtonBorder",
     )
 
@@ -347,24 +349,9 @@ private fun UniQrViewfinderCanvas(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val infiniteTransition = rememberInfiniteTransition(label = "qrScannerMotion")
-    val beamProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "qrBeamSweep",
-    )
-    val bracketPulse by infiniteTransition.animateFloat(
-        initialValue = 0.78f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "qrBracketPulse",
+    val ambientPhase = rememberLiquidAmbientPhase(
+        active = !isProcessing,
+        label = "qrScannerMotion",
     )
 
     val cornerRadiusPx = remember(frameBounds, cornerRadiusDp, density) {
@@ -374,6 +361,10 @@ private fun UniQrViewfinderCanvas(
 
     Canvas(modifier = modifier) {
         if (frameBounds.width <= 0f || frameBounds.height <= 0f) return@Canvas
+
+        val phase = ambientPhase.value
+        val beamProgress = (1f - cos(phase * 4f * PI).toFloat()) * 0.5f
+        val bracketPulse = 0.80f + 0.20f * ((1f + sin(phase * 6f * PI).toFloat()) * 0.5f)
 
         val cutoutRoundRect = RoundRect(
             rect = frameBounds,
