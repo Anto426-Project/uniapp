@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'release'))
 import collect_build_artifacts as collector
 import publish_builds as publisher
 import prepare_build_artifact as preparer
@@ -214,7 +214,7 @@ class AllBuildPublicationTest(unittest.TestCase):
             run('git', 'config', 'user.email', 'test@example.invalid', cwd=deploy)
             for folder in ['release', 'docs']:
                 (deploy / folder).mkdir()
-                (deploy / folder / 'builds.json').write_text('[{"tag":"existing-desktop"}]\n')
+                (deploy / folder / 'builds.json').write_text('[{"tag":"existing-android-old"}]\n')
             run('git', 'add', '.', cwd=deploy)
             run('git', 'commit', '-m', 'Initial index', cwd=deploy)
             run('git', 'push', 'origin', 'main', cwd=deploy)
@@ -227,7 +227,7 @@ class AllBuildPublicationTest(unittest.TestCase):
                 if args == ['git', 'push', 'origin', 'main'] and kwargs.get('cwd') == deploy and not interfered:
                     interfered = True
                     for folder in ['release', 'docs']:
-                        (competitor / folder / 'builds.json').write_text('[{"tag":"existing-desktop"},{"tag":"other-android"}]\n')
+                        (competitor / folder / 'builds.json').write_text('[{"tag":"existing-android-old"},{"tag":"other-android"}]\n')
                     run('git', 'add', '.', cwd=competitor)
                     run('git', 'commit', '-m', 'Android index', cwd=competitor)
                     run('git', 'push', 'origin', 'main', cwd=competitor)
@@ -240,5 +240,5 @@ class AllBuildPublicationTest(unittest.TestCase):
                 publisher.update_build_index([group], deploy, 'owner/deploy', self.revision, '123')
             records = json.loads(run('git', '--git-dir=' + str(remote), 'show', 'main:release/builds.json').stdout)
             self.assertTrue(interfered)
-            self.assertEqual({'existing-desktop', 'other-android', 'new-ios'}, {record['tag'] for record in records})
+            self.assertEqual({'existing-android-old', 'other-android', 'new-ios'}, {record['tag'] for record in records})
             self.assertEqual((deploy / 'release/builds.json').read_text(), (deploy / 'docs/builds.json').read_text())

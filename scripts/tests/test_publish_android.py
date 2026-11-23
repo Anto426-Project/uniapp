@@ -5,7 +5,9 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'publish_android.sh'
+SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+SCRIPT = SCRIPTS_DIR / 'release/publish_android.sh'
+WEBSITE_SCRIPT = SCRIPTS_DIR / 'release/publish_website.sh'
 
 
 @unittest.skipIf(os.name == 'nt', 'The Android publisher runs on a POSIX runner')
@@ -26,17 +28,17 @@ class PublishAndroidTest(unittest.TestCase):
             (deploy / 'release').mkdir()
             (deploy / 'docs/index.html').write_text('old site')
             (deploy / 'update.json').write_text('{"latestVersionCode":1168}')
-            records = '[{"tag":"android"},{"tag":"ios"},{"tag":"desktop"}]\n'
+            records = '[{"tag":"android"},{"tag":"ios"}]\n'
             (deploy / 'release/builds.json').write_text(records)
             (deploy / 'docs/builds.json').write_text(records)
-            platforms = '{"schema":1,"platforms":{"windows":{"version":"2.0.15"}}}\n'
+            platforms = '{"schema":1,"platforms":{"ios":{"version":"2.0.15"}}}\n'
             (deploy / 'release/platforms.json').write_text(platforms)
             run('git', 'add', '.', cwd=deploy)
             run('git', 'commit', '-m', 'Existing releases', cwd=deploy)
             run('git', 'push', 'origin', 'main', cwd=deploy)
             (root / 'website/out').mkdir(parents=True)
             (root / 'website/out/index.html').write_text('new website')
-            run('bash', str(SCRIPT.parent / 'publish_website.sh'))
+            run('bash', str(WEBSITE_SCRIPT))
             self.assertEqual('new website', run('git', '--git-dir=' + str(remote), 'show', 'main:docs/index.html').stdout)
             self.assertEqual(records, run('git', '--git-dir=' + str(remote), 'show', 'main:docs/builds.json').stdout)
             self.assertEqual(platforms, run('git', '--git-dir=' + str(remote), 'show', 'main:docs/platforms.json').stdout)

@@ -5,7 +5,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'release'))
 from generate_update_manifest import generate
 from release_metadata import read_apks
 

@@ -11,7 +11,7 @@ import tempfile
 from urllib.parse import quote
 from release_metadata import asset_url
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def command(*args, cwd=None, env=None):
@@ -52,14 +52,14 @@ def verify_existing_assets(repository, release, assets):
 def publish_signed_android(group, deploy_repo, deploy_directory, policy, source_repo, revision):
     incoming = Path(group['notes']).parent / 'incoming'
     metadata = incoming / 'release/output-metadata.json'
-    command(sys.executable, ROOT / 'scripts/generate_update_manifest.py', '--metadata', metadata,
+    command(sys.executable, ROOT / 'scripts/release/generate_update_manifest.py', '--metadata', metadata,
         '--manual-config', policy, '--existing', deploy_directory / 'update.json', '--deploy-repo', deploy_repo,
         '--build-commit', revision, '--output', incoming / 'update.json')
     env_file = incoming / 'release.env'
-    command(sys.executable, ROOT / 'scripts/generate_github_release_metadata.py', '--metadata', metadata,
+    command(sys.executable, ROOT / 'scripts/release/generate_github_release_metadata.py', '--metadata', metadata,
         '--update-manifest', incoming / 'update.json', '--source-repo', source_repo,
         '--output', incoming / 'release-notes.md', '--github-env-output', env_file)
-    command(sys.executable, ROOT / 'scripts/generate_deploy_readme.py', '--update-manifest', incoming / 'update.json',
+    command(sys.executable, ROOT / 'scripts/release/generate_deploy_readme.py', '--update-manifest', incoming / 'update.json',
         '--source-repo', source_repo, '--output', incoming / 'README.md')
     environment = os.environ.copy()
     environment.update(DEPLOY_REPO=deploy_repo, DEPLOY_BRANCH='main', SOURCE_SHA=revision)
@@ -69,7 +69,7 @@ def publish_signed_android(group, deploy_repo, deploy_directory, policy, source_
     link = working / 'deploy-repo'
     if not link.exists():
         link.symlink_to(deploy_directory.resolve(), target_is_directory=True)
-    command('bash', ROOT / 'scripts/publish_android.sh', cwd=working, env=environment)
+    command('bash', ROOT / 'scripts/release/publish_android.sh', cwd=working, env=environment)
 
 
 def publish(plan, repository, deploy_directory, policy, source_repo, revision, run_id, platform=None):

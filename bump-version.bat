@@ -10,7 +10,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-set "TARGET_SCRIPT=scripts\bump_version.py"
+set "TARGET_SCRIPT=scripts\release\bump_version.py"
 if not exist "%TARGET_SCRIPT%" (
     echo Errore: file non trovato: %TARGET_SCRIPT%
     popd

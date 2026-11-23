@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const resolve = require('../resolve_publish_source.cjs');
+const resolve = require('../release/resolve_publish_source.cjs');
 
 function fixture(platform = 'android', overrides = {}) {
   const outputs = {};

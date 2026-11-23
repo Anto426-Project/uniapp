@@ -12,7 +12,7 @@ from urllib.error import HTTPError
 from urllib.request import Request
 import zipfile
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'sdk'))
 import fetch_sdk_binaries as sdk
 
 
@@ -102,8 +102,8 @@ class SdkBinariesTest(unittest.TestCase):
                 with zipfile.ZipFile(archives[module], 'w') as archive:
                     archive.writestr('sdk-info.json', json.dumps(info))
                     archive.writestr('maven/' + filename, payload)
-            (root / 'scripts').mkdir()
-            (root / 'scripts/sdk_binaries.json').write_text(json.dumps(specs))
+            (root / 'scripts/sdk').mkdir(parents=True)
+            (root / 'scripts/sdk/sdk_binaries.json').write_text(json.dumps(specs))
             with patch.object(sys, 'argv', ['resolver']), patch.object(sdk, 'load_specs', return_value=specs), patch.object(sdk, 'resolve_release', side_effect=lambda name, _: archives[name]), \
                     patch('builtins.print'):
                 with self.assertRaisesRegex(ValueError, 'Duplicate Android class'):
@@ -238,9 +238,9 @@ class SdkBinariesTest(unittest.TestCase):
     def test_catalog_controls_versions_and_rejects_dynamic_selectors(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(sdk, 'ROOT', Path(directory)):
             root = Path(directory)
-            (root / 'scripts').mkdir()
+            (root / 'scripts/sdk').mkdir(parents=True)
             (root / 'gradle').mkdir()
-            (root / 'scripts/sdk_binaries.json').write_text(json.dumps({
+            (root / 'scripts/sdk/sdk_binaries.json').write_text(json.dumps({
                 'sdk': {'repository': 'owner/sdk', 'coordinate': 'com.example:sdk'},
             }))
             for version in ('1.0.7', '2.3.4', 'latest.release', '1.+', '[1,2)'):

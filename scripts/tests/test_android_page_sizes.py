@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import zipfile
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'checks'))
 from android_page_sizes import validate_archive, validate_elf
 
 

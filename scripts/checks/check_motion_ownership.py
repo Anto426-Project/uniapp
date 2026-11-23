@@ -9,7 +9,7 @@ DEDICATED_BANNER_MOTION_FILES = {'UpdateBannerMotion.kt'}
 
 
 def validate(root=None):
-    root = Path(root) if root else Path(__file__).resolve().parents[1]
+    root = Path(root) if root else Path(__file__).resolve().parents[2]
     errors = []
     for directory in (root / 'composeApp/src', root / 'androidApp/src', root / 'iosApp'):
         for path in directory.rglob('*') if directory.exists() else []:

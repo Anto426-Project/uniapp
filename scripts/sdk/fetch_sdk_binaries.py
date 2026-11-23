@@ -18,11 +18,11 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 import zipfile
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def load_specs() -> dict:
-    specs = json.loads((ROOT / 'scripts/sdk_binaries.json').read_text())
+    specs = json.loads((ROOT / 'scripts/sdk/sdk_binaries.json').read_text())
     catalog = tomllib.loads((ROOT / 'gradle/libs.versions.toml').read_text())
     for name, spec in specs.items():
         declarations = [lib for lib in catalog['libraries'].values()
