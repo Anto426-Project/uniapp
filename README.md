@@ -1,132 +1,184 @@
-<p align="center">
-  <img src=".\assets\uniapp-icon.png" alt="UniApp icon" width="120" height="120">
+<div align="center">
+
+<img src="./assets/icon/web/favicon.svg" alt="UniApp" width="116" height="116" />
+
+# UniApp
+
+**La tua carriera universitaria, in un unico posto.**
+<br />
+Esperienza nativa multipiattaforma per gli studenti dell'Università degli Studi del Molise, sviluppata con **Kotlin Multiplatform**, **Compose Multiplatform** e **Liquid Monet**.
+
+<p>
+  <a href="https://anto426-project.github.io/uniapp-upstream/">
+    <img alt="Sito & Download" src="https://img.shields.io/badge/Download-Sito%20Ufficiale-151518?style=for-the-badge&logo=githubpages&logoColor=white" />
+  </a>
+  <img alt="Kotlin Multiplatform" src="https://img.shields.io/badge/Kotlin%202.4.21-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" />
+  <img alt="Compose Multiplatform" src="https://img.shields.io/badge/Compose%201.12.2-151518?style=for-the-badge&logo=jetpackcompose&logoColor=white" />
+  <img alt="Android" src="https://img.shields.io/badge/Android%2010%2B-151518?style=for-the-badge&logo=android&logoColor=3DDC84" />
+  <img alt="iOS" src="https://img.shields.io/badge/iOS-151518?style=for-the-badge&logo=apple&logoColor=white" />
 </p>
 
-<h1 align="center">UniApp</h1>
-
-<p align="center">
-  <img alt="Kotlin Multiplatform" src="https://img.shields.io/badge/Kotlin%20Multiplatform-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white">
-  <img alt="Jetpack Compose" src="https://img.shields.io/badge/Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white">
-  <img alt="Android" src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white">
-  <img alt="iOS" src="https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=apple&logoColor=white">
+<p>
+  <a href="#funzionalità">Funzionalità</a> ·
+  <a href="#identità-visiva">Identità visiva</a> ·
+  <a href="#architettura-e-sdk">Architettura e SDK</a> ·
+  <a href="#avvio-rapido">Avvio rapido</a> ·
+  <a href="#documentazione">Documentazione</a>
 </p>
 
-<p align="center">
-  <img src="./assets/divider.gif" width="440" height="40" alt="divider">
-</p>
+</div>
 
-<p align="center">
-  UniApp per gli studenti dell'Universita degli Studi del Molise.
-  <br>
-  Sviluppata da <strong>Anto426</strong> con Kotlin Multiplatform, Compose Multiplatform e Material 3.
-</p>
+---
 
-<p align="center">
-  <img alt="In sviluppo" src="https://img.shields.io/badge/In%20sviluppo-cb5a2e?style=for-the-badge&logo=kotlin&logoColor=white">
-  <a href="./docs/feedback-gateway.md"><img alt="Feedback" src="https://img.shields.io/badge/Feedback-cb5a2e?style=for-the-badge&logo=github&logoColor=white"></a>
-</p>
+## Funzionalità
 
-## <img src="./assets/icon.gif" width="42px" alt="about"> UniApp
+UniApp riunisce i servizi accademici quotidiani in un'interfaccia fluida, curata nei dettagli e progettata intorno al design system **Liquid Monet**:
 
-UniApp nasce da un progetto indipendente con l'obiettivo di offrire agli studenti dell'Universita degli Studi del Molise un accesso piu semplice, ordinato e immediato ai principali servizi universitari. L'app riunisce in un'unica esperienza le funzioni piu utili per la vita universitaria:
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Carriera e Libretto</h3>
+      Monitoraggio completo di esami sostenuti, CFU, medie ponderate e aritmetiche, proiezioni di laurea e statistiche avanzate.
+    </td>
+    <td width="50%" valign="top">
+      <h3>Appelli e Didattica</h3>
+      Consultazione degli appelli, prenotazione e gestione esami, schede insegnamento con programmi strutturati, docenti e link diretti ai portali ufficiali.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Badge Universitario e Biglietti</h3>
+      Tessera studente interattiva 3D con QR code generato nativamente, supporto al salvataggio e alla lettura rapida dei titoli di viaggio.
+    </td>
+    <td width="50%" valign="top">
+      <h3>Trasporti e Servizi</h3>
+      Prenotazione e cancellazione delle navette universitarie, gestione tasse, questionari didattici multi-pagina e notifiche push.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Sicurezza Biometrica e PIN</h3>
+      Blocco sessione con autenticazione biometrica e PIN a 6 cifre, credenziali protette tramite storage crittografato multipiattaforma.
+    </td>
+    <td width="50%" valign="top">
+      <h3>Liquid Monet e Material You</h3>
+      Superfici optical glass, palette dinamiche Monet, icone adattive Android 13+, varianti iOS Dark/Tinted e transizioni unificate con supporto a <em>Riduci movimento</em>.
+    </td>
+  </tr>
+</table>
 
-- gestione della carriera e consultazione del libretto
-- visualizzazione di esami, appelli e prenotazioni
-- accesso alle informazioni dello studente e al QR badge
-- consultazione di questionari e compilazione multi-pagina
-- gestione delle prenotazioni e delle cancellazioni dei trasporti
-- una base tecnica pensata per supportare l'evoluzione dell'app e le future distribuzioni
+---
 
-UniApp e sviluppata e mantenuta in modo indipendente e non e affiliata ufficialmente all'Universita degli Studi del Molise.
+## Identità visiva
 
-## <img src="./assets/icon2.gif" width="48px" alt="stack"> Stack
+Il marchio **Apple Spark U** vive in [`assets/icon/`](./assets/icon/README.md) con sorgenti vettoriali pure e tutte le esportazioni pronte per Android, Android Monet, iOS (`AppIcon.appiconset` + Appearances + Icon Composer), Google Play Store, App Store e Web.
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="140">
+        <img src="./assets/icon/web/favicon.svg" width="76" height="76" alt="Default Dark" /><br />
+        <sub><strong>Default Dark</strong></sub>
+      </td>
+      <td align="center" width="140">
+        <img src="./assets/icon/ios-color/AppIcon-light-1024.png" width="76" height="76" alt="Light" /><br />
+        <sub><strong>Light</strong></sub>
+      </td>
+      <td align="center" width="140">
+        <img src="./assets/icon/android-monet/previews/monet-sapphire-dark.png" width="76" height="76" alt="Android Monet" /><br />
+        <sub><strong>Android Monet</strong></sub>
+      </td>
+      <td align="center" width="140">
+        <img src="./assets/icon/ios-color/tinted-previews/ios-tinted-cobalt.png" width="76" height="76" alt="iOS Tinted" /><br />
+        <sub><strong>iOS Tinted</strong></sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## Stack Tecnologico
+
+| Area | Tecnologie |
+| --- | --- |
+| **Linguaggio & Core** | Kotlin `2.4.21` · Coroutines `1.11.0` · Serialization `1.13.0` · DateTime `0.8.0` |
+| **UI & Navigazione** | Compose Multiplatform `1.12.2` · Material 3 · Navigation 3 `1.2.0` · Coil 3 `3.6.3` |
+| **Networking & Codici** | Ktor `3.6.1` (OkHttp / Darwin) · ZScanner · QRose · ZXing |
+| **Piattaforme** | Android (`minSdk 29`, `targetSdk 37`, AGP `9.5.2`) · iOS (`arm64`, `simulatorArm64`) |
+| **Web & Distribuzione** | Next.js (`website/`) · GitHub Actions indipendenti per Android, iOS e Sito |
+
+---
+
+## Architettura e SDK
+
+UniApp separa le fondamenta tecniche in **SDK precompilati indipendenti**, risolti per versione esplicita dal catalogo [`gradle/libs.versions.toml`](./gradle/libs.versions.toml) con verifica integrità SHA-256 in `.sdk-binaries/maven`:
+
+| SDK | Versione | Responsabilità | Repository |
+| --- | --- | --- | --- |
+| **`liquid-monet`** | `2.0.56` | Componenti Compose, tema Monet, fisica e superfici optical glass | [Anto426-Project/Liquid-Monet](https://github.com/Anto426-Project/Liquid-Monet) |
+| **`uni-sdk`** | `2.0.36` | Client KMP per API Cineca, backend UniApp, trasporti e aggiornamenti | Modulo privato |
+| **`secure-storage-sdk`** | `1.0.17` | Persistenza sicura multipiattaforma per credenziali e token | Modulo privato |
+| **`firebase-connector-sdk`** | `1.0.11` | Push notification e integrazione Firebase / FCM | Modulo privato |
+
+### Motion & UI Ownership
+`AppNavigationHost` centralizza la transizione globale Liquid Monet su pagine e sottopagine (`DirectionalHorizontal` come preset predefinito, personalizzabile in *Tema → Sfondo, fisica e animazioni* con pieno rispetto di *Riduci movimento*). Lo script `python3 scripts/check_motion_ownership.py` garantisce che le schermate non introducano animazioni locali incoerenti.
+
+---
+
+## Avvio rapido
+
+### Prerequisiti
+- **JDK 21** e **Python 3.11+**
+- Credenziali GitHub con accesso in lettura agli SDK (`GITHUB_TOKEN`, `GH_TOKEN`, `gh auth login` oppure Git Credential Manager)
+
+### Scaricare gli SDK e compilare
 
 ```sh
-root@anto426: ~/UniApp (main⚡)$ stack --list
-
-> language:
-  - Kotlin 2.4.20
-
-> ui:
-  - Compose Multiplatform 1.12.0
-  - Material 3
-
-> platform:
-  - Android (min SDK 29)
-  - iOS (arm64, simulator arm64)
-
-> tools:
-  - Gradle
-  - Android Studio
-  - Xcode
-```
-
-## <img src="./assets/icon1.gif" width="48px" alt="modules"> SDK precompilati
-
-Gli SDK vivono in repository separati. I loro workflow pubblicano le dipendenze Maven per Gradle su GitHub Packages e un archivio Maven nelle GitHub Releases, con AAR Android ottimizzati da R8, metadati Kotlin Multiplatform e KLIB iOS. Ogni push sul branch principale dello SDK produce una versione `1.0.<run_number>`.
-
-| Modulo                   | Funzione                                                             | Repository                                                      |
-| ------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `liquid-monet`           | Componenti Compose, tema Monet e superfici optical glass             | [Anto426-Project/Liquid-Monet](https://github.com/Anto426-Project/Liquid-Monet) |
-| `uni-sdk`                | Client KMP per API Cineca, backend UniApp, aggiornamenti e trasporti | Modulo interno                                                  |
-| `secure-storage-sdk`     | Persistenza sicura multipiattaforma per credenziali e token          | Modulo interno                                                  |
-| `firebase-connector-sdk` | Push notification e integrazione Firebase/FCM                        | Modulo interno                                                  |
-
-UniApp usa esclusivamente SDK precompilati, come normali dipendenze Maven con versione esplicita in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). Ogni SDK ha un repository, una build e una versione indipendenti. Il resolver scarica la Release `v<versione>` dichiarata nel catalogo, verifica gli hash e prepara `.sdk-binaries/maven`; non seleziona mai `latest` e non include i sorgenti dei repository vicini. `.sdk-binaries/resolved.properties` registra le versioni e revisioni effettivamente installate, senza sovrascrivere il catalogo.
-
-Per preparare un checkout servono Python 3.11 o successivo, JDK 21 e credenziali che possano leggere i repository privati degli SDK. Il downloader cerca prima `GITHUB_TOKEN`, poi `GH_TOKEN`, quindi il login locale di GitHub CLI (`gh auth token --hostname github.com`) e infine gli helper Git (`git credential fill`, senza richieste interattive). È sufficiente avere già configurato `gh auth login` oppure Git Credential Manager; non occorre copiare il token nel progetto. Le credenziali recuperate non vengono scritte nei file o stampate nei log.
-
-```sh
+# 1. Scarica e verifica gli archivi Maven degli SDK dichiarati nel catalogo
 python3 scripts/fetch_sdk_binaries.py
+
+# 2. Esegui test host e compila l'APK debug Android
 ./gradlew :composeApp:testAndroidHostTest :androidApp:assembleDebug
+
+# 3. Verifica le policy di motion ownership
+python3 scripts/check_motion_ownership.py
 ```
 
-Per aggiornare uno SDK, cambiare soltanto la sua versione nella sezione `[versions]` del catalogo e rieseguire `python3 scripts/fetch_sdk_binaries.py`. Per Liquid Monet l'alias è `liquid-monet-sdk` (`libs.liquid.monet.sdk` in Gradle). Il download fallisce se quella Release non esiste o contiene una versione diversa. Dopo un cambio di versione, Gradle segnala eventuali binari locali obsoleti e richiede di ripetere il download.
+Per aggiornare uno SDK è sufficiente modificare la sua versione nella sezione `[versions]` di [`gradle/libs.versions.toml`](./gradle/libs.versions.toml) e rieseguire `python3 scripts/fetch_sdk_binaries.py`.
 
-Il contenitore generale `AppNavigationHost` applica una sola transizione Liquid Monet alle
-pagine, alle sottopagine e al ritorno indietro. In Tema, la sezione unica
-"Sfondo, fisica e animazioni" raccoglie sfondo Liquid, movimento ridotto e preferenze
-di transizione. Si possono scegliere gli otto preset animati dell'SDK; la preferenza
-è salvata per l'intera app. Dissolvenza orizzontale (`DirectionalHorizontal`) è il valore
-predefinito. Il solo controllo globale "Riduci movimento" gestisce la disattivazione.
-`UniMotion` distribuisce la scelta ai contenitori condivisi;
-l'SDK gestisce temporizzazione e movimento ridotto. I cambi di sessione restano immediati
-perché invalidano la pagina precedente. Le schermate e le sezioni usano layout statici;
-gli indicatori e i controlli mantengono il movimento previsto dai componenti dell'SDK.
-`python3 scripts/check_motion_ownership.py` verifica che non vengano introdotte nuove
-animazioni locali o preset diversi nelle schermate. Tutto usa la scena Liquid Glass già
-presente nell'app.
+---
 
-La [guida alle build](docs/build-dependencies.md) descrive toolchain, runner, integrazione Xcode e verifiche degli SDK indipendenti.
-La [guida a badge e biglietti](docs/codes-and-tickets.md) descrive generazione artistica, lettura dei codici e conservazione degli originali.
-
-Nei runner Android e iOS il resolver usa il secret `SDK_READ_TOKEN`, oppure `DEPLOY_TOKEN` se il primo non è configurato. Il token deve avere accesso in lettura ai contenuti di tutti e quattro i repository; il `GITHUB_TOKEN` automatico di UniApp non basta per gli SDK privati. I checksum vengono verificati anche quando gli archivi sono già nella cache `.sdk-downloads/`.
-
-La build dell'app si avvia manualmente da GitHub Actions. Il sito ha un workflow separato. Per usare gli SDK direttamente da GitHub Packages in altri progetti, configurare il repository `https://maven.pkg.github.com/anto426-project/<repository-sdk>`, credenziali con `read:packages` e una versione Maven pubblicata esplicita.
-
-## <img src="./assets/icon1.gif" width="48px" alt="structure"> Struttura
+## Struttura del repository
 
 ```text
-androidApp/                 Launcher Android e manifest
-composeApp/                 Codice condiviso Compose Multiplatform
-  src/commonMain/           UI e logica condivisa
-  src/androidMain/          Integrazioni Android
-  src/iosMain/              Integrazioni iOS
-androidApp/src/main/        Entry point Android
-.sdk-binaries/              Repository Maven locale generato, escluso da Git
-assets/                     Asset grafici del README
-scripts/                    Utility di versioning e deploy
-iosApp/                     Host application iOS
-docs/                       Documentazione del progetto
+androidApp/        Entry point Android, manifest, tema e ProGuard/R8
+composeApp/        Codice condiviso Kotlin & Compose Multiplatform
+  src/commonMain/  UI, stato, navigazione e logica condivisa
+  src/androidMain/ Integrazioni native e risorse Android (adaptive icon & Monet)
+  src/iosMain/     Integrazioni native iOS
+iosApp/            Host application Xcode e catalogo AppIcon (Default, Dark, Tinted)
+assets/icon/       Kit completo icone (SVG, Android, Monet, iOS, Play Store, App Store, Web)
+website/           Sito web ufficiale e pagina di distribuzione
+scripts/           Resolver SDK, policy check e automazione release
+docs/              Documentazione tecnica e guide build
 ```
 
-<p align="center">
-  <img src="./assets/divider.gif" width="440" height="40" alt="divider">
-</p>
+---
 
-## Contributi e feedback
+## Documentazione
 
-Per segnalazioni, idee o problemi, consulta la [guida al feedback](./docs/feedback-gateway.md). Prima di aprire una segnalazione verifica che il problema sia riproducibile sull'ultima build disponibile.
+- [Dipendenze e guida alle build](./docs/build-dependencies.md) — toolchain, runner CI, integrazione Xcode e gestione degli SDK
+- [Workflow di build e pubblicazione](./docs/build-workflows.md) — pipeline Android, iOS e distribuzione indipendente
+- [Badge e biglietti](./docs/codes-and-tickets.md) — generazione artistica dei codici, lettura e conservazione degli originali
+- [Segnalazioni e feedback](./docs/github-feedback.md) — come aprire bug report, proposte e contributi
+- [Kit icone e brand](./assets/icon/README.md) — inventario completo dei formati vettoriali e raster
 
-Android e iOS hanno [build e pubblicazioni indipendenti](docs/build-workflows.md).
-`Build All` avvia le build specifiche; ogni piattaforma pubblica una sola versione.
+---
+
+<div align="center">
+  <sub>
+    Sviluppata e mantenuta in modo indipendente da <strong>Anto426</strong>.<br />
+    UniApp non è affiliata ufficialmente all'Università degli Studi del Molise.
+  </sub>
+</div>
