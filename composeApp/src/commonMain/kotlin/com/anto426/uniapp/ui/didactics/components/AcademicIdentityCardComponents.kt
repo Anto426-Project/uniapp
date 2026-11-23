@@ -28,7 +28,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -385,42 +384,51 @@ private fun AcademicIdentityBackFace(
 }
 
 /**
- * Procedural UniApp Modern Brand Logo (Stylized glass U emblem).
+ * Procedural UniApp Apple Spark U Brand Logo.
  */
 @Composable
 fun UniAppBrandLogo(modifier: Modifier = Modifier) {
     val colorScheme = MaterialTheme.colorScheme
 
     Canvas(modifier = modifier) {
-        val strokeWidth = 3.5.dp.toPx()
-        val w = size.width
-        val h = size.height
+        val side = size.minDimension
+        val ox = (size.width - side) / 2f
+        val oy = (size.height - side) / 2f
+        val scale = side / 640f
 
-        val path = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.20f, h * 0.15f)
-            lineTo(w * 0.20f, h * 0.55f)
-            arcTo(
-                rect = androidx.compose.ui.geometry.Rect(
-                    left = w * 0.20f,
-                    top = h * 0.30f,
-                    right = w * 0.80f,
-                    bottom = h * 0.85f,
-                ),
-                startAngleDegrees = 180f,
-                sweepAngleDegrees = -180f,
-                forceMoveTo = false,
-            )
-            lineTo(w * 0.80f, h * 0.15f)
+        fun tx(x: Float): Float = ox + (x - 206.3f) * scale
+        fun ty(y: Float): Float = oy + (y - 175.8f) * scale
+
+        val uPath = androidx.compose.ui.graphics.Path().apply {
+            moveTo(tx(325.8f), ty(317.8f))
+            cubicTo(tx(350.3f), ty(317.8f), tx(370.1f), ty(337.6f), tx(370.1f), ty(362.0f))
+            lineTo(tx(370.1f), ty(596.6f))
+            cubicTo(tx(370.1f), ty(653.2f), tx(412.1f), ty(690.7f), tx(466.4f), ty(690.7f))
+            cubicTo(tx(520.7f), ty(690.7f), tx(562.7f), ty(653.2f), tx(562.7f), ty(596.6f))
+            lineTo(tx(562.7f), ty(421.9f))
+            cubicTo(tx(562.7f), ty(355.8f), tx(596.3f), ty(317.8f), tx(665.8f), ty(317.8f))
+            cubicTo(tx(670.5f), ty(317.8f), tx(672.7f), ty(320.9f), tx(670.0f), ty(324.9f))
+            cubicTo(tx(658.1f), ty(342.6f), tx(651.2f), ty(375.4f), tx(651.2f), ty(421.9f))
+            lineTo(tx(651.2f), ty(596.6f))
+            cubicTo(tx(651.2f), ty(701.4f), tx(571.1f), ty(775.8f), tx(466.4f), ty(775.8f))
+            cubicTo(tx(361.7f), ty(775.8f), tx(281.6f), ty(701.4f), tx(281.6f), ty(596.6f))
+            lineTo(tx(281.6f), ty(362.0f))
+            cubicTo(tx(281.6f), ty(337.6f), tx(301.4f), ty(317.8f), tx(325.8f), ty(317.8f))
+            close()
         }
 
-        drawPath(
-            path = path,
-            brush = Brush.linearGradient(listOf(colorScheme.primary, colorScheme.tertiary)),
-            style = Stroke(
-                width = strokeWidth,
-                cap = androidx.compose.ui.graphics.StrokeCap.Round,
-            ),
-        )
+        val sparkPath = androidx.compose.ui.graphics.Path().apply {
+            moveTo(tx(713.4f), ty(215.8f))
+            cubicTo(tx(718.6f), ty(255.6f), tx(731.3f), ty(268.3f), tx(771.0f), ty(273.5f))
+            cubicTo(tx(731.3f), ty(278.8f), tx(718.6f), ty(291.4f), tx(713.4f), ty(331.2f))
+            cubicTo(tx(708.1f), ty(291.4f), tx(695.4f), ty(278.8f), tx(655.7f), ty(273.5f))
+            cubicTo(tx(695.4f), ty(268.3f), tx(708.1f), ty(255.6f), tx(713.4f), ty(215.8f))
+            close()
+        }
+
+        val brush = Brush.linearGradient(listOf(colorScheme.primary, colorScheme.tertiary))
+        drawPath(path = uPath, brush = brush)
+        drawPath(path = sparkPath, brush = brush)
     }
 }
 
