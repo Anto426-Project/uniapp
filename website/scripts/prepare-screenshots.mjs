@@ -1,20 +1,35 @@
 import { fileURLToPath } from 'node:url';
-import { mkdir, readdir, stat } from 'node:fs/promises';
+import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import { resolve, parse } from 'node:path';
 import sharp from 'sharp';
 
-const source = fileURLToPath(new URL('../public/assets/screenshots/', import.meta.url));
-const output = resolve(source, 'previews');
-const scriptTime = (await stat(new URL(import.meta.url))).mtimeMs;
-await mkdir(output, { recursive: true });
-for (const name of await readdir(source)) {
-  if (!/\.(jpg|jpeg|png)$/i.test(name)) continue;
-  const input = resolve(source, name);
-  const target = resolve(output, parse(name).name + '.webp');
-  const existing = await stat(target).catch(() => null);
-  if (existing && existing.mtimeMs >= Math.max(scriptTime, (await stat(input)).mtimeMs)) continue;
-  // The full resolution image is reserved for the lightbox. Process sequentially
-  // to keep memory use bounded on CI and avoid decoding every original in the browser.
-  await sharp(input).rotate().resize({ width: 480, withoutEnlargement: true })
-    .webp({ quality: 85 }).toFile(target);
+const sourceDir = fileURLToPath(new URL('../public/assets/screenshots/', import.meta.url));
+const previewDir = resolve(sourceDir, 'previews');
+const manifestOut = fileURLToPath(new URL('../src/data/available-screenshots.json', import.meta.url));
+const scriptMtime = (await stat(new URL(import.meta.url))).mtimeMs;
+
+await mkdir(previewDir, { recursive: true });
+
+const entries = (await readdir(sourceDir))
+  .filter((name) => /\.(jpg|jpeg|png)$/i.test(name))
+  .sort();
+
+for (const filename of entries) {
+  const inputPath = resolve(sourceDir, filename);
+  const outputPath = resolve(previewDir, `${parse(filename).name}.webp`);
+  const existing = await stat(outputPath).catch(() => null);
+  const inputStat = await stat(inputPath);
+
+  if (existing && existing.mtimeMs >= Math.max(scriptMtime, inputStat.mtimeMs)) {
+    continue;
+  }
+
+  await sharp(inputPath)
+    .rotate()
+    .resize({ width: 520, withoutEnlargement: true })
+    .webp({ quality: 86 })
+    .toFile(outputPath);
 }
+
+await writeFile(manifestOut, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');
+console.log(`Prepared ${entries.length} screenshots and updated available-screenshots.json`);

@@ -1,89 +1,46 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { ScreenshotItem } from '@/data/types';
-import { withBasePath } from '@/utils/basePath';
-import { LightboxModal } from './LightboxModal';
-import { ScreenshotCarousel, CarouselScreenshot } from './ScreenshotCarousel';
-import { MONET_THEMES, useThemeControls } from './SiteShell';
-import { SCREENSHOTS_BY_THEME, SCREENSHOTS_DATA } from '@/data/default-manifest';
+import React from 'react';
+import { MONET_THEMES, getScreenshots } from '@/data/screenshots';
+import { useSite } from './SiteShell';
+import { FluidSegmentedControl } from './FluidSegmentedControl';
+import { FluidCarousel } from './FluidCarousel';
+import { FluidReveal } from './FluidReveal';
 
-interface ScreenshotsGalleryProps {
-  screenshots?: ScreenshotItem[];
-}
-
-export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screenshots = SCREENSHOTS_DATA }) => {
-  const { theme: currentTheme, setTheme } = useThemeControls();
-  const activeScreenshots = SCREENSHOTS_BY_THEME[currentTheme] || screenshots;
-
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-
-  const carouselItems: CarouselScreenshot[] = useMemo(() => {
-    return activeScreenshots.map((item) => ({
-      image: withBasePath(`/assets/screenshots/previews/${item.file.replace(/\.[^.]+$/, '.webp')}`),
-      alt: item.title || '',
-      title: item.title,
-      description: item.description,
-    }));
-  }, [activeScreenshots]);
+export function ScreenshotsGallery() {
+  const { theme, setTheme, appearance, reducedMotion, isLightboxOpen, openLightbox } = useSite();
+  const screenshots = getScreenshots(theme, appearance);
 
   return (
-    <section id="screenshots" className="gallery-band">
-      <div className="container">
-        <div className="split-section-header">
-          <div className="split-header-copy">
-            <span className="eyebrow">Interfaccia</span>
-            <h2 className="display-h2">Ogni schermata, curata nei dettagli.</h2>
-            <p className="lead-copy">
-              Scorri le viste reali di UniApp e tocca un’anteprima per aprirla a schermo intero.
+    <section id="screenshots" className="section-block">
+      <div className="container-shell">
+        <FluidReveal>
+          <div className="section-header-center">
+            <span className="type-eyebrow">Design Liquid Monet</span>
+            <h2 className="type-title-1">Vetro ottico, luce e colore che seguono il tuo stile.</h2>
+            <p className="type-body">
+              Motore dinamico Material You, quattro preset curati e Color Lab su misura, con sfondi animati Orbital Pulse, Aurora, Mesh Glow e Radiant Beam.
             </p>
+            <div className="mt-2">
+              <FluidSegmentedControl
+                options={MONET_THEMES}
+                value={theme}
+                onChange={setTheme}
+                ariaLabel="Scegli il tema delle schermate"
+              />
+            </div>
           </div>
+        </FluidReveal>
 
-          <div className="segmented-control" role="group" aria-label="Cambia pigmento schermate">
-            {MONET_THEMES.map((item) => {
-              const isActive = currentTheme === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setTheme(item.id)}
-                  aria-pressed={isActive}
-                  className={`segmented-option ${isActive ? 'active' : ''}`}
-                >
-                  <span className={`segmented-swatch ${item.className}`} aria-hidden="true" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <ScreenshotCarousel
-          items={carouselItems}
-          paused={isLightboxOpen}
-          onOpen={(index) => {
-            setCurrentIndex(index);
-            setIsLightboxOpen(true);
-          }}
-        />
+        <FluidReveal delayMs={70}>
+          <FluidCarousel
+            items={screenshots}
+            paused={isLightboxOpen}
+            reducedMotion={reducedMotion}
+            onOpen={(index, originRect) => openLightbox(index, originRect)}
+          />
+        </FluidReveal>
       </div>
-
-      <LightboxModal
-        isOpen={isLightboxOpen && Boolean(activeScreenshots[currentIndex])}
-        imageUrl={
-          activeScreenshots[currentIndex]
-            ? withBasePath(`/assets/screenshots/${activeScreenshots[currentIndex].file}`)
-            : ''
-        }
-        title={activeScreenshots[currentIndex]?.title || ''}
-        description={activeScreenshots[currentIndex]?.description || ''}
-        currentIndex={currentIndex}
-        totalItems={activeScreenshots.length}
-        onPrev={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : activeScreenshots.length - 1))}
-        onNext={() => setCurrentIndex((prev) => (prev < activeScreenshots.length - 1 ? prev + 1 : 0))}
-        onClose={() => setIsLightboxOpen(false)}
-      />
     </section>
   );
-};
+}

@@ -5,7 +5,6 @@ const nextConfig = {
   output: 'export',
   basePath: basePath || undefined,
   trailingSlash: true,
-  transpilePackages: ['ogl'],
   images: {
     unoptimized: true,
   },

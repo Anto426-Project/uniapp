@@ -13,13 +13,13 @@ export interface ReleaseData {
   description?: string;
 }
 
-// One published Android release. No channel selection or prerelease fallback.
 export interface UpdateManifest extends ReleaseData {
   sha256ByAbi?: Record<string, string>;
   platforms?: Record<string, ReleaseData>;
 }
 
 export interface ScreenshotItem {
+  id: string;
   file: string;
   title: string;
   description: string;
@@ -43,4 +43,14 @@ export interface PlatformRelease {
 export interface PlatformManifest {
   schema: number;
   platforms: Partial<Record<'android' | 'ios', PlatformRelease>>;
+}
+
+export type MonetThemeId = 'sapphire' | 'emerald' | 'sunset' | 'violet';
+export type AppearanceMode = 'dark' | 'light';
+
+export interface OriginRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
 }

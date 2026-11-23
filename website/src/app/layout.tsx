@@ -1,24 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { BASE_PATH } from '@/utils/basePath';
-import { cn } from "@/lib/utils";
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
-  title: 'UniApp Upstream | Android & iOS',
-  description: "Sito ufficiale del progetto open source e indipendente UniApp: scarica l'app per Android e iOS, scopri le funzionalità Liquid Monet e i rilasci per gli studenti dell'Università degli Studi del Molise.",
+  title: 'UniApp · La tua università, finalmente nativa (Android e iOS)',
+  description:
+    "Libretto, base di laurea, appelli, presenze QR, badge UniPass 3D, tasse e navette dell'Università degli Studi del Molise in un'app nativa open source per Android e iOS.",
   authors: [{ name: 'Anto426' }],
   icons: {
     icon: [
@@ -27,21 +14,23 @@ export const metadata: Metadata = {
       { url: `${BASE_PATH}/favicon-32x32.png`, sizes: '32x32', type: 'image/png' },
       { url: `${BASE_PATH}/favicon-192x192.png`, sizes: '192x192', type: 'image/png' },
     ],
-    apple: [
-      { url: `${BASE_PATH}/apple-touch-icon.png`, sizes: '180x180', type: 'image/png' },
-    ],
+    apple: [{ url: `${BASE_PATH}/apple-touch-icon.png`, sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {
     type: 'website',
-    title: 'UniApp Upstream | Android & iOS',
-    description: "L'app 100% open source e indipendente per gli studenti UniMol: libretto, esami, presenze QR, tasse, navette e badge universitario.",
+    title: 'UniApp · La tua università, finalmente nativa',
+    description:
+      "Libretto, simulatore laurea, badge UniPass 3D, presenze QR, tasse e navette offline per gli studenti dell'Università degli Studi del Molise.",
     url: 'https://anto426-project.github.io/uniapp-upstream/',
-    siteName: 'UniApp Upstream',
+    siteName: 'UniApp',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#07080c',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#fbfbfd' },
+  ],
   width: 'device-width',
   initialScale: 1,
 };
@@ -52,10 +41,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className={cn(inter.variable, plusJakartaSans.variable, "font-sans")}>
-      <body className="theme-sapphire">
-        {children}
-      </body>
+    <html lang="it" data-appearance="dark" data-theme="sapphire">
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,74 +1,72 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { Home, Download, SearchX } from 'lucide-react';
-import { Background } from '@/components/Background';
+import { Download, Home, SearchX } from 'lucide-react';
 
 export default function NotFound() {
-  const [theme, setTheme] = useState('sapphire');
-
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem('uniapp-theme');
       const normalized = savedTheme === 'amber' ? 'sunset' : savedTheme;
       if (normalized && ['sapphire', 'emerald', 'sunset', 'violet'].includes(normalized)) {
-        setTheme(normalized);
-        document.body.className = `theme-${normalized}`;
-        return;
+        document.documentElement.dataset.theme = normalized;
+      }
+      const savedAppearance = localStorage.getItem('uniapp-appearance');
+      if (savedAppearance === 'light' || savedAppearance === 'dark') {
+        document.documentElement.dataset.appearance = savedAppearance;
+        document.documentElement.style.colorScheme = savedAppearance;
       }
     } catch {
-      /* Ignore private storage errors. */
+      // Ignore private browsing storage limits.
     }
-    document.body.className = 'theme-sapphire';
   }, []);
 
   return (
     <>
-      <Background theme={theme} />
+      <div className="ambient-backdrop" aria-hidden="true">
+        <div className="ambient-wash-top" />
+      </div>
 
       <main
         style={{
           minHeight: '100dvh',
           display: 'grid',
           placeItems: 'center',
-          padding: '48px 20px',
+          padding: '3rem 1.25rem',
         }}
       >
         <div
-          className="studio-card"
+          className="surface-card"
           style={{
-            width: 'min(100%, 480px)',
-            padding: '44px 32px',
+            width: 'min(100%, 30rem)',
             textAlign: 'center',
             alignItems: 'center',
+            padding: '2.75rem 2rem',
           }}
         >
-          <div className="spec-icon" style={{ width: 52, height: 52, borderRadius: 15, marginBottom: 16 }}>
+          <div className="icon-badge" style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.95rem' }}>
             <SearchX className="w-6 h-6" aria-hidden="true" />
           </div>
 
-          <span className="eyebrow">Errore 404</span>
+          <span className="type-eyebrow">Pagina non trovata</span>
 
-          <h1
-            className="hero-headline"
-            style={{ fontSize: 'clamp(3rem, 9vw, 4.2rem)', marginTop: 8 }}
-          >
-            <span className="hero-headline-accent">404</span>
+          <h1 className="type-hero" style={{ fontSize: 'clamp(3rem, 9vw, 4.25rem)' }}>
+            <span className="hero-accent-text">404</span>
           </h1>
 
-          <p className="lead-copy" style={{ marginTop: 12, maxWidth: 360 }}>
-            La pagina o risorsa richiesta non esiste oppure è stata spostata.
+          <p className="type-body" style={{ maxWidth: '22rem' }}>
+            L&apos;indirizzo richiesto non esiste o è cambiato. Torna alla pagina iniziale oppure vai subito ai download.
           </p>
 
-          <div className="hero-actions" style={{ marginTop: 28, justifyContent: 'center', width: '100%' }}>
-            <Link href="/" className="btn-apple-primary">
+          <div className="hero-cta-row" style={{ width: '100%' }}>
+            <Link href="/" className="btn-primary">
               <Home className="w-4 h-4" aria-hidden="true" />
-              <span>Torna alla Home</span>
+              <span>Torna alla home</span>
             </Link>
-            <Link href="/#download" className="btn-apple-glass">
+            <Link href="/#download" className="btn-material">
               <Download className="w-4 h-4" aria-hidden="true" />
-              <span>Download</span>
+              <span>Vai ai download</span>
             </Link>
           </div>
         </div>
