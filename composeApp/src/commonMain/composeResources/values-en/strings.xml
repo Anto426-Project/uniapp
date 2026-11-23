@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Disciplinary sector</string>
     <string name="ui_course_lang_italian">Italian</string>
     <string name="ui_course_lang_material_note">Materials also available in other languages</string>
-    <string name="ui_course_no_prerequisites">No mandatory prerequisites are required to record this exam.</string>
 
     <string name="ui_sign_out">Sign out</string>
     <string name="ui_notes">Notes</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Projected average</string>
 
 
-    <string name="ui_course_tab_program">Syllabus</string>
-    <string name="ui_course_tab_professor">Instructor</string>
-    <string name="ui_course_tab_data">Course info</string>
     <string name="ui_course_syllabus_title">Course syllabus</string>
     <string name="ui_course_syllabus_sub">Learning objectives, teaching contents, and program</string>
     <string name="ui_course_objectives_title">Learning objectives &amp; description</string>
     <string name="ui_course_exam_modes_title">Assessment &amp; exam format</string>
     <string name="ui_course_materials_title">Recommended reading &amp; materials</string>
     <string name="ui_course_faculty_title">Teaching staff</string>
-    <string name="ui_course_faculty_sub">Contact info and office hours</string>
     <string name="ui_course_office_hours">Office hours</string>
     <string name="ui_course_office_location">Instructor office</string>
     <string name="ui_course_academic_data_title">Academic details</string>
-    <string name="ui_course_academic_data_sub">Course specifications and study plan constraints</string>
     <string name="ui_course_activity_type">Activity type</string>
     <string name="ui_course_attendance">Attendance</string>
     <string name="ui_course_scientific_sector">Scientific sector</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">Course contents and learning objectives for this course have not been published on the university portal yet.</string>
     <string name="ui_course_contents_title">Program &amp; contents</string>
     <string name="ui_course_teaching_methods_title">Teaching methods</string>
-    <string name="ui_course_professor_empty_title">Instructor not specified</string>
-    <string name="ui_course_professor_empty_desc">No instructor is associated with this course in Esse3 records.</string>
     <string name="ui_course_professor_open_directory">Tap for full directory profile</string>
-    <string name="ui_course_office_hours_desc">Student office hours are held by prior arrangement via institutional email, either in person at the department office or online via Microsoft Teams or Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Recorded activity</string>
-    <string name="ui_course_activity_pending">Remaining activity</string>
-    <string name="ui_course_passed_success">Passed successfully</string>
-    <string name="ui_course_passed_on_date">Passed successfully on %1$s</string>
-    <string name="ui_course_planned_in_plan">Scheduled in study plan</string>
     <string name="ui_course_ssd_subtitle">Scientific Disciplinary Sector (SSD)</string>
     <string name="ui_course_taf_subtitle">Training Activity Scope (TAF)</string>
-    <string name="ui_course_credits_subtitle">University Credits</string>
-    <string name="ui_course_plan_placement">Study plan placement</string>
     <string name="ui_professor_teaching_code">Course code</string>
     <string name="ui_professor_course_department">Program / Department</string>
     <string name="ui_professor_extra_details">Additional details</string>
@@ -1824,5 +1808,4 @@
     <string name="ui_course_open_catalogue_title">Official course page</string>
     <string name="ui_course_open_catalogue_sub">Open on UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portal</string>
-    <string name="ui_course_sections_overview">Syllabus sections</string>
 </resources>

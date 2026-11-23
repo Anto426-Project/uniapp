@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Vakgebied</string>
     <string name="ui_course_lang_italian">Italiaans</string>
     <string name="ui_course_lang_material_note">Materiaal ook in andere talen</string>
-    <string name="ui_course_no_prerequisites">Er zijn geen verplichte ingangseisen om dit tentamen te registreren.</string>
 
     <string name="ui_sign_out">Uitloggen</string>
     <string name="ui_notes">Notities</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Geprojecteerd gemiddelde</string>
 
 
-    <string name="ui_course_tab_program">Syllabus</string>
-    <string name="ui_course_tab_professor">Docent</string>
-    <string name="ui_course_tab_data">Vakgegevens</string>
     <string name="ui_course_syllabus_title">Vaksyllabus</string>
     <string name="ui_course_syllabus_sub">Leerdoelen, onderwijsinhoud en programma</string>
     <string name="ui_course_objectives_title">Leerdoelen &amp; beschrijving</string>
     <string name="ui_course_exam_modes_title">Toetsings- &amp; tentamenvorm</string>
     <string name="ui_course_materials_title">Aanbevolen literatuur &amp; materiaal</string>
     <string name="ui_course_faculty_title">Docententeam</string>
-    <string name="ui_course_faculty_sub">Contactgegevens en spreekuur</string>
     <string name="ui_course_office_hours">Spreekuur</string>
     <string name="ui_course_office_location">Kantoor docent</string>
     <string name="ui_course_academic_data_title">Academische gegevens</string>
-    <string name="ui_course_academic_data_sub">Vakspecificaties en studieplanvoorwaarden</string>
     <string name="ui_course_activity_type">Type activiteit</string>
     <string name="ui_course_attendance">Aanwezigheid</string>
     <string name="ui_course_scientific_sector">Wetenschappelijk vakgebied</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">De vakinhoud en leerdoelen voor dit vak zijn nog niet op het universiteitsportaal gepubliceerd.</string>
     <string name="ui_course_contents_title">Programma en inhoud</string>
     <string name="ui_course_teaching_methods_title">Onderwijsmethoden</string>
-    <string name="ui_course_professor_empty_title">Docent niet opgegeven</string>
-    <string name="ui_course_professor_empty_desc">Er is geen docent gekoppeld aan dit vak in de Esse3-registraties.</string>
     <string name="ui_course_professor_open_directory">Tik voor het volledige adresboekprofiel</string>
-    <string name="ui_course_office_hours_desc">Spreekuren voor studenten vinden plaats na voorafgaande afspraak via institutionele e-mail, fysiek op het faculteitskantoor of online via Microsoft Teams of Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Geregistreerde activiteit</string>
-    <string name="ui_course_activity_pending">Resterende activiteit</string>
-    <string name="ui_course_passed_success">Succesvol behaald</string>
-    <string name="ui_course_passed_on_date">Succesvol behaald op %1$s</string>
-    <string name="ui_course_planned_in_plan">Gepland in studieplan</string>
     <string name="ui_course_ssd_subtitle">Wetenschappelijk Vakgebied (SSD)</string>
     <string name="ui_course_taf_subtitle">Opleidingsactiviteitscope (TAF)</string>
-    <string name="ui_course_credits_subtitle">Universitaire studiepunten</string>
-    <string name="ui_course_plan_placement">Plaatsing in studieplan</string>
     <string name="ui_professor_teaching_code">Vakcode</string>
     <string name="ui_professor_course_department">Opleiding / Faculteit</string>
     <string name="ui_professor_extra_details">Aanvullende details</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">Officiële vakpagina</string>
     <string name="ui_course_open_catalogue_sub">Openen in UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portaal</string>
-    <string name="ui_course_sections_overview">Programma-onderdelen</string>
 </resources>

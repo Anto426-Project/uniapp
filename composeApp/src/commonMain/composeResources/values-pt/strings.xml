@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Área científica</string>
     <string name="ui_course_lang_italian">Italiano</string>
     <string name="ui_course_lang_material_note">Material também noutros idiomas</string>
-    <string name="ui_course_no_prerequisites">Não existem precedências obrigatórias vinculativas para o registo do exame.</string>
 
     <string name="ui_sign_out">Terminar sessão</string>
     <string name="ui_notes">Notas</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Média projetada</string>
 
 
-    <string name="ui_course_tab_program">Programa</string>
-    <string name="ui_course_tab_professor">Docente</string>
-    <string name="ui_course_tab_data">Dados da UC</string>
     <string name="ui_course_syllabus_title">Programa da unidade curricular</string>
     <string name="ui_course_syllabus_sub">Objetivos de aprendizagem, conteúdos programáticos e programa</string>
     <string name="ui_course_objectives_title">Objetivos de aprendizagem e descrição</string>
     <string name="ui_course_exam_modes_title">Métodos de avaliação e exame</string>
     <string name="ui_course_materials_title">Bibliografia recomendada e materiais</string>
     <string name="ui_course_faculty_title">Corpo docente</string>
-    <string name="ui_course_faculty_sub">Informações de contacto e horário de atendimento</string>
     <string name="ui_course_office_hours">Atendimento</string>
     <string name="ui_course_office_location">Gabinete do docente</string>
     <string name="ui_course_academic_data_title">Dados académicos</string>
-    <string name="ui_course_academic_data_sub">Especificações da unidade curricular e restrições do plano</string>
     <string name="ui_course_activity_type">Tipo de atividade</string>
     <string name="ui_course_attendance">Assiduidade</string>
     <string name="ui_course_scientific_sector">Área científica</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">Os conteúdos e objetivos de aprendizagem desta unidade curricular ainda não foram registados no portal da Universidade.</string>
     <string name="ui_course_contents_title">Programa e conteúdos</string>
     <string name="ui_course_teaching_methods_title">Métodos de ensino</string>
-    <string name="ui_course_professor_empty_title">Docente não especificado</string>
-    <string name="ui_course_professor_empty_desc">Nenhum docente associado a esta unidade curricular nos registos Esse3.</string>
     <string name="ui_course_professor_open_directory">Toca para ver a ficha completa nos contactos</string>
-    <string name="ui_course_office_hours_desc">O atendimento aos estudantes realiza-se por marcação prévia por email institucional com o docente, presencialmente no gabinete do departamento ou online via Microsoft Teams ou Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Atividade registada</string>
-    <string name="ui_course_activity_pending">Atividade por concluir</string>
-    <string name="ui_course_passed_success">Aprovado com sucesso</string>
-    <string name="ui_course_passed_on_date">Aprovado com sucesso a %1$s</string>
-    <string name="ui_course_planned_in_plan">Planeado no plano de estudos</string>
     <string name="ui_course_ssd_subtitle">Área Científico-Disciplinar (SSD)</string>
     <string name="ui_course_taf_subtitle">Âmbito de Atividade Formativa (TAF)</string>
-    <string name="ui_course_credits_subtitle">Créditos Universitários</string>
-    <string name="ui_course_plan_placement">Enquadramento no plano de estudos</string>
     <string name="ui_professor_teaching_code">Código da UC</string>
     <string name="ui_professor_course_department">Curso / Departamento</string>
     <string name="ui_professor_extra_details">Detalhes adicionais</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">Ficha oficial do curso</string>
     <string name="ui_course_open_catalogue_sub">Abrir no UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portal</string>
-    <string name="ui_course_sections_overview">Seções do programa</string>
 </resources>

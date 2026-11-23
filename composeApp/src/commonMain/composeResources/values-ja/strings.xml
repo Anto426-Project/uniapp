@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">学問分野</string>
     <string name="ui_course_lang_italian">イタリア語</string>
     <string name="ui_course_lang_material_note">外国語教材あり</string>
-    <string name="ui_course_no_prerequisites">この試験の単位認定に必要な履修前提条件はありません。</string>
 
     <string name="ui_sign_out">サインアウト</string>
     <string name="ui_notes">備考</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">予測平均点</string>
 
 
-    <string name="ui_course_tab_program">シラバス</string>
-    <string name="ui_course_tab_professor">担当教員</string>
-    <string name="ui_course_tab_data">科目情報</string>
     <string name="ui_course_syllabus_title">科目シラバス</string>
     <string name="ui_course_syllabus_sub">学習目標、授業内容、プログラム</string>
     <string name="ui_course_objectives_title">学習目標と概要</string>
     <string name="ui_course_exam_modes_title">評価方法と試験形式</string>
     <string name="ui_course_materials_title">指定教科書・教材</string>
     <string name="ui_course_faculty_title">担当教員</string>
-    <string name="ui_course_faculty_sub">連絡先とオフィスアワー</string>
     <string name="ui_course_office_hours">オフィスアワー</string>
     <string name="ui_course_office_location">教員研究室</string>
     <string name="ui_course_academic_data_title">履修詳細データ</string>
-    <string name="ui_course_academic_data_sub">科目仕様と履修計画上の制約</string>
     <string name="ui_course_activity_type">科目区分</string>
     <string name="ui_course_attendance">出席</string>
     <string name="ui_course_scientific_sector">学術分野</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">この科目の授業内容および学習目標は、大学ポータルにまだ公開されていません。</string>
     <string name="ui_course_contents_title">プログラムと授業内容</string>
     <string name="ui_course_teaching_methods_title">指導方法</string>
-    <string name="ui_course_professor_empty_title">担当教員未指定</string>
-    <string name="ui_course_professor_empty_desc">Esse3の記録にこの科目の担当教員が登録されていません。</string>
     <string name="ui_course_professor_open_directory">タップして連絡先詳細を開く</string>
-    <string name="ui_course_office_hours_desc">学生向けのオフィスアワーは、大学のメールアドレス経由で担当教員と事前調整のうえ、学科研究室での対面またはMicrosoft Teams・Google Meetによるオンラインで実施されます。</string>
-    <string name="ui_course_activity_verbalized">認定済み科目</string>
-    <string name="ui_course_activity_pending">未受験科目</string>
-    <string name="ui_course_passed_success">合格済み</string>
-    <string name="ui_course_passed_on_date">%1$s に合格済み</string>
-    <string name="ui_course_planned_in_plan">履修計画に登録済み</string>
     <string name="ui_course_ssd_subtitle">学問分野コード (SSD)</string>
     <string name="ui_course_taf_subtitle">教育活動区分 (TAF)</string>
-    <string name="ui_course_credits_subtitle">大学単位</string>
-    <string name="ui_course_plan_placement">履修計画上の配置</string>
     <string name="ui_professor_teaching_code">科目コード</string>
     <string name="ui_professor_course_department">課程 / 学部・学科</string>
     <string name="ui_professor_extra_details">追加詳細</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">公式シラバスページ</string>
     <string name="ui_course_open_catalogue_sub">UniMol Course Catalogueで開く</string>
     <string name="ui_course_open_catalogue_badge">ポータル</string>
-    <string name="ui_course_sections_overview">シラバス項目</string>
 </resources>

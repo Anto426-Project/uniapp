@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Secteur disciplinaire</string>
     <string name="ui_course_lang_italian">Italien</string>
     <string name="ui_course_lang_material_note">Supports également disponibles dans d’autres langues</string>
-    <string name="ui_course_no_prerequisites">Aucun prérequis obligatoire n’est exigé pour la validation de cet examen.</string>
 
     <string name="ui_sign_out">Se déconnecter</string>
     <string name="ui_notes">Notes</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Moyenne projetée</string>
 
 
-    <string name="ui_course_tab_program">Programme</string>
-    <string name="ui_course_tab_professor">Enseignant</string>
-    <string name="ui_course_tab_data">Infos cours</string>
     <string name="ui_course_syllabus_title">Programme du cours</string>
     <string name="ui_course_syllabus_sub">Objectifs pédagogiques, contenus et programme</string>
     <string name="ui_course_objectives_title">Objectifs pédagogiques &amp; description</string>
     <string name="ui_course_exam_modes_title">Modalités d’évaluation &amp; examen</string>
     <string name="ui_course_materials_title">Ouvrages recommandés &amp; supports</string>
     <string name="ui_course_faculty_title">Équipe pédagogique</string>
-    <string name="ui_course_faculty_sub">Coordonnées et permanences</string>
     <string name="ui_course_office_hours">Permanence</string>
     <string name="ui_course_office_location">Bureau de l’enseignant</string>
     <string name="ui_course_academic_data_title">Données académiques</string>
-    <string name="ui_course_academic_data_sub">Spécifications du cours et contraintes du plan</string>
     <string name="ui_course_activity_type">Type d’activité</string>
     <string name="ui_course_attendance">Assiduité</string>
     <string name="ui_course_scientific_sector">Secteur scientifique</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">Les contenus et objectifs pédagogiques de cet enseignement n’ont pas encore été publiés sur le portail de l’université.</string>
     <string name="ui_course_contents_title">Programme et contenus</string>
     <string name="ui_course_teaching_methods_title">Méthodes pédagogiques</string>
-    <string name="ui_course_professor_empty_title">Enseignant non précisé</string>
-    <string name="ui_course_professor_empty_desc">Aucun enseignant n’est associé à cet enseignement dans les registres Esse3.</string>
     <string name="ui_course_professor_open_directory">Appuyez pour la fiche annuaire complète</string>
-    <string name="ui_course_office_hours_desc">Les permanences étudiants ont lieu sur rendez-vous par e-mail institutionnel avec l’enseignant, en présentiel au bureau du département ou en ligne via Microsoft Teams ou Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Activité enregistrée</string>
-    <string name="ui_course_activity_pending">Activité à valider</string>
-    <string name="ui_course_passed_success">Réussi avec succès</string>
-    <string name="ui_course_passed_on_date">Réussi avec succès le %1$s</string>
-    <string name="ui_course_planned_in_plan">Planifié dans le plan d’études</string>
     <string name="ui_course_ssd_subtitle">Secteur Disciplinaire (SSD)</string>
     <string name="ui_course_taf_subtitle">Domaine de formation (TAF)</string>
-    <string name="ui_course_credits_subtitle">Crédits Universitaires</string>
-    <string name="ui_course_plan_placement">Position dans le plan d’études</string>
     <string name="ui_professor_teaching_code">Code de l’enseignement</string>
     <string name="ui_professor_course_department">Formation / Département</string>
     <string name="ui_professor_extra_details">Détails supplémentaires</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">Fiche officielle du cours</string>
     <string name="ui_course_open_catalogue_sub">Ouvrir sur UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portail</string>
-    <string name="ui_course_sections_overview">Sections du programme</string>
 </resources>

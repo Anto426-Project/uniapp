@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Área de conocimiento</string>
     <string name="ui_course_lang_italian">Italiano</string>
     <string name="ui_course_lang_material_note">Material también disponible en otros idiomas</string>
-    <string name="ui_course_no_prerequisites">No se exigen requisitos previos obligatorios para registrar la calificación de este examen.</string>
 
     <string name="ui_sign_out">Cerrar sesión</string>
     <string name="ui_notes">Notas</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Media proyectada</string>
 
 
-    <string name="ui_course_tab_program">Programa</string>
-    <string name="ui_course_tab_professor">Docente</string>
-    <string name="ui_course_tab_data">Datos</string>
     <string name="ui_course_syllabus_title">Programa de la asignatura</string>
     <string name="ui_course_syllabus_sub">Objetivos formativos, contenidos docentes y programa</string>
     <string name="ui_course_objectives_title">Objetivos formativos y descripción</string>
     <string name="ui_course_exam_modes_title">Modalidad de evaluación y examen</string>
     <string name="ui_course_materials_title">Bibliografía y material recomendado</string>
     <string name="ui_course_faculty_title">Profesorado</string>
-    <string name="ui_course_faculty_sub">Información de contacto y tutorías</string>
     <string name="ui_course_office_hours">Tutorías</string>
     <string name="ui_course_office_location">Despacho del docente</string>
     <string name="ui_course_academic_data_title">Datos académicos</string>
-    <string name="ui_course_academic_data_sub">Especificaciones de la asignatura y requisitos del plan</string>
     <string name="ui_course_activity_type">Tipo de actividad</string>
     <string name="ui_course_attendance">Asistencia</string>
     <string name="ui_course_scientific_sector">Área científica</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">Los contenidos y objetivos docentes de esta asignatura aún no se han publicado en el portal universitario.</string>
     <string name="ui_course_contents_title">Programa y contenidos</string>
     <string name="ui_course_teaching_methods_title">Metodología docente</string>
-    <string name="ui_course_professor_empty_title">Docente sin especificar</string>
-    <string name="ui_course_professor_empty_desc">No hay ningún docente asociado a esta asignatura en los registros de Esse3.</string>
     <string name="ui_course_professor_open_directory">Toca para ver la ficha completa en el directorio</string>
-    <string name="ui_course_office_hours_desc">Las tutorías se realizan previa cita por correo electrónico institucional con el docente, de forma presencial en el despacho del departamento o en línea mediante Microsoft Teams o Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Actividad registrada</string>
-    <string name="ui_course_activity_pending">Actividad pendiente</string>
-    <string name="ui_course_passed_success">Aprobado con éxito</string>
-    <string name="ui_course_passed_on_date">Aprobado con éxito el %1$s</string>
-    <string name="ui_course_planned_in_plan">Planificado en el plan de estudios</string>
     <string name="ui_course_ssd_subtitle">Área Científico-Disciplinar (SSD)</string>
     <string name="ui_course_taf_subtitle">Ámbito Formativo (TAF)</string>
-    <string name="ui_course_credits_subtitle">Créditos Universitarios</string>
-    <string name="ui_course_plan_placement">Ubicación en el plan de estudios</string>
     <string name="ui_professor_teaching_code">Código de asignatura</string>
     <string name="ui_professor_course_department">Titulación / Departamento</string>
     <string name="ui_professor_extra_details">Detalles adicionales</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">Ficha oficial del curso</string>
     <string name="ui_course_open_catalogue_sub">Abrir en UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portal</string>
-    <string name="ui_course_sections_overview">Secciones del programa</string>
 </resources>

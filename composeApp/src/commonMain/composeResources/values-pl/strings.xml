@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Dyscyplina naukowa</string>
     <string name="ui_course_lang_italian">Włoski</string>
     <string name="ui_course_lang_material_note">Materiały dostępne także w innych językach</string>
-    <string name="ui_course_no_prerequisites">Brak obowiązkowych przedmiotów wstępnych wymaganych do wpisania oceny z egzaminu.</string>
 
     <string name="ui_sign_out">Wyloguj się</string>
     <string name="ui_notes">Notatki</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Prognozowana średnia</string>
 
 
-    <string name="ui_course_tab_program">Program</string>
-    <string name="ui_course_tab_professor">Prowadzący</string>
-    <string name="ui_course_tab_data">Dane przedmiotu</string>
     <string name="ui_course_syllabus_title">Sylabus przedmiotu</string>
     <string name="ui_course_syllabus_sub">Efekty kształcenia, treści dydaktyczne i program</string>
     <string name="ui_course_objectives_title">Cele kształcenia i opis</string>
     <string name="ui_course_exam_modes_title">Forma zaliczenia i egzamin</string>
     <string name="ui_course_materials_title">Zalecana literatura i materiały</string>
     <string name="ui_course_faculty_title">Kadra dydaktyczna</string>
-    <string name="ui_course_faculty_sub">Dane kontaktowe i konsultacje</string>
     <string name="ui_course_office_hours">Konsultacje</string>
     <string name="ui_course_office_location">Pokój prowadzącego</string>
     <string name="ui_course_academic_data_title">Dane akademickie</string>
-    <string name="ui_course_academic_data_sub">Szczegóły przedmiotu i wymogi planu studiów</string>
     <string name="ui_course_activity_type">Typ zajęć</string>
     <string name="ui_course_attendance">Obecność</string>
     <string name="ui_course_scientific_sector">Dyscyplina naukowa</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">Treści i efekty kształcenia dla tego przedmiotu nie zostały jeszcze opublikowane w portalu uczelnianym.</string>
     <string name="ui_course_contents_title">Program i treści</string>
     <string name="ui_course_teaching_methods_title">Metody kształcenia</string>
-    <string name="ui_course_professor_empty_title">Nie określono prowadzącego</string>
-    <string name="ui_course_professor_empty_desc">Brak prowadzącego przypisanego do tego przedmiotu w rejestrach Esse3.</string>
     <string name="ui_course_professor_open_directory">Dotknij, aby otworzyć pełny profil w książce adresowej</string>
-    <string name="ui_course_office_hours_desc">Konsultacje dla studentów odbywają się po wcześniejszym ustaleniu przez uczelniany e-mail – stacjonarnie w pokoju wydziałowym lub online przez Microsoft Teams lub Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Zajęcia wpisane do protokołu</string>
-    <string name="ui_course_activity_pending">Zajęcia do zaliczenia</string>
-    <string name="ui_course_passed_success">Zaliczono pomyślnie</string>
-    <string name="ui_course_passed_on_date">Zaliczono pomyślnie %1$s</string>
-    <string name="ui_course_planned_in_plan">Zaplanowano w planie studiów</string>
     <string name="ui_course_ssd_subtitle">Obszar naukowy (SSD)</string>
     <string name="ui_course_taf_subtitle">Zakres zajęć (TAF)</string>
-    <string name="ui_course_credits_subtitle">Punkty akademickie</string>
-    <string name="ui_course_plan_placement">Umiejscowienie w planie studiów</string>
     <string name="ui_professor_teaching_code">Kod przedmiotu</string>
     <string name="ui_professor_course_department">Kierunek / Wydział</string>
     <string name="ui_professor_extra_details">Dodatkowe szczegóły</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">Oficjalna strona kursu</string>
     <string name="ui_course_open_catalogue_sub">Otwórz w UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portal</string>
-    <string name="ui_course_sections_overview">Sekcje sylabusa</string>
 </resources>

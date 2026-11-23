@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">学科领域</string>
     <string name="ui_course_lang_italian">意大利语</string>
     <string name="ui_course_lang_material_note">亦提供其他语言学习资料</string>
-    <string name="ui_course_no_prerequisites">登记此门课程成绩无需满足任何强制先修课程要求。</string>
 
     <string name="ui_sign_out">退出登录</string>
     <string name="ui_notes">备注</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">预测均分</string>
 
 
-    <string name="ui_course_tab_program">教学大纲</string>
-    <string name="ui_course_tab_professor">授课教师</string>
-    <string name="ui_course_tab_data">课程信息</string>
     <string name="ui_course_syllabus_title">课程大纲</string>
     <string name="ui_course_syllabus_sub">培养目标、教学内容与课程安排</string>
     <string name="ui_course_objectives_title">培养目标与课程简介</string>
     <string name="ui_course_exam_modes_title">考核方式与考试形式</string>
     <string name="ui_course_materials_title">推荐教材与学习资料</string>
     <string name="ui_course_faculty_title">师资团队</string>
-    <string name="ui_course_faculty_sub">联系方式与答疑时间</string>
     <string name="ui_course_office_hours">答疑时间</string>
     <string name="ui_course_office_location">教师办公室</string>
     <string name="ui_course_academic_data_title">学术信息</string>
-    <string name="ui_course_academic_data_sub">课程规格与学习计划要求</string>
     <string name="ui_course_activity_type">教学活动类型</string>
     <string name="ui_course_attendance">考勤要求</string>
     <string name="ui_course_scientific_sector">学科分类</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">学校门户尚未录入该课程的教学内容与培养目标。</string>
     <string name="ui_course_contents_title">大纲与教学内容</string>
     <string name="ui_course_teaching_methods_title">教学方式</string>
-    <string name="ui_course_professor_empty_title">未指定授课教师</string>
-    <string name="ui_course_professor_empty_desc">Esse3 系统中未为该课程关联授课教师。</string>
     <string name="ui_course_professor_open_directory">点击查看完整通讯录档案</string>
-    <string name="ui_course_office_hours_desc">学生答疑需通过学校官方邮箱提前与教师预约，可在院系办公室线下进行，或通过 Microsoft Teams / Google Meet 线上进行。</string>
-    <string name="ui_course_activity_verbalized">已登记教学活动</string>
-    <string name="ui_course_activity_pending">待修教学活动</string>
-    <string name="ui_course_passed_success">已顺利通过</string>
-    <string name="ui_course_passed_on_date">已于 %1$s 顺利通过</string>
-    <string name="ui_course_planned_in_plan">已列入学习计划</string>
     <string name="ui_course_ssd_subtitle">学科分类代码 (SSD)</string>
     <string name="ui_course_taf_subtitle">教学活动类别 (TAF)</string>
-    <string name="ui_course_credits_subtitle">大学学分</string>
-    <string name="ui_course_plan_placement">学习计划归属</string>
     <string name="ui_professor_teaching_code">课程代码</string>
     <string name="ui_professor_course_department">专业 / 院系</string>
     <string name="ui_professor_extra_details">补充详情</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">官方课程页面</string>
     <string name="ui_course_open_catalogue_sub">在 UniMol Course Catalogue 中打开</string>
     <string name="ui_course_open_catalogue_badge">门户</string>
-    <string name="ui_course_sections_overview">课程大纲章节</string>
 </resources>

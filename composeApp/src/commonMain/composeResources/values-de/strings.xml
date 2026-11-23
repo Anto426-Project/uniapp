@@ -25,7 +25,6 @@
     <string name="ui_course_sector_label">Fachgebiet</string>
     <string name="ui_course_lang_italian">Italienisch</string>
     <string name="ui_course_lang_material_note">Materialien auch in weiteren Sprachen</string>
-    <string name="ui_course_no_prerequisites">Für die Verbuchung dieser Prüfung sind keine verbindlichen Vorleistungen erforderlich.</string>
 
     <string name="ui_sign_out">Abmelden</string>
     <string name="ui_notes">Hinweise</string>
@@ -176,20 +175,15 @@
     <string name="ui_grades_projected">Prognostizierter Schnitt</string>
 
 
-    <string name="ui_course_tab_program">Lehrplan</string>
-    <string name="ui_course_tab_professor">Dozierende</string>
-    <string name="ui_course_tab_data">Kursdaten</string>
     <string name="ui_course_syllabus_title">Kurs-Syllabus</string>
     <string name="ui_course_syllabus_sub">Lernziele, Lehrinhalte und Programm</string>
     <string name="ui_course_objectives_title">Lernziele &amp; Beschreibung</string>
     <string name="ui_course_exam_modes_title">Prüfungsform &amp; Leistungsnachweis</string>
     <string name="ui_course_materials_title">Empfohlene Literatur &amp; Materialien</string>
     <string name="ui_course_faculty_title">Lehrpersonal</string>
-    <string name="ui_course_faculty_sub">Kontaktdaten und Sprechzeiten</string>
     <string name="ui_course_office_hours">Sprechzeiten</string>
     <string name="ui_course_office_location">Büro der Lehrperson</string>
     <string name="ui_course_academic_data_title">Akademische Daten</string>
-    <string name="ui_course_academic_data_sub">Kursspezifikationen und Studienplanvorgaben</string>
     <string name="ui_course_activity_type">Veranstaltungsart</string>
     <string name="ui_course_attendance">Anwesenheit</string>
     <string name="ui_course_scientific_sector">Wissenschaftsbereich</string>
@@ -1626,19 +1620,9 @@
     <string name="ui_course_syllabus_empty">Inhalte und Lernziele dieser Lehrveranstaltung wurden auf dem Universitätsportal noch nicht veröffentlicht.</string>
     <string name="ui_course_contents_title">Programm &amp; Inhalte</string>
     <string name="ui_course_teaching_methods_title">Lehrmethoden</string>
-    <string name="ui_course_professor_empty_title">Lehrperson nicht angegeben</string>
-    <string name="ui_course_professor_empty_desc">In den Esse3-Einträgen ist dieser Lehrveranstaltung keine Lehrperson zugeordnet.</string>
     <string name="ui_course_professor_open_directory">Für vollständigen Verzeichniseintrag tippen</string>
-    <string name="ui_course_office_hours_desc">Sprechstunden finden nach vorheriger Vereinbarung per Hochschul-E-Mail statt – entweder persönlich im Fachbereichsbüro oder online über Microsoft Teams bzw. Google Meet.</string>
-    <string name="ui_course_activity_verbalized">Verbuchte Leistung</string>
-    <string name="ui_course_activity_pending">Ausstehende Leistung</string>
-    <string name="ui_course_passed_success">Erfolgreich bestanden</string>
-    <string name="ui_course_passed_on_date">Erfolgreich bestanden am %1$s</string>
-    <string name="ui_course_planned_in_plan">Im Studienplan vorgesehen</string>
     <string name="ui_course_ssd_subtitle">Wissenschaftlich-disziplinärer Bereich (SSD)</string>
     <string name="ui_course_taf_subtitle">Ausbildungsbereich (TAF)</string>
-    <string name="ui_course_credits_subtitle">Hochschul-Leistungspunkte</string>
-    <string name="ui_course_plan_placement">Einordnung im Studienplan</string>
     <string name="ui_professor_teaching_code">Lehrveranstaltungscode</string>
     <string name="ui_professor_course_department">Studiengang / Fachbereich</string>
     <string name="ui_professor_extra_details">Zusätzliche Details</string>
@@ -1815,5 +1799,4 @@
     <string name="ui_course_open_catalogue_title">Offizielle Kursseite</string>
     <string name="ui_course_open_catalogue_sub">Im UniMol Course Catalogue öffnen</string>
     <string name="ui_course_open_catalogue_badge">Portal</string>
-    <string name="ui_course_sections_overview">Lehrplanabschnitte</string>
 </resources>
