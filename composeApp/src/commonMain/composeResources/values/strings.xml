@@ -7,7 +7,6 @@
     <string name="ui_storage_reset_message">Questo aggiornamento ha reimpostato lo storage di UniApp: account salvati, sessioni, preferenze e dati scaricati sono stati rimossi dal dispositivo. Accedi di nuovo per scaricare i dati aggiornati. I tuoi dati sul portale universitario non sono stati modificati.</string>
     <string name="ui_loading">Caricamento…</string>
     <string name="ui_cancel">Annulla</string>
-    <string name="ui_save">Salva</string>
     <string name="ui_done">Fatto</string>
     <string name="ui_customize">Personalizza</string>
     <string name="ui_details">Dettagli</string>
@@ -19,15 +18,12 @@
 
     <string name="ui_sign_out_confirm_message">Sei sicuro di voler uscire dal tuo account universitario? Le sessioni attive verranno chiuse.</string>
     <string name="ui_course_activity_characterizing">Caratterizzante</string>
-    <string name="ui_course_activity_base">Attività formativa di base</string>
     <string name="ui_course_attendance_recommended">Consigliata</string>
     <string name="ui_course_attendance_no_obligation">Nessun obbligo di firma</string>
-    <string name="ui_course_sector_label">Settore disciplinare</string>
     <string name="ui_course_lang_italian">Italiano</string>
     <string name="ui_course_lang_material_note">Materiale anche in lingua</string>
 
     <string name="ui_sign_out">Esci dall'account</string>
-    <string name="ui_notes">Note</string>
     <string name="ui_state_no_data">Nessun dato disponibile.</string>
     <string name="ui_state_error_title">Dati non disponibili</string>
     <string name="ui_state_error_desc">Il caricamento non è riuscito.</string>
@@ -40,7 +36,6 @@
     <string name="ui_state_empty_study_plan">Il piano di studi non contiene corsi.</string>
     <string name="ui_state_empty_questionnaires">Non risultano questionari associati ai corsi.</string>
     <string name="ui_state_empty_questionnaire_detail">Il questionario non contiene domande.</string>
-    <string name="ui_state_empty_news">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_state_empty_academic_section">Non sono disponibili contenuti in questa sezione.</string>
     <string name="ui_state_empty_academic_detail">Il dettaglio selezionato non è più disponibile.</string>
 
@@ -49,7 +44,6 @@
     <string name="ui_device_disconnect_all_action">Disconnetti</string>
 
 
-    <string name="ui_legal">Legale</string>
     <string name="ui_legal_notes">Policy e note legali</string>
     <string name="ui_privacy">Informativa privacy</string>
     <string name="ui_privacy_title">Informativa privacy</string>
@@ -68,26 +62,14 @@
     <string name="ui_app_info_group">Sviluppo e progetto</string>
     <string name="ui_app_information">Informazioni UniApp</string>
     <string name="ui_app_information_subtitle">Note legali e crediti</string>
-    <string name="ui_app_footer">Sviluppato con Liquid Monet SDK\n© 2026 UniApp Project</string>
-    <string name="ui_project_summary_title">Il progetto</string>
     <string name="ui_project_summary_text">UniApp è un progetto indipendente di Anto426 per accedere ai servizi universitari, alla carriera e ai trasporti. Non è un’app ufficiale dell’Università degli Studi del Molise.</string>
     <string name="ui_source">Codice sorgente</string>
     <string name="ui_source_subtitle">Repository su GitHub</string>
-    <string name="ui_author">Autore</string>
-    <string name="ui_github">GitHub</string>
-    <string name="ui_linkedin">LinkedIn</string>
-    <string name="ui_portfolio">Portfolio</string>
-    <string name="ui_app_credit">UniApp • prodotto con ❤️ da Anto426</string>
     <string name="ui_app_info_gdpr">Trattamento dati e servizi esterni</string>
     <string name="ui_app_info_academic_use">Condizioni d'uso dell'app</string>
     <string name="ui_app_info_tech_cookies">Solo cookie tecnici di sessione</string>
-    <string name="ui_app_info_for_students">Sviluppato per gli studenti universitari</string>
 
 
-    <string name="ui_scanner_eyebrow">Smart scanner</string>
-    <string name="ui_scanner_title">Scansiona codice</string>
-    <string name="ui_scanner_description">Inquadra un QR UniApp per registrare presenze, accedere a contenuti o servizi.</string>
-    <string name="ui_start_scan">Avvia scansione</string>
 
 
     <string name="ui_accounts_saved_title">Account salvati</string>
@@ -101,32 +83,13 @@
     <string name="ui_account_active">ATTIVO</string>
 
 
-    <string name="ui_attendance">Presenze</string>
-    <string name="ui_attendance_desc">Rilevazione aula</string>
     <string name="ui_attendance_title">Riepilogo frequenza</string>
     <string name="ui_attendance_subtitle">Storico presenze registrate</string>
     <string name="ui_attendance_prefix">Frequenza: %1$s lezioni</string>
 
-    <string name="ui_didactics_career">Carriera</string>
-    <string name="ui_didactics_title">Gestione didattica</string>
-    <string name="ui_didactics_subtitle">Esami e documenti</string>
-    <string name="ui_transcript">Libretto</string>
-    <string name="ui_transcript_subtitle">Voti e CFU registrati</string>
-    <string name="ui_study_plan">Piano di studio</string>
-    <string name="ui_study_plan_subtitle">Esami previsti</string>
-    <string name="ui_achieved">Conseguiti</string>
     <string name="ui_degree_label">Corso di laurea</string>
     <string name="ui_department_label">Dipartimento</string>
-    <string name="ui_status_label">Status</string>
-    <string name="ui_deadline_label">Scadenza</string>
-    <string name="ui_current_average">Media ponderata</string>
-    <string name="ui_arithmetic_average">Media aritmetica</string>
     <string name="ui_graduation_base">Base di laurea</string>
-    <string name="ui_acquired_cfu">CFU acquisiti</string>
-    <string name="ui_cfu_progress">%1$s di %2$s CFU completati</string>
-    <string name="ui_career_progress">Avanzamento laurea triennale</string>
-    <string name="ui_career_completion">Completamento carriera: %1$d%</string>
-    <string name="ui_exams_passed_badge">%1$d ESAMI SUPERATI</string>
 
 
     <string name="ui_status_completed">Superato</string>
@@ -143,36 +106,15 @@
     <string name="ui_study_plan_year_summary">%1$d CFU totali • %2$d/%3$d superati</string>
 
 
-    <string name="ui_grades_tab_current">Medie &amp; esami</string>
-    <string name="ui_grades_tab_simulation">Simulatore</string>
-    <string name="ui_grades_tab_targets">Obiettivi laurea</string>
-    <string name="ui_grades_verbalized_title">Esami verbalizzati</string>
-    <string name="ui_grades_verbalized_subtitle">%1$d esami per un totale di %2$d CFU</string>
     <string name="ui_grades_verbalized_empty">Nessun esame verbalizzato registrato.</string>
     <string name="ui_grades_simulation_result">Risultato simulazione</string>
     <string name="ui_grades_simulation_delta">Variazione %1$s</string>
     <string name="ui_grades_simulation_estimated">Media stimata</string>
-    <string name="ui_grades_simulation_new_base">Nuova base: %1$s</string>
     <string name="ui_grades_simulation_summary">%1$d esami inclusi (+ %2$d CFU simulati sul totale)</string>
     <string name="ui_grades_simulation_to_simulate">Esami da simulare</string>
     <string name="ui_grades_simulation_to_simulate_sub">Tocca per includere l'esame e imposta il voto previsto</string>
     <string name="ui_grades_simulation_empty">Nessun esame disponibile per la simulazione nel piano di studi.</string>
-    <string name="ui_grades_target_title">Target voto di laurea</string>
-    <string name="ui_grades_target_subtitle">Scegli il tuo obiettivo finale per calcolare la media necessaria</string>
-    <string name="ui_grades_thesis_points">Punti tesi previsti</string>
-    <string name="ui_grades_thesis_points_sub">Bonus assegnato dalla commissione</string>
-    <string name="ui_grades_needed_base">Base richiesta</string>
-    <string name="ui_grades_needed_average">Media esami target</string>
-    <string name="ui_grades_achievable">Raggiungibile</string>
-    <string name="ui_grades_requires_thesis">Richiede punti tesi</string>
     <string name="ui_grades_current">Media attuale</string>
-    <string name="ui_grades_simulation">Simulazione</string>
-    <string name="ui_grades_simulation_subtitle">Calcola la tua media futura</string>
-    <string name="ui_grades_taken">Esami superati</string>
-    <string name="ui_grades_taken_subtitle">Riepilogo voti e CFU</string>
-    <string name="ui_grades_current_tab">Media attuale</string>
-    <string name="ui_grade_unit">Voto</string>
-    <string name="ui_grades_projected">Media proiettata</string>
 
 
     <string name="ui_course_syllabus_title">Syllabus del corso</string>
@@ -189,14 +131,11 @@
     <string name="ui_course_scientific_sector">Settore scientifico</string>
     <string name="ui_course_language">Lingua erogazione</string>
     <string name="ui_course_prerequisites_title">Propedeuticità e vincoli</string>
-    <string name="ui_course_period">Periodo</string>
     <string name="ui_course_credits">Crediti formativi</string>
-    <string name="ui_course_status_header">Stato attività</string>
     <string name="ui_course_code_header">SSD / codice</string>
 
 
     <string name="ui_student_name_fallback">Studente d'Ateneo</string>
-    <string name="ui_student_card">Tessera dello studente</string>
     <string name="ui_student_id_details_title">Dettagli carriera studente</string>
     <string name="ui_professor_id_details_title">Dettagli docente</string>
     <string name="ui_professor_role">Docente</string>
@@ -204,31 +143,20 @@
     <string name="ui_professor_id">ID docente</string>
     <string name="ui_professor_department_id">ID dipartimento</string>
     <string name="ui_student_status">In corso</string>
-    <string name="ui_verified_validity">Validità verificata tramite crittografia</string>
     <string name="ui_badge">Badge</string>
-    <string name="ui_badge_subtitle">Identità digitale</string>
     <string name="ui_matricola">Matricola</string>
     <string name="ui_matricola_prefix">matr. %1$s</string>
     <string name="ui_enrollment_status">Stato iscrizione</string>
-    <string name="ui_badge_student_title">Badge studente</string>
-    <string name="ui_badge_professor_title">Badge docente</string>
-    <string name="ui_badge_digital_pass">Pass digitale</string>
     <string name="ui_badge_scan_gates_hint">Scansiona ai varchi e lettori ottici</string>
-    <string name="ui_badge_barcode">Codice a barre del badge</string>
-    <string name="ui_badge_barcode_short">CODICE A BARRE</string>
     <string name="ui_badge_tap_to_flip_hint">Tocca per girare e visualizzare il QR Code</string>
     <string name="ui_badge_tap_to_flip_back_hint">Identità verificata • tocca per girare</string>
 
 
     <string name="ui_exams">Appelli</string>
-    <string name="ui_exams_subtitle">Prenota esami</string>
-    <string name="ui_registered_exams">Esami registrati</string>
-    <string name="ui_registered_exams_subtitle">Dettaglio prove superate</string>
     <string name="ui_bookable_exams">Prenotabili</string>
     <string name="ui_booked_exams">Prenotati</string>
     <string name="ui_professor">Professore</string>
     <string name="ui_exam_type">Tipo</string>
-    <string name="ui_room">Aula</string>
     <string name="ui_booking_window">Finestra prenotazioni</string>
     <string name="ui_booked_students">Studenti prenotati:</string>
     <string name="ui_add_calendar">Aggiungi a Google Calendar</string>
@@ -242,31 +170,19 @@
     <string name="ui_exam_status_verbalized">Verbalizzato</string>
     <string name="ui_exam_status_booked_past">Prenotato • appello trascorso</string>
     <string name="ui_exam_grade">Voto</string>
-    <string name="ui_exam_cfu">CFU</string>
     <string name="ui_exam_code">Codice attività</string>
     <string name="ui_available_slots">Posti disponibili</string>
     <string name="ui_no_exams_in_section">Nessun appello in questa sezione</string>
     <string name="ui_no_exams_in_section_description">Non ci sono appelli compatibili con il filtro selezionato.</string>
-    <string name="ui_exams_planned">%1$s esami previsti</string>
     <string name="ui_history_empty_title">Nessun appello nello storico</string>
     <string name="ui_history_empty_desc">Non sono ancora presenti sessioni o esami verbalizzati conclusi.</string>
 
 
     <string name="ui_taxes">Tasse</string>
-    <string name="ui_taxes_subtitle">Stato pagamenti</string>
-    <string name="ui_pay_all">Tutto in regola</string>
-    <string name="ui_pending_payments">Pagamenti in sospeso</string>
-    <string name="ui_pending_payment_description">Non hai pagamenti in sospeso per l'anno corrente.</string>
     <string name="ui_pending_section">Da pagare</string>
     <string name="ui_pending_section_subtitle">Rate in scadenza e avvisi</string>
     <string name="ui_paid_section">Pagate</string>
-    <string name="ui_paid_section_subtitle">Storico versamenti completati</string>
-    <string name="ui_paid">Pagata</string>
-    <string name="ui_to_pay">Da pagare</string>
-    <string name="ui_receipt_pdf">Ricevuta PDF</string>
-    <string name="ui_pay_pagopa">Paga con PagoPA</string>
     <string name="ui_iuv_prefix">IUV: %1$s</string>
-    <string name="ui_pending_count">Hai %1$s rata da saldare entro la scadenza.</string>
     <string name="ui_taxes_status_header">SITUAZIONE CONTRIBUZIONE</string>
     <string name="ui_taxes_status_regular">REGOLARE</string>
     <string name="ui_taxes_status_pending">%1$d IN SOSPESO</string>
@@ -281,16 +197,10 @@
     <string name="ui_taxes_due_pending">Scadenza in definizione</string>
     <string name="ui_taxes_filter_empty">Nessuna rata in questa categoria</string>
     <string name="ui_taxes_filter_empty_desc">Seleziona un altro filtro per visualizzare le rate universitarie.</string>
-    <string name="ui_tax_paid_badge">PAGATA</string>
-    <string name="ui_tax_pending_badge">DA PAGARE</string>
 
 
-    <string name="ui_contact_placeholder">Cerca docente o ufficio...</string>
     <string name="ui_contacts_title">Docenti e uffici</string>
-    <string name="ui_contacts_subtitle">Contatti istituzionali</string>
-    <string name="ui_contact_detail_title">Dettaglio contatto</string>
     <string name="ui_contact_info_group">Informazioni di contatto</string>
-    <string name="ui_contact_label">Contatto</string>
     <string name="ui_email">Email</string>
     <string name="ui_phone">Telefono</string>
     <string name="ui_office">Ufficio</string>
@@ -305,77 +215,42 @@
     <string name="ui_contact_open_failed">Impossibile aprire il contatto. Verifica che sia disponibile un’app per email o telefonate.</string>
     <string name="ui_contacts_empty_title">Nessun contatto disponibile</string>
     <string name="ui_contacts_empty_desc">Prova a cambiare categoria o ricerca.</string>
-    <string name="ui_teachers_title">Docenti e ricercatori</string>
-    <string name="ui_secretariat_title">Segreterie studenti</string>
-    <string name="ui_offices_support_title">Uffici e supporto</string>
-    <string name="ui_contacts_count">%1$d contatti</string>
-    <string name="ui_secretariat_count">%1$d sportelli</string>
-    <string name="ui_offices_count">%1$d uffici</string>
     <string name="ui_contacts_available">%1$d contatti disponibili</string>
     <string name="ui_contacts_available_one">1 contatto disponibile</string>
     <string name="ui_contacts_all_categories">Tutte</string>
-    <string name="ui_services_student_title">Servizi principali</string>
-    <string name="ui_services_student_sub">Tasse, trasporti e segreteria</string>
     <string name="ui_services_portals_title">Portali di ateneo</string>
     <string name="ui_services_portals_sub">Piattaforme digitali e servizi online</string>
 
 
-    <string name="ui_transport_title">Navette studenti</string>
-    <string name="ui_transport_subtitle">Orari e percorsi campus</string>
-    <string name="ui_transport_tickets">Biglietti</string>
-    <string name="ui_transport_reservations">Prenotazioni</string>
-    <string name="ui_transport_buy">Acquista</string>
-    <string name="ui_transport_ticket_detail">Dettaglio biglietto</string>
-    <string name="ui_transport_reservation_detail">Dettaglio prenotazione</string>
-    <string name="ui_transport_validity">Validità</string>
-    <string name="ui_transport_price">Prezzo</string>
-    <string name="ui_transport_use_ticket">Usa biglietto</string>
     <string name="ui_trip_outbound">Corsa di andata</string>
     <string name="ui_trip_return">Corsa di ritorno</string>
     <string name="ui_trip_details">Dettagli viaggio</string>
     <string name="ui_trip_route">Tratta</string>
-    <string name="ui_trip_datetime">Data e ora</string>
     <string name="ui_trip_departure_stop">Fermata di salita</string>
     <string name="ui_trip_arrival_stop">Fermata di arrivo</string>
     <string name="ui_trip_bus_assigned">Veicolo assegnato</string>
     <string name="ui_transport_empty_reservations">Non hai viaggi prenotati per i prossimi giorni.</string>
-    <string name="ui_transport_catalog_title">Titoli di viaggio</string>
-    <string name="ui_transport_catalog_sub">Scegli il titolo di viaggio più adatto</string>
     <string name="ui_transport_trip_date">Data del viaggio</string>
     <string name="ui_transport_book_ride">Prenota corsa</string>
 
 
-    <string name="ui_home_news_eyebrow">Notizie</string>
     <string name="ui_home_news_all">Apri tutte</string>
     <string name="ui_news_university">Ateneo</string>
     <string name="ui_news_department">Dipartimento</string>
     <string name="ui_news_all">Tutte</string>
     <string name="ui_news_course">Corso di studi</string>
     <string name="ui_news_generic">Notizia</string>
-    <string name="ui_news_events">Eventi</string>
     <string name="ui_news_empty_title">Nessuna notizia disponibile</string>
     <string name="ui_news_empty_desc">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_news_official_notice">Comunicazione ufficiale</string>
-    <string name="ui_news_notice_body">Testo della notizia</string>
-    <string name="ui_news_summary_heading">In breve</string>
-    <string name="ui_news_article_heading">Notizia</string>
     <string name="ui_news_open_original">Apri la notizia originale</string>
     <string name="ui_news_share">Condividi notizia</string>
-    <string name="ui_home_news_page_notice">Notizia %1$d di %2$d • scorri per sfogliare</string>
 
 
     <string name="ui_home_career_eyebrow">Carriera accademica</string>
-    <string name="ui_home_degree_estimate">Su 110 stimato</string>
     <string name="ui_home_average_label">Media</string>
-    <string name="ui_home_cfu_acquired">%1$s CFU conseguiti</string>
-    <string name="ui_home_cfu_missing">%1$s mancanti</string>
-    <string name="ui_home_exams_open">Appelli aperti</string>
-    <string name="ui_home_tax_deadline">Rata in scadenza</string>
     <string name="ui_home_quick_access_eyebrow">Accesso rapido</string>
-    <string name="ui_home_quick_access_sub">I tuoi servizi e strumenti preferiti</string>
     <string name="ui_home_customize_title">Scegli gli strumenti in home</string>
-    <string name="ui_average">Media</string>
-    <string name="ui_average_subtitle">Andamento voti</string>
 
 
 
@@ -384,10 +259,6 @@
     <string name="ui_system_and_info">Sistema e informazioni</string>
     <string name="ui_session_title">Sessione</string>
 
-    <string name="ui_profile_access">Profilo e accesso</string>
-    <string name="ui_application_preferences">Preferenze applicazione</string>
-    <string name="ui_visual_experience">Esperienza visiva</string>
-    <string name="ui_system">Sistema</string>
     <string name="ui_language_title">Lingua</string>
     <string name="ui_language_subtitle">Scegli la lingua per l'interfaccia di UniApp</string>
     <string name="ui_available_languages">Lingue disponibili</string>
@@ -415,22 +286,8 @@
     <string name="ui_theme_colors">Tema e colori</string>
     <string name="ui_theme_subtitle">Motore Monet e palette dinamiche</string>
     <string name="ui_theme_selection_title">Stile tema</string>
-    <string name="ui_color_engine">Motore colore</string>
-    <string name="ui_material_you">Material You</string>
-    <string name="ui_material_you_subtitle">Sincronizza i colori con il sistema</string>
-    <string name="ui_predefined_palettes">Palette predefinite</string>
-    <string name="ui_palette_title">Tonalità crystal glass</string>
-    <string name="ui_dynamic_effects">Effetti dinamici</string>
-    <string name="ui_glass_intensity">Intensità vetro</string>
-    <string name="ui_aurora_speed">Velocità aurora</string>
-    <string name="ui_effects_info">Le modifiche agli effetti verranno applicate istantaneamente a tutti i componenti in vetro.</string>
-    <string name="ui_preview_color">Anteprima colore</string>
-    <string name="ui_background_style">Stile sfondo</string>
-    <string name="ui_effect_speed">Velocità effetti</string>
-    <string name="ui_liquid_intensity">Intensità liquida</string>
     <string name="ui_colors_title">Laboratorio colori</string>
     <string name="ui_colors_subtitle">Sperimenta con lo spettro cromatico Liquid</string>
-    <string name="ui_advanced_controls">Controlli avanzati</string>
     <string name="ui_colors_info">Il colore selezionato verrà utilizzato come seme per generare l'intera palette Monet dell'applicazione se il motore Material You è disattivato.</string>
     <string name="ui_colors_tab_spectrum">Spettro</string>
     <string name="ui_colors_tab_adjust">Regolazione</string>
@@ -494,11 +351,9 @@
     <string name="ui_app_password_retry_later">Troppi tentativi. Attendi prima di riprovare.</string>
     <string name="ui_app_password_unlock_failed">Impossibile sbloccare l’account. Riprova.</string>
     <string name="ui_unlock_authenticating">Verifica dell’identità in corso…</string>
-    <string name="ui_unlock_account">Autenticati per aprire l’account di %1$s.</string>
     <string name="ui_unlock_action">Sblocca con il dispositivo</string>
     <string name="ui_unlock_other_account">Usa un altro account</string>
     <string name="ui_professor_area_title">Area docente</string>
-    <string name="ui_professor_area_subtitle">Insegnamenti, appelli, tesi e verbalizzazioni del profilo attivo.</string>
     <string name="ui_professor_courses_count">%1$d corsi</string>
     <string name="ui_professor_rounds_count">%1$d appelli</string>
     <string name="ui_professor_theses_count">%1$d tesi</string>
@@ -513,46 +368,27 @@
     <string name="ui_professor_teachings_subtitle">Corsi e attività</string>
     <string name="ui_professor_exam_rounds_subtitle">Sessioni e commissioni</string>
     <string name="ui_professor_reports_subtitle">Verbali ed esiti</string>
-    <string name="ui_professor_news_subtitle">Comunicazioni e avvisi</string>
     <string name="ui_professor_settings_subtitle">Preferenze e sicurezza</string>
     <string name="ui_academic_item_details">Informazioni disponibili</string>
-    <string name="ui_professor_exam_details_tab">Dettagli</string>
     <string name="ui_professor_exam_round_tab">Appello</string>
     <string name="ui_professor_commission">Commissione</string>
     <string name="ui_professor_bookings">Prenotazioni</string>
-    <string name="ui_professor_booking_matricola">Matricola</string>
-    <string name="ui_professor_booking_student">Cognome e nome</string>
-    <string name="ui_professor_booking_grade">Voto</string>
     <string name="ui_professor_no_commission">Commissione non disponibile</string>
     <string name="ui_professor_no_commission_description">Il portale non ha restituito i componenti della commissione.</string>
     <string name="ui_professor_no_bookings">Nessuna prenotazione</string>
     <string name="ui_professor_no_bookings_description">Non risultano studenti prenotati per questo appello.</string>
-    <string name="ui_news">Notizie</string>
     <string name="ui_settings">Impostazioni</string>
-    <string name="ui_professor_degrees">Corsi di studio</string>
     <string name="ui_professor_items_count">%1$d elementi</string>
     <string name="ui_professor_empty_title">Nessun dato docente</string>
-    <string name="ui_professor_empty_description">Il portale non ha restituito contenuti per questo profilo.</string>
-    <string name="ui_professor_open_area">Apri tutti gli strumenti docente</string>
-    <string name="ui_status_prefix">Stato: %1$s</string>
 
 
         <string name="ui_update_mandatory">Aggiornamento obbligatorio</string>
     <string name="ui_update_news">Novità disponibili</string>
     <string name="ui_updates">Aggiornamenti</string>
-    <string name="ui_update_version">Versione 2.0</string>
-    <string name="ui_software_version">Versione del software</string>
-    <string name="ui_system_updated">Stato sistema: aggiornato</string>
-    <string name="ui_changelog">Visualizza le note di aggiornamento</string>
     <string name="ui_changelog_subtitle">Novità dell'ultimo rilascio</string>
     <string name="ui_updated_version">Versione aggiornata</string>
-    <string name="ui_app_version_full">UniApp core v1.0.0-beta</string>
-    <string name="ui_app_version_label">UniApp 1.0</string>
 
 
-    <string name="ui_questionnaires">Questionari</string>
-    <string name="ui_questionnaires_subtitle">Valutazione corsi</string>
-    <string name="ui_questionnaire_status">Stato valutazioni</string>
     <string name="ui_questionnaire_note">La valutazione è obbligatoria per prenotare gli appelli.</string>
 
     <string name="ui_questionnaires_progress">Progresso questionari</string>
@@ -577,21 +413,16 @@
     <string name="ui_login_quick_switch">Accedi con un account salvato</string>
 
     <string name="ui_login_title">Accedi a UniApp</string>
-    <string name="ui_login_subtitle">Inserisci le tue credenziali Esse3 d'Ateneo</string>
     <string name="ui_login_username_label">Nome utente o matricola</string>
     <string name="ui_login_username_placeholder">Es. m.rossi o 123456</string>
     <string name="ui_login_password_label">Password Esse3</string>
     <string name="ui_login_password_placeholder">Inserisci la tua password...</string>
     <string name="ui_login_button">Accedi con Esse3</string>
-    <string name="ui_login_guest_button">Esplora come ospite</string>
     <string name="ui_login_forgot_password">Password dimenticata?</string>
-    <string name="ui_login_security_note">Le credenziali vengono salvate cifrate solo su questo dispositivo e inviate esclusivamente ai server ufficiali Esse3 dell'Ateneo.</string>
     <string name="ui_login_career_selection_title">Seleziona carriera</string>
     <string name="ui_login_career_selection_subtitle">Abbiamo rilevato più carriere attive associate alle tue credenziali. Seleziona quella con cui desideri accedere.</string>
     <string name="ui_login_remember_credentials">Ricorda credenziali</string>
     <string name="ui_login_error_empty">Inserisci sia il nome utente che la password.</string>
-    <string name="ui_login_error_invalid">Credenziali non valide o sessione scaduta. riprova.</string>
-    <string name="ui_login_success">Accesso completato con successo</string>
 
 
     <string name="ui_update_search">Ricerca aggiornamenti</string>
@@ -608,10 +439,8 @@
     <string name="ui_update_error_desc">Controlla la connessione e riprova</string>
     <string name="ui_update_download">Scarica</string>
     <string name="ui_update_new_available">Nuovo aggiornamento disponibile</string>
-    <string name="ui_update_channel">Canale di rilascio</string>
     <string name="ui_update_system_information">Sistema e informazioni</string>
     <string name="ui_update_installed_version">Versione installata</string>
-    <string name="ui_update_installed_details">%1$s %2$s • %3$s</string>
     <string name="ui_update_stable_channel">Canale stabile</string>
     <string name="ui_update_channel_unknown">Canale non disponibile</string>
     <string name="ui_update_installed_badge">INSTALLATA</string>
@@ -622,10 +451,7 @@
     <string name="ui_update_verification_running">Controllo firma in corso…</string>
     <string name="ui_update_verification_passed">Firma e versione verificate</string>
     <string name="ui_update_check_action">Controlla aggiornamenti</string>
-    <string name="ui_update_check_in_progress">Ricerca di nuove versioni in corso…</string>
-    <string name="ui_update_check_description">Verifica se è disponibile una nuova versione</string>
 
-    <string name="ui_account_profiles_title">Profili e carriere</string>
 
     <!-- Navigation & Route Presentations -->
     <string name="nav_route_bootstrap_subtitle">Avvio sicuro</string>
@@ -651,8 +477,6 @@
     <string name="nav_route_report_detail_subtitle">Dettaglio verbale</string>
     <string name="nav_route_settings_title">Impostazioni</string>
     <string name="nav_route_settings_subtitle">Preferenze e configurazione</string>
-    <string name="nav_route_accounts_title">Account</string>
-    <string name="nav_route_accounts_subtitle">Gestione profili universitari</string>
     <string name="nav_route_info_title">Informazioni</string>
     <string name="nav_route_info_subtitle">Versione e note di rilascio</string>
     <string name="nav_route_theme_title">Tema</string>
@@ -663,20 +487,14 @@
     <string name="nav_route_taxes_subtitle">Gestione pagamenti e fatture</string>
     <string name="nav_route_grades_title">Statistiche e simulatore</string>
     <string name="nav_route_grades_subtitle">Calcolo media e simulazione</string>
-    <string name="nav_route_statistics_title">Statistiche</string>
-    <string name="nav_route_statistics_subtitle">Grafici e andamento carriera</string>
     <string name="nav_route_contacts_title">Rubrica</string>
     <string name="nav_route_contacts_subtitle">Contatti docenti e uffici</string>
     <string name="nav_route_contact_detail_title">Dettaglio contatto</string>
     <string name="nav_route_contact_detail_subtitle">Informazioni docente</string>
     <string name="nav_route_transport_title">Trasporti</string>
     <string name="nav_route_transport_subtitle">Navette e orari</string>
-    <string name="nav_route_transport_catalog_title">Biglietti</string>
-    <string name="nav_route_transport_catalog_subtitle">Catalogo titoli di viaggio</string>
     <string name="nav_route_transport_booking_title">Prenotazione posto</string>
     <string name="nav_route_transport_booking_subtitle">Seleziona data e ora</string>
-    <string name="nav_route_ticket_detail_default_title">Biglietto</string>
-    <string name="nav_route_ticket_detail_subtitle">Info titolo di viaggio</string>
     <string name="nav_route_reservation_detail_default_title">Prenotazione</string>
     <string name="nav_route_reservation_detail_subtitle">Info posto a bordo</string>
     <string name="nav_route_transcripts_title">Carriera</string>
@@ -684,10 +502,6 @@
     <string name="nav_route_exams_title">Appelli</string>
     <string name="nav_route_exams_student_subtitle">Prenotazione esami</string>
     <string name="nav_route_exams_professor_subtitle">Prenotazioni, commissioni e verbali</string>
-    <string name="nav_route_exams_history_title">Storico appelli</string>
-    <string name="nav_route_exams_history_subtitle">Esami e prenotazioni precedenti</string>
-    <string name="nav_route_study_plan_title">Piano di studio</string>
-    <string name="nav_route_study_plan_subtitle">Pianificazione esami e CFU</string>
     <string name="nav_route_course_detail_title">Dettaglio corso</string>
     <string name="nav_route_course_detail_subtitle">Informazioni esame</string>
     <string name="nav_route_questionnaires_title">Questionari</string>
@@ -722,9 +536,7 @@
     <string name="nav_route_author_subtitle">Le persone dietro UniApp</string>
 
     <!-- Attendance & QR Scanner -->
-    <string name="ui_attendance_scanner_eyebrow">RILEVAZIONE IN AULA</string>
     <string name="ui_attendance_scanner_scan_qr">Scansiona QR presenza</string>
-    <string name="ui_attendance_scanner_live_badge">Live aula 📡</string>
     <string name="ui_attendance_scanner_explainer">Inquadra il codice QR visualizzato a lezione dal docente per registrare e convalidare istantaneamente la tua presenza sul portale d'Ateneo.</string>
     <string name="ui_attendance_action_scan">Scansiona QR Code</string>
     <string name="ui_attendance_kpi_courses">Corsi</string>
@@ -736,15 +548,7 @@
     <string name="ui_attendance_empty_title">Nessuna presenza registrata finora.</string>
     <string name="ui_attendance_empty_desc">Tocca "Scansiona QR Code" in alto quando sei in aula per registrare la tua prima presenza.</string>
     <string name="ui_attendance_dialog_title">Registra presenza</string>
-    <string name="ui_attendance_dialog_confirm">Convalida</string>
     <string name="ui_attendance_dialog_close">Chiudi</string>
-    <string name="ui_attendance_dialog_frame_hint">INQUADRA QR</string>
-    <string name="ui_attendance_dialog_input_label">Codice / stringa QR</string>
-    <string name="ui_attendance_dialog_input_placeholder">es. PRES-2026-CS-09</string>
-    <string name="ui_attendance_dialog_input_hint">Incolla o digita il codice QR proiettato in aula se non riesci a scansionarlo direttamente con la fotocamera.</string>
-    <string name="ui_attendance_scanner_open_camera">Inquadra con fotocamera</string>
-    <string name="ui_attendance_scanner_manual_entry">Inserisci codice manualmente</string>
-    <string name="ui_attendance_recorded_lectures">Lezioni registrate (%1$d)</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">Corso di laurea</string>
@@ -754,11 +558,8 @@
     <string name="ui_didactics_career_progress_percent">Progresso carriera: %1$d%</string>
     <string name="ui_didactics_section_career_evaluations">Carriera e valutazioni</string>
     <string name="ui_didactics_section_career_evaluations_sub">Libretto esami, piano e calcolo della media</string>
-    <string name="ui_didactics_transcript_sub">Esami e voti registrati</string>
-    <string name="ui_didactics_study_plan_sub">Curriculum triennale</string>
     <string name="ui_didactics_taxes_title">Tasse e contributi</string>
     <string name="ui_didactics_taxes_sub">Situazione pagamenti</string>
-    <string name="ui_didactics_grades_title">Media e voti</string>
     <string name="ui_didactics_grades_sub">Simulazione e calcolo</string>
     <string name="ui_didactics_section_exams_classroom">Esami e aula</string>
     <string name="ui_didactics_section_exams_classroom_sub">Appelli d'esame, presenze e rilevazioni</string>
@@ -772,36 +573,21 @@
     <string name="ui_didactics_badge_sub">Tessera identificativa</string>
 
     <!-- Statistics -->
-    <string name="ui_stats_tab_trend">Andamento</string>
-    <string name="ui_stats_tab_cfu">Crediti CFU</string>
-    <string name="ui_stats_tab_tiers">Fasce voto</string>
     <string name="ui_stats_evolution_title">Evoluzione voti e medie</string>
-    <string name="ui_stats_evolution_subtitle">Confronto cronologico tra voti singoli, media ponderata e aritmetica</string>
     <string name="ui_stats_series_grade">Voto</string>
     <string name="ui_stats_series_weighted">Ponderata</string>
     <string name="ui_stats_series_arithmetic">Aritmetica</string>
     <string name="ui_stats_exam_singular">esame</string>
     <string name="ui_stats_exams_plural">esami</string>
     <string name="ui_stats_study_plan_progress">Avanzamento piano di studi</string>
-    <string name="ui_stats_weighted_average_header">MEDIA PONDERATA</string>
-    <string name="ui_stats_degree_projection_header">PROIEZIONE LAUREA</string>
     <string name="ui_stats_weighting_spread">Scarto ponderazione</string>
     <string name="ui_stats_highest_grade">Voto più alto</string>
     <string name="ui_stats_lowest_grade">Voto più basso</string>
     <string name="ui_stats_recent_trend">Trend recente</string>
-    <string name="ui_stats_trend_points_positive">+%1$s punti</string>
-    <string name="ui_stats_trend_points_negative">%1$s punti</string>
     <string name="ui_stats_cfu_distribution_title">Distribuzione crediti per esame</string>
-    <string name="ui_stats_cfu_distribution_sub">Numero di esami superati per ciascun valore di CFU</string>
-    <string name="ui_stats_cfu_bar_detail">Esami per questa fascia di CFU</string>
-    <string name="ui_stats_cfu_summary_title">Riepilogo crediti formativi</string>
-    <string name="ui_stats_cfu_summary_sub">%1$d CFU totali acquisiti su %2$d previsti</string>
     <string name="ui_stats_grade_tiers_title">Ripartizione per fasce di voto</string>
     <string name="ui_stats_grade_tiers_sub">Distribuzione analitica del rendimento accademico</string>
-    <string name="ui_stats_recent_trend_desc">Variazione negli ultimi 3 esami sostenuti</string>
-    <string name="ui_stats_passed_exams">Esami superati</string>
     <string name="ui_stats_arithmetic_average">Media aritmetica</string>
-    <string name="ui_status_in_order">In regola</string>
     <string name="ui_status_in_progress">In corso</string>
 
     <!-- Academic Item Detail & Thesis -->
@@ -810,39 +596,25 @@
     <string name="ui_academic_tag_teaching">INSEGNAMENTO</string>
     <string name="ui_academic_tag_report">VERBALE DI COMMISSIONE</string>
     <string name="ui_academic_tag_exam">APPELLO D'ESAME</string>
-    <string name="ui_academic_date_label">Data:</string>
     <string name="ui_thesis_defense">Discussione</string>
-    <string name="ui_thesis_discussion">Discussione</string>
     <string name="ui_thesis_final_grade">Voto finale</string>
     <string name="ui_thesis_supervisor">Relatore</string>
     <string name="ui_thesis_title_label">Titolo dell'elaborato / tesi</string>
-    <string name="ui_thesis_advisors_title">Docenti relatori</string>
     <string name="ui_thesis_supervisors_group">Docenti relatori</string>
-    <string name="ui_thesis_supervisor_sub">Docente relatore</string>
     <string name="ui_thesis_supervisor_role">Docente relatore</string>
-    <string name="ui_thesis_co_supervisor_sub">Correlatore</string>
     <string name="ui_thesis_cosupervisor_role">Correlatore</string>
-    <string name="ui_thesis_session_data_title">Dati sessione e carriera</string>
     <string name="ui_thesis_session_group">Dati sessione e carriera</string>
-    <string name="ui_thesis_matricola_label">Matricola studente</string>
     <string name="ui_thesis_student_matricola">Matricola studente</string>
-    <string name="ui_thesis_degree_label">Corso di laurea</string>
     <string name="ui_thesis_degree_course">Corso di laurea</string>
-    <string name="ui_thesis_graduation_session">Sessione di laurea</string>
     <string name="ui_thesis_degree_session">Sessione di laurea</string>
-    <string name="ui_thesis_datetime_label">Data e orario discussione</string>
     <string name="ui_thesis_defense_date_time">Data e orario discussione</string>
-    <string name="ui_thesis_location_label">Sede / aula discussione</string>
     <string name="ui_thesis_defense_location">Sede / aula discussione</string>
-    <string name="ui_thesis_outcome_label">Esito / valutazione</string>
     <string name="ui_thesis_outcome_evaluation">Esito / valutazione</string>
     <string name="ui_professor_exam_round_tag">APPELLO D'ESAME</string>
     <string name="ui_professor_registered_students">Iscritti</string>
     <string name="ui_professor_registered_count">%1$d iscritti</string>
     <string name="ui_professor_members_count">%1$d membri</string>
-    <string name="ui_professor_no_extra_info">Nessuna informazione aggiuntiva per questo appello.</string>
     <string name="ui_professor_exam_session_fallback">Sessione d'appello</string>
-    <string name="ui_professor_exam_detail_heading">Dettagli appello</string>
     <string name="ui_date_time_label">Data e ora</string>
     <string name="ui_professor_student_matricola_format">Matricola: %1$s</string>
     <string name="ui_professor_student_registered_fallback">Iscritto alla sessione</string>
@@ -853,27 +625,12 @@
     <string name="ui_add">Aggiungi</string>
 
     <!-- Grades & Simulator -->
-    <string name="ui_grades_active_projection">PROIEZIONE ATTIVA</string>
-    <string name="ui_grades_current_state">STATO ATTUALE</string>
-    <string name="ui_grades_no_simulation">Nessuna simulazione</string>
     <string name="ui_grades_cfu_progress_projected">Avanzamento CFU proiettato</string>
-    <string name="ui_grades_preset_all_30">Tutti 30</string>
-    <string name="ui_grades_preset_all_28">Tutti 28</string>
-    <string name="ui_grades_preset_all_24">Tutti 24</string>
-    <string name="ui_grades_preset_current_average">Media attuale</string>
-    <string name="ui_grades_preset_reset">Azzera</string>
     <string name="ui_grades_tab_simula">Simula</string>
     <string name="ui_grades_tab_obiettivo">Obiettivo</string>
-    <string name="ui_grades_tab_grafici">Grafici</string>
     <string name="ui_grades_projected_degree_base">Proiezione laurea</string>
-    <string name="ui_grades_base_degree">Base di laurea</string>
-    <string name="ui_grades_exams_to_simulate_title">Esami da simulare</string>
     <string name="ui_grades_exams_to_simulate_subtitle">%1$d corsi disponibili • %2$s</string>
     <string name="ui_grades_no_residual_exams">Nessun esame residuo trovato nel piano di studi.</string>
-    <string name="ui_grades_impact_format">Impatto %1$s%2$s</string>
-    <string name="ui_grades_simulate_badge">Simula</string>
-    <string name="ui_grades_adjust_grade">Regola voto:</string>
-    <string name="ui_grades_graduation_target_header">OBIETTIVO LAUREA</string>
     <string name="ui_grades_feasibility_easy">Alla portata</string>
     <string name="ui_grades_feasibility_feasible">Raggiungibile</string>
     <string name="ui_grades_feasibility_hard">Molto impegnativo</string>
@@ -888,16 +645,10 @@
     <string name="ui_grades_customize_params_title">Personalizza parametri</string>
     <string name="ui_grades_customize_params_sub">Scegli il target finale, i punti tesi e i bonus accademici</string>
     <string name="ui_grades_target_degree_vote">Voto di laurea desiderato</string>
-    <string name="ui_grades_custom_target">Voto personalizzato:</string>
     <string name="ui_grades_thesis_points_label">Punti tesi stimati</string>
     <string name="ui_grades_career_bonus_label">Punti bonus carriera</string>
     <string name="ui_grades_chart_evolution_sub">Andamento cronologico con voti singoli, media ponderata e proiezione simulata</string>
     <string name="ui_grades_no_chart_data">Nessun dato disponibile per il grafico</string>
-    <string name="ui_grades_honors_count_format">%1$d lodi conseguite</string>
-    <string name="ui_grades_recorded_exams_count">%1$d esami verbalizzati</string>
-    <string name="ui_grades_cfu_chart_subtitle">Peso formativo e CFU degli esami sostenuti e simulati</string>
-    <string name="ui_grades_cfu_chart_detail">Crediti formativi verbalizzati/simulati</string>
-    <string name="ui_grades_no_cfu_data">Nessun dato CFU disponibile</string>
     <string name="ui_grades_tier_band_format">Fascia %1$s</string>
     <string name="ui_grades_decrease_value">Diminuisci %1$s</string>
     <string name="ui_grades_increase_value">Aumenta %1$s</string>
@@ -915,19 +666,12 @@
     <string name="ui_transport_route_subtitle">Scegli la linea universitaria per il tuo spostamento</string>
     <string name="ui_transport_direction_title">Direzione</string>
     <string name="ui_transport_direction_subtitle">Seleziona se prenotare la sola andata, il ritorno o entrambi (A/R)</string>
-    <string name="ui_transport_round_trip">Andata e ritorno</string>
     <string name="ui_transport_dates_title">Date del viaggio</string>
     <string name="ui_transport_booking_date_policy">Prenotazioni da domani fino a 15 giorni, esclusi sabato e domenica. Le date già prenotate restano visibili ma non selezionabili.</string>
     <string name="ui_transport_booking_completed">%1$d corse prenotate con successo.</string>
     <string name="ui_transport_booking_partial">%1$d/%2$d corse prenotate; %3$d già presenti, %4$d non riuscite.</string>
-    <string name="ui_transport_dates_subtitle">Tocca i giorni desiderati sul calendario per selezionare più date</string>
-    <string name="ui_transport_preset_today">Oggi</string>
-    <string name="ui_transport_preset_today_tomorrow">Oggi + domani</string>
-    <string name="ui_transport_preset_week">Settimana</string>
     <string name="ui_transport_navetta_number">Navetta #%1$s</string>
     <string name="ui_transport_date_unavailable">Data non disponibile</string>
-    <string name="ui_transport_ticket_options">Opzioni biglietto</string>
-    <string name="ui_transport_canceling">Annullamento…</string>
     <string name="ui_transport_brand_name">UniTransport</string>
     <string name="ui_transport_direction_andata">ANDATA</string>
     <string name="ui_transport_direction_ritorno">RITORNO</string>
@@ -936,27 +680,13 @@
     <string name="ui_transport_quick_qr">QR ↻</string>
     <string name="ui_transport_quick_front">Fronte ↻</string>
     <string name="ui_transport_ticket_flip_hint">Tocca il biglietto per visualizzare il QR Code ↻</string>
-    <string name="ui_transport_pass_flip_hint">Tocca la tessera per visualizzare il QR Code ↻</string>
     <string name="ui_transport_validation_badge">CONVALIDA</string>
     <string name="ui_transport_ticket_title_badge">TITOLO DI VIAGGIO</string>
-    <string name="ui_transport_shuttle_campus_default">Navetta campus studenti</string>
     <string name="ui_transport_scan_turnstile_hint">Scansiona al tornello o a bordo</string>
-    <string name="ui_transport_scan_gates_hint">Scansiona ai varchi di bordo</string>
-    <string name="ui_transport_digital_pass_title">BIGLIETTO DIGITALE</string>
-    <string name="ui_transport_validation_qr_instruction_shuttle">Mostra questo QR al lettore ottico della navetta</string>
-    <string name="ui_transport_validation_qr_instruction_staff">Mostra questo QR al personale di bordo per convalidare il titolo</string>
-    <string name="ui_transport_identity_verified_flip">Identità verificata • tocca per girare</string>
     <string name="ui_transport_summary_ride">Riepilogo corsa</string>
     <string name="ui_transport_round_trip_caps">ANDATA E RITORNO</string>
     <string name="ui_transport_return_only_caps">SOLO RITORNO</string>
     <string name="ui_transport_outbound_only_caps">SOLO ANDATA</string>
-    <string name="ui_transport_terminus_a">Capolinea A</string>
-    <string name="ui_transport_terminus_b">Capolinea B</string>
-    <string name="ui_transport_departure">Partenza</string>
-    <string name="ui_transport_arrival">Arrivo</string>
-    <string name="ui_transport_dates_count">Date (%1$d giorni)</string>
-    <string name="ui_transport_ride_date">Data corsa</string>
-    <string name="ui_transport_total_rides">Totale corse</string>
     <string name="ui_transport_rides_guaranteed_format">%1$d %2$s (garantite)</string>
     <string name="ui_transport_rides_plural">Corse</string>
     <string name="ui_transport_ride_singular">Corsa</string>
@@ -967,24 +697,14 @@
     <string name="ui_transport_confirm_outbound_ride">Conferma corsa di andata</string>
     <string name="ui_transport_reservation_back_instruction">Mostra a bordo • azioni nel tasto in basso a destra</string>
     <string name="ui_transport_tap_return_front">Tocca per tornare al fronte ↻</string>
-    <string name="ui_transport_ticket_back_instruction">Mostra al personale viaggiante</string>
-    <string name="ui_free_price">GRATUITO</string>
 
     <!-- Theme & Customization -->
     <string name="ui_theme_mode_group">Aspetto e modalità tema</string>
     <string name="ui_theme_mode_system">Sistema</string>
-    <string name="ui_theme_mode_system_sub">Segui dispositivo</string>
     <string name="ui_theme_mode_light">Chiaro</string>
-    <string name="ui_theme_mode_light_sub">Luminoso &amp; fresco</string>
     <string name="ui_theme_mode_dark">Scuro</string>
-    <string name="ui_theme_mode_dark_sub">Contrasto bilanciato</string>
-    <string name="ui_theme_mode_amoled">AMOLED</string>
-    <string name="ui_theme_mode_amoled_sub">Nero assoluto OLED</string>
     <string name="ui_theme_material_you_title">Colori dinamici (Material You)</string>
     <string name="ui_theme_material_you_sub">Sincronizza automaticamente con lo sfondo del sistema</string>
-    <string name="ui_theme_palette_group">Tavolozza colori &amp; Monet seed</string>
-    <string name="ui_theme_palette_custom_lab">Laboratorio colori personalizzati</string>
-    <string name="ui_theme_palette_custom_lab_sub">Crea una combinazione cromatica su misura</string>
     <string name="ui_theme_engine_group">Motore grafico sfondo Liquid</string>
     <string name="ui_theme_background_aurora">Aurora</string>
     <string name="ui_theme_background_aurora_sub">Tende cromatiche fluide stratificate</string>
@@ -996,15 +716,8 @@
     <string name="ui_theme_background_radiant_sub">Raggi luminosi stratificati dall'alto</string>
     <string name="ui_theme_glow_intensity">Intensità bagliore sfondo</string>
     <string name="ui_theme_anim_speed">Velocità animazione sfondo</string>
-    <string name="ui_theme_saturation">Saturazione cromatica sfondo</string>
     <string name="ui_theme_vignette_title">Vignettatura angolare</string>
     <string name="ui_theme_vignette_sub">Inscurisce i bordi per aumentare la leggibilità del testo</string>
-    <string name="ui_theme_cyber_grid_title">Griglia prospettica cyber grid</string>
-    <string name="ui_theme_cyber_grid_sub">Linee geometriche sottili di profondità 3D</string>
-    <string name="ui_theme_waves_title">Onde armoniche fluide</string>
-    <string name="ui_theme_waves_sub">Disegna linee d'onda sinusoidali in sottofondo</string>
-    <string name="ui_theme_grain_title">Grana fotografica analogica</string>
-    <string name="ui_theme_grain_sub">Aggiunge una texture filmica raffinata allo sfondo</string>
     <string name="ui_theme_glass_group">Materiale vetro &amp; trasparenza</string>
     <string name="ui_theme_liquid_intensity">Intensità effetto Liquid</string>
     <string name="ui_theme_glass_quality">Qualità ottica vetro</string>
@@ -1018,19 +731,8 @@
     <string name="ui_theme_glass_quality_high_sub">Rifrazione e sfocatura ad alta fedeltà</string>
     <string name="ui_theme_glass_quality_ultra">Ultra</string>
     <string name="ui_theme_glass_quality_ultra_sub">Massima profondità ottica e aberrazione cromatica</string>
-    <string name="ui_theme_glass_opacity">Opacità superficie vetro</string>
-    <string name="ui_theme_glass_blur">Sfocatura sfondo (backdrop blur)</string>
-    <string name="ui_theme_glass_glow">Bagliore bordo speculare</string>
-    <string name="ui_theme_glass_specular_title">Riflesso bordo speculare</string>
-    <string name="ui_theme_glass_specular_sub">Evidenziazione luminescente dei bordi superiori delle card</string>
-    <string name="ui_theme_haptics_group">Fisica e feedback tattile</string>
     <string name="ui_theme_reduced_motion_title">Riduci movimento globale</string>
     <string name="ui_theme_reduced_motion_sub">Minimizza le animazioni continue per risparmio energetico</string>
-    <string name="ui_theme_geometry_group">Geometria e tipografia</string>
-    <string name="ui_theme_rendering_group">Parametri sistema e rendering GPU</string>
-    <string name="ui_theme_pause_sleep_title">Pausa animazioni a schermo spento</string>
-    <string name="ui_theme_pause_sleep_sub">Arresta l'engine grafico a schermo inattivo per preservare la batteria</string>
-    <string name="ui_theme_reset_button">Ripristina valori predefiniti Liquid Monet</string>
     <string name="ui_theme_reset_short">Ripristina tema predefinito</string>
 
     <!-- Questionnaires & Info App -->
@@ -1040,15 +742,6 @@
     <string name="ui_questionnaire_status_completed">Compilato</string>
     <string name="ui_questionnaire_status_pending">Da compilare</string>
     <string name="ui_questionnaire_status_inactive">Non attivo</string>
-    <string name="ui_app_info_about_title">Informazioni su UniApp</string>
-    <string name="ui_app_info_about_desc">Applicazione indipendente, gratuita e open source per gli studenti dell'Università degli Studi del Molise.</string>
-    <string name="ui_read_details">Leggi dettagli</string>
-    <string name="ui_course_exam_mode_desc">La verifica dell'apprendimento prevede una prova con quesiti teorico-pratici ed eventuale colloquio orale di approfondimento.</string>
-    <string name="ui_course_materials_desc">Dispense fornite dal docente e materiale integrativo reso disponibile sulla piattaforma didattica d'Ateneo.</string>
-    <string name="ui_course_by_appointment">Su appuntamento</string>
-    <string name="ui_course_in_person_or_online">In presenza o online</string>
-    <string name="ui_course_dept_office">Studio dipartimento</string>
-    <string name="ui_course_dept_building">Edificio didattico</string>
     <string name="ui_attendance_lessons_recorded">Lezioni registrate (%1$d)</string>
     <string name="ui_unipass_title">UniPass</string>
     <string name="ui_role_teacher_upper">DOCENTE</string>
@@ -1088,8 +781,6 @@
     <string name="portal_student_email_sub">Outlook ateneo</string>
     <string name="service_prof_contacts_title">Rubrica</string>
     <string name="service_prof_contacts_sub">Contatti e uffici</string>
-    <string name="service_prof_teachers_title">Docenti</string>
-    <string name="service_prof_teachers_sub">Profili e contatti accademici</string>
     <string name="portal_prof_esse3_title">Esse3</string>
     <string name="portal_prof_esse3_sub">Portale docenti</string>
     <string name="portal_prof_moodle_title">Moodle</string>
@@ -1102,8 +793,6 @@
     <string name="quick_action_libretto_sub">Voti e CFU</string>
     <string name="quick_action_statistiche_title">Statistiche e simulatore</string>
     <string name="quick_action_statistiche_sub">Grafici e andamento</string>
-    <string name="quick_action_media_title">Media</string>
-    <string name="quick_action_media_sub">Simulazione</string>
     <string name="quick_action_appelli_title">Appelli</string>
     <string name="quick_action_appelli_sub">Prenotazioni</string>
     <string name="quick_action_didattica_title">Didattica</string>
@@ -1114,8 +803,6 @@
     <string name="quick_action_tasse_sub">Bollettini</string>
     <string name="quick_action_rubrica_title">Rubrica</string>
     <string name="quick_action_rubrica_sub">Docenti</string>
-    <string name="quick_action_notifiche_title">Notizie</string>
-    <string name="quick_action_notifiche_sub">Comunicazioni e avvisi</string>
     <string name="quick_action_condivisione_title">Orario</string>
     <string name="quick_action_condivisione_sub">Calendario lezioni</string>
     <string name="quick_action_sicurezza_title">Accessi</string>
@@ -1132,32 +819,13 @@
     <string name="quick_action_prof_verbali_sub">Esiti e verbalizzazioni</string>
     <string name="quick_action_prof_rubrica_title">Rubrica</string>
     <string name="quick_action_prof_rubrica_sub">Docenti e uffici</string>
-    <string name="quick_action_prof_notifiche_title">Notizie</string>
-    <string name="quick_action_prof_notifiche_sub">Comunicazioni e avvisi</string>
-    <string name="changelog_v1_0_0_date">26 Agosto 2026</string>
-    <string name="changelog_v1_0_0_item_1_title">Nuova Esperienza UniApp</string>
-    <string name="changelog_v1_0_0_item_1_desc">Design system Liquid Monet e navigazione accademica reattiva.</string>
-    <string name="changelog_v1_0_0_item_2_title">Career Hub</string>
-    <string name="changelog_v1_0_0_item_2_desc">Dashboard unificata per libretto, esami e simulazione proiettiva.</string>
-    <string name="changelog_v1_0_0_item_3_title">Sicurezza Sessione</string>
-    <string name="changelog_v1_0_0_item_3_desc">Crittografia locale con hardware keystore e gestione dispositivi connessi.</string>
-    <string name="changelog_v0_9_5_date">15 Agosto 2026</string>
-    <string name="changelog_v0_9_5_item_1_title">Ottimizzazione Grafica</string>
-    <string name="changelog_v0_9_5_item_1_desc">Fluidità del rendering e ridotto consumo energetico.</string>
-    <string name="changelog_v0_9_5_item_2_title">Notifiche</string>
-    <string name="changelog_v0_9_5_item_2_desc">Sincronizzazione degli avvisi didattici in tempo reale.</string>
     <string name="ui_update_required_title">Aggiornamento obbligatorio</string>
-    <string name="ui_update_required_body">Aggiorna UniApp per continuare a usare l’app.</string>
-    <string name="ui_update_available_body">È disponibile una nuova versione di UniApp.</string>
     <string name="ui_update_notification_body">UniApp %1$s è disponibile. Apri l’app per aggiornare.</string>
     <string name="ui_update_notification_channel">Aggiornamenti dell’app</string>
     <string name="ui_report_bug_github">Segnala un bug su GitHub</string>
-    <string name="ui_report_bug_public">Apri una bozza pubblica da rivedere prima dell’invio. Non inserire dati personali.</string>
     <string name="ui_project_cached">GitHub non è raggiungibile o ha limitato le richieste. Alcune informazioni provengono dalla copia locale.</string>
     <string name="ui_project_load_failed">Impossibile caricare tutte le informazioni da GitHub. Riprova più tardi.</string>
     <string name="ui_project_github_profile">Profilo GitHub</string>
-    <string name="ui_project_license">Licenza del repository</string>
-    <string name="ui_project_license_unspecified">GitHub non identifica una licenza. Consulta il repository per le condizioni d’uso del codice.</string>
     <string name="ui_project_unlinked_contributor">Autore senza profilo GitHub associato</string>
     <string name="ui_project_contributions">%1$d contributi</string>
     <string name="app_info_sec_1_title">UniApp e i servizi universitari</string>
@@ -1216,11 +884,8 @@
     <string name="cookie_sec_4_content">Il sito di distribuzione salva nel browser la scelta del tema. Quando apri GitHub, App Store, portali universitari o altri siti, il browser e il servizio aperto gestiscono le proprie sessioni e tecnologie di memorizzazione. Per tali trattamenti consulta le informazioni del relativo sito. La rimozione di un account da UniApp non cancella i dati del browser.</string>
     <string name="ui_info_installed_build">Versione %1$s · Build %2$s</string>
     <string name="ui_info_independent">Progetto open source indipendente</string>
-    <string name="ui_info_application">Applicazione</string>
     <string name="ui_info_components">Componenti e versioni</string>
-    <string name="ui_info_components_subtitle">Le versioni incluse in questa build di UniApp.</string>
     <string name="ui_info_about_project">Cos’è UniApp</string>
-    <string name="ui_info_source">Codice sorgente</string>
     <string name="ui_info_public_issue">Apri una segnalazione su GitHub</string>
     <string name="ui_creator_credits">Creatore e crediti</string>
     <string name="ui_creator_credits_subtitle">Autore e contributori</string>
@@ -1228,8 +893,6 @@
     <string name="ui_credits_acknowledgements">Crediti e riconoscimenti</string>
     <string name="ui_credits_explanation">Grazie a chi contribuisce al codice di UniApp. Questi riconoscimenti provengono dal repository GitHub del progetto.</string>
     <string name="ui_credits_no_other_contributors">Al momento GitHub non segnala altri contributori oltre al creatore.</string>
-    <string name="ui_credits_contribute">Contribuisci al progetto</string>
-    <string name="ui_credits_refresh">Aggiorna i crediti</string>
     <string name="msg_configura_uniapp_app_store_url_per_aprire_lapp">Configura UNIAPP_APP_STORE_URL per aprire l’App Store.</string>
     <string name="msg_impossibile_aprire_lapp_store">Impossibile aprire l’App Store.</string>
     <string name="msg_impossibile_ripristinare_la_sessione_protetta">Impossibile ripristinare la sessione protetta</string>
@@ -1251,10 +914,8 @@
     <string name="msg_corse_gia_prenotate_per_le_date_selezionate">Corse già prenotate per le date selezionate.</string>
     <string name="msg_prenotazione_non_riuscita">Prenotazione non riuscita.</string>
     <string name="msg_impossibile_caricare_le_prenotazioni_trasporto">Impossibile caricare le prenotazioni trasporto.</string>
-    <string name="msg_impossibile_caricare_le_linee_disponibili">Impossibile caricare le linee disponibili.</string>
     <string name="msg_impossibile_caricare_la_prenotazione">Impossibile caricare la prenotazione.</string>
     <string name="msg_impossibile_annullare_la_prenotazione">Impossibile annullare la prenotazione.</string>
-    <string name="msg_impossibile_caricare_la_linea">Impossibile caricare la linea.</string>
     <string name="msg_impossibile_leggere_le_preferenze_protette">Impossibile leggere le preferenze protette.</string>
     <string name="msg_conferma_la_tua_identita_per_attivare_la_protezione">Conferma la tua identità per attivare la protezione di UniApp.</string>
     <string name="msg_conferma_la_tua_identita_per_disattivare_la_protezione">Conferma la tua identità per disattivare la protezione di UniApp.</string>
@@ -1269,8 +930,6 @@
     <string name="msg_impossibile_caricare_la_rubrica">Impossibile caricare la rubrica.</string>
     <string name="msg_impossibile_caricare_le_tasse">Impossibile caricare le tasse.</string>
     <string name="msg_impossibile_caricare_il_contatto">Impossibile caricare il contatto.</string>
-    <string name="msg_nessun_esame">Nessun esame</string>
-    <string name="msg_impossibile_caricare_le_statistiche">Impossibile caricare le statistiche.</string>
     <string name="msg_impossibile_caricare_il_libretto">Impossibile caricare il libretto.</string>
     <string name="msg_impossibile_caricare_il_piano_di_studi">Impossibile caricare il piano di studi.</string>
     <string name="msg_impossibile_caricare_gli_appelli">Impossibile caricare gli appelli.</string>
@@ -1291,20 +950,14 @@
     <string name="msg_impossibile_salvare_il_questionario">Impossibile salvare il questionario.</string>
     <string name="msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili">Alcune sezioni docente non sono momentaneamente disponibili.</string>
     <string name="msg_impossibile_caricare_la_panoramica_didattica">Impossibile caricare la panoramica didattica.</string>
-    <string name="msg_impossibile_caricare_lidentita_docente">Impossibile caricare l’identità docente.</string>
     <string name="msg_impossibile_caricare_il_badge_studente">Impossibile caricare il badge studente.</string>
     <string name="msg_impossibile_caricare_i_dati_della_docenza">Impossibile caricare i dati della docenza.</string>
     <string name="msg_impossibile_caricare_il_dettaglio">Impossibile caricare il dettaglio.</string>
-    <string name="msg_corso_di_laurea">corso di laurea</string>
-    <string name="msg_sessione_di_laurea">sessione di laurea</string>
     <string name="msg_corso_di_laurea_2">Corso di Laurea</string>
-    <string name="msg_nessun_appello_disponibile">Nessun appello disponibile</string>
     <string name="msg_impossibile_aggiornare_la_panoramica">Impossibile aggiornare la panoramica.</string>
-    <string name="msg_alcuni_dati_docente_non_sono_momentaneamente_disponibili">Alcuni dati docente non sono momentaneamente disponibili.</string>
     <string name="msg_cerca">Cerca...</string>
     <string name="msg_cerca_2">Cerca</string>
     <string name="msg_storico">Storico</string>
-    <string name="msg_aggiornamento_disponibile">Aggiornamento disponibile</string>
     <string name="msg_conferma_la_tua_identita_per_aprire_laccount_uniapp">Conferma la tua identità per aprire l’account UniApp.</string>
     <string name="msg_accesso_annullato">Accesso annullato.</string>
     <string name="msg_impossibile_aprire_laccount">Impossibile aprire l’account.</string>
@@ -1323,16 +976,11 @@
     <string name="msg_diventa_un_collaboratore">Contribuisci</string>
     <string name="msg_invia_una_pull_request_con_correzioni_traduzioni_o">Invia una Pull Request su GitHub</string>
     <string name="msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una">Apri una segnalazione su GitHub</string>
-    <string name="msg_attivo">Attivo</string>
     <string name="msg_ideatore_e_sviluppatore_principale_dell_ecosistema_uniapp_per">Ideatore e sviluppatore principale dell'ecosistema UniApp per gli studenti universitari.</string>
     <string name="msg_contributori_della_community">Contributori della community</string>
     <string name="msg_nessun_aggiornamento_o_nota_di_rilascio_disponibile_al">Nessun aggiornamento o nota di rilascio disponibile al momento.</string>
-    <string name="msg_il_corso_approfondisce_i_principi_cardine_le_architetture">Il corso approfondisce i principi cardine, le architetture di riferimento e le metodologie applicative standard richieste dal piano di studio.</string>
     <string name="msg_obiettivo_non_matematicamente_possibile_con_i_parametri_correnti">Obiettivo non matematicamente possibile con i parametri correnti (media richiesta &gt; 30). Valuta di incrementare la stima dei punti tesi o bonus carriera.</string>
-    <string name="msg_flash">Flash</string>
     <string name="msg_versamento_completato">Versamento completato</string>
-    <string name="msg_impossibile_creare_lo_shader_agsl_della_card">Impossibile creare lo shader AGSL della card</string>
-    <string name="msg_errore_durante_il_rendering_dello_shader_agsl">Errore durante il rendering dello shader AGSL</string>
     <string name="msg_attivita_android_non_disponibile">Attività Android non disponibile.</string>
     <string name="msg_abilita_linstallazione_da_uniapp_torna_nellapp_e_premi">Abilita l’installazione da UniApp, torna nell’app e premi di nuovo Scarica.</string>
     <string name="msg_impossibile_scaricare_o_installare_laggiornamento">Impossibile scaricare o installare l’aggiornamento.</string>
@@ -1350,12 +998,6 @@
     <string name="msg_la_versione_dellapk_non_corrisponde_al_manifest_di">La versione dell’APK non corrisponde al manifest di aggiornamento.</string>
     <string name="msg_la_firma_dellapk_non_corrisponde_alla_firma_di">La firma dell’APK non corrisponde alla firma di UniApp.</string>
     <string name="msg_installazione_non_riuscita">Installazione non riuscita.</string>
-    <string name="msg_conferma_di_installazione_non_disponibile">Conferma di installazione non disponibile.</string>
-    <string name="msg_android_non_ha_potuto_installare_laggiornamento">Android non ha potuto installare l’aggiornamento.</string>
-    <string name="msg_conferma_laggiornamento_nella_schermata_di_android">Conferma l’aggiornamento nella schermata di Android.</string>
-    <string name="msg_la_precedente_installazione_e_terminata_controlla_nuovamente_gli">La precedente installazione è terminata. Controlla nuovamente gli aggiornamenti.</string>
-    <string name="msg_installazione_in_attesa_di_conferma">Installazione in attesa di conferma.</string>
-    <string name="msg_impossibile_riprendere_linstallazione_riprova">Impossibile riprendere l’installazione. Riprova.</string>
     <string name="ui_update_status_verifying">Verifica dell’aggiornamento…</string>
     <string name="ui_update_status_downloading">Download dell’aggiornamento…</string>
     <string name="ui_update_status_mandatory">Aggiornamento obbligatorio</string>
@@ -1363,8 +1005,6 @@
     <string name="ui_thesis_title">Titolo della tesi</string>
     <string name="ui_home_no_due_taxes">Nessuna rata in scadenza</string>
     <string name="ui_language_italian_default">Italiano (predefinito)</string>
-    <string name="ui_home_news_empty_title">Nessuna notizia disponibile</string>
-    <string name="ui_home_news_empty_description">Al momento non sono presenti notizie o comunicazioni ufficiali.</string>
     <string name="ui_demo_action">Operazione simulata. Nessun dato è stato inviato all’università.</string>
     <string name="ui_demo_invalid_credentials">Credenziali dell’account dimostrativo non valide.</string>
     <string name="ui_code_unavailable">Codice non disponibile</string>
@@ -1375,13 +1015,10 @@
     <string name="ui_ticket_downloading">Salvataggio del biglietto in corso…</string>
     <string name="ui_ticket_reload">Scarica di nuovo</string>
     <string name="ui_ticket_original_saved">Originale salvato sul dispositivo, disponibile anche offline.</string>
-    <string name="ui_ticket_catalog_no_code">Prenota una corsa per ottenere il biglietto e il suo codice.</string>
     <string name="ui_ticket_original_image">Biglietto originale</string>
     <string name="ui_ticket_digital_code">Codice del biglietto</string>
     <string name="ui_ticket_close">Chiudi</string>
     <string name="ui_contact_internal_phone">Interno</string>
-    <string name="ui_theme_page_motion_group">Animazioni tra pagine</string>
-    <string name="ui_theme_page_motion_sub">La stessa animazione per pagine, sottopagine e ritorno indietro.</string>
     <string name="ui_theme_page_motion_style">Stile animazione</string>
     <string name="ui_theme_page_motion_reduced_hint">Movimento ridotto attivo: le transizioni restano immediate.</string>
     <string name="ui_motion_crossfade">Dissolvenza</string>
@@ -1400,8 +1037,6 @@
     <string name="ui_motion_slide_vertical_sub">La nuova pagina scorre dall’alto o dal basso.</string>
     <string name="ui_motion_depth">Profondità</string>
     <string name="ui_motion_depth_sub">Zoom e dissolvenza con verso opposto al ritorno.</string>
-    <string name="ui_theme_graphics_motion_group">Sfondo, fisica e animazioni</string>
-    <string name="ui_theme_graphics_motion_sub">Sfondo Liquid, movimento globale e transizioni tra pagine.</string>
 
     <!-- UniSDK failure codes: display text is owned by UniApp. -->
     <string name="sdk_error_account_invalid">Account non valido.</string>
@@ -1539,29 +1174,15 @@
     <string name="ui_career_plan">Piano di studi</string>
     <string name="ui_career_all_statuses">Tutti</string>
     <string name="ui_career_to_complete">Da sostenere</string>
-    <string name="ui_career_summary_libretto">Libretto universitario</string>
-    <string name="ui_career_summary_plan">Piano di studi</string>
-    <string name="ui_career_average_unit">media</string>
-    <string name="ui_career_degree_base_short">Base %1$s</string>
     <string name="ui_career_exams_count">%1$d esami</string>
     <string name="ui_career_lodi_count">%1$d con lode</string>
-    <string name="ui_career_cfu_pair">%1$d / %2$d CFU</string>
     <string name="ui_career_open_stats">Statistiche e simulatore</string>
     <string name="ui_career_filter_empty">Nessun insegnamento trovato</string>
     <string name="ui_career_filter_empty_desc">Prova a cambiare anno o filtro per visualizzare gli esami del piano.</string>
     <string name="ui_grades_real">Andamento</string>
     <string name="ui_grades_scope_real">Carriera reale</string>
     <string name="ui_grades_projection">Proiezioni</string>
-    <string name="ui_grades_official">Dati della carriera</string>
-    <string name="ui_grades_real_description">Andamento dagli esami registrati, con ultimo valore allineato alla media ufficiale quando disponibile.</string>
-    <string name="ui_grades_projected_description">Proiezione dei soli esami attivati nel simulatore. Non modifica la carriera.</string>
-    <string name="ui_grades_recent_trend">Variazione recente della media</string>
-    <string name="ui_services_in_app_soon">In app presto</string>
     <string name="ui_home_no_open_rounds">Nessun appello aperto</string>
-    <string name="ui_exams_hero_kicker">Appelli e prenotazioni</string>
-    <string name="ui_exams_next_booked_label">Prossimo appello prenotato</string>
-    <string name="ui_exams_open_count_label">Prenotabili ora</string>
-    <string name="ui_exams_total_count_label">Appelli totali</string>
     <string name="ui_exams_all_filter">Tutti</string>
     <string name="ui_exams_open_filter">Aperti ora</string>
     <string name="ui_exams_opening_soon_filter">In apertura</string>
@@ -1571,24 +1192,18 @@
     <string name="ui_exams_status_closed">Chiuso</string>
     <string name="ui_exams_booked_slots_summary">%1$d prenotati • %2$d posti</string>
     <string name="ui_exams_booked_count_only">%1$d prenotati</string>
-    <string name="ui_exams_professor_hero_kicker">Gestione appelli</string>
     <string name="ui_exams_history_kicker">Storico esami</string>
     <string name="ui_exams_history_verbalized_count">Verbalizzati</string>
     <string name="ui_exams_history_past_bookings_count">Prenotazioni passate</string>
-    <string name="ui_exams_history_cfu_total">CFU acquisiti</string>
     <string name="ui_news_featured_badge">In evidenza</string>
     <string name="ui_news_latest_header">Ultime comunicazioni</string>
     <string name="ui_news_count_format">%1$d comunicazioni</string>
     <string name="ui_news_count_one">1 comunicazione</string>
     <string name="ui_news_read_more">Leggi notizia</string>
-    <string name="ui_news_source_official_label">Fonte ufficiale</string>
-    <string name="ui_transport_hero_kicker">Trasporti e navette</string>
     <string name="ui_transport_all_filter">Tutte</string>
     <string name="ui_transport_outbound_short">Andata</string>
     <string name="ui_transport_return_short">Ritorno</string>
     <string name="ui_transport_round_trip_short">A/R</string>
-    <string name="ui_transport_next_ride_label">Prossima corsa in programma</string>
-    <string name="ui_transport_rides_count_format">%1$d corse</string>
     <string name="ui_transport_clear_selection">Azzera</string>
     <string name="ui_transport_no_date_selected">Nessuna data</string>
     <string name="ui_calendar_months_full">Gennaio,Febbraio,Marzo,Aprile,Maggio,Giugno,Luglio,Agosto,Settembre,Ottobre,Novembre,Dicembre</string>
@@ -1608,9 +1223,7 @@
     <string name="ui_grades_target_easy_msg">Traguardo alla portata: basta una media di %1$s sui restanti %2$d CFU (media attuale %3$s).</string>
     <string name="ui_grades_target_feasible_msg">Obiettivo raggiungibile: serve una media di %1$s nei restanti %2$d CFU.</string>
     <string name="ui_grades_target_hard_msg">Molto impegnativo: occorre una media quasi perfetta (%1$s). Valuta i punti tesi.</string>
-    <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
     <string name="ui_grades_tier_exams_percent">%1$d esami • %2$d%</string>
-    <string name="ui_grades_highest_grade_courses_format">Massimo: %1$s</string>
     <string name="ui_grades_active_singular">%1$d attivo</string>
     <string name="ui_grades_active_plural">%1$d attivi</string>
     <string name="ui_grades_custom_exam_default">Esame personalizzato</string>
@@ -1646,7 +1259,6 @@
     <string name="ui_library_tab_spaces">Spazi</string>
     <string name="ui_library_hero_eyebrow">BIBLIOUNIMOL OPAC</string>
     <string name="ui_library_hero_title">Esplora il catalogo d'Ateneo</string>
-    <string name="ui_library_hero_desc">Cerca libri, verifica le copie disponibili nelle sedi di Campobasso, Pesche e Termoli, gestisci prestiti e prenota posti studio.</string>
     <string name="ui_library_search_label">Cerca nel catalogo</string>
     <string name="ui_library_search_placeholder">Titolo, autore o argomento…</string>
     <string name="ui_library_search_action">Cerca</string>
@@ -1687,7 +1299,6 @@
     <string name="ui_library_booking_type_title">Tipologia</string>
     <string name="ui_library_booking_owner_title">Sede</string>
     <string name="ui_library_booking_resource_title">Risorsa disponibile</string>
-    <string name="ui_library_booking_slots_title">Fasce orarie disponibili</string>
     <string name="ui_library_booking_slots_empty">Nessuna fascia disponibile per questa risorsa.</string>
     <string name="ui_library_device_address_label">Indirizzo dispositivo / MAC</string>
     <string name="ui_library_device_address_placeholder">Es. AA:BB:CC:11:22:33</string>
@@ -1736,7 +1347,6 @@
     <string name="ui_project_contribute_group">Partecipa al progetto</string>
     <string name="ui_project_report_ideas">Segnala un problema</string>
     <string name="ui_search_close">Chiudi ricerca</string>
-    <string name="ui_monet_palette">Palette Monet</string>
     <string name="ui_project_syncing">Sincronizzazione del profilo e dei crediti da GitHub…</string>
     <string name="ui_sdk_liquid_description">Motore ottico e componenti glass</string>
     <string name="ui_sdk_uni_description">Servizi Esse3 e logica d’Ateneo</string>
@@ -1754,7 +1364,6 @@
     <string name="msg_update_started">Aggiornamento avviato…</string>
     <string name="msg_survey_answer_required">Completa tutte le domande obbligatorie.</string>
     <string name="msg_transport_booking_cancelled">Prenotazione annullata.</string>
-    <string name="ui_brand_experience">Esperienza UniApp ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">Zaffiro</string>
     <string name="ui_theme_palette_emerald">Smeraldo</string>

@@ -7,7 +7,6 @@
     <string name="ui_storage_reset_message">此次更新已重置 UniApp 的本地存储：设备上的已保存账号、会话、偏好设置及已下载数据均已被移除。请重新登录以获取最新数据。您在大学门户网站上的数据未受任何更改。</string>
     <string name="ui_loading">正在加载…</string>
     <string name="ui_cancel">取消</string>
-    <string name="ui_save">保存</string>
     <string name="ui_done">完成</string>
     <string name="ui_customize">自定义</string>
     <string name="ui_details">详情</string>
@@ -19,15 +18,12 @@
 
     <string name="ui_sign_out_confirm_message">确定要退出您的大学账号吗？当前活跃会话将被关闭。</string>
     <string name="ui_course_activity_characterizing">专业核心课程</string>
-    <string name="ui_course_activity_base">基础教学活动</string>
     <string name="ui_course_attendance_recommended">建议出勤</string>
     <string name="ui_course_attendance_no_obligation">无强制考勤要求</string>
-    <string name="ui_course_sector_label">学科领域</string>
     <string name="ui_course_lang_italian">意大利语</string>
     <string name="ui_course_lang_material_note">亦提供其他语言学习资料</string>
 
     <string name="ui_sign_out">退出登录</string>
-    <string name="ui_notes">备注</string>
     <string name="ui_state_no_data">暂无可用数据。</string>
     <string name="ui_state_error_title">数据不可用</string>
     <string name="ui_state_error_desc">加载失败。</string>
@@ -40,7 +36,6 @@
     <string name="ui_state_empty_study_plan">学习计划中暂无课程。</string>
     <string name="ui_state_empty_questionnaires">未找到与课程关联的评教问卷。</string>
     <string name="ui_state_empty_questionnaire_detail">该问卷暂无问题。</string>
-    <string name="ui_state_empty_news">目前暂无官方新闻或公告。</string>
     <string name="ui_state_empty_academic_section">该版块暂无可用内容。</string>
     <string name="ui_state_empty_academic_detail">所选项目已不再可用。</string>
 
@@ -49,7 +44,6 @@
     <string name="ui_device_disconnect_all_action">断开连接</string>
 
 
-    <string name="ui_legal">法律信息</string>
     <string name="ui_legal_notes">政策与法律声明</string>
     <string name="ui_privacy">隐私声明</string>
     <string name="ui_privacy_title">隐私声明</string>
@@ -68,26 +62,14 @@
     <string name="ui_app_info_group">开发与项目</string>
     <string name="ui_app_information">关于 UniApp</string>
     <string name="ui_app_information_subtitle">法律信息与致谢</string>
-    <string name="ui_app_footer">基于 Liquid Monet SDK 构建\n© 2026 UniApp Project</string>
-    <string name="ui_project_summary_title">项目简介</string>
     <string name="ui_project_summary_text">UniApp 是由 Anto426 开发的独立项目，用于访问大学服务、学业记录及校园班车。本应用并非莫利塞大学官方应用。</string>
     <string name="ui_source">源代码</string>
     <string name="ui_source_subtitle">GitHub 仓库</string>
-    <string name="ui_author">作者</string>
-    <string name="ui_github">GitHub</string>
-    <string name="ui_linkedin">LinkedIn</string>
-    <string name="ui_portfolio">作品集</string>
-    <string name="ui_app_credit">UniApp • 由 Anto426 用 ❤️ 打造</string>
     <string name="ui_app_info_gdpr">数据处理与外部服务</string>
     <string name="ui_app_info_academic_use">应用使用条款</string>
     <string name="ui_app_info_tech_cookies">仅使用必要的技术会话 Cookie</string>
-    <string name="ui_app_info_for_students">专为大学生打造</string>
 
 
-    <string name="ui_scanner_eyebrow">智能扫一扫</string>
-    <string name="ui_scanner_title">扫描二维码</string>
-    <string name="ui_scanner_description">对准 UniApp 二维码即可签到考勤、访问内容或使用服务。</string>
-    <string name="ui_start_scan">开始扫描</string>
 
 
     <string name="ui_accounts_saved_title">已保存账号</string>
@@ -101,32 +83,13 @@
     <string name="ui_account_active">当前使用</string>
 
 
-    <string name="ui_attendance">考勤</string>
-    <string name="ui_attendance_desc">课堂签到</string>
     <string name="ui_attendance_title">出勤汇总</string>
     <string name="ui_attendance_subtitle">已记录的考勤历史</string>
     <string name="ui_attendance_prefix">出勤：%1$s 节课</string>
 
-    <string name="ui_didactics_career">学业记录</string>
-    <string name="ui_didactics_title">教务管理</string>
-    <string name="ui_didactics_subtitle">考试与学业档案</string>
-    <string name="ui_transcript">成绩单</string>
-    <string name="ui_transcript_subtitle">已登记成绩与 CFU</string>
-    <string name="ui_study_plan">学习计划</string>
-    <string name="ui_study_plan_subtitle">计划考试科目</string>
-    <string name="ui_achieved">已修得</string>
     <string name="ui_degree_label">学位课程</string>
     <string name="ui_department_label">院系</string>
-    <string name="ui_status_label">状态</string>
-    <string name="ui_deadline_label">截止日期</string>
-    <string name="ui_current_average">加权平均分</string>
-    <string name="ui_arithmetic_average">算术平均分</string>
     <string name="ui_graduation_base">毕业基准分</string>
-    <string name="ui_acquired_cfu">已获 CFU</string>
-    <string name="ui_cfu_progress">已完成 %1$s / %2$s CFU</string>
-    <string name="ui_career_progress">学位修读进度</string>
-    <string name="ui_career_completion">学业完成度：%1$d%</string>
-    <string name="ui_exams_passed_badge">已通过 %1$d 门考试</string>
 
 
     <string name="ui_status_completed">已通过</string>
@@ -143,36 +106,15 @@
     <string name="ui_study_plan_year_summary">共 %1$d CFU • 已通过 %2$d/%3$d 门</string>
 
 
-    <string name="ui_grades_tab_current">均分与考试</string>
-    <string name="ui_grades_tab_simulation">模拟器</string>
-    <string name="ui_grades_tab_targets">毕业目标</string>
-    <string name="ui_grades_verbalized_title">已登记考试</string>
-    <string name="ui_grades_verbalized_subtitle">共 %1$d 门考试，总计 %2$d CFU</string>
     <string name="ui_grades_verbalized_empty">未找到已登记的考试。</string>
     <string name="ui_grades_simulation_result">模拟结果</string>
     <string name="ui_grades_simulation_delta">变化 %1$s</string>
     <string name="ui_grades_simulation_estimated">预估平均分</string>
-    <string name="ui_grades_simulation_new_base">新基准分：%1$s</string>
     <string name="ui_grades_simulation_summary">已包含 %1$d 门考试（总计增加 %2$d 模拟 CFU）</string>
     <string name="ui_grades_simulation_to_simulate">待模拟考试</string>
     <string name="ui_grades_simulation_to_simulate_sub">点击以纳入考试并设置预期成绩</string>
     <string name="ui_grades_simulation_empty">您的学习计划中暂无可供模拟的考试。</string>
-    <string name="ui_grades_target_title">目标毕业成绩</string>
-    <string name="ui_grades_target_subtitle">选择您的最终目标以计算所需平均分</string>
-    <string name="ui_grades_thesis_points">预期论文加分</string>
-    <string name="ui_grades_thesis_points_sub">由答辩委员会评定的加分</string>
-    <string name="ui_grades_needed_base">所需基准分</string>
-    <string name="ui_grades_needed_average">目标考试均分</string>
-    <string name="ui_grades_achievable">可达成</string>
-    <string name="ui_grades_requires_thesis">需要论文加分</string>
     <string name="ui_grades_current">当前均分</string>
-    <string name="ui_grades_simulation">成绩模拟</string>
-    <string name="ui_grades_simulation_subtitle">估算您的未来均分</string>
-    <string name="ui_grades_taken">已通过考试</string>
-    <string name="ui_grades_taken_subtitle">成绩与 CFU 汇总</string>
-    <string name="ui_grades_current_tab">当前均分</string>
-    <string name="ui_grade_unit">成绩</string>
-    <string name="ui_grades_projected">预测均分</string>
 
 
     <string name="ui_course_syllabus_title">课程大纲</string>
@@ -189,14 +131,11 @@
     <string name="ui_course_scientific_sector">学科分类</string>
     <string name="ui_course_language">授课语言</string>
     <string name="ui_course_prerequisites_title">先修要求与限制</string>
-    <string name="ui_course_period">开课学期</string>
     <string name="ui_course_credits">学分 (CFU)</string>
-    <string name="ui_course_status_header">课程状态</string>
     <string name="ui_course_code_header">SSD / 代码</string>
 
 
     <string name="ui_student_name_fallback">在校学生</string>
-    <string name="ui_student_card">学生证</string>
     <string name="ui_student_id_details_title">学生学籍详情</string>
     <string name="ui_professor_id_details_title">教师详情</string>
     <string name="ui_professor_role">教师</string>
@@ -204,31 +143,20 @@
     <string name="ui_professor_id">教师 ID</string>
     <string name="ui_professor_department_id">院系 ID</string>
     <string name="ui_student_status">在读</string>
-    <string name="ui_verified_validity">已通过加密验证有效性</string>
     <string name="ui_badge">电子证件</string>
-    <string name="ui_badge_subtitle">数字身份凭证</string>
     <string name="ui_matricola">学号</string>
     <string name="ui_matricola_prefix">学号 %1$s</string>
     <string name="ui_enrollment_status">注册状态</string>
-    <string name="ui_badge_student_title">学生电子证件</string>
-    <string name="ui_badge_professor_title">教师电子证件</string>
-    <string name="ui_badge_digital_pass">数字通行证</string>
     <string name="ui_badge_scan_gates_hint">请在门禁或光学读卡器处扫描</string>
-    <string name="ui_badge_barcode">证件条形码</string>
-    <string name="ui_badge_barcode_short">条形码</string>
     <string name="ui_badge_tap_to_flip_hint">点击翻转以查看二维码</string>
     <string name="ui_badge_tap_to_flip_back_hint">身份已验证 • 点击翻转</string>
 
 
     <string name="ui_exams">考试场次</string>
-    <string name="ui_exams_subtitle">预约考试</string>
-    <string name="ui_registered_exams">已登记考试</string>
-    <string name="ui_registered_exams_subtitle">已通过考试详情</string>
     <string name="ui_bookable_exams">可预约</string>
     <string name="ui_booked_exams">已预约</string>
     <string name="ui_professor">教授</string>
     <string name="ui_exam_type">类型</string>
-    <string name="ui_room">教室</string>
     <string name="ui_booking_window">预约开放时段</string>
     <string name="ui_booked_students">已预约学生：</string>
     <string name="ui_add_calendar">添加到 Google Calendar</string>
@@ -242,31 +170,19 @@
     <string name="ui_exam_status_verbalized">已登记成绩</string>
     <string name="ui_exam_status_booked_past">已预约 • 场次已过</string>
     <string name="ui_exam_grade">成绩</string>
-    <string name="ui_exam_cfu">CFU</string>
     <string name="ui_exam_code">课程代码</string>
     <string name="ui_available_slots">剩余名额</string>
     <string name="ui_no_exams_in_section">此分类下暂无考试场次</string>
     <string name="ui_no_exams_in_section_description">没有符合当前筛选条件的考试场次。</string>
-    <string name="ui_exams_planned">计划共 %1$s 门考试</string>
     <string name="ui_history_empty_title">历史记录中暂无考试场次</string>
     <string name="ui_history_empty_desc">暂无已结束的考试场次或已登记成绩的考试。</string>
 
 
     <string name="ui_taxes">学费</string>
-    <string name="ui_taxes_subtitle">缴费状态</string>
-    <string name="ui_pay_all">已全部缴清</string>
-    <string name="ui_pending_payments">待缴款项</string>
-    <string name="ui_pending_payment_description">本学年暂无待缴款项。</string>
     <string name="ui_pending_section">待缴</string>
     <string name="ui_pending_section_subtitle">即将到期的分期付款与通知</string>
     <string name="ui_paid_section">已缴</string>
-    <string name="ui_paid_section_subtitle">已完成缴费记录</string>
-    <string name="ui_paid">已缴</string>
-    <string name="ui_to_pay">待缴</string>
-    <string name="ui_receipt_pdf">PDF 收据</string>
-    <string name="ui_pay_pagopa">使用 PagoPA 支付</string>
     <string name="ui_iuv_prefix">IUV：%1$s</string>
-    <string name="ui_pending_count">您有 %1$s 笔费用需在截止日期前缴清。</string>
     <string name="ui_taxes_status_header">缴费情况</string>
     <string name="ui_taxes_status_regular">正常</string>
     <string name="ui_taxes_status_pending">%1$d 笔待缴</string>
@@ -281,16 +197,10 @@
     <string name="ui_taxes_due_pending">截止日期待定</string>
     <string name="ui_taxes_filter_empty">该分类下暂无缴费项目</string>
     <string name="ui_taxes_filter_empty_desc">请选择其他筛选条件以查看大学学费分期记录。</string>
-    <string name="ui_tax_paid_badge">已缴</string>
-    <string name="ui_tax_pending_badge">待缴</string>
 
 
-    <string name="ui_contact_placeholder">搜索教师或办公室...</string>
     <string name="ui_contacts_title">教师与办公室</string>
-    <string name="ui_contacts_subtitle">校内通讯录</string>
-    <string name="ui_contact_detail_title">联系人详情</string>
     <string name="ui_contact_info_group">联系信息</string>
-    <string name="ui_contact_label">联系方式</string>
     <string name="ui_email">邮箱</string>
     <string name="ui_phone">电话</string>
     <string name="ui_office">办公室</string>
@@ -305,77 +215,42 @@
     <string name="ui_contact_open_failed">无法打开联系人操作，请确认已安装邮件或电话应用。</string>
     <string name="ui_contacts_empty_title">暂无可用联系人</string>
     <string name="ui_contacts_empty_desc">请尝试更换分类或搜索关键词。</string>
-    <string name="ui_teachers_title">教师与研究人员</string>
-    <string name="ui_secretariat_title">学生秘书处</string>
-    <string name="ui_offices_support_title">行政部门与支持</string>
-    <string name="ui_contacts_count">%1$d 位联系人</string>
-    <string name="ui_secretariat_count">%1$d 个服务窗口</string>
-    <string name="ui_offices_count">%1$d 个办公室</string>
     <string name="ui_contacts_available">共 %1$d 位可用联系人</string>
     <string name="ui_contacts_available_one">1 位可用联系人</string>
     <string name="ui_contacts_all_categories">全部</string>
-    <string name="ui_services_student_title">核心服务</string>
-    <string name="ui_services_student_sub">学费、班车与学生事务处</string>
     <string name="ui_services_portals_title">学校门户</string>
     <string name="ui_services_portals_sub">数字平台与在线服务</string>
 
 
-    <string name="ui_transport_title">学生班车</string>
-    <string name="ui_transport_subtitle">校园路线与时刻表</string>
-    <string name="ui_transport_tickets">车票</string>
-    <string name="ui_transport_reservations">预约</string>
-    <string name="ui_transport_buy">购买</string>
-    <string name="ui_transport_ticket_detail">车票详情</string>
-    <string name="ui_transport_reservation_detail">预约详情</string>
-    <string name="ui_transport_validity">有效期</string>
-    <string name="ui_transport_price">价格</string>
-    <string name="ui_transport_use_ticket">使用车票</string>
     <string name="ui_trip_outbound">去程班次</string>
     <string name="ui_trip_return">返程班次</string>
     <string name="ui_trip_details">行程详情</string>
     <string name="ui_trip_route">线路</string>
-    <string name="ui_trip_datetime">日期与时间</string>
     <string name="ui_trip_departure_stop">上车站点</string>
     <string name="ui_trip_arrival_stop">下车站点</string>
     <string name="ui_trip_bus_assigned">指派车辆</string>
     <string name="ui_transport_empty_reservations">未来几天暂无已预约的班车行程。</string>
-    <string name="ui_transport_catalog_title">乘车凭证</string>
-    <string name="ui_transport_catalog_sub">选择最适合您通行的乘车凭证</string>
     <string name="ui_transport_trip_date">出行日期</string>
     <string name="ui_transport_book_ride">预约班次</string>
 
 
-    <string name="ui_home_news_eyebrow">新闻资讯</string>
     <string name="ui_home_news_all">查看全部</string>
     <string name="ui_news_university">大学</string>
     <string name="ui_news_department">院系</string>
     <string name="ui_news_all">全部</string>
     <string name="ui_news_course">专业课程</string>
     <string name="ui_news_generic">新闻</string>
-    <string name="ui_news_events">活动</string>
     <string name="ui_news_empty_title">暂无新闻</string>
     <string name="ui_news_empty_desc">目前暂无官方新闻或公告。</string>
     <string name="ui_news_official_notice">官方公告</string>
-    <string name="ui_news_notice_body">公告正文</string>
-    <string name="ui_news_summary_heading">摘要</string>
-    <string name="ui_news_article_heading">新闻</string>
     <string name="ui_news_open_original">打开原始公告</string>
     <string name="ui_news_share">分享公告</string>
-    <string name="ui_home_news_page_notice">第 %1$d/%2$d 条新闻 • 滑动浏览</string>
 
 
     <string name="ui_home_career_eyebrow">学业生涯</string>
-    <string name="ui_home_degree_estimate">预估（满分 110）</string>
     <string name="ui_home_average_label">平均分</string>
-    <string name="ui_home_cfu_acquired">已修 %1$s CFU</string>
-    <string name="ui_home_cfu_missing">还差 %1$s</string>
-    <string name="ui_home_exams_open">开放预约场次</string>
-    <string name="ui_home_tax_deadline">即将到期的学费</string>
     <string name="ui_home_quick_access_eyebrow">快捷入口</string>
-    <string name="ui_home_quick_access_sub">您常用的服务与工具</string>
     <string name="ui_home_customize_title">选择首页展示工具</string>
-    <string name="ui_average">平均分</string>
-    <string name="ui_average_subtitle">成绩走势</string>
 
 
 
@@ -384,10 +259,6 @@
     <string name="ui_system_and_info">系统与信息</string>
     <string name="ui_session_title">会话</string>
 
-    <string name="ui_profile_access">个人资料与登录</string>
-    <string name="ui_application_preferences">应用偏好设置</string>
-    <string name="ui_visual_experience">视觉体验</string>
-    <string name="ui_system">系统</string>
     <string name="ui_language_title">语言</string>
     <string name="ui_language_subtitle">选择 UniApp 界面显示语言</string>
     <string name="ui_available_languages">可用语言</string>
@@ -415,22 +286,8 @@
     <string name="ui_theme_colors">主题与配色</string>
     <string name="ui_theme_subtitle">Monet 引擎与动态调色板</string>
     <string name="ui_theme_selection_title">主题风格</string>
-    <string name="ui_color_engine">色彩引擎</string>
-    <string name="ui_material_you">Material You</string>
-    <string name="ui_material_you_subtitle">与系统配色保持同步</string>
-    <string name="ui_predefined_palettes">预设调色板</string>
-    <string name="ui_palette_title">晶透玻璃色调</string>
-    <string name="ui_dynamic_effects">动态效果</string>
-    <string name="ui_glass_intensity">玻璃质感强度</string>
-    <string name="ui_aurora_speed">极光动效速度</string>
-    <string name="ui_effects_info">效果调整将立即应用于所有玻璃拟态组件。</string>
-    <string name="ui_preview_color">色彩预览</string>
-    <string name="ui_background_style">背景风格</string>
-    <string name="ui_effect_speed">动效速度</string>
-    <string name="ui_liquid_intensity">Liquid 效果强度</string>
     <string name="ui_colors_title">色彩实验室</string>
     <string name="ui_colors_subtitle">探索 Liquid 色彩光谱</string>
-    <string name="ui_advanced_controls">高级控制</string>
     <string name="ui_colors_info">当关闭 Material You 时，所选颜色将作为种子色生成整个应用的 Monet 调色板。</string>
     <string name="ui_colors_tab_spectrum">色谱</string>
     <string name="ui_colors_tab_adjust">调节</string>
@@ -494,11 +351,9 @@
     <string name="ui_app_password_retry_later">尝试次数过多，请稍后再试。</string>
     <string name="ui_app_password_unlock_failed">无法解锁账号，请重试。</string>
     <string name="ui_unlock_authenticating">正在核验您的身份…</string>
-    <string name="ui_unlock_account">请完成身份验证以打开 %1$s 的账号。</string>
     <string name="ui_unlock_action">使用设备解锁</string>
     <string name="ui_unlock_other_account">使用其他账号</string>
     <string name="ui_professor_area_title">教师专区</string>
-    <string name="ui_professor_area_subtitle">当前身份下的课程、考试场次、指导论文与成绩报告。</string>
     <string name="ui_professor_courses_count">%1$d 门课程</string>
     <string name="ui_professor_rounds_count">%1$d 场考试</string>
     <string name="ui_professor_theses_count">%1$d 篇论文</string>
@@ -513,46 +368,27 @@
     <string name="ui_professor_teachings_subtitle">课程与教学活动</string>
     <string name="ui_professor_exam_rounds_subtitle">场次与考试委员会</string>
     <string name="ui_professor_reports_subtitle">记录与考核结果</string>
-    <string name="ui_professor_news_subtitle">通知与提醒</string>
     <string name="ui_professor_settings_subtitle">偏好与安全设置</string>
     <string name="ui_academic_item_details">可用信息</string>
-    <string name="ui_professor_exam_details_tab">详情</string>
     <string name="ui_professor_exam_round_tab">场次</string>
     <string name="ui_professor_commission">委员会</string>
     <string name="ui_professor_bookings">预约名单</string>
-    <string name="ui_professor_booking_matricola">学号</string>
-    <string name="ui_professor_booking_student">姓名</string>
-    <string name="ui_professor_booking_grade">成绩</string>
     <string name="ui_professor_no_commission">委员会信息不可用</string>
     <string name="ui_professor_no_commission_description">门户未返回考试委员会成员信息。</string>
     <string name="ui_professor_no_bookings">暂无预约</string>
     <string name="ui_professor_no_bookings_description">暂无学生预约本场考试。</string>
-    <string name="ui_news">新闻资讯</string>
     <string name="ui_settings">设置</string>
-    <string name="ui_professor_degrees">学位课程</string>
     <string name="ui_professor_items_count">%1$d 项</string>
     <string name="ui_professor_empty_title">暂无教师数据</string>
-    <string name="ui_professor_empty_description">门户未返回当前身份的任何内容。</string>
-    <string name="ui_professor_open_area">打开全部教师工具</string>
-    <string name="ui_status_prefix">状态：%1$s</string>
 
 
         <string name="ui_update_mandatory">强制更新</string>
     <string name="ui_update_news">更新内容</string>
     <string name="ui_updates">更新</string>
-    <string name="ui_update_version">版本 2.0</string>
-    <string name="ui_software_version">软件版本</string>
-    <string name="ui_system_updated">系统状态：已是最新</string>
-    <string name="ui_changelog">查看更新日志</string>
     <string name="ui_changelog_subtitle">最新版本更新内容</string>
     <string name="ui_updated_version">已是最新版本</string>
-    <string name="ui_app_version_full">UniApp core v1.0.0-beta</string>
-    <string name="ui_app_version_label">UniApp 1.0</string>
 
 
-    <string name="ui_questionnaires">评教问卷</string>
-    <string name="ui_questionnaires_subtitle">课程教学评价</string>
-    <string name="ui_questionnaire_status">评价状态</string>
     <string name="ui_questionnaire_note">预约考试场次前必须完成课程教学评价。</string>
 
     <string name="ui_questionnaires_progress">问卷进度</string>
@@ -577,21 +413,16 @@
     <string name="ui_login_quick_switch">使用已保存账号登录</string>
 
     <string name="ui_login_title">登录 UniApp</string>
-    <string name="ui_login_subtitle">请输入您的大学 Esse3 账号凭据</string>
     <string name="ui_login_username_label">用户名或学号</string>
     <string name="ui_login_username_placeholder">例如 m.rossi 或 123456</string>
     <string name="ui_login_password_label">Esse3 密码</string>
     <string name="ui_login_password_placeholder">请输入密码...</string>
     <string name="ui_login_button">使用 Esse3 登录</string>
-    <string name="ui_login_guest_button">以访客身份体验</string>
     <string name="ui_login_forgot_password">忘记密码？</string>
-    <string name="ui_login_security_note">您的凭据仅会以加密形式保存在本设备上，并仅发送至大学官方 Esse3 服务器。</string>
     <string name="ui_login_career_selection_title">选择学籍</string>
     <string name="ui_login_career_selection_subtitle">检测到您的凭据关联了多个有效学籍，请选择要进入的学籍。</string>
     <string name="ui_login_remember_credentials">记住登录凭据</string>
     <string name="ui_login_error_empty">请同时输入用户名和密码。</string>
-    <string name="ui_login_error_invalid">凭据无效或会话已过期，请重试。</string>
-    <string name="ui_login_success">登录成功</string>
 
 
     <string name="ui_update_search">检查更新</string>
@@ -608,10 +439,8 @@
     <string name="ui_update_error_desc">请检查网络连接后重试</string>
     <string name="ui_update_download">下载</string>
     <string name="ui_update_new_available">发现新版本更新</string>
-    <string name="ui_update_channel">发布渠道</string>
     <string name="ui_update_system_information">系统与信息</string>
     <string name="ui_update_installed_version">当前已安装版本</string>
-    <string name="ui_update_installed_details">%1$s %2$s • %3$s</string>
     <string name="ui_update_stable_channel">稳定版渠道</string>
     <string name="ui_update_channel_unknown">渠道不可用</string>
     <string name="ui_update_installed_badge">已安装</string>
@@ -622,10 +451,7 @@
     <string name="ui_update_verification_running">正在校验签名…</string>
     <string name="ui_update_verification_passed">已验证签名与版本</string>
     <string name="ui_update_check_action">检查更新</string>
-    <string name="ui_update_check_in_progress">正在查找新版本…</string>
-    <string name="ui_update_check_description">检查是否有可用的新版本</string>
 
-    <string name="ui_account_profiles_title">身份与学籍</string>
 
     <!-- Navigation & Route Presentations -->
     <string name="nav_route_bootstrap_subtitle">安全启动</string>
@@ -651,8 +477,6 @@
     <string name="nav_route_report_detail_subtitle">报告详情</string>
     <string name="nav_route_settings_title">设置</string>
     <string name="nav_route_settings_subtitle">偏好与系统配置</string>
-    <string name="nav_route_accounts_title">账号</string>
-    <string name="nav_route_accounts_subtitle">管理大学身份账号</string>
     <string name="nav_route_info_title">关于</string>
     <string name="nav_route_info_subtitle">版本与更新日志</string>
     <string name="nav_route_theme_title">主题</string>
@@ -663,20 +487,14 @@
     <string name="nav_route_taxes_subtitle">缴费与账单管理</string>
     <string name="nav_route_grades_title">统计与成绩模拟</string>
     <string name="nav_route_grades_subtitle">均分计算与成绩模拟</string>
-    <string name="nav_route_statistics_title">学业统计</string>
-    <string name="nav_route_statistics_subtitle">图表与学业进度</string>
     <string name="nav_route_contacts_title">通讯录</string>
     <string name="nav_route_contacts_subtitle">教师与办公室联系方式</string>
     <string name="nav_route_contact_detail_title">联系人详情</string>
     <string name="nav_route_contact_detail_subtitle">教师信息</string>
     <string name="nav_route_transport_title">交通班车</string>
     <string name="nav_route_transport_subtitle">路线与时刻表</string>
-    <string name="nav_route_transport_catalog_title">车票</string>
-    <string name="nav_route_transport_catalog_subtitle">乘车凭证目录</string>
     <string name="nav_route_transport_booking_title">座位预约</string>
     <string name="nav_route_transport_booking_subtitle">选择日期与时间</string>
-    <string name="nav_route_ticket_detail_default_title">车票</string>
-    <string name="nav_route_ticket_detail_subtitle">乘车凭证信息</string>
     <string name="nav_route_reservation_detail_default_title">预约</string>
     <string name="nav_route_reservation_detail_subtitle">乘车座位信息</string>
     <string name="nav_route_transcripts_title">学业生涯</string>
@@ -684,10 +502,6 @@
     <string name="nav_route_exams_title">考试场次</string>
     <string name="nav_route_exams_student_subtitle">考试预约</string>
     <string name="nav_route_exams_professor_subtitle">预约名单、委员会与成绩报告</string>
-    <string name="nav_route_exams_history_title">历史场次</string>
-    <string name="nav_route_exams_history_subtitle">过往考试与预约记录</string>
-    <string name="nav_route_study_plan_title">学习计划</string>
-    <string name="nav_route_study_plan_subtitle">考试与 CFU 规划</string>
     <string name="nav_route_course_detail_title">课程详情</string>
     <string name="nav_route_course_detail_subtitle">考试信息</string>
     <string name="nav_route_questionnaires_title">评教问卷</string>
@@ -722,9 +536,7 @@
     <string name="nav_route_author_subtitle">UniApp 背后的贡献者</string>
 
     <!-- Attendance & QR Scanner -->
-    <string name="ui_attendance_scanner_eyebrow">课堂签到</string>
     <string name="ui_attendance_scanner_scan_qr">扫描考勤二维码</string>
-    <string name="ui_attendance_scanner_live_badge">课堂实时 📡</string>
     <string name="ui_attendance_scanner_explainer">将摄像头对准授课教师在课堂上展示的二维码，即可在大学门户上即时记录并验证您的出勤。</string>
     <string name="ui_attendance_action_scan">扫描二维码</string>
     <string name="ui_attendance_kpi_courses">课程</string>
@@ -736,15 +548,7 @@
     <string name="ui_attendance_empty_title">暂无已记录的考勤。</string>
     <string name="ui_attendance_empty_desc">身处教室时点击上方“扫描二维码”即可完成首次签到。</string>
     <string name="ui_attendance_dialog_title">记录考勤</string>
-    <string name="ui_attendance_dialog_confirm">确认签到</string>
     <string name="ui_attendance_dialog_close">关闭</string>
-    <string name="ui_attendance_dialog_frame_hint">对准二维码</string>
-    <string name="ui_attendance_dialog_input_label">二维码内容 / 字符串</string>
-    <string name="ui_attendance_dialog_input_placeholder">例如 PRES-2026-CS-09</string>
-    <string name="ui_attendance_dialog_input_hint">若无法直接使用摄像头扫描，请粘贴或输入课堂上投影的二维码字符串。</string>
-    <string name="ui_attendance_scanner_open_camera">使用摄像头扫描</string>
-    <string name="ui_attendance_scanner_manual_entry">手动输入代码</string>
-    <string name="ui_attendance_recorded_lectures">已记录课时 (%1$d)</string>
 
     <!-- Didactics & Career -->
     <string name="ui_didactics_degree_fallback">学位课程</string>
@@ -754,11 +558,8 @@
     <string name="ui_didactics_career_progress_percent">学业进度：%1$d%</string>
     <string name="ui_didactics_section_career_evaluations">学业与成绩</string>
     <string name="ui_didactics_section_career_evaluations_sub">考试成绩单、学习计划与均分计算器</string>
-    <string name="ui_didactics_transcript_sub">已登记的考试与成绩</string>
-    <string name="ui_didactics_study_plan_sub">学位培养方案</string>
     <string name="ui_didactics_taxes_title">学费与费用</string>
     <string name="ui_didactics_taxes_sub">缴费状态</string>
-    <string name="ui_didactics_grades_title">均分与成绩</string>
     <string name="ui_didactics_grades_sub">模拟与计算</string>
     <string name="ui_didactics_section_exams_classroom">考试与课堂</string>
     <string name="ui_didactics_section_exams_classroom_sub">考试场次、考勤与课堂签到</string>
@@ -772,36 +573,21 @@
     <string name="ui_didactics_badge_sub">数字身份卡</string>
 
     <!-- Statistics -->
-    <string name="ui_stats_tab_trend">成绩走势</string>
-    <string name="ui_stats_tab_cfu">CFU 学分</string>
-    <string name="ui_stats_tab_tiers">分数段</string>
     <string name="ui_stats_evolution_title">成绩与均分演变</string>
-    <string name="ui_stats_evolution_subtitle">按时间顺序对比单科成绩、加权平均分与算术平均分</string>
     <string name="ui_stats_series_grade">单科成绩</string>
     <string name="ui_stats_series_weighted">加权均分</string>
     <string name="ui_stats_series_arithmetic">算术均分</string>
     <string name="ui_stats_exam_singular">门考试</string>
     <string name="ui_stats_exams_plural">门考试</string>
     <string name="ui_stats_study_plan_progress">学习计划进度</string>
-    <string name="ui_stats_weighted_average_header">加权平均分</string>
-    <string name="ui_stats_degree_projection_header">毕业预测分</string>
     <string name="ui_stats_weighting_spread">加权差值</string>
     <string name="ui_stats_highest_grade">最高成绩</string>
     <string name="ui_stats_lowest_grade">最低成绩</string>
     <string name="ui_stats_recent_trend">近期趋势</string>
-    <string name="ui_stats_trend_points_positive">+%1$s 分</string>
-    <string name="ui_stats_trend_points_negative">%1$s 分</string>
     <string name="ui_stats_cfu_distribution_title">各门考试学分分布</string>
-    <string name="ui_stats_cfu_distribution_sub">不同 CFU 学分值对应的已通过考试数量</string>
-    <string name="ui_stats_cfu_bar_detail">该 CFU 学分档的考试数</string>
-    <string name="ui_stats_cfu_summary_title">学分汇总</string>
-    <string name="ui_stats_cfu_summary_sub">已修得 %1$d / %2$d CFU</string>
     <string name="ui_stats_grade_tiers_title">成绩分数段分布</string>
     <string name="ui_stats_grade_tiers_sub">学业表现的精细化分布统计</string>
-    <string name="ui_stats_recent_trend_desc">最近 3 门已考科目的均分变化</string>
-    <string name="ui_stats_passed_exams">已通过考试</string>
     <string name="ui_stats_arithmetic_average">算术平均分</string>
-    <string name="ui_status_in_order">状态正常</string>
     <string name="ui_status_in_progress">进行中</string>
 
     <!-- Academic Item Detail & Thesis -->
@@ -810,39 +596,25 @@
     <string name="ui_academic_tag_teaching">授课课程</string>
     <string name="ui_academic_tag_report">委员会报告</string>
     <string name="ui_academic_tag_exam">考试场次</string>
-    <string name="ui_academic_date_label">日期：</string>
     <string name="ui_thesis_defense">答辩</string>
-    <string name="ui_thesis_discussion">答辩</string>
     <string name="ui_thesis_final_grade">最终成绩</string>
     <string name="ui_thesis_supervisor">指导教师</string>
     <string name="ui_thesis_title_label">论文题目</string>
-    <string name="ui_thesis_advisors_title">指导教师团队</string>
     <string name="ui_thesis_supervisors_group">指导教师团队</string>
-    <string name="ui_thesis_supervisor_sub">第一指导教师</string>
     <string name="ui_thesis_supervisor_role">第一指导教师</string>
-    <string name="ui_thesis_co_supervisor_sub">联合指导教师</string>
     <string name="ui_thesis_cosupervisor_role">联合指导教师</string>
-    <string name="ui_thesis_session_data_title">答辩场次与学籍信息</string>
     <string name="ui_thesis_session_group">答辩场次与学籍信息</string>
-    <string name="ui_thesis_matricola_label">学生学号</string>
     <string name="ui_thesis_student_matricola">学生学号</string>
-    <string name="ui_thesis_degree_label">学位课程</string>
     <string name="ui_thesis_degree_course">学位课程</string>
-    <string name="ui_thesis_graduation_session">毕业季场次</string>
     <string name="ui_thesis_degree_session">毕业季场次</string>
-    <string name="ui_thesis_datetime_label">答辩日期与时间</string>
     <string name="ui_thesis_defense_date_time">答辩日期与时间</string>
-    <string name="ui_thesis_location_label">答辩地点 / 教室</string>
     <string name="ui_thesis_defense_location">答辩地点 / 教室</string>
-    <string name="ui_thesis_outcome_label">结果 / 评定</string>
     <string name="ui_thesis_outcome_evaluation">结果 / 评定</string>
     <string name="ui_professor_exam_round_tag">考试场次</string>
     <string name="ui_professor_registered_students">已报名</string>
     <string name="ui_professor_registered_count">%1$d 人已报名</string>
     <string name="ui_professor_members_count">%1$d 位成员</string>
-    <string name="ui_professor_no_extra_info">本场考试暂无更多补充信息。</string>
     <string name="ui_professor_exam_session_fallback">考试场次</string>
-    <string name="ui_professor_exam_detail_heading">场次详情</string>
     <string name="ui_date_time_label">日期与时间</string>
     <string name="ui_professor_student_matricola_format">学号：%1$s</string>
     <string name="ui_professor_student_registered_fallback">已报名本场次</string>
@@ -853,27 +625,12 @@
     <string name="ui_add">添加</string>
 
     <!-- Grades & Simulator -->
-    <string name="ui_grades_active_projection">模拟预测中</string>
-    <string name="ui_grades_current_state">当前状态</string>
-    <string name="ui_grades_no_simulation">未启用模拟</string>
     <string name="ui_grades_cfu_progress_projected">预测 CFU 进度</string>
-    <string name="ui_grades_preset_all_30">全设为 30</string>
-    <string name="ui_grades_preset_all_28">全设为 28</string>
-    <string name="ui_grades_preset_all_24">全设为 24</string>
-    <string name="ui_grades_preset_current_average">按当前均分</string>
-    <string name="ui_grades_preset_reset">重置</string>
     <string name="ui_grades_tab_simula">模拟</string>
     <string name="ui_grades_tab_obiettivo">目标</string>
-    <string name="ui_grades_tab_grafici">图表</string>
     <string name="ui_grades_projected_degree_base">毕业分预测</string>
-    <string name="ui_grades_base_degree">毕业基准分</string>
-    <string name="ui_grades_exams_to_simulate_title">待模拟考试</string>
     <string name="ui_grades_exams_to_simulate_subtitle">%1$d 门可选课程 • %2$s</string>
     <string name="ui_grades_no_residual_exams">学习计划中暂无剩余待考科目。</string>
-    <string name="ui_grades_impact_format">影响 %1$s%2$s</string>
-    <string name="ui_grades_simulate_badge">模拟</string>
-    <string name="ui_grades_adjust_grade">调整分数：</string>
-    <string name="ui_grades_graduation_target_header">毕业目标</string>
     <string name="ui_grades_feasibility_easy">轻松可达</string>
     <string name="ui_grades_feasibility_feasible">可达成</string>
     <string name="ui_grades_feasibility_hard">很有挑战</string>
@@ -888,16 +645,10 @@
     <string name="ui_grades_customize_params_title">自定义参数</string>
     <string name="ui_grades_customize_params_sub">设置最终目标、论文分数与学业加分</string>
     <string name="ui_grades_target_degree_vote">期望毕业分数</string>
-    <string name="ui_grades_custom_target">自定义分数：</string>
     <string name="ui_grades_thesis_points_label">预估论文得分</string>
     <string name="ui_grades_career_bonus_label">学业奖励加分</string>
     <string name="ui_grades_chart_evolution_sub">包含单科成绩、加权均分与模拟预测的时间趋势</string>
     <string name="ui_grades_no_chart_data">暂无可用于图表的数据</string>
-    <string name="ui_grades_honors_count_format">已获 %1$d 个满分优等 (Lode)</string>
-    <string name="ui_grades_recorded_exams_count">已登记 %1$d 门考试</string>
-    <string name="ui_grades_cfu_chart_subtitle">已修及模拟考试的学分权重与 CFU</string>
-    <string name="ui_grades_cfu_chart_detail">已登记 / 模拟学分 (CFU)</string>
-    <string name="ui_grades_no_cfu_data">暂无 CFU 数据</string>
     <string name="ui_grades_tier_band_format">%1$s 分数段</string>
     <string name="ui_grades_decrease_value">降低%1$s</string>
     <string name="ui_grades_increase_value">提高%1$s</string>
@@ -915,19 +666,12 @@
     <string name="ui_transport_route_subtitle">选择您出行所需的校园班车线路</string>
     <string name="ui_transport_direction_title">方向</string>
     <string name="ui_transport_direction_subtitle">选择仅预约去程、仅预约返程或往返双程</string>
-    <string name="ui_transport_round_trip">往返</string>
     <string name="ui_transport_dates_title">出行日期</string>
     <string name="ui_transport_booking_date_policy">可预约自明日至未来 15 天内的班次（周六、周日除外）。已预约的日期将保持显示但不可再次选择。</string>
     <string name="ui_transport_booking_completed">已成功预约 %1$d 个班次。</string>
     <string name="ui_transport_booking_partial">已预约 %1$d/%2$d 个班次；%3$d 个已存在，%4$d 个失败。</string>
-    <string name="ui_transport_dates_subtitle">点击日历上的日期即可多选出行日</string>
-    <string name="ui_transport_preset_today">今天</string>
-    <string name="ui_transport_preset_today_tomorrow">今天 + 明天</string>
-    <string name="ui_transport_preset_week">本周</string>
     <string name="ui_transport_navetta_number">班车 #%1$s</string>
     <string name="ui_transport_date_unavailable">日期不可用</string>
-    <string name="ui_transport_ticket_options">车票选项</string>
-    <string name="ui_transport_canceling">正在取消…</string>
     <string name="ui_transport_brand_name">UniTransport</string>
     <string name="ui_transport_direction_andata">去程</string>
     <string name="ui_transport_direction_ritorno">返程</string>
@@ -936,27 +680,13 @@
     <string name="ui_transport_quick_qr">二维码 ↻</string>
     <string name="ui_transport_quick_front">正面 ↻</string>
     <string name="ui_transport_ticket_flip_hint">点击车票以显示二维码 ↻</string>
-    <string name="ui_transport_pass_flip_hint">点击乘车卡以显示二维码 ↻</string>
     <string name="ui_transport_validation_badge">验票</string>
     <string name="ui_transport_ticket_title_badge">乘车凭证</string>
-    <string name="ui_transport_shuttle_campus_default">校园学生班车</string>
     <string name="ui_transport_scan_turnstile_hint">请在闸机或上车时扫描</string>
-    <string name="ui_transport_scan_gates_hint">请在登车口扫描</string>
-    <string name="ui_transport_digital_pass_title">电子车票</string>
-    <string name="ui_transport_validation_qr_instruction_shuttle">请向班车光学扫描仪出示此二维码</string>
-    <string name="ui_transport_validation_qr_instruction_staff">请向随车工作人员出示此二维码以核验车票</string>
-    <string name="ui_transport_identity_verified_flip">身份已验证 • 点击翻转</string>
     <string name="ui_transport_summary_ride">行程摘要</string>
     <string name="ui_transport_round_trip_caps">往返双程</string>
     <string name="ui_transport_return_only_caps">仅返程</string>
     <string name="ui_transport_outbound_only_caps">仅去程</string>
-    <string name="ui_transport_terminus_a">终点站 A</string>
-    <string name="ui_transport_terminus_b">终点站 B</string>
-    <string name="ui_transport_departure">出发</string>
-    <string name="ui_transport_arrival">到达</string>
-    <string name="ui_transport_dates_count">日期（共 %1$d 天）</string>
-    <string name="ui_transport_ride_date">乘车日期</string>
-    <string name="ui_transport_total_rides">总班次数</string>
     <string name="ui_transport_rides_guaranteed_format">%1$d %2$s（已保障）</string>
     <string name="ui_transport_rides_plural">班次</string>
     <string name="ui_transport_ride_singular">班次</string>
@@ -967,24 +697,14 @@
     <string name="ui_transport_confirm_outbound_ride">确认预约去程班次</string>
     <string name="ui_transport_reservation_back_instruction">上车时出示 • 更多操作在右下角按钮</string>
     <string name="ui_transport_tap_return_front">点击返回正面 ↻</string>
-    <string name="ui_transport_ticket_back_instruction">请向乘务人员出示</string>
-    <string name="ui_free_price">免费</string>
 
     <!-- Theme & Customization -->
     <string name="ui_theme_mode_group">外观与主题模式</string>
     <string name="ui_theme_mode_system">跟随系统</string>
-    <string name="ui_theme_mode_system_sub">随设备外观自动切换</string>
     <string name="ui_theme_mode_light">浅色</string>
-    <string name="ui_theme_mode_light_sub">明亮清新</string>
     <string name="ui_theme_mode_dark">深色</string>
-    <string name="ui_theme_mode_dark_sub">均衡对比度</string>
-    <string name="ui_theme_mode_amoled">AMOLED</string>
-    <string name="ui_theme_mode_amoled_sub">OLED 纯黑省电</string>
     <string name="ui_theme_material_you_title">动态取色 (Material You)</string>
     <string name="ui_theme_material_you_sub">自动与系统壁纸颜色同步</string>
-    <string name="ui_theme_palette_group">调色板与 Monet 种子色</string>
-    <string name="ui_theme_palette_custom_lab">自定义色彩实验室</string>
-    <string name="ui_theme_palette_custom_lab_sub">打造专属配色方案</string>
     <string name="ui_theme_engine_group">Liquid 背景图形引擎</string>
     <string name="ui_theme_background_aurora">极光 (Aurora)</string>
     <string name="ui_theme_background_aurora_sub">层次流畅的流动光幕</string>
@@ -996,15 +716,8 @@
     <string name="ui_theme_background_radiant_sub">自上方倾泻的分层光束</string>
     <string name="ui_theme_glow_intensity">背景光晕强度</string>
     <string name="ui_theme_anim_speed">背景动画速度</string>
-    <string name="ui_theme_saturation">背景色彩饱和度</string>
     <string name="ui_theme_vignette_title">边角暗角</string>
     <string name="ui_theme_vignette_sub">压暗边缘以提升文字可读性</string>
-    <string name="ui_theme_cyber_grid_title">透视赛博网格</string>
-    <string name="ui_theme_cyber_grid_sub">细腻的 3D 纵深几何网格线</string>
-    <string name="ui_theme_waves_title">流体谐波</string>
-    <string name="ui_theme_waves_sub">在背景中绘制正弦波纹线条</string>
-    <string name="ui_theme_grain_title">模拟胶片颗粒</string>
-    <string name="ui_theme_grain_sub">为背景增添细腻的胶片质感</string>
     <string name="ui_theme_glass_group">玻璃材质与透明度</string>
     <string name="ui_theme_liquid_intensity">Liquid 效果强度</string>
     <string name="ui_theme_glass_quality">玻璃光学渲染质量</string>
@@ -1018,19 +731,8 @@
     <string name="ui_theme_glass_quality_high_sub">高保真折射与模糊效果</string>
     <string name="ui_theme_glass_quality_ultra">极致</string>
     <string name="ui_theme_glass_quality_ultra_sub">最高光学纵深与色散表现</string>
-    <string name="ui_theme_glass_opacity">玻璃表面不透明度</string>
-    <string name="ui_theme_glass_blur">背景模糊 (backdrop blur)</string>
-    <string name="ui_theme_glass_glow">镜面边缘光晕</string>
-    <string name="ui_theme_glass_specular_title">镜面边缘反光</string>
-    <string name="ui_theme_glass_specular_sub">为卡片顶部边框添加流光高光</string>
-    <string name="ui_theme_haptics_group">物理动效与触感反馈</string>
     <string name="ui_theme_reduced_motion_title">减弱动态效果</string>
     <string name="ui_theme_reduced_motion_sub">减少持续动画以节省电量</string>
-    <string name="ui_theme_geometry_group">几何圆角与排版</string>
-    <string name="ui_theme_rendering_group">系统与 GPU 渲染参数</string>
-    <string name="ui_theme_pause_sleep_title">息屏时暂停动画</string>
-    <string name="ui_theme_pause_sleep_sub">屏幕关闭时停止图形引擎以延长续航</string>
-    <string name="ui_theme_reset_button">恢复 Liquid Monet 默认值</string>
     <string name="ui_theme_reset_short">恢复默认主题</string>
 
     <!-- Questionnaires & Info App -->
@@ -1040,15 +742,6 @@
     <string name="ui_questionnaire_status_completed">已填写</string>
     <string name="ui_questionnaire_status_pending">待填写</string>
     <string name="ui_questionnaire_status_inactive">未开放</string>
-    <string name="ui_app_info_about_title">关于 UniApp</string>
-    <string name="ui_app_info_about_desc">专为莫利塞大学学生打造的独立、免费且开源的应用程序。</string>
-    <string name="ui_read_details">查看详情</string>
-    <string name="ui_course_exam_mode_desc">考核包括理论与实践题目的笔试或上机测试，必要时辅以口试进一步考察。</string>
-    <string name="ui_course_materials_desc">授课教师提供的讲义及发布在学校教学平台上的补充学习资料。</string>
-    <string name="ui_course_by_appointment">需提前预约</string>
-    <string name="ui_course_in_person_or_online">线下或线上</string>
-    <string name="ui_course_dept_office">院系办公室</string>
-    <string name="ui_course_dept_building">教学楼</string>
     <string name="ui_attendance_lessons_recorded">已记录课时 (%1$d)</string>
     <string name="ui_unipass_title">UniPass</string>
     <string name="ui_role_teacher_upper">教师</string>
@@ -1088,8 +781,6 @@
     <string name="portal_student_email_sub">大学 Outlook 邮箱</string>
     <string name="service_prof_contacts_title">通讯录</string>
     <string name="service_prof_contacts_sub">联系人与办公室</string>
-    <string name="service_prof_teachers_title">教师</string>
-    <string name="service_prof_teachers_sub">学术资料与联系方式</string>
     <string name="portal_prof_esse3_title">Esse3</string>
     <string name="portal_prof_esse3_sub">教师门户</string>
     <string name="portal_prof_moodle_title">Moodle</string>
@@ -1102,8 +793,6 @@
     <string name="quick_action_libretto_sub">成绩与 CFU</string>
     <string name="quick_action_statistiche_title">统计与成绩模拟</string>
     <string name="quick_action_statistiche_sub">图表与趋势</string>
-    <string name="quick_action_media_title">平均分</string>
-    <string name="quick_action_media_sub">成绩模拟</string>
     <string name="quick_action_appelli_title">考试场次</string>
     <string name="quick_action_appelli_sub">考试预约</string>
     <string name="quick_action_didattica_title">教务</string>
@@ -1114,8 +803,6 @@
     <string name="quick_action_tasse_sub">缴费通知单</string>
     <string name="quick_action_rubrica_title">通讯录</string>
     <string name="quick_action_rubrica_sub">授课教师</string>
-    <string name="quick_action_notifiche_title">新闻资讯</string>
-    <string name="quick_action_notifiche_sub">通知与公告</string>
     <string name="quick_action_condivisione_title">课表</string>
     <string name="quick_action_condivisione_sub">课程时间表</string>
     <string name="quick_action_sicurezza_title">登录管理</string>
@@ -1132,32 +819,13 @@
     <string name="quick_action_prof_verbali_sub">考核结果与记录</string>
     <string name="quick_action_prof_rubrica_title">通讯录</string>
     <string name="quick_action_prof_rubrica_sub">教师与办公室</string>
-    <string name="quick_action_prof_notifiche_title">新闻资讯</string>
-    <string name="quick_action_prof_notifiche_sub">通知与公告</string>
-    <string name="changelog_v1_0_0_date">2026年8月26日</string>
-    <string name="changelog_v1_0_0_item_1_title">全新 UniApp 体验</string>
-    <string name="changelog_v1_0_0_item_1_desc">Liquid Monet 设计系统与流畅响应的教务导航。</string>
-    <string name="changelog_v1_0_0_item_2_title">学业中心</string>
-    <string name="changelog_v1_0_0_item_2_desc">集成成绩单、考试及成绩预测模拟的一站式仪表盘。</string>
-    <string name="changelog_v1_0_0_item_3_title">会话安全</string>
-    <string name="changelog_v1_0_0_item_3_desc">基于硬件 keystore 的本地加密与已连接设备管理。</string>
-    <string name="changelog_v0_9_5_date">2026年8月15日</string>
-    <string name="changelog_v0_9_5_item_1_title">图形渲染优化</string>
-    <string name="changelog_v0_9_5_item_1_desc">更流畅的画面渲染与更低的功耗。</string>
-    <string name="changelog_v0_9_5_item_2_title">通知系统</string>
-    <string name="changelog_v0_9_5_item_2_desc">教务提醒实时同步推送。</string>
     <string name="ui_update_required_title">强制更新</string>
-    <string name="ui_update_required_body">请更新 UniApp 以继续使用本应用。</string>
-    <string name="ui_update_available_body">UniApp 有新版本可用。</string>
     <string name="ui_update_notification_body">UniApp %1$s 现已发布，打开应用即可更新。</string>
     <string name="ui_update_notification_channel">应用更新</string>
     <string name="ui_report_bug_github">在 GitHub 上报告问题</string>
-    <string name="ui_report_bug_public">打开公开草稿并在发布前检查内容，请勿包含任何个人信息。</string>
     <string name="ui_project_cached">GitHub 暂不可访问或已达到请求限制，部分信息来自本地缓存。</string>
     <string name="ui_project_load_failed">无法从 GitHub 加载全部信息，请稍后再试。</string>
     <string name="ui_project_github_profile">GitHub 主页</string>
-    <string name="ui_project_license">仓库开源协议</string>
-    <string name="ui_project_license_unspecified">GitHub 未识别到开源协议，请前往仓库查看代码使用条款。</string>
     <string name="ui_project_unlinked_contributor">未关联 GitHub 主页的贡献者</string>
     <string name="ui_project_contributions">%1$d 次贡献</string>
     <string name="app_info_sec_1_title">UniApp 与大学服务</string>
@@ -1216,11 +884,8 @@
     <string name="cookie_sec_4_content">分发网站会在您的浏览器中保存主题选择。当您打开 GitHub、App Store、大学门户或其他网站时，您的浏览器及所访问的服务将依据其各自的声明处理会话与存储机制。从 UniApp 移除账号不会清除浏览器数据。</string>
     <string name="ui_info_installed_build">版本 %1$s · 构建 %2$s</string>
     <string name="ui_info_independent">独立开源项目</string>
-    <string name="ui_info_application">应用程序</string>
     <string name="ui_info_components">组件与版本</string>
-    <string name="ui_info_components_subtitle">此 UniApp 构建版本中包含的组件版本。</string>
     <string name="ui_info_about_project">什么是 UniApp</string>
-    <string name="ui_info_source">源代码</string>
     <string name="ui_info_public_issue">在 GitHub 上提交 Issue</string>
     <string name="ui_creator_credits">作者与致谢</string>
     <string name="ui_creator_credits_subtitle">作者与贡献者</string>
@@ -1228,8 +893,6 @@
     <string name="ui_credits_acknowledgements">致谢与贡献者</string>
     <string name="ui_credits_explanation">感谢所有为 UniApp 贡献代码的朋友。以下致谢名单来自项目的 GitHub 仓库。</string>
     <string name="ui_credits_no_other_contributors">GitHub 目前除创建者外未列出其他贡献者。</string>
-    <string name="ui_credits_contribute">参与项目贡献</string>
-    <string name="ui_credits_refresh">刷新致谢名单</string>
     <string name="msg_configura_uniapp_app_store_url_per_aprire_lapp">请配置 UNIAPP_APP_STORE_URL 以打开 App Store。</string>
     <string name="msg_impossibile_aprire_lapp_store">无法打开 App Store。</string>
     <string name="msg_impossibile_ripristinare_la_sessione_protetta">无法恢复受保护的会话</string>
@@ -1251,10 +914,8 @@
     <string name="msg_corse_gia_prenotate_per_le_date_selezionate">所选日期的班次已预约。</string>
     <string name="msg_prenotazione_non_riuscita">预约失败。</string>
     <string name="msg_impossibile_caricare_le_prenotazioni_trasporto">无法加载班车预约记录。</string>
-    <string name="msg_impossibile_caricare_le_linee_disponibili">无法加载可用班车线路。</string>
     <string name="msg_impossibile_caricare_la_prenotazione">无法加载预约详情。</string>
     <string name="msg_impossibile_annullare_la_prenotazione">无法取消预约。</string>
-    <string name="msg_impossibile_caricare_la_linea">无法加载该线路。</string>
     <string name="msg_impossibile_leggere_le_preferenze_protette">无法读取受保护的偏好设置。</string>
     <string name="msg_conferma_la_tua_identita_per_attivare_la_protezione">请确认您的身份以启用 UniApp 保护。</string>
     <string name="msg_conferma_la_tua_identita_per_disattivare_la_protezione">请确认您的身份以停用 UniApp 保护。</string>
@@ -1269,8 +930,6 @@
     <string name="msg_impossibile_caricare_la_rubrica">无法加载通讯录。</string>
     <string name="msg_impossibile_caricare_le_tasse">无法加载学费信息。</string>
     <string name="msg_impossibile_caricare_il_contatto">无法加载联系人。</string>
-    <string name="msg_nessun_esame">暂无考试</string>
-    <string name="msg_impossibile_caricare_le_statistiche">无法加载统计数据。</string>
     <string name="msg_impossibile_caricare_il_libretto">无法加载成绩单。</string>
     <string name="msg_impossibile_caricare_il_piano_di_studi">无法加载学习计划。</string>
     <string name="msg_impossibile_caricare_gli_appelli">无法加载考试场次。</string>
@@ -1291,20 +950,14 @@
     <string name="msg_impossibile_salvare_il_questionario">无法保存问卷。</string>
     <string name="msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili">部分教师版块暂不可用。</string>
     <string name="msg_impossibile_caricare_la_panoramica_didattica">无法加载教学概览。</string>
-    <string name="msg_impossibile_caricare_lidentita_docente">无法加载教师身份信息。</string>
     <string name="msg_impossibile_caricare_il_badge_studente">无法加载学生电子证件。</string>
     <string name="msg_impossibile_caricare_i_dati_della_docenza">无法加载教学数据。</string>
     <string name="msg_impossibile_caricare_il_dettaglio">无法加载详情。</string>
-    <string name="msg_corso_di_laurea">学位课程</string>
-    <string name="msg_sessione_di_laurea">毕业季场次</string>
     <string name="msg_corso_di_laurea_2">学位课程</string>
-    <string name="msg_nessun_appello_disponibile">暂无可用考试场次</string>
     <string name="msg_impossibile_aggiornare_la_panoramica">无法刷新概览。</string>
-    <string name="msg_alcuni_dati_docente_non_sono_momentaneamente_disponibili">部分教师数据暂不可用。</string>
     <string name="msg_cerca">搜索...</string>
     <string name="msg_cerca_2">搜索</string>
     <string name="msg_storico">历史</string>
-    <string name="msg_aggiornamento_disponibile">有可用更新</string>
     <string name="msg_conferma_la_tua_identita_per_aprire_laccount_uniapp">请确认您的身份以打开 UniApp 账号。</string>
     <string name="msg_accesso_annullato">登录已取消。</string>
     <string name="msg_impossibile_aprire_laccount">无法打开账号。</string>
@@ -1323,16 +976,11 @@
     <string name="msg_diventa_un_collaboratore">参与贡献</string>
     <string name="msg_invia_una_pull_request_con_correzioni_traduzioni_o">在 GitHub 上提交 Pull Request</string>
     <string name="msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una">在 GitHub 上提交 Issue</string>
-    <string name="msg_attivo">活跃</string>
     <string name="msg_ideatore_e_sviluppatore_principale_dell_ecosistema_uniapp_per">面向大学生的 UniApp 生态系统创始人兼首席开发者。</string>
     <string name="msg_contributori_della_community">社区贡献者</string>
     <string name="msg_nessun_aggiornamento_o_nota_di_rilascio_disponibile_al">目前暂无更新或发布说明。</string>
-    <string name="msg_il_corso_approfondisce_i_principi_cardine_le_architetture">本课程深入探讨学习计划所要求的核心原理、参考架构及标准应用方法论。</string>
     <string name="msg_obiettivo_non_matematicamente_possibile_con_i_parametri_correnti">按当前参数计算该目标在数学上无法实现（所需均分 &gt; 30）。建议提高预估论文分数或学业奖励加分。</string>
-    <string name="msg_flash">Flash</string>
     <string name="msg_versamento_completato">缴费已完成</string>
-    <string name="msg_impossibile_creare_lo_shader_agsl_della_card">无法创建卡片 AGSL 着色器</string>
-    <string name="msg_errore_durante_il_rendering_dello_shader_agsl">渲染 AGSL 着色器时出错</string>
     <string name="msg_attivita_android_non_disponibile">Android Activity 不可用。</string>
     <string name="msg_abilita_linstallazione_da_uniapp_torna_nellapp_e_premi">请允许从 UniApp 安装应用，返回应用后再次点击“下载”。</string>
     <string name="msg_impossibile_scaricare_o_installare_laggiornamento">无法下载或安装更新。</string>
@@ -1350,12 +998,6 @@
     <string name="msg_la_versione_dellapk_non_corrisponde_al_manifest_di">APK 版本与更新清单不匹配。</string>
     <string name="msg_la_firma_dellapk_non_corrisponde_alla_firma_di">APK 签名与 UniApp 签名不匹配。</string>
     <string name="msg_installazione_non_riuscita">安装失败。</string>
-    <string name="msg_conferma_di_installazione_non_disponibile">安装确认不可用。</string>
-    <string name="msg_android_non_ha_potuto_installare_laggiornamento">Android 无法安装该更新。</string>
-    <string name="msg_conferma_laggiornamento_nella_schermata_di_android">请在 Android 系统提示界面中确认更新。</string>
-    <string name="msg_la_precedente_installazione_e_terminata_controlla_nuovamente_gli">先前的安装已结束，请重新检查更新。</string>
-    <string name="msg_installazione_in_attesa_di_conferma">安装正在等待确认。</string>
-    <string name="msg_impossibile_riprendere_linstallazione_riprova">无法恢复安装，请重试。</string>
     <string name="ui_update_status_verifying">正在验证更新…</string>
     <string name="ui_update_status_downloading">正在下载更新…</string>
     <string name="ui_update_status_mandatory">强制更新</string>
@@ -1363,8 +1005,6 @@
     <string name="ui_thesis_title">论文题目</string>
     <string name="ui_home_no_due_taxes">暂无即将到期的学费</string>
     <string name="ui_language_italian_default">意大利语（默认）</string>
-    <string name="ui_home_news_empty_title">暂无新闻</string>
-    <string name="ui_home_news_empty_description">目前暂无官方新闻或公告。</string>
     <string name="ui_demo_action">模拟操作。未向大学发送任何数据。</string>
     <string name="ui_demo_invalid_credentials">演示账号凭据无效。</string>
     <string name="ui_code_unavailable">凭证码不可用</string>
@@ -1375,13 +1015,10 @@
     <string name="ui_ticket_downloading">正在保存车票…</string>
     <string name="ui_ticket_reload">重新下载</string>
     <string name="ui_ticket_original_saved">原票已保存至本设备，离线也可查看。</string>
-    <string name="ui_ticket_catalog_no_code">预约班次后即可获取车票及其乘车码。</string>
     <string name="ui_ticket_original_image">原始车票</string>
     <string name="ui_ticket_digital_code">车票码</string>
     <string name="ui_ticket_close">关闭</string>
     <string name="ui_contact_internal_phone">分机</string>
-    <string name="ui_theme_page_motion_group">页面切换动画</string>
-    <string name="ui_theme_page_motion_sub">主页面、子页面及返回导航均使用相同的切换动画。</string>
     <string name="ui_theme_page_motion_style">动画风格</string>
     <string name="ui_theme_page_motion_reduced_hint">已开启减弱动态效果：页面切换将保持即时响应。</string>
     <string name="ui_motion_crossfade">交叉淡入淡出</string>
@@ -1400,8 +1037,6 @@
     <string name="ui_motion_slide_vertical_sub">新页面从顶部或底部滑入。</string>
     <string name="ui_motion_depth">景深缩放</string>
     <string name="ui_motion_depth_sub">缩放并淡入淡出，返回时反向播放。</string>
-    <string name="ui_theme_graphics_motion_group">背景、物理效果与动画</string>
-    <string name="ui_theme_graphics_motion_sub">Liquid 背景、全局动效与页面切换动画。</string>
 
     <!-- UniSDK failure codes: display text is owned by UniApp. -->
     <string name="sdk_error_account_invalid">无效账号。</string>
@@ -1539,29 +1174,15 @@
     <string name="ui_career_plan">学习计划</string>
     <string name="ui_career_all_statuses">全部</string>
     <string name="ui_career_to_complete">待修</string>
-    <string name="ui_career_summary_libretto">大学成绩单</string>
-    <string name="ui_career_summary_plan">学习计划</string>
-    <string name="ui_career_average_unit">均分</string>
-    <string name="ui_career_degree_base_short">基准分 %1$s</string>
     <string name="ui_career_exams_count">%1$d 门考试</string>
     <string name="ui_career_lodi_count">%1$d 门优等 (con lode)</string>
-    <string name="ui_career_cfu_pair">%1$d / %2$d CFU</string>
     <string name="ui_career_open_stats">统计与成绩模拟</string>
     <string name="ui_career_filter_empty">未找到课程</string>
     <string name="ui_career_filter_empty_desc">请尝试更换学年或筛选条件以查看计划中的课程。</string>
     <string name="ui_grades_real">走势</string>
     <string name="ui_grades_scope_real">实际学业</string>
     <string name="ui_grades_projection">预测</string>
-    <string name="ui_grades_official">学业数据</string>
-    <string name="ui_grades_real_description">基于已登记考试的成绩走势；如有官方均分，最新数值将与官方对齐。</string>
-    <string name="ui_grades_projected_description">仅基于模拟器中已启用考试的预测，不会修改您的官方学籍记录。</string>
-    <string name="ui_grades_recent_trend">近期均分变化</string>
-    <string name="ui_services_in_app_soon">即将上线应用内支持</string>
     <string name="ui_home_no_open_rounds">暂无开放预约场次</string>
-    <string name="ui_exams_hero_kicker">考试场次与预约</string>
-    <string name="ui_exams_next_booked_label">下一场已预约考试</string>
-    <string name="ui_exams_open_count_label">当前开放预约</string>
-    <string name="ui_exams_total_count_label">总场次数</string>
     <string name="ui_exams_all_filter">全部</string>
     <string name="ui_exams_open_filter">正在开放</string>
     <string name="ui_exams_opening_soon_filter">即将开放</string>
@@ -1571,24 +1192,18 @@
     <string name="ui_exams_status_closed">已截止</string>
     <string name="ui_exams_booked_slots_summary">已预约 %1$d • 名额 %2$d</string>
     <string name="ui_exams_booked_count_only">%1$d 人已预约</string>
-    <string name="ui_exams_professor_hero_kicker">考试场次管理</string>
     <string name="ui_exams_history_kicker">考试历史</string>
     <string name="ui_exams_history_verbalized_count">已登记</string>
     <string name="ui_exams_history_past_bookings_count">过往预约</string>
-    <string name="ui_exams_history_cfu_total">已获 CFU</string>
     <string name="ui_news_featured_badge">精选</string>
     <string name="ui_news_latest_header">最新公告</string>
     <string name="ui_news_count_format">%1$d 条公告</string>
     <string name="ui_news_count_one">1 条公告</string>
     <string name="ui_news_read_more">阅读公告</string>
-    <string name="ui_news_source_official_label">官方来源</string>
-    <string name="ui_transport_hero_kicker">交通与班车</string>
     <string name="ui_transport_all_filter">全部</string>
     <string name="ui_transport_outbound_short">去程</string>
     <string name="ui_transport_return_short">返程</string>
     <string name="ui_transport_round_trip_short">往返</string>
-    <string name="ui_transport_next_ride_label">下一趟已安排班次</string>
-    <string name="ui_transport_rides_count_format">%1$d 趟班次</string>
     <string name="ui_transport_clear_selection">清除</string>
     <string name="ui_transport_no_date_selected">未选择日期</string>
     <string name="ui_calendar_months_full">一月,二月,三月,四月,五月,六月,七月,八月,九月,十月,十一月,十二月</string>
@@ -1608,9 +1223,7 @@
     <string name="ui_grades_target_easy_msg">轻松可达：只需达到 %1$s 的均分（基于剩余 %2$d CFU，当前均分 %3$s）。</string>
     <string name="ui_grades_target_feasible_msg">目标可达成：需要达到 %1$s 的均分（基于剩余 %2$d CFU）。</string>
     <string name="ui_grades_target_hard_msg">很有挑战：需要近乎满分的均分 (%1$s)。建议考虑论文加分。</string>
-    <string name="ui_grades_simulation_summary_badge">%1$s • %2$d %3$s</string>
     <string name="ui_grades_tier_exams_percent">%1$d 门考试 • %2$d%</string>
-    <string name="ui_grades_highest_grade_courses_format">最高：%1$s</string>
     <string name="ui_grades_active_singular">已启用 %1$d 门</string>
     <string name="ui_grades_active_plural">已启用 %1$d 门</string>
     <string name="ui_grades_custom_exam_default">自定义考试</string>
@@ -1646,7 +1259,6 @@
     <string name="ui_library_tab_spaces">自习空间</string>
     <string name="ui_library_hero_eyebrow">BIBLIOUNIMOL OPAC</string>
     <string name="ui_library_hero_title">浏览大学图书馆目录</string>
-    <string name="ui_library_hero_desc">搜索图书，查看 Campobasso、Pesche 和 Termoli 分馆馆藏，管理借阅并预约自习座位。</string>
     <string name="ui_library_search_label">搜索目录</string>
     <string name="ui_library_search_placeholder">书名、作者或主题…</string>
     <string name="ui_library_search_action">搜索</string>
@@ -1687,7 +1299,6 @@
     <string name="ui_library_booking_type_title">预约类型</string>
     <string name="ui_library_booking_owner_title">分馆</string>
     <string name="ui_library_booking_resource_title">可用空间或服务</string>
-    <string name="ui_library_booking_slots_title">可用时间段</string>
     <string name="ui_library_booking_slots_empty">该资源暂无可用时段。</string>
     <string name="ui_library_device_address_label">设备地址 / MAC</string>
     <string name="ui_library_device_address_placeholder">例如 AA:BB:CC:11:22:33</string>
@@ -1736,7 +1347,6 @@
     <string name="ui_project_contribute_group">参与项目</string>
     <string name="ui_project_report_ideas">反馈问题</string>
     <string name="ui_search_close">关闭搜索</string>
-    <string name="ui_monet_palette">Monet 调色板</string>
     <string name="ui_project_syncing">正在从 GitHub 同步个人资料和贡献者信息…</string>
     <string name="ui_sdk_liquid_description">光学渲染与玻璃组件</string>
     <string name="ui_sdk_uni_description">Esse3 服务与大学系统集成</string>
@@ -1754,7 +1364,6 @@
     <string name="msg_update_started">已开始更新…</string>
     <string name="msg_survey_answer_required">请回答所有必答题。</string>
     <string name="msg_transport_booking_cancelled">预订已取消。</string>
-    <string name="ui_brand_experience">UniApp 使用体验 ✨</string>
     <string name="ui_theme_palette_dynamic">Material You</string>
     <string name="ui_theme_palette_sapphire">蓝宝石</string>
     <string name="ui_theme_palette_emerald">祖母绿</string>
