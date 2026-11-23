@@ -1,67 +1,53 @@
 import React from 'react';
-import { Sparkles, ShieldCheck, Code2 } from 'lucide-react';
 
 export const Architecture: React.FC = () => {
   return (
-    <section id="architecture">
+    <section id="architecture" className="editorial-band">
       <div className="container">
-        <div className="section-header">
-          <span className="section-tag">I Valori di UniApp</span>
-          <h2 className="section-title">Design Moderno, Privacy &amp; 100% Open Source</h2>
-          <p className="section-description">
-            Nata dall’esigenza reale di migliorare l’esperienza universitaria: interfaccia fluida, massima protezione dei dati personali e codice completamente trasparente.
-          </p>
-        </div>
-
-        <div className="arch-cards-grid">
-          {/* 1. Design Liquid Monet */}
-          <div className="glass-card">
-            <div className="card-icon-bubble">
-              <Sparkles className="w-6 h-6 text-[var(--theme-primary)]" />
-            </div>
-            <h3 className="card-title">Design Moderno &amp; Tema Studio</h3>
-            <p className="card-text">
-              Componenti in vetro ottico Liquid Monet con sfondi animati, Color Lab personalizzabile e palette dinamiche (Violet, Sapphire, Emerald, Amber). Progettata con Kotlin Multiplatform per offrire un’esperienza fluida e nativa su Android e iOS.
+        <div className="editorial-split">
+          <div className="editorial-sticky">
+            <span className="eyebrow">Architettura</span>
+            <h2 className="display-h2">Nativa. Protetta. Aperta.</h2>
+            <p className="lead-copy">
+              Una base condivisa in Kotlin Multiplatform e Compose Multiplatform con SDK modulari verificati via SHA-256.
             </p>
-            <div className="card-tags">
-              <span className="arch-tag highlight">Liquid Monet</span>
-              <span className="arch-tag">Tema Studio</span>
-              <span className="arch-tag">Android &amp; iOS</span>
-              <span className="arch-tag">10 Lingue</span>
+            <div className="tech-pill-row">
+              <span className="tech-pill">Kotlin Multiplatform</span>
+              <span className="tech-pill">Compose Multiplatform</span>
+              <span className="tech-pill">Liquid Monet</span>
+              <span className="tech-pill">Android 10+ &amp; iOS</span>
             </div>
           </div>
 
-          {/* 2. Privacy & Sicurezza */}
-          <div className="glass-card">
-            <div className="card-icon-bubble">
-              <ShieldCheck className="w-6 h-6 text-[var(--theme-primary)]" />
+          <div className="editorial-chapters">
+            <div className="editorial-chapter">
+              <span className="chapter-index">01</span>
+              <div className="chapter-body">
+                <h3>Liquid Monet &amp; Tema Studio</h3>
+                <p>
+                  Superfici optical glass, palette dinamiche Material You e 4 preset curati (Zaffiro, Smeraldo, Tramonto, Viola) affiancati dal Color Lab. Include icone adattive Android 13+, varianti iOS Default/Dark/Tinted e transizioni unificate che rispettano «Riduci movimento».
+                </p>
+              </div>
             </div>
-            <h3 className="card-title">Privacy &amp; Protezione sul Dispositivo</h3>
-            <p className="card-text">
-              Le tue credenziali e i dati di sessione sono archiviati in modo cifrato e sicuro direttamente sul tuo smartphone tramite l’hardware di protezione e la biometria (impronta digitale o volto). Nessun dato ceduto a terzi e zero tracciamento.
-            </p>
-            <div className="card-tags">
-              <span className="arch-tag highlight">Protezione Hardware</span>
-              <span className="arch-tag">Accesso Biometrico</span>
-              <span className="arch-tag">Dati sul Dispositivo</span>
-              <span className="arch-tag">Zero Tracciamento</span>
-            </div>
-          </div>
 
-          {/* 3. 100% Open Source */}
-          <div className="glass-card">
-            <div className="card-icon-bubble">
-              <Code2 className="w-6 h-6 text-[var(--theme-primary)]" />
+            <div className="editorial-chapter">
+              <span className="chapter-index">02</span>
+              <div className="chapter-body">
+                <h3>Sicurezza Biometrica &amp; Storage Cifrato</h3>
+                <p>
+                  Sblocco dell’app con autenticazione biometrica e PIN a 6 cifre, archiviazione separata e cifrata per ogni account tramite secure-storage-sdk, revoca delle sessioni lato server dai Dispositivi connessi e disabilitazione di backup e traffico in chiaro.
+                </p>
+              </div>
             </div>
-            <h3 className="card-title">100% Libero &amp; Open Source</h3>
-            <p className="card-text">
-              UniApp è un progetto indipendente e completamente open source. Il codice è pubblico e verificabile da chiunque su GitHub: niente costi, nessuna pubblicità e totale trasparenza, sviluppato con passione per l’intera comunità universitaria.
-            </p>
-            <div className="card-tags">
-              <span className="arch-tag highlight">100% Open Source</span>
-              <span className="arch-tag">GitHub Pubblico</span>
-              <span className="arch-tag">Nessuna Pubblicità</span>
-              <span className="arch-tag">Per gli Studenti</span>
+
+            <div className="editorial-chapter">
+              <span className="chapter-index">03</span>
+              <div className="chapter-body">
+                <h3>100% Open Source &amp; Build Indipendenti</h3>
+                <p>
+                  Codice sorgente pubblico e ispezionabile su GitHub, zero pubblicità e zero tracciamento. Le build di Android, iOS e sito vengono compilate e pubblicate con workflow indipendenti e impronte SHA-256 trasparenti.
+                </p>
+              </div>
             </div>
           </div>
         </div>

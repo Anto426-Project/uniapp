@@ -1,32 +1,37 @@
 [
   {
-    "file": "violet-home.jpg",
+    "file": "sapphire-home.jpg",
     "title": "Dashboard & Carriera",
-    "description": "Panoramica esami, media e stato studente"
+    "description": "Panoramica esami, media, CFU, appelli, tasse e accesso rapido"
   },
   {
-    "file": "violet-servizi.jpg",
+    "file": "sapphire-servizi.jpg",
     "title": "Servizi Universitari",
-    "description": "Navette, trasporti, tasse e segreteria"
+    "description": "Trasporti, tasse, rubrica, notizie e portali ufficiali di Ateneo"
   },
   {
-    "file": "violet-didattica.jpg",
-    "title": "Didattica & Libretto",
-    "description": "Libretto universitario, esami e piano di studi"
+    "file": "sapphire-didattica.jpg",
+    "title": "Didattica & Carriera",
+    "description": "Media ponderata, progresso CFU, libretto, appelli e presenze QR"
   },
   {
-    "file": "violet-info.jpg",
-    "title": "Informazioni UniApp",
-    "description": "Dettagli build, note di rilascio e aggiornamenti"
-  },
-  {
-    "file": "violet-badge.jpg",
+    "file": "sapphire-badge.jpg",
     "title": "Badge Universitario",
-    "description": "QR Code studente e tessera digitale"
+    "description": "Tessera studente interattiva 3D con QR Code nativo"
   },
   {
-    "file": "violet-statistiche.jpg",
-    "title": "Statistiche & Andamento",
-    "description": "Grafici andamento voti, CFU e proiezioni carriera"
+    "file": "sapphire-impostazioni.jpg",
+    "title": "Impostazioni & Sicurezza",
+    "description": "Dispositivi connessi, biometria, Tema Studio, notifiche e 10 lingue"
+  },
+  {
+    "file": "sapphire-aggiornamenti.jpg",
+    "title": "Aggiornamenti Sistema",
+    "description": "Verifica pacchetti, canale stabile e note di rilascio integrate"
+  },
+  {
+    "file": "sapphire-info.jpg",
+    "title": "Informazioni UniApp",
+    "description": "Versione build, progetto open source, crediti e SDK integrati"
   }
 ]

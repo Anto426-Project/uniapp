@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import {
   Download,
-  Sparkles,
   Copy,
   Check,
   ExternalLink,
@@ -11,6 +10,7 @@ import {
   GitCommit,
   FileCode,
   ShieldCheck,
+  Smartphone,
 } from 'lucide-react';
 import { useRelease, usePlatforms } from './SiteShell';
 import { withBasePath } from '@/utils/basePath';
@@ -72,7 +72,8 @@ function parseChangelog(notes?: string): ChangelogItem[] {
       lower.includes('migliorat') ||
       lower.includes('ottimizzat') ||
       lower.includes('uniformat') ||
-      lower.includes('velocizzat')
+      lower.includes('velocizzat') ||
+      lower.includes('snellit')
     ) {
       category = 'Miglioramento';
       badgeClass = 'badge-improvement';
@@ -105,7 +106,7 @@ function renderInlineMarkdown(text: string): React.ReactNode[] {
   return parts.map((part, idx) => {
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
       return (
-        <strong key={idx} className="font-semibold text-white">
+        <strong key={idx} className="font-semibold text-[var(--text-primary)]">
           {part.slice(2, -2)}
         </strong>
       );
@@ -139,10 +140,13 @@ export const DownloadHub = () => {
 
   const copyToClipboard = (url: string, id: string) => {
     if (!url || url === '#') return;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    }).catch(() => setCopiedId(null));
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+      })
+      .catch(() => setCopiedId(null));
   };
 
   const arm64Url =
@@ -158,40 +162,49 @@ export const DownloadHub = () => {
     : 'https://github.com/Anto426-Project/Uniapp/commits/main';
 
   return (
-    <section id="download" className="py-20 md:py-28 relative">
+    <section id="download">
       <div className="container">
-        {/* Intestazione Sezione */}
-        <div className="section-header text-center mb-12">
-          <span className="section-tag">Download Libero &amp; Gratuito</span>
-          <h2 className="section-title">Scarica UniApp per il tuo dispositivo</h2>
-          <p className="section-description max-w-2xl mx-auto">
-            UniApp è gratuito e indipendente. Scegli Android o iOS: ogni piattaforma ha la propria versione e i propri pacchetti.
-          </p>
+        <div className="split-section-header">
+          <div className="split-header-copy">
+            <span className="eyebrow">Download</span>
+            <h2 className="display-h2">Scarica UniApp.</h2>
+            <p className="lead-copy">
+              Gratuito e indipendente. Android e iOS mantengono versioni e pacchetti separati.
+            </p>
+          </div>
+          <a
+            href="https://github.com/Anto426-Project/uniapp-upstream/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-apple-glass"
+          >
+            <span>Tutti i rilasci su GitHub</span>
+            <ExternalLink className="w-4 h-4 opacity-70" aria-hidden="true" />
+          </a>
         </div>
 
-        {/* 2-Column Release Deck */}
-        <div className="release-deck-grid">
-          {/* Left Column: Download Console */}
-          <div className="release-console-card">
-            {/* Console Header / Switcher */}
-            <div className="console-header-bar">
-              <span>Ultima versione pubblicata • 100% Open Source</span>
-            </div>
-
-            {/* Version & Highlights */}
-            <div className="console-version-row">
-              <div className="console-version-tag">
-                <span className="ver-text">{version}</span>
+        <div className="download-studio-grid">
+          {/* Left Column: Android + iOS stacked */}
+          <div className="download-platforms-col">
+            {/* Android Primary Card */}
+            <div className="studio-card studio-card--android">
+              <div className="studio-card-top">
+                <span className="platform-label">
+                  <span className="status-live-dot" aria-hidden="true" />
+                  <span>Android</span>
+                </span>
+                <span className="badge-pill">ARM64-v8a</span>
               </div>
-              <div className="console-pub-date">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Rilasciato il {dateText}</span>
-              </div>
-            </div>
 
-            {/* Hero Download Action (ARM64-v8a) */}
-            <div className="hero-download-block">
-              <div className="hero-download-action-group">
+              <div className="version-block">
+                <div className="ver-text">{version}</div>
+                <div className="pub-date">
+                  <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Rilasciato il {dateText}</span>
+                </div>
+              </div>
+
+              <div className="download-cta-row">
                 <a
                   href={arm64Url === '#' ? undefined : arm64Url}
                   aria-disabled={arm64Url === '#'}
@@ -199,11 +212,11 @@ export const DownloadHub = () => {
                   className="btn-hero-download"
                 >
                   <div className="btn-hero-icon-box">
-                    <Download className="w-5 h-5" />
+                    <Download className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div className="btn-hero-labels">
                     <span className="btn-hero-title">Scarica APK ARM64-v8a</span>
-                    <span className="btn-hero-subtitle">Android 10+ • Sistema a 64 bit</span>
+                    <span className="btn-hero-subtitle">Android 10+ · 64 bit</span>
                   </div>
                 </a>
                 <button
@@ -212,83 +225,125 @@ export const DownloadHub = () => {
                   disabled={arm64Url === '#'}
                   className="btn-hero-copy"
                   title="Copia link download ARM64"
+                  aria-label="Copia link download ARM64"
                 >
                   {copiedId === 'arm64' ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
+                    <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-4 h-4" aria-hidden="true" />
                   )}
                 </button>
               </div>
+
+              <div className="studio-card-footer">
+                <a
+                  href={commitUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="console-link"
+                >
+                  <GitCommit className="w-3.5 h-3.5 text-[var(--theme-primary)]" aria-hidden="true" />
+                  <span>
+                    Commit <code className="console-code">#{commitHash}</code>
+                  </span>
+                </a>
+
+                <a
+                  href={withBasePath('/update.json')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="console-link"
+                >
+                  <FileCode className="w-3.5 h-3.5 text-[var(--theme-primary)]" aria-hidden="true" />
+                  <span>
+                    <code className="console-code">update.json</code>
+                  </span>
+                  <ExternalLink className="w-3 h-3 opacity-60" aria-hidden="true" />
+                </a>
+              </div>
             </div>
 
-            {/* Console Footer */}
-            <div className="console-footer-bar">
-              <a
-                href={commitUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="console-link"
-              >
-                <GitCommit className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
-                <span>Commit <code className="console-code">#{commitHash}</code></span>
-              </a>
+            {/* iOS Card (only <article> inside #download) */}
+            <article className="studio-card" aria-label="Download iOS">
+              <div>
+                <div className="studio-card-top">
+                  <span className="platform-label">
+                    <Smartphone className="w-4 h-4 text-[var(--theme-primary)]" aria-hidden="true" />
+                    <span>iOS</span>
+                  </span>
+                  <span className="badge-pill">
+                    {iosRelease ? `v${iosRelease.version}` : 'KMP'}
+                  </span>
+                </div>
 
-              <a
-                href={withBasePath('/update.json')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="console-link"
-              >
-                <FileCode className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
-                <span>Manifest <code className="console-code">update.json</code></span>
-                <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
-              </a>
-            </div>
+                <p className="ios-note">
+                  {iosRelease ? `Versione ${iosRelease.version}.` : 'Nessun download disponibile.'}
+                  {' L’IPA richiede firma e provisioning; il bundle simulatore è separato.'}
+                </p>
+
+                {iosRelease && (
+                  <div className="ios-variants-list">
+                    {Object.entries(iosRelease.variants).map(([variant, data]) => (
+                      <div key={variant} className="ios-variant-row">
+                        <span className="ios-variant-label">iOS · {data.version}</span>
+                        <ul className="ios-downloads-pills">
+                          {data.downloads.map((file) => (
+                            <li key={file.name}>
+                              <a className="ios-download-pill" href={file.url}>
+                                <Download className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                                <span>
+                                  {file.name.endsWith('.ipa') ? 'IPA iOS' : 'Bundle simulatore'}
+                                </span>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="studio-card-footer">
+                <a
+                  className="console-link"
+                  href={iosRelease?.url || 'https://github.com/Anto426-Project/uniapp-upstream/releases'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>Note e checksum su GitHub</span>
+                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                </a>
+              </div>
+            </article>
           </div>
 
-          {/* Right Column: Release Notes / Changelog */}
-          <div id="changelog" className="release-changelog-card">
-            {/* Changelog Header */}
-            <div className="changelog-deck-header">
-              <div className="changelog-deck-title-wrap">
-                <div className="changelog-deck-icon">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="changelog-deck-title">Note di Rilascio</h3>
-                  <p className="changelog-deck-subtitle">
-                    Novità ed ottimizzazioni introdotte in {version}
-                  </p>
-                </div>
+          {/* Right Column: Full-Height Editorial Release Notes */}
+          <div id="changelog" className="changelog-panel">
+            <div className="studio-card-top">
+              <div>
+                <h3 className="spec-cell-title">Note di Rilascio</h3>
+                <p className="pub-date" style={{ marginTop: 4 }}>
+                  Novità ed ottimizzazioni introdotte in {version}
+                </p>
               </div>
-              <span className="cl-deck-badge">
-                Android 64 bit
-              </span>
+              <span className="badge-pill">Changelog</span>
             </div>
 
-            {/* Scrollable Items Feed (Scrollbar hidden) */}
-            <div className="release-changelog-scroll">
-              <ul className="deck-changelog-list">
-                {changelogItems.map((item, idx) => (
-                  <li key={idx} className="deck-changelog-item">
-                    <span className={`deck-badge ${item.badgeClass}`}>
-                      {item.category}
-                    </span>
-                    <span className="deck-item-text">
-                      {renderInlineMarkdown(item.text)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="changelog-list">
+              {changelogItems.map((item, idx) => (
+                <li key={idx} className="changelog-item">
+                  <span className={`deck-badge ${item.badgeClass}`}>{item.category}</span>
+                  <span className="changelog-text">{renderInlineMarkdown(item.text)}</span>
+                </li>
+              ))}
+            </ul>
 
-            {/* Changelog Footer */}
-            <div className="changelog-deck-footer">
-              <div className="verified-build-pill">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="studio-card-footer">
+              <span className="console-link" style={{ cursor: 'default' }}>
+                <ShieldCheck className="w-4 h-4 text-emerald-400" aria-hidden="true" />
                 <span>Rilasci verificati su GitHub</span>
-              </div>
+              </span>
               <a
                 href="https://github.com/Anto426-Project/Uniapp"
                 target="_blank"
@@ -296,37 +351,10 @@ export const DownloadHub = () => {
                 className="console-link"
               >
                 <span>Codice Open Source</span>
-                <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
+                <ExternalLink className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
               </a>
             </div>
           </div>
-        </div>
-        <div className="mt-8">
-          <article className="release-console-card" aria-label="Download iOS">
-            <h3 className="text-xl font-semibold mb-3">iOS</h3>
-            <p className="mb-4 text-sm opacity-75">
-              {iosRelease ? `Versione ${iosRelease.version}` : 'Nessun download disponibile.'}
-              {' L’IPA richiede firma e provisioning; il bundle simulatore è separato.'}
-            </p>
-            {iosRelease && Object.entries(iosRelease.variants).map(([variant, data]) => (
-              <div key={variant} className="mb-4">
-                <p className="text-sm mb-2">iOS · {data.version}</p>
-                <ul className="space-y-2">
-                  {data.downloads.map((file) => (
-                    <li key={file.name}>
-                      <a className="console-link break-all" href={file.url}>
-                        <Download className="w-4 h-4 shrink-0" />
-                        <span>{file.name.endsWith('.ipa') ? 'IPA iOS' : 'Bundle simulatore'}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-            <a className="console-link" href={iosRelease?.url || 'https://github.com/Anto426-Project/uniapp-upstream/releases'} target="_blank" rel="noopener noreferrer">
-              Note e checksum su GitHub <ExternalLink className="w-3 h-3" />
-            </a>
-          </article>
         </div>
       </div>
     </section>

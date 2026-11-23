@@ -17,8 +17,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'UniApp Upstream | Download Android ARM64',
-  description: "Sito ufficiale del progetto open source e indipendente UniApp: scarica l'APK per Android, consulta le funzionalità e i rilasci per gli studenti dell'Università degli Studi del Molise.",
+  title: 'UniApp Upstream | Android & iOS',
+  description: "Sito ufficiale del progetto open source e indipendente UniApp: scarica l'app per Android e iOS, scopri le funzionalità Liquid Monet e i rilasci per gli studenti dell'Università degli Studi del Molise.",
   authors: [{ name: 'Anto426' }],
   icons: {
     icon: [
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    title: 'UniApp Upstream | Download Android ARM64',
-    description: "L'app 100% open source e indipendente per gli studenti UniMol: libretto, esami, tasse, navette e badge universitario.",
+    title: 'UniApp Upstream | Android & iOS',
+    description: "L'app 100% open source e indipendente per gli studenti UniMol: libretto, esami, presenze QR, tasse, navette e badge universitario.",
     url: 'https://anto426-project.github.io/uniapp-upstream/',
     siteName: 'UniApp Upstream',
   },
@@ -53,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={cn(inter.variable, plusJakartaSans.variable, "font-sans")}>
-      <body className="theme-violet">
+      <body className="theme-sapphire">
         {children}
       </body>
     </html>

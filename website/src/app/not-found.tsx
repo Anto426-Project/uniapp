@@ -2,191 +2,74 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Home, Download, SearchX, ExternalLink } from 'lucide-react';
+import { Home, Download, SearchX } from 'lucide-react';
 import { Background } from '@/components/Background';
 
 export default function NotFound() {
-  const [theme, setTheme] = useState('violet');
+  const [theme, setTheme] = useState('sapphire');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('uniapp-theme');
-    if (savedTheme && ['violet', 'sapphire', 'emerald', 'amber'].includes(savedTheme)) {
-      setTheme(savedTheme);
-      document.body.className = `theme-${savedTheme}`;
-    } else {
-      document.body.className = 'theme-violet';
+    try {
+      const savedTheme = localStorage.getItem('uniapp-theme');
+      const normalized = savedTheme === 'amber' ? 'sunset' : savedTheme;
+      if (normalized && ['sapphire', 'emerald', 'sunset', 'violet'].includes(normalized)) {
+        setTheme(normalized);
+        document.body.className = `theme-${normalized}`;
+        return;
+      }
+    } catch {
+      /* Ignore private storage errors. */
     }
+    document.body.className = 'theme-sapphire';
   }, []);
 
   return (
     <>
-      {/* Sfondo dinamico Aurora con la stessa palette scelta dall'utente */}
       <Background theme={theme} />
 
       <main
-        className="not-found-page"
         style={{
           minHeight: '100dvh',
           display: 'grid',
           placeItems: 'center',
-          position: 'relative',
           padding: '48px 20px',
-          zIndex: 1,
         }}
       >
         <div
-          className="glass-panel"
+          className="studio-card"
           style={{
-            width: 'min(100%, 560px)',
-            padding: '52px 36px',
+            width: 'min(100%, 480px)',
+            padding: '44px 32px',
             textAlign: 'center',
-            borderRadius: '24px',
-            position: 'relative',
-            zIndex: 2,
-            boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.75), 0 0 30px var(--theme-glow-1)',
-            border: '1px solid var(--glass-border)',
-            background: 'var(--bg-surface)',
-            backdropFilter: 'blur(20px)',
+            alignItems: 'center',
           }}
         >
-          {/* Badge Icona */}
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              display: 'grid',
-              placeItems: 'center',
-              margin: '0 auto 24px',
-              borderRadius: '20px',
-              background: 'var(--theme-card-accent)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: 'var(--theme-primary)',
-              boxShadow: '0 0 24px var(--theme-glow-1)',
-            }}
-          >
-            <SearchX className="w-8 h-8" />
+          <div className="spec-icon" style={{ width: 52, height: 52, borderRadius: 15, marginBottom: 16 }}>
+            <SearchX className="w-6 h-6" aria-hidden="true" />
           </div>
 
-          <span className="section-tag" style={{ marginBottom: 12 }}>
-            Errore 404 • Risorsa Non Trovata
-          </span>
+          <span className="eyebrow">Errore 404</span>
 
-          {/* 404 con gradiente testuale Monet */}
           <h1
-            style={{
-              margin: '16px 0 8px',
-              fontSize: 'clamp(3.8rem, 11vw, 5.5rem)',
-              fontWeight: 900,
-              lineHeight: 1,
-              letterSpacing: '-0.03em',
-              background: 'linear-gradient(135deg, #ffffff 40%, var(--theme-primary) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
+            className="hero-headline"
+            style={{ fontSize: 'clamp(3rem, 9vw, 4.2rem)', marginTop: 8 }}
           >
-            404
+            <span className="hero-headline-accent">404</span>
           </h1>
 
-          <h2
-            style={{
-              margin: '12px 0',
-              color: '#ffffff',
-              fontSize: '1.4rem',
-              fontWeight: 700,
-            }}
-          >
-            Questa pagina non è disponibile
-          </h2>
-
-          <p
-            style={{
-              maxWidth: 420,
-              margin: '0 auto 32px',
-              color: 'var(--text-secondary)',
-              fontSize: '0.95rem',
-              lineHeight: 1.6,
-            }}
-          >
-            L&apos;indirizzo digitato potrebbe essere cambiato, il link è obsoleto oppure la risorsa è stata trasferita.
+          <p className="lead-copy" style={{ marginTop: 12, maxWidth: 360 }}>
+            La pagina o risorsa richiesta non esiste oppure è stata spostata.
           </p>
 
-          {/* Azioni di Navigazione */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 14,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Link
-              href="/"
-              className="btn-download-action-compact primary"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '12px 24px',
-                borderRadius: '16px',
-                fontWeight: 700,
-                fontSize: '0.92rem',
-                textDecoration: 'none',
-              }}
-            >
-              <Home className="w-4 h-4" />
+          <div className="hero-actions" style={{ marginTop: 28, justifyContent: 'center', width: '100%' }}>
+            <Link href="/" className="btn-apple-primary">
+              <Home className="w-4 h-4" aria-hidden="true" />
               <span>Torna alla Home</span>
             </Link>
-
-            <Link
-              href="/#download"
-              className="btn-download-action-compact secondary"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '12px 22px',
-                borderRadius: '16px',
-                fontWeight: 600,
-                fontSize: '0.92rem',
-                textDecoration: 'none',
-              }}
-            >
-              <Download className="w-4 h-4" />
-              <span>Vai ai Download</span>
+            <Link href="/#download" className="btn-apple-glass">
+              <Download className="w-4 h-4" aria-hidden="true" />
+              <span>Download</span>
             </Link>
-          </div>
-
-          {/* Footer Card */}
-          <div
-            style={{
-              marginTop: 36,
-              paddingTop: 20,
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '0.82rem',
-              color: 'var(--text-tertiary)',
-            }}
-          >
-            <span>UniApp Ecosystem</span>
-            <a
-              href="https://github.com/Anto426-Project/Uniapp"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: 'var(--theme-primary)',
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                fontWeight: 600,
-              }}
-            >
-              <span>GitHub</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
           </div>
         </div>
       </main>

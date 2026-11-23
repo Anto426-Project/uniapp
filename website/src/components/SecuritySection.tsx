@@ -1,83 +1,56 @@
 import React from 'react';
+import { Lock, Activity, ShieldCheck, ExternalLink } from 'lucide-react';
 
 export const SecuritySection: React.FC = () => {
   return (
-    <section id="security">
+    <section id="security" className="security-strip-band">
       <div className="container">
-        <div className="section-header">
-          <span className="section-tag">Trasparenza</span>
-          <h2 className="section-title">Integrità &amp; Sicurezza</h2>
-          <p className="section-description">
-            Informazioni sul codice, sulla protezione dei dati locali e sui servizi utilizzati dall’app.
-          </p>
+        <div className="split-section-header" style={{ marginBottom: 0 }}>
+          <div className="split-header-copy">
+            <span className="eyebrow">Trasparenza</span>
+            <h2 className="display-h2">Integrità &amp; Sicurezza.</h2>
+          </div>
+          <a
+            href="https://github.com/Anto426-Project/uniapp-upstream/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="console-link"
+          >
+            <span>Verifica impronte SHA-256</span>
+            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+          </a>
         </div>
 
-        <div className="security-glass-box">
-          <div className="sec-left-col">
-            <div className="sec-shield">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
+        <div className="security-strip-grid">
+          <div className="security-strip-item">
+            <div className="spec-icon">
+              <Lock className="w-4 h-4" aria-hidden="true" />
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>Codice e build</h3>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-              Versioni pubblicate con metadati e impronte SHA-256 dei file.
+            <h3>Archiviazione protetta</h3>
+            <p>
+              Credenziali e sessioni usano l’archiviazione protetta della piattaforma con separazione per account, sblocco biometrico e PIN a 6 cifre.
             </p>
-            <a
-              href="https://github.com/Anto426-Project/uniapp-upstream/releases"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-vt-report"
-            >
-              <span>Consulta i rilasci</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
           </div>
 
-          <ul className="sec-points">
-            <li className="sec-point-item">
-              <div className="sec-item-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </div>
-              <div className="sec-item-text">
-                <h4>Archiviazione protetta</h4>
-                <p>Le copie persistenti di credenziali e sessioni usano l’archiviazione protetta della piattaforma. Il livello di protezione disponibile dipende dal dispositivo.</p>
-              </div>
-            </li>
+          <div className="security-strip-item">
+            <div className="spec-icon">
+              <Activity className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <h3>Servizi collegati</h3>
+            <p>
+              Le funzioni accademiche contattano i servizi dell’Ateneo, CINECA e, per alcune richieste, il proxy sync.faufas.it. Notifiche via FCM e servizi Apple.
+            </p>
+          </div>
 
-            <li className="sec-point-item">
-              <div className="sec-item-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
-              <div className="sec-item-text">
-                <h4>Servizi collegati</h4>
-                <p>Le funzioni accademiche contattano servizi dell’Ateneo, CINECA e, per alcune richieste, il proxy sync.faufas.it.</p>
-              </div>
-            </li>
-
-            <li className="sec-point-item">
-              <div className="sec-item-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M2 12h20" />
-                  <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" />
-                </svg>
-              </div>
-              <div className="sec-item-text">
-                <h4>Trasparenza sui dati</h4>
-                <p>L’app usa dati di autenticazione e accademici per le funzioni richieste. Notifiche, aggiornamenti e segnalazioni coinvolgono anche i rispettivi servizi esterni.</p>
-              </div>
-            </li>
-          </ul>
+          <div className="security-strip-item">
+            <div className="spec-icon">
+              <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <h3>Build riproducibili</h3>
+            <p>
+              Ogni versione pubblicata è accompagnata da commit sorgente, manifest JSON e impronte SHA-256 verificabili direttamente su GitHub.
+            </p>
+          </div>
         </div>
       </div>
     </section>

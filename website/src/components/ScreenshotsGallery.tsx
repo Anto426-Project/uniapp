@@ -5,7 +5,7 @@ import { ScreenshotItem } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
 import { LightboxModal } from './LightboxModal';
 import { ScreenshotCarousel, CarouselScreenshot } from './ScreenshotCarousel';
-import { useCurrentTheme } from './SiteShell';
+import { MONET_THEMES, useThemeControls } from './SiteShell';
 import { SCREENSHOTS_BY_THEME, SCREENSHOTS_DATA } from '@/data/default-manifest';
 
 interface ScreenshotsGalleryProps {
@@ -13,7 +13,7 @@ interface ScreenshotsGalleryProps {
 }
 
 export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screenshots = SCREENSHOTS_DATA }) => {
-  const currentTheme = useCurrentTheme();
+  const { theme: currentTheme, setTheme } = useThemeControls();
   const activeScreenshots = SCREENSHOTS_BY_THEME[currentTheme] || screenshots;
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -29,15 +29,34 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
   }, [activeScreenshots]);
 
   return (
-    <section id="screenshots" className="py-12 md:py-20 relative overflow-hidden">
-      <div className="container mx-auto px-4">
-        {/* Intestazione Sezione */}
-        <div className="section-header text-center mb-8 md:mb-12">
-          <span className="section-tag">Interfaccia Utente</span>
-          <h2 className="section-title">Anteprima Schermate</h2>
-          <p className="section-description max-w-2xl mx-auto">
-            Scorri le schermate di UniApp e tocca un’immagine per ingrandirla.
-          </p>
+    <section id="screenshots" className="gallery-band">
+      <div className="container">
+        <div className="split-section-header">
+          <div className="split-header-copy">
+            <span className="eyebrow">Interfaccia</span>
+            <h2 className="display-h2">Ogni schermata, curata nei dettagli.</h2>
+            <p className="lead-copy">
+              Scorri le viste reali di UniApp e tocca un’anteprima per aprirla a schermo intero.
+            </p>
+          </div>
+
+          <div className="segmented-control" role="group" aria-label="Cambia pigmento schermate">
+            {MONET_THEMES.map((item) => {
+              const isActive = currentTheme === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setTheme(item.id)}
+                  aria-pressed={isActive}
+                  className={`segmented-option ${isActive ? 'active' : ''}`}
+                >
+                  <span className={`segmented-swatch ${item.className}`} aria-hidden="true" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <ScreenshotCarousel
@@ -52,7 +71,11 @@ export const ScreenshotsGallery: React.FC<ScreenshotsGalleryProps> = ({ screensh
 
       <LightboxModal
         isOpen={isLightboxOpen && Boolean(activeScreenshots[currentIndex])}
-        imageUrl={activeScreenshots[currentIndex] ? withBasePath(`/assets/screenshots/${activeScreenshots[currentIndex].file}`) : ''}
+        imageUrl={
+          activeScreenshots[currentIndex]
+            ? withBasePath(`/assets/screenshots/${activeScreenshots[currentIndex].file}`)
+            : ''
+        }
         title={activeScreenshots[currentIndex]?.title || ''}
         description={activeScreenshots[currentIndex]?.description || ''}
         currentIndex={currentIndex}
