@@ -61,14 +61,6 @@ kotlin {
     }
 
     sourceSets {
-        val mobileMain = create("mobileMain") {
-            dependsOn(commonMain.get())
-            dependencies {
-                implementation(libs.zscanner)
-            }
-        }
-        androidMain.configure { dependsOn(mobileMain) }
-        iosMain.configure { dependsOn(mobileMain) }
         androidMain.dependencies {
             implementation(libs.zxing.core)
             implementation(libs.zxing.cpp.android)
@@ -101,6 +93,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.zscanner)
             implementation(libs.qrose)
             implementation(libs.qrose.oned)
         }
@@ -124,7 +117,7 @@ kotlin {
 
 // Metadata describes the exact binary releases consumed by this build.
 val sdkManifest = rootProject.file(".sdk-binaries/resolved.properties")
-require(sdkManifest.isFile) { "SDK binaries are missing. Run: python3 scripts/fetch_sdk_binaries.py" }
+require(sdkManifest.isFile) { "SDK binaries are missing. Run: python3 scripts/sdk/fetch_sdk_binaries.py" }
 val sdkProperties = Properties().apply { sdkManifest.inputStream().use(::load) }
 fun loadLocalSdkManifest(path: String): Properties? = providers.fileContents(
     rootProject.layout.projectDirectory.file(path),
@@ -147,7 +140,7 @@ val moduleMetadata = sdkDependencies.map { (name, dependency) ->
     val manifest = local ?: sdkProperties
     require(manifest.getProperty("$name.version") == version &&
         manifest.getProperty("$name.coordinate") == "${dependency.module.group}:${dependency.module.name}") {
-        "$name binaries do not match the declared dependency ($version). Run: python3 scripts/fetch_sdk_binaries.py"
+        "$name binaries do not match the declared dependency ($version). Run: python3 scripts/sdk/fetch_sdk_binaries.py"
     }
     val revision = manifest.getProperty("$name.revision").orEmpty()
     require(revision.matches(Regex("[a-f0-9]{40}"))) { "Missing source revision for $name. Fetch SDK binaries again." }
