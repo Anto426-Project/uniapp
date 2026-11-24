@@ -20,6 +20,7 @@ jobs:
       DEPLOY_REPO: Anto426-Project/uniapp-upstream
       DEPLOY_BRANCH: main
       NEXT_PUBLIC_BASE_PATH: /uniapp-upstream
+      NEXT_PUBLIC_IOS_RELAY_URL: ${{ vars.UNIAPP_IOS_RELAY_URL }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -42,6 +43,9 @@ jobs:
           cp deploy-repo/update.json website/public/update.json
           if test -f deploy-repo/release/platforms.json; then
             cp deploy-repo/release/platforms.json website/public/platforms.json
+          fi
+          if test -f deploy-repo/release/altstore.json; then
+            cp deploy-repo/release/altstore.json website/public/altstore.json
           fi
           cd website
           npm ci

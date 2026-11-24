@@ -1,0 +1,39 @@
+{
+  "name": "UniApp",
+  "identifier": "com.anto426.uniapp.source",
+  "subtitle": "L'app nativa open source per gli studenti UniMol",
+  "description": "Sorgente ufficiale AltStore e SideStore di UniApp per iOS e iPadOS. Aggiornamenti automatici e rinnovo firma con il proprio Apple ID.",
+  "iconURL": "https://anto426-project.github.io/uniapp-upstream/apple-touch-icon.png",
+  "website": "https://anto426-project.github.io/uniapp-upstream/ios/",
+  "tintColor": "#4A90D9",
+  "featuredApps": [
+    "com.anto426.uniapp.UniApp"
+  ],
+  "apps": [
+    {
+      "name": "UniApp",
+      "bundleIdentifier": "com.anto426.uniapp.UniApp",
+      "developerName": "Anto426",
+      "subtitle": "Libretto, simulatore laurea, presenze QR e badge UniPass",
+      "localizedDescription": "Client nativo Kotlin Multiplatform per consultare carriera, appelli, tasse, presenze QR, badge UniPass 3D e navette dell'Università degli Studi del Molise.",
+      "iconURL": "https://anto426-project.github.io/uniapp-upstream/apple-touch-icon.png",
+      "tintColor": "#4A90D9",
+      "category": "education",
+      "screenshots": [
+        "https://anto426-project.github.io/uniapp-upstream/assets/screenshots/sapphire-home.jpg",
+        "https://anto426-project.github.io/uniapp-upstream/assets/screenshots/sapphire-didattica.jpg",
+        "https://anto426-project.github.io/uniapp-upstream/assets/screenshots/sapphire-badge.jpg"
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSCameraUsageDescription": "Scansione codici QR delle presenze e dei servizi universitari.",
+          "NSFaceIDUsageDescription": "Protezione biometrica delle credenziali universitarie salvate.",
+          "NSPhotoLibraryUsageDescription": "Scansione codici QR da immagini salvate."
+        }
+      },
+      "versions": []
+    }
+  ],
+  "news": []
+}

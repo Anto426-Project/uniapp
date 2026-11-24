@@ -16,6 +16,9 @@ fi
 if [[ -f deploy-repo/release/platforms.json ]]; then
   cp deploy-repo/release/platforms.json deploy-repo/docs/platforms.json
 fi
+if [[ -f deploy-repo/release/altstore.json ]]; then
+  cp deploy-repo/release/altstore.json deploy-repo/docs/altstore.json
+fi
 touch deploy-repo/docs/.nojekyll
 cd deploy-repo
 git add docs

@@ -1,0 +1,11 @@
+{
+  "name": "uniapp-ios-relay",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-03-01",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://anto426-project.github.io"
+  },
+  "observability": {
+    "enabled": false
+  }
+}

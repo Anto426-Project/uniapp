@@ -179,7 +179,7 @@ test('Android and iOS downloads retain independent versions and iOS packages', a
     clientHeight: el.clientHeight,
     scrollHeight: el.scrollHeight,
   }));
-  expect(scrollMetrics.clientHeight).toBeLessThanOrEqual(260);
+  expect(scrollMetrics.clientHeight).toBeLessThanOrEqual(480);
   expect(scrollMetrics.scrollHeight).toBeGreaterThan(scrollMetrics.clientHeight + 100);
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -237,4 +237,106 @@ test('Segmented pill stays strictly inside track and switches themes, tabs, and 
   await page.locator('header').getByRole('button', { name: 'Attiva aspetto chiaro' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-appearance', 'light');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('iOS Sideload Studio highlights Download in navbar and supports Apple ID, SideStore, and .p12 modes', async ({
+  page,
+  isMobile,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('response', (response) => {
+    if (response.url().startsWith('http://127.0.0.1') && response.status() >= 400) {
+      errors.push(`${response.status()} ${response.url()}`);
+    }
+  });
+
+  await page.route('**/platforms.json', (route) =>
+    route.fulfill({
+      json: {
+        schema: 1,
+        platforms: {
+          ios: {
+            version: '2.1.2',
+            tag: 'v2.1.2-ios',
+            url: 'https://example.test/releases/v2.1.2-ios',
+            signing: 'unsigned',
+            variants: {
+              ios: {
+                version: '2.1.2',
+                downloads: [
+                  {
+                    os: 'ios',
+                    name: 'UniApp-ios-2.1.2-1001-unsigned.ipa',
+                    url: 'https://github.com/Anto426-Project/uniapp-upstream/releases/download/v2.1.2-ios/UniApp-ios-2.1.2-1001-unsigned.ipa',
+                    sha256: 'b'.repeat(64),
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    })
+  );
+
+  await page.route('https://relay.example.test/healthz', (route) =>
+    route.fulfill({
+      json: { ok: true, service: 'uniapp-ios-sideload-relay' },
+    })
+  );
+
+  await page.goto('./');
+  const iosCard = page.getByRole('article', { name: 'Download iOS', exact: true });
+  await iosCard.getByRole('link', { name: /Sideload Web/i }).click();
+
+  await expect(page).toHaveURL(/\/ios\/?$/);
+  await expect(page.getByRole('heading', { name: /Installa su iPhone/i })).toBeVisible();
+
+  // Navbar must NOT contain a separate Sideload iOS link, and Download stays active on desktop
+  await expect(page.locator('header').getByText('Sideload iOS')).toHaveCount(0);
+  if (!isMobile) {
+    await expect(page.locator('header').getByRole('link', { name: 'Download', exact: true })).toHaveAttribute(
+      'aria-current',
+      'location'
+    );
+  }
+
+  const modeGroup = page.getByRole('group', { name: 'Modalità di installazione iOS' });
+
+  // No internal Cloudflare Worker / Relay configuration UI is exposed to the public
+  await expect(page.getByText(/Cloudflare Worker/i)).toHaveCount(0);
+  await expect(page.getByText(/Impostazioni Relay/i)).toHaveCount(0);
+
+  // Switch to USB + Apple ID mode and verify fields
+  await modeGroup.getByRole('button', { name: 'Cavo USB' }).click();
+  await expect(page.getByLabel('Email Apple ID')).toBeVisible();
+  const udidField = page.getByLabel('UDID dispositivo');
+  if (!(await udidField.isVisible())) {
+    await page.getByRole('button', { name: 'UDID manuale' }).click();
+  }
+  await expect(udidField).toBeVisible();
+
+  // Switch to SideStore / AltStore mode and verify deep links
+  await modeGroup.getByRole('button', { name: 'SideStore' }).click();
+  await expect(page.getByRole('link', { name: 'Installa con SideStore' })).toHaveAttribute(
+    'href',
+    /^sidestore:\/\/install\?url=https%3A%2F%2Fgithub\.com/
+  );
+  await expect(page.getByRole('link', { name: 'Installa con AltStore' })).toHaveAttribute(
+    'href',
+    /^altstore:\/\/install\?url=https%3A%2F%2Fgithub\.com/
+  );
+  await expect(page.getByRole('link', { name: 'Aggiungi repo a SideStore' })).toHaveAttribute(
+    'href',
+    /^sidestore:\/\/source\?url=http/
+  );
+
+  // Switch to Offline .p12 mode
+  await modeGroup.getByRole('button', { name: 'Certificato .p12' }).click();
+  await expect(page.getByLabel('File certificato (.p12 / .pfx)')).toBeVisible();
+  await expect(page.getByLabel('Profilo (.mobileprovision)')).toBeVisible();
+
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
 });

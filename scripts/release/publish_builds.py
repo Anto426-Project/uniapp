@@ -118,6 +118,48 @@ def platform_index(records):
     return dict(schema=1, platforms=platforms)
 
 
+def altstore_index(records):
+    """AltStore / SideStore repository source JSON generated from published iOS builds."""
+    versions = []
+    for record in sorted(records, key=lambda item: int(item.get('runId', 0)), reverse=True):
+        if record.get('platform') != 'ios':
+            continue
+        ipa = next((d for d in record.get('downloads', []) if str(d.get('name', '')).lower().endswith('.ipa')), None)
+        if not ipa:
+            continue
+        versions.append({
+            'version': record['version'],
+            'date': record.get('publishedAt', '2026-01-01'),
+            'localizedDescription': f"UniApp {record['version']} per iOS ({record['tag']}).",
+            'downloadURL': ipa['url'],
+            'size': int(ipa.get('size', 25000000)),
+            'sha256': ipa['sha256'],
+            'minOSVersion': '16.0',
+        })
+    return {
+        'name': 'UniApp',
+        'identifier': 'com.anto426.uniapp.source',
+        'subtitle': "L'app nativa open source per gli studenti UniMol",
+        'description': 'Sorgente ufficiale AltStore e SideStore di UniApp per iOS e iPadOS.',
+        'iconURL': 'https://anto426-project.github.io/uniapp-upstream/apple-touch-icon.png',
+        'website': 'https://anto426-project.github.io/uniapp-upstream/ios/',
+        'tintColor': '#4A90D9',
+        'featuredApps': ['com.anto426.uniapp.UniApp'],
+        'apps': [{
+            'name': 'UniApp',
+            'bundleIdentifier': 'com.anto426.uniapp.UniApp',
+            'developerName': 'Anto426',
+            'subtitle': 'Libretto, simulatore laurea, presenze QR e badge UniPass',
+            'localizedDescription': "Client nativo Kotlin Multiplatform per consultare carriera, appelli, tasse, presenze QR, badge UniPass 3D e navette dell'Università degli Studi del Molise.",
+            'iconURL': 'https://anto426-project.github.io/uniapp-upstream/apple-touch-icon.png',
+            'tintColor': '#4A90D9',
+            'category': 'education',
+            'versions': versions,
+        }],
+        'news': [],
+    }
+
+
 def update_build_index(plan, deploy_directory, repository, revision, run_id):
     # Work only in the clean distribution checkout, preserving all other platforms.
     if subprocess.run(['git', 'status', '--porcelain'], cwd=deploy_directory, text=True, capture_output=True, check=True).stdout:
@@ -138,11 +180,14 @@ def update_build_index(plan, deploy_directory, repository, revision, run_id):
         index.write_text(json.dumps(records, indent=2) + '\n')
         latest = deploy_directory / 'release/platforms.json'
         latest.write_text(json.dumps(platform_index(records), indent=2) + '\n')
-        paths = ['release/builds.json', 'release/platforms.json']
+        altstore = deploy_directory / 'release/altstore.json'
+        altstore.write_text(json.dumps(altstore_index(records), indent=2, ensure_ascii=False) + '\n')
+        paths = ['release/builds.json', 'release/platforms.json', 'release/altstore.json']
         if (deploy_directory / 'docs').is_dir():
             (deploy_directory / 'docs/builds.json').write_text(index.read_text())
             (deploy_directory / 'docs/platforms.json').write_text(latest.read_text())
-            paths.extend(['docs/builds.json', 'docs/platforms.json'])
+            (deploy_directory / 'docs/altstore.json').write_text(altstore.read_text())
+            paths.extend(['docs/builds.json', 'docs/platforms.json', 'docs/altstore.json'])
         command('git', 'add', '--', *paths, cwd=deploy_directory)
         if subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=deploy_directory).returncode == 0:
             return

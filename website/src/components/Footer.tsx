@@ -1,13 +1,17 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { ArrowUp, ExternalLink, Moon, Sun } from 'lucide-react';
 import { MONET_THEMES } from '@/data/screenshots';
 import { withBasePath } from '@/utils/basePath';
+import { hapticSnap } from '@/lib/fluid-physics';
 import { useSite } from './SiteShell';
 
 export function Footer() {
   const { theme, setTheme, appearance, toggleAppearance, release } = useSite();
+  const pathname = usePathname() || '/';
+  const homePrefix = pathname === '/ios' || pathname.startsWith('/ios/') ? withBasePath('/') : '';
   const versionLabel = release?.latestVersion
     ? release.latestVersion.startsWith('v')
       ? release.latestVersion
@@ -18,39 +22,50 @@ export function Footer() {
     <footer className="site-footer">
       <div className="container-shell">
         <div className="footer-top-strip">
-          <a href="#" className="nav-brand">
-            <img
-              src={withBasePath('/assets/uniapp-icon.webp')}
-              alt="UniApp"
-              width={26}
-              height={26}
-              className="nav-brand-icon"
-            />
-            <span className="nav-brand-title">UniApp</span>
+          <div className="footer-brand-row">
+            <a href="#" className="nav-brand">
+              <img
+                src={withBasePath('/assets/uniapp-icon.webp')}
+                alt="UniApp"
+                width={26}
+                height={26}
+                className="nav-brand-icon"
+              />
+              <span className="nav-brand-title">UniApp</span>
+            </a>
             {versionLabel && <span className="pill-badge">{versionLabel}</span>}
-          </a>
+          </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="footer-controls-row">
             <div className="swatch-cluster" role="group" aria-label="Scegli il tema dal piè di pagina">
               {MONET_THEMES.map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   className="swatch-dot"
-                  style={{ backgroundColor: t.swatchHex }}
                   aria-label={`Tema ${t.label}`}
                   aria-pressed={theme === t.id}
                   title={t.label}
                   onClick={() => setTheme(t.id)}
-                />
+                >
+                  <span
+                    className="swatch-dot-fill"
+                    style={{ backgroundColor: t.swatchHex }}
+                    aria-hidden="true"
+                  />
+                </button>
               ))}
             </div>
 
             <button
               type="button"
-              className="appearance-toggle"
-              onClick={toggleAppearance}
+              className="appearance-toggle footer-appearance-btn"
+              onClick={() => {
+                hapticSnap(5);
+                toggleAppearance();
+              }}
               aria-label={appearance === 'dark' ? 'Attiva aspetto chiaro' : 'Attiva aspetto scuro'}
+              title={appearance === 'dark' ? 'Passa a tema chiaro' : 'Passa a tema scuro'}
             >
               {appearance === 'dark' ? (
                 <Sun className="w-3.5 h-3.5" aria-hidden="true" />
@@ -59,7 +74,7 @@ export function Footer() {
               )}
             </button>
 
-            <a href="#" className="inline-link" aria-label="Torna all'inizio della pagina">
+            <a href="#" className="footer-back-top" aria-label="Torna all'inizio della pagina">
               <span>Torna su</span>
               <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
             </a>
@@ -67,7 +82,7 @@ export function Footer() {
         </div>
 
         <div className="footer-directory">
-          <div>
+          <div className="footer-about-col">
             <p className="type-callout">
               App nativa, gratuita e open source per gli studenti dell&apos;Università degli Studi del Molise. Sviluppata in Kotlin Multiplatform, Compose Multiplatform e Liquid Monet.
             </p>
@@ -99,12 +114,13 @@ export function Footer() {
           <div>
             <span className="footer-col-title">Sezioni</span>
             <ul className="footer-links">
-              <li><a href="#features">Funzionalità</a></li>
-              <li><a href="#screenshots">Schermate</a></li>
-              <li><a href="#architecture">Architettura</a></li>
-              <li><a href="#download">Download</a></li>
-              <li><a href="#changelog">Note di rilascio</a></li>
-              <li><a href="#security">Sicurezza</a></li>
+              <li><a href={`${homePrefix}#features`}>Funzionalità</a></li>
+              <li><a href={`${homePrefix}#screenshots`}>Schermate</a></li>
+              <li><a href={`${homePrefix}#architecture`}>Architettura</a></li>
+              <li><a href={`${homePrefix}#download`}>Download</a></li>
+              <li><a href={withBasePath('/ios/')}>Sideload iOS</a></li>
+              <li><a href={`${homePrefix}#changelog`}>Note di rilascio</a></li>
+              <li><a href={`${homePrefix}#security`}>Sicurezza</a></li>
             </ul>
           </div>
 
@@ -118,6 +134,12 @@ export function Footer() {
                   rel="noopener noreferrer"
                 >
                   <span>Rilasci Android e iOS</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" aria-hidden="true" />
+                </a>
+              </li>
+              <li>
+                <a href={withBasePath('/altstore.json')} target="_blank" rel="noopener noreferrer">
+                  <span>Sorgente AltStore / SideStore</span>
                   <ExternalLink className="w-3 h-3 opacity-60" aria-hidden="true" />
                 </a>
               </li>
@@ -184,7 +206,7 @@ export function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p style={{ margin: 0 }}>
+          <p className="footer-copyright">
             &copy; 2026{' '}
             <a href="https://github.com/Anto426" target="_blank" rel="noopener noreferrer">
               Anto426
@@ -195,7 +217,7 @@ export function Footer() {
             </a>{' '}
             · Progetto open source indipendente, non affiliato all&apos;Università degli Studi del Molise.
           </p>
-          <span>Kotlin Multiplatform · Liquid Monet</span>
+          <span className="footer-tech-tag">Kotlin Multiplatform · Liquid Monet</span>
         </div>
       </div>
     </footer>

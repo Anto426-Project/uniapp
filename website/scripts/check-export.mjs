@@ -5,9 +5,10 @@ import { resolve, sep } from 'node:path';
 const base = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/$/, '');
 const root = fileURLToPath(new URL('../out', import.meta.url));
 const html = await readFile(resolve(root, 'index.html'), 'utf8');
+const iosHtml = await readFile(resolve(root, 'ios/index.html'), 'utf8');
 
 const paths = new Set(
-  [...html.matchAll(/(?:src|href)="([^"]+)"/g)]
+  [...html.matchAll(/(?:src|href)="([^"]+)"/g), ...iosHtml.matchAll(/(?:src|href)="([^"]+)"/g)]
     .map((match) => match[1])
     .filter((path) => path.startsWith('/') && !path.startsWith('//'))
 );
@@ -22,7 +23,7 @@ for (const path of paths) {
     throw new Error(`Asset outside configured basePath (${base}): ${path}`);
   }
   let target = resolve(root, '.' + decodeURIComponent(url.pathname.slice(base.length)));
-  if (!target.startsWith(root + sep)) {
+  if (target !== root && !target.startsWith(root + sep)) {
     throw new Error(`Path escapes export directory: ${path}`);
   }
   if ((await stat(target)).isDirectory()) {
@@ -35,4 +36,5 @@ for (const path of paths) {
 
 JSON.parse(await readFile(resolve(root, 'update.json'), 'utf8'));
 JSON.parse(await readFile(resolve(root, 'platforms.json'), 'utf8'));
+JSON.parse(await readFile(resolve(root, 'altstore.json'), 'utf8'));
 console.log(`Static export verified: ${paths.size} asset paths valid for ${base || '/'}`);

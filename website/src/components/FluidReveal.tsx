@@ -1,57 +1,36 @@
 'use client';
 
-import React, { useEffect, useRef, useState, type ReactNode } from 'react';
+import React from 'react';
+import { motion } from 'motion/react';
+import { useSite } from './SiteShell';
 
 interface FluidRevealProps {
-  children: ReactNode;
-  delayMs?: number;
+  children: React.ReactNode;
   className?: string;
+  delayMs?: number;
 }
 
-/**
- * Restrained Apple-style scroll reveal:
- * subtle 16px upward settle + opacity fade triggered once on viewport entry,
- * immediately static under prefers-reduced-motion.
- */
-export function FluidReveal({ children, delayMs = 0, className = '' }: FluidRevealProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+export function FluidReveal({ children, className = '', delayMs = 0 }: FluidRevealProps) {
+  const { reducedMotion } = useSite();
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    if (
-      typeof window === 'undefined' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      typeof IntersectionObserver === 'undefined'
-    ) {
-      setVisible(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.08, rootMargin: '0px 0px -32px 0px' }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
-    <div
-      ref={ref}
-      className={`fluid-reveal ${className}`.trim()}
-      data-visible={visible}
-      style={delayMs > 0 ? { transitionDelay: `${delayMs}ms` } : undefined}
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12, margin: '0px 0px -32px 0px' }}
+      transition={{
+        type: 'spring',
+        bounce: 0,
+        duration: 0.56,
+        delay: delayMs / 1000,
+      }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }

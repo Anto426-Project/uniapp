@@ -70,8 +70,10 @@ export function SiteShell({
   const [lightboxState, setLightboxState] = useState<{
     open: boolean;
     index: number;
+    openedIndex: number;
+    stepped: boolean;
     originRect: OriginRect | null;
-  }>({ open: false, index: 0, originRect: null });
+  }>({ open: false, index: 0, openedIndex: 0, stepped: false, originRect: null });
 
   const stageRef = useRef<HTMLDivElement>(null);
 
@@ -149,25 +151,62 @@ export function SiteShell({
     [reducedMotion]
   );
 
-  // Runtime manifest fetches (preserve build-time data on network failure)
+  // Runtime manifest fetches (preserve build-time data; in local `localhost` dev fall back to live upstream manifests)
   useEffect(() => {
     const controller = new AbortController();
+    const isLocalDev =
+      typeof window !== 'undefined' && window.location.hostname === 'localhost';
+    const upstreamBase = 'https://anto426-project.github.io/uniapp-upstream';
+
     fetch(withBasePath('/update.json'), { cache: 'no-cache', signal: controller.signal })
       .then(async (res) => {
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data && typeof data.latestVersion === 'string') {
-          setRelease(data);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data.latestVersion === 'string') {
+            setRelease(data);
+            return;
+          }
+        }
+        if (isLocalDev) {
+          const remote = await fetch(`${upstreamBase}/update.json`, {
+            cache: 'no-cache',
+            signal: controller.signal,
+          });
+          if (remote.ok) {
+            const remoteData = await remote.json();
+            if (remoteData && typeof remoteData.latestVersion === 'string') {
+              setRelease(remoteData);
+            }
+          }
         }
       })
       .catch(() => {});
 
     fetch(withBasePath('/platforms.json'), { cache: 'no-cache', signal: controller.signal })
       .then(async (res) => {
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data?.schema === 1 && data.platforms && typeof data.platforms === 'object') {
-          setPlatforms(data);
+        if (res.ok) {
+          const data = await res.json();
+          if (
+            data?.schema === 1 &&
+            data.platforms &&
+            typeof data.platforms === 'object' &&
+            Object.keys(data.platforms).length > 0
+          ) {
+            setPlatforms(data);
+            return;
+          }
+        }
+        if (isLocalDev) {
+          const remote = await fetch(`${upstreamBase}/platforms.json`, {
+            cache: 'no-cache',
+            signal: controller.signal,
+          });
+          if (remote.ok) {
+            const remoteData = await remote.json();
+            if (remoteData?.schema === 1 && remoteData.platforms) {
+              setPlatforms(remoteData);
+            }
+          }
         }
       })
       .catch(() => {});
@@ -176,7 +215,13 @@ export function SiteShell({
   }, []);
 
   const openLightbox = useCallback((index: number, originRect: OriginRect | null = null) => {
-    setLightboxState({ open: true, index, originRect });
+    setLightboxState({
+      open: true,
+      index,
+      openedIndex: index,
+      stepped: false,
+      originRect,
+    });
   }, []);
 
   const closeLightbox = useCallback(() => {
@@ -223,8 +268,11 @@ export function SiteShell({
         <div className="ambient-wash-bottom" />
       </div>
 
-      <div ref={stageRef} className="page-stage">
+      <div data-modal-open={lightboxState.open}>
         <Navbar />
+      </div>
+
+      <div ref={stageRef} className="page-stage" data-modal-open={lightboxState.open}>
         {children}
       </div>
 
@@ -232,9 +280,11 @@ export function SiteShell({
         isOpen={lightboxState.open}
         items={activeScreenshots}
         currentIndex={lightboxState.index}
+        openedIndex={lightboxState.openedIndex}
+        stepped={lightboxState.stepped}
         originRect={lightboxState.originRect}
         onChangeIndex={(nextIdx) =>
-          setLightboxState((prev) => ({ ...prev, index: nextIdx }))
+          setLightboxState((prev) => ({ ...prev, index: nextIdx, stepped: true }))
         }
         onClose={closeLightbox}
       />

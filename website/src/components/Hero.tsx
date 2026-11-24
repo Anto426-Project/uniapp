@@ -1,59 +1,34 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { ChevronRight, Download } from 'lucide-react';
+import type { MonetThemeId } from '@/data/types';
 import { MONET_THEMES, getScreenshots, previewPathFor } from '@/data/screenshots';
 import { withBasePath } from '@/utils/basePath';
-import {
-  SPRING_ROTATION,
-  Spring2D,
-  VelocityTracker,
-  hapticSnap,
-  rubberband,
-} from '@/lib/fluid-physics';
+import { hapticSnap } from '@/lib/fluid-physics';
 import { useSite } from './SiteShell';
 import { FluidSegmentedControl } from './FluidSegmentedControl';
 import { CrossfadeImage } from './CrossfadeImage';
+import Aurora from './reactbits/Aurora';
+import BlurText from './reactbits/BlurText';
+
+const AURORA_STOPS: Record<MonetThemeId, string[]> = {
+  sapphire: ['#173679', '#4A90D9', '#8CC8FF'],
+  emerald: ['#0B5339', '#2ECC71', '#84ECC0'],
+  sunset: ['#8C370A', '#E67E22', '#FFC27A'],
+  violet: ['#4D1D7A', '#9B59B6', '#DFC2FF'],
+};
 
 export function Hero() {
-  const { theme, setTheme, appearance, release, reducedMotion, openLightbox } = useSite();
+  const { theme, setTheme, appearance, reducedMotion, openLightbox } = useSite();
 
-  const centerDeviceRef = useRef<HTMLDivElement>(null);
-  const sheenRef = useRef<HTMLDivElement>(null);
-  const springRef = useRef<Spring2D | null>(null);
-  const trackerRef = useRef(new VelocityTracker(90));
-  const dragRef = useRef({
-    active: false,
-    pointerId: -1,
-    startX: 0,
-    startY: 0,
-    moved: false,
-  });
-
-  useEffect(() => {
-    const spring = new Spring2D(
-      0,
-      0,
-      (x, y) => {
-        const el = centerDeviceRef.current;
-        if (!el) return;
-        const rotY = x * 0.16;
-        const rotX = -y * 0.14;
-        el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
-        if (sheenRef.current) {
-          const angle = 130 + x * 0.45;
-          sheenRef.current.style.background = `linear-gradient(${angle.toFixed(1)}deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%)`;
-        }
-      },
-      SPRING_ROTATION,
-      0.08
-    );
-    springRef.current = spring;
-    return () => {
-      spring.destroy();
-      springRef.current = null;
-    };
-  }, []);
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const springX = useSpring(pointerX, { stiffness: 220, damping: 24, mass: 0.7 });
+  const springY = useSpring(pointerY, { stiffness: 220, damping: 24, mass: 0.7 });
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-6, 6]);
+  const rotateX = useTransform(springY, [-0.5, 0.5], [5, -5]);
 
   const shots = getScreenshots(theme, appearance);
   const homeShot = shots[0];
@@ -61,15 +36,8 @@ export function Hero() {
   const badgeShot = shots[3];
   const activeThemeMeta = MONET_THEMES.find((t) => t.id === theme) || MONET_THEMES[0];
 
-  const versionLabel = release?.latestVersion
-    ? release.latestVersion.startsWith('v')
-      ? release.latestVersion
-      : `v${release.latestVersion}`
-    : null;
-
   const description =
-    release?.description ||
-    "Libretto, simulatore laurea, appelli, presenze QR, badge UniPass e navette dell'Università degli Studi del Molise. Costruita in Kotlin Multiplatform sul motore grafico Liquid Monet, gratuita e senza tracciamento.";
+    "Libretto, simulatore laurea, appelli, presenze QR, badge UniPass e navette dell'Università degli Studi del Molise. Costruita in Kotlin Multiplatform su Liquid Monet, gratuita e senza tracciamento.";
 
   const launchFromElement = (index: number, el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
@@ -82,72 +50,91 @@ export function Hero() {
     });
   };
 
-  const onCenterPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-    springRef.current?.stop();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = {
-      active: true,
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startY: e.clientY,
-      moved: false,
-    };
-    trackerRef.current.reset(e.clientX, e.clientY);
+  const handleStageMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (reducedMotion) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    pointerX.set(nx);
+    pointerY.set(ny);
   };
 
-  const onCenterPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current.active || dragRef.current.pointerId !== e.pointerId) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
-    if (!dragRef.current.moved && Math.hypot(dx, dy) > 10) {
-      dragRef.current.moved = true;
-    }
-    if (!reducedMotion && dragRef.current.moved) {
-      trackerRef.current.add(e.clientX, e.clientY);
-      springRef.current?.setImmediate(rubberband(dx, 135, 0.45), rubberband(dy, 135, 0.45));
-    }
-  };
-
-  const onCenterPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current.active || dragRef.current.pointerId !== e.pointerId) return;
-    const wasTap = !dragRef.current.moved;
-    dragRef.current.active = false;
-
-    if (wasTap) {
-      launchFromElement(0, e.currentTarget);
-      return;
-    }
-
-    const { vx, vy } = trackerRef.current.getVelocity();
-    springRef.current?.animateTo(0, 0, {
-      vx: vx * 0.28,
-      vy: vy * 0.28,
-      config: SPRING_ROTATION,
-    });
+  const handleStageLeave = () => {
+    pointerX.set(0);
+    pointerY.set(0);
   };
 
   return (
     <section className="hero-keynote">
-      <div className="container-shell">
-        <div className="hero-keynote-header">
-          <a href="#download" className="hero-status-chip">
-            <span className="status-dot" aria-hidden="true" />
-            <span>
-              {versionLabel ? `UniApp ${versionLabel} · ` : ''}
-              Android 10+ e iOS · Open source
-            </span>
-            <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} aria-hidden="true" />
-          </a>
+      {/* Liquid Monet WebGL Aurora Shader Layer — seamless from y = 0 behind Navbar */}
+      <div className="hero-aurora-layer" aria-hidden="true">
+        <Aurora
+          colorStops={AURORA_STOPS[theme]}
+          amplitude={0.85}
+          blend={0.62}
+          speed={0.45}
+          height={0.56}
+          glow={0.55}
+          brightness={appearance === 'dark' ? 0.85 : 0.42}
+          opacity={appearance === 'dark' ? 0.65 : 0.45}
+          lightMode={appearance === 'light'}
+          paused={reducedMotion}
+          mouseInteraction={!reducedMotion}
+        />
+      </div>
 
+      <div className="container-shell relative z-2">
+        <div className="hero-keynote-header">
           <h1 className="type-hero">
-            La tua università,{' '}
-            <span className="hero-accent-text">finalmente nativa.</span>
+            {reducedMotion ? (
+              <>
+                La tua università, <span className="hero-accent-text">finalmente nativa.</span>
+              </>
+            ) : (
+              <>
+                <BlurText
+                  text="La tua università,"
+                  animateBy="words"
+                  direction="bottom"
+                  delay={60}
+                  stepDuration={0.32}
+                  blur={8}
+                  distance={14}
+                  trigger="load"
+                  className="justify-center"
+                />
+                <span className="hero-accent-text block">
+                  <BlurText
+                    text="finalmente nativa."
+                    animateBy="words"
+                    direction="bottom"
+                    delay={90}
+                    stepDuration={0.36}
+                    blur={8}
+                    distance={14}
+                    trigger="load"
+                    className="justify-center"
+                  />
+                </span>
+              </>
+            )}
           </h1>
 
-          <p className="hero-subtitle">{description}</p>
+          <motion.p
+            className="hero-subtitle"
+            initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.55, delay: 0.1 }}
+          >
+            {description}
+          </motion.p>
 
-          <div className="hero-cta-row">
+          <motion.div
+            className="hero-cta-row"
+            initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.55, delay: 0.16 }}
+          >
             <a href="#download" className="btn-primary">
               <Download className="w-4 h-4" aria-hidden="true" />
               <span>Scarica UniApp</span>
@@ -158,14 +145,21 @@ export function Hero() {
               rel="noopener noreferrer"
               className="btn-material"
             >
-              <span>Esplora il codice</span>
+              <span>Codice su GitHub</span>
               <ChevronRight className="w-4 h-4 opacity-70" aria-hidden="true" />
             </a>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Centered 3-Device Keynote Fan Triptych */}
-        <div className="hero-triptych-stage">
+        {/* Centered 3-Device Keynote Fan Triptych with Motion Springs */}
+        <motion.div
+          className="hero-triptych-stage"
+          onMouseMove={handleStageMove}
+          onMouseLeave={handleStageLeave}
+          initial={reducedMotion ? false : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', bounce: 0, duration: 0.68, delay: 0.14 }}
+        >
           <div className="hero-triptych-glow" aria-hidden="true" />
 
           <div className="hero-triptych">
@@ -186,22 +180,17 @@ export function Hero() {
               </div>
             </button>
 
-            <div
-              ref={centerDeviceRef}
+            <motion.button
+              type="button"
               className="triptych-center"
-              role="button"
-              tabIndex={0}
+              style={
+                reducedMotion
+                  ? undefined
+                  : { rotateX, rotateY, transformPerspective: 1200 }
+              }
+              whileTap={reducedMotion ? undefined : { scale: 0.985 }}
               aria-label={`Apri anteprima ${homeShot.title} (${activeThemeMeta.label})`}
-              onPointerDown={onCenterPointerDown}
-              onPointerMove={onCenterPointerMove}
-              onPointerUp={onCenterPointerEnd}
-              onPointerCancel={onCenterPointerEnd}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  launchFromElement(0, e.currentTarget);
-                }
-              }}
+              onClick={(e) => launchFromElement(0, e.currentTarget)}
             >
               <div className="device-frame">
                 <div className="device-screen">
@@ -212,10 +201,10 @@ export function Hero() {
                     height={1003}
                     draggable={false}
                   />
-                  <div ref={sheenRef} className="device-sheen" aria-hidden="true" />
+                  <div className="device-sheen" aria-hidden="true" />
                 </div>
               </div>
-            </div>
+            </motion.button>
 
             <button
               type="button"
@@ -242,11 +231,8 @@ export function Hero() {
               onChange={setTheme}
               ariaLabel="Scegli il tema dell'anteprima"
             />
-            <span className="type-caption">
-              Liquid Monet · <strong style={{ color: 'var(--label-primary)' }}>{activeThemeMeta.label}</strong>
-            </span>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

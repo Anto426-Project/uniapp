@@ -1,0 +1,533 @@
+/* ==========================================================================
+   UniApp Minimal iOS Sideload Sheet (/ios)
+   Ultra-clean Apple Inset-Grouped Sheet — Zero Visual Clutter
+   ========================================================================== */
+
+.ios-minimal-page {
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100dvh - 18rem);
+  padding: clamp(5.75rem, 9vw, 7.25rem) 0 clamp(4rem, 7vw, 5.5rem);
+}
+
+.ios-minimal-header {
+  max-width: 38rem;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ios-minimal-title {
+  font-size: clamp(2.2rem, 4.6vw, 3.35rem);
+}
+
+.ios-minimal-sub {
+  max-width: 30rem;
+}
+
+.ios-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.72rem;
+  border-radius: var(--radius-pill);
+  background: var(--material-control);
+  backdrop-filter: var(--material-blur-control);
+  -webkit-backdrop-filter: var(--material-blur-control);
+  border: 1px solid var(--material-border);
+  font-size: 0.76rem;
+  font-weight: 560;
+  color: var(--label-secondary);
+  transition:
+    transform 95ms ease-out,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.ios-back-link:hover {
+  color: var(--label-primary);
+  border-color: var(--accent-border);
+}
+
+.ios-back-link:active {
+  transform: scale(0.96);
+}
+
+.ios-mode-dock {
+  margin-top: 0.45rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ==========================================================================
+   Single Unified Apple Sheet Card
+   ========================================================================== */
+
+.ios-sheet-wrap {
+  max-width: 48rem;
+  margin: 2rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ios-sheet-card {
+  width: 100%;
+  --spotlight-card-surface: var(--surface-primary) !important;
+  --spotlight-card-border: var(--separator) !important;
+  --spotlight-card-shadow: var(--shadow-card) !important;
+  border-radius: var(--radius-xl) !important;
+  padding: 0.4rem clamp(1.25rem, 2.5vw, 1.85rem) !important;
+}
+
+.ios-steps-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.ios-step-row {
+  padding: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ios-step-row + .ios-step-row {
+  border-top: 1px solid var(--separator);
+}
+
+.ios-step-row-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.ios-step-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  flex: 1 1 15rem;
+}
+
+.ios-step-dot {
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background: var(--surface-secondary);
+  border: 1px solid var(--separator-strong);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--label-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.ios-step-dot--done {
+  background: rgba(50, 215, 75, 0.15);
+  border-color: rgba(50, 215, 75, 0.38);
+  color: var(--status-green);
+}
+
+.ios-row-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 640;
+  letter-spacing: -0.012em;
+  color: var(--label-primary);
+}
+
+.ios-row-sub {
+  margin: 0.12rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--label-secondary);
+}
+
+.ios-mini-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.14rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 620;
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Inline Forms, Compact Drawers & Tactile Controls
+   ========================================================================== */
+
+.ios-inline-login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.ios-p12-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.ios-drawer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.ios-relay-row > .ios-input,
+.ios-custom-ipa-row > .ios-input {
+  flex: 1 1 14rem;
+}
+
+.ios-custom-ipa-row > .ios-file-pill {
+  flex: 1 1 13rem;
+}
+
+.ios-input {
+  width: 100%;
+  height: 2.6rem;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+  border: 1px solid var(--separator-strong);
+  color: var(--label-primary);
+  font-family: var(--font-text);
+  font-size: 0.85rem;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.ios-input--mono {
+  font-family: var(--font-mono);
+  font-size: 0.79rem;
+}
+
+.ios-input::placeholder {
+  color: var(--label-tertiary);
+}
+
+.ios-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-grouped);
+}
+
+.ios-file-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.6rem;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+  border: 1px solid var(--separator-strong);
+  font-size: 0.82rem;
+  font-weight: 540;
+  color: var(--label-primary);
+  cursor: pointer;
+  min-width: 0;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.ios-file-pill:hover {
+  border-color: var(--accent-border);
+  background: var(--surface-elevated);
+}
+
+.ios-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ios-quiet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 540;
+  color: var(--label-secondary);
+  transition: color 140ms ease, background-color 140ms ease;
+}
+
+.ios-quiet-btn:hover {
+  color: var(--label-primary);
+  background: var(--surface-secondary);
+}
+
+.ios-icon-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-secondary);
+  border: 1px solid var(--separator);
+  color: var(--label-secondary);
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.ios-icon-trigger:hover {
+  color: var(--label-primary);
+  border-color: var(--separator-strong);
+}
+
+.ios-status-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+}
+
+.ios-status-dot--ok {
+  background: var(--status-green);
+}
+
+.ios-status-dot--warn {
+  background: #ff9f0a;
+}
+
+.ios-status-dot--idle {
+  background: var(--label-tertiary);
+}
+
+/* ==========================================================================
+   SideStore Pane, Progress, Alerts & Footnote
+   ========================================================================== */
+
+.ios-sidestore-pane {
+  padding: 1.35rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.ios-app-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ios-app-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.ios-app-squircle {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.78rem;
+  object-fit: cover;
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--material-border-strong);
+  flex-shrink: 0;
+}
+
+.ios-sidestore-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.ios-pane-foot {
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--separator);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--label-tertiary);
+}
+
+.ios-progress-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ios-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+  color: var(--label-secondary);
+}
+
+.ios-progress-pct {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--label-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ios-progress-track {
+  width: 100%;
+  height: 0.36rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-secondary);
+  overflow: hidden;
+}
+
+.ios-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  transition: width 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ios-signed-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ios-error-alert {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 69, 58, 0.11);
+  border: 1px solid rgba(255, 69, 58, 0.32);
+  color: #ff6961;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+html[data-appearance="light"] .ios-error-alert {
+  background: rgba(215, 0, 21, 0.07);
+  border-color: rgba(215, 0, 21, 0.25);
+  color: #c91b26;
+}
+
+.ios-driver-note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--label-tertiary);
+}
+
+.ios-logs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ios-log-console {
+  width: 100%;
+  margin: 0.25rem 0 0;
+  max-height: 9.5rem;
+  overflow-y: auto;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-grouped);
+  border: 1px solid var(--separator);
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: var(--label-secondary);
+}
+
+.ios-minimal-footnote {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--label-tertiary);
+  text-align: center;
+}
+
+/* ==========================================================================
+   2FA Modal Sheet
+   ========================================================================== */
+
+.ios-modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1020;
+  width: min(92vw, 25rem);
+  padding: 1.45rem;
+  border-radius: var(--radius-xl);
+  background: var(--material-sheet);
+  backdrop-filter: var(--material-blur-sheet);
+  -webkit-backdrop-filter: var(--material-blur-sheet);
+  border: 1px solid var(--material-border-strong);
+  box-shadow: var(--shadow-sheet);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  outline: none;
+}
+
+.ios-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ios-modal-sms {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.ios-otp-input {
+  text-align: center;
+  font-size: 1.25rem;
+  letter-spacing: 0.34em;
+  height: 3rem;
+}
+
+.btn-primary[disabled],
+.btn-material[disabled] {
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .ios-inline-login,
+  .ios-p12-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
