@@ -1,3 +1,8 @@
+## [2.1.3] - 2026-11-24 (build set by CI)
+
+- **Logo Apple Spark U ricentrato otticamente.** Corretto l’allineamento del marchio su tutte le icone Android (adattive, Monet e legacy), iOS (Default, Dark e Tinted), logo procedurale interno nei badge e asset web/store.
+- **Sito ufficiale rinnovato.** Aggiornata la vetrina con fisica fluida, temi chiaro/scuro, galleria di 64 schermate con lightbox studio, selettore tema compatto su mobile e sezione download unificata.
+
 ## [2.1.2] - 2026-11-23 (build set by CI)
 
 - **Nuova identità visiva Apple Spark U.** Aggiornate le icone dell’app su Android (adattive e Monet), iOS (Default, Dark e Tinted), logo procedurale interno e favicon del sito.
