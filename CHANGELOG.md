@@ -1,10 +1,9 @@
 ## [2.1.4] - 2026-11-24 (build set by CI)
 
 - **Modalità offline e cache cifrata affidabili.** Ripristino offline della sessione salvata con riattivazione automatica al ritorno della rete, lettura diretta di dati e biglietti dallo storage cifrato e conservazione di dettaglio corsi e presenze in assenza di connessione.
-- **Notizie più pulite e leggibili.** Risolti gli a capo anomali nei titoli (normalizzazione spazi Unicode, separatori invisibili e locale italiano anche con interfaccia in lingue CJK), rimossa la sintassi Markdown grezza dalle anteprime e allineate le card nel carosello della Home.
+- **Notizie più pulite e leggibili.** Risolti gli a capo anomali nei titoli (normalizzazione spazi Unicode in UniSDK `2.0.38`, separatori invisibili e locale italiano anche con interfaccia in lingue CJK), rimossa la sintassi Markdown grezza dalle anteprime e allineate le card nel carosello della Home.
 - **Banner Aggiornamenti e Informazioni rifiniti.** Rimossa l’etichetta in alto e il colore verde quando l’app è aggiornata allineando tutto ai colori del tema attivo, eliminato lo spinner duplicato nell’intestazione e sostituiti gli indicatori circolari con `LiquidCircularProgressIndicator` di Liquid Monet.
 - **Card espandibili Liquid Monet in Presenze.** Sostituite le card espandibili personalizzate con il componente nativo `LiquidExpandableCard` di Liquid Monet, allineando animazioni, spaziatura e fisiche al resto dell’app.
-- **Sito ufficiale e iOS Sideload Studio.** Aggiunto il supporto al sideload iOS da browser (`/ios` e sorgente AltStore), rinnovata la grafica del sito e messo in pausa l’autoplay del carosello fuori schermo.
 
 ## [2.1.3] - 2026-11-24 (build set by CI)
 
