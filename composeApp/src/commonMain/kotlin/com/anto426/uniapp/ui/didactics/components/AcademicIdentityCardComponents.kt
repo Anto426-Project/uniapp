@@ -394,35 +394,35 @@ fun UniAppBrandLogo(modifier: Modifier = Modifier) {
         val side = size.minDimension
         val ox = (size.width - side) / 2f
         val oy = (size.height - side) / 2f
-        val scale = side / 640f
+        val scale = side / 680f
 
-        fun tx(x: Float): Float = ox + (x - 206.3f) * scale
-        fun ty(y: Float): Float = oy + (y - 175.8f) * scale
+        fun tx(x: Float): Float = ox + (x - 172f) * scale
+        fun ty(y: Float): Float = oy + (y - 172f) * scale
 
         val uPath = androidx.compose.ui.graphics.Path().apply {
-            moveTo(tx(325.8f), ty(317.8f))
-            cubicTo(tx(350.3f), ty(317.8f), tx(370.1f), ty(337.6f), tx(370.1f), ty(362.0f))
-            lineTo(tx(370.1f), ty(596.6f))
-            cubicTo(tx(370.1f), ty(653.2f), tx(412.1f), ty(690.7f), tx(466.4f), ty(690.7f))
-            cubicTo(tx(520.7f), ty(690.7f), tx(562.7f), ty(653.2f), tx(562.7f), ty(596.6f))
-            lineTo(tx(562.7f), ty(421.9f))
-            cubicTo(tx(562.7f), ty(355.8f), tx(596.3f), ty(317.8f), tx(665.8f), ty(317.8f))
-            cubicTo(tx(670.5f), ty(317.8f), tx(672.7f), ty(320.9f), tx(670.0f), ty(324.9f))
-            cubicTo(tx(658.1f), ty(342.6f), tx(651.2f), ty(375.4f), tx(651.2f), ty(421.9f))
-            lineTo(tx(651.2f), ty(596.6f))
-            cubicTo(tx(651.2f), ty(701.4f), tx(571.1f), ty(775.8f), tx(466.4f), ty(775.8f))
-            cubicTo(tx(361.7f), ty(775.8f), tx(281.6f), ty(701.4f), tx(281.6f), ty(596.6f))
-            lineTo(tx(281.6f), ty(362.0f))
-            cubicTo(tx(281.6f), ty(337.6f), tx(301.4f), ty(317.8f), tx(325.8f), ty(317.8f))
+            moveTo(tx(359.8f), ty(289.8f))
+            cubicTo(tx(384.3f), ty(289.8f), tx(404.1f), ty(309.6f), tx(404.1f), ty(334.0f))
+            lineTo(tx(404.1f), ty(568.6f))
+            cubicTo(tx(404.1f), ty(625.2f), tx(446.1f), ty(662.7f), tx(500.4f), ty(662.7f))
+            cubicTo(tx(554.7f), ty(662.7f), tx(596.7f), ty(625.2f), tx(596.7f), ty(568.6f))
+            lineTo(tx(596.7f), ty(393.9f))
+            cubicTo(tx(596.7f), ty(327.8f), tx(630.3f), ty(289.8f), tx(699.8f), ty(289.8f))
+            cubicTo(tx(704.5f), ty(289.8f), tx(706.7f), ty(292.9f), tx(704.0f), ty(296.9f))
+            cubicTo(tx(692.1f), ty(314.6f), tx(685.2f), ty(347.4f), tx(685.2f), ty(393.9f))
+            lineTo(tx(685.2f), ty(568.6f))
+            cubicTo(tx(685.2f), ty(673.4f), tx(605.1f), ty(747.8f), tx(500.4f), ty(747.8f))
+            cubicTo(tx(395.7f), ty(747.8f), tx(315.6f), ty(673.4f), tx(315.6f), ty(568.6f))
+            lineTo(tx(315.6f), ty(334.0f))
+            cubicTo(tx(315.6f), ty(309.6f), tx(335.4f), ty(289.8f), tx(359.8f), ty(289.8f))
             close()
         }
 
         val sparkPath = androidx.compose.ui.graphics.Path().apply {
-            moveTo(tx(713.4f), ty(215.8f))
-            cubicTo(tx(718.6f), ty(255.6f), tx(731.3f), ty(268.3f), tx(771.0f), ty(273.5f))
-            cubicTo(tx(731.3f), ty(278.8f), tx(718.6f), ty(291.4f), tx(713.4f), ty(331.2f))
-            cubicTo(tx(708.1f), ty(291.4f), tx(695.4f), ty(278.8f), tx(655.7f), ty(273.5f))
-            cubicTo(tx(695.4f), ty(268.3f), tx(708.1f), ty(255.6f), tx(713.4f), ty(215.8f))
+            moveTo(tx(747.4f), ty(187.8f))
+            cubicTo(tx(752.6f), ty(227.6f), tx(765.3f), ty(240.3f), tx(805.0f), ty(245.5f))
+            cubicTo(tx(765.3f), ty(250.8f), tx(752.6f), ty(263.4f), tx(747.4f), ty(303.2f))
+            cubicTo(tx(742.1f), ty(263.4f), tx(729.4f), ty(250.8f), tx(689.7f), ty(245.5f))
+            cubicTo(tx(729.4f), ty(240.3f), tx(742.1f), ty(227.6f), tx(747.4f), ty(187.8f))
             close()
         }
 
