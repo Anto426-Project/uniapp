@@ -2,40 +2,30 @@ package com.anto426.uniapp.ui.components.items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.cards.accordion.LiquidExpandableCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
-import com.anto426.liquidmonet.components.interaction.liquidClickable
-import com.anto426.liquidmonet.components.layout.expandablecontent.LiquidExpandableContent
-import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
 import com.anto426.liquidmonet.icons.LiquidIcons
-import com.anto426.liquidmonet.motion.LiquidMotion
-import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.AttendanceData
 import com.anto426.uniapp.data.contract.SingleAttendanceEntry
@@ -48,15 +38,7 @@ import uniapp.composeapp.generated.resources.*
 fun AttendanceItem(data: AttendanceData) {
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
-    var expanded by remember(data.course) { mutableStateOf(false) }
-    val hasRecords = data.records.isNotEmpty()
-    val headerShape = remember { RoundedRectangle(24.dp) }
-    val performance = LocalLiquidGlassPerformance.current
-    val chevronRotation by animateLiquidFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        animationSpec = remember(performance) { LiquidMotion.spatialSpring<Float>(performance) },
-        label = "attendanceChevronRotation",
-    )
+    var expanded by rememberSaveable(data.course) { mutableStateOf(false) }
 
     val rawPercentage = data.percentage.replace("%", "").trim().toIntOrNull()
     val progress = ((rawPercentage ?: 0) / 100f).coerceIn(0f, 1f)
@@ -75,152 +57,85 @@ fun AttendanceItem(data: AttendanceData) {
         else -> null
     }
 
-    LiquidCard(
-        modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
-        shape = RoundedRectangle(24.dp),
-        contentPadding = PaddingValues(0.dp),
-        clipContent = false,
+    val countLabel = stringResource(Res.string.ui_attendance_prefix, data.count)
+    val subtitle = buildList {
+        data.percentage.takeIf(String::isNotBlank)?.let(::add)
+        add(countLabel)
+        if (hoursLabel != null) add(hoursLabel)
+    }.joinToString(" • ")
+
+    LiquidExpandableCard(
+        title = data.course,
+        subtitle = subtitle,
+        leadingIcon = LiquidIcons.MenuBook,
+        isExpanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .liquidClickable(
-                        shape = headerShape,
-                        role = Role.Button,
-                        onClick = if (hasRecords) { { expanded = !expanded } } else null,
-                    )
-                    .semantics(mergeDescendants = true) {}
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.MenuBook,
-                        contentDescription = null,
-                        tint = accentColor,
-                        modifier = Modifier.liquidIconContainer(
-                            containerSize = 40.dp,
-                            iconSize = 20.dp,
-                            containerColor = accentColor.copy(alpha = 0.14f),
-                            shape = RoundedRectangle(12.dp),
-                        ),
-                    )
-
-                    Text(
-                        text = data.course,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        LiquidBadge(
-                            text = data.percentage,
-                            containerColor = accentColor.copy(alpha = 0.14f),
-                            contentColor = accentColor,
-                        )
-                        if (hasRecords) {
-                            Icon(
-                                imageVector = LiquidIcons.KeyboardArrowDown,
-                                contentDescription = null,
-                                tint = colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .liquidIconContainer(
-                                        containerSize = 28.dp,
-                                        iconSize = 18.dp,
-                                        containerColor = glassColors.neutralContainer,
-                                        shape = CircleShape,
-                                    )
-                                    .graphicsLayer { rotationZ = chevronRotation },
-                            )
-                        }
-                    }
-                }
-
-                LiquidLinearProgressIndicator(
-                    progress = progress,
-                    progressColor = accentColor,
-                    modifier = Modifier.fillMaxWidth(),
+                LiquidBadge(
+                    text = data.percentage,
+                    containerColor = accentColor.copy(alpha = 0.14f),
+                    contentColor = accentColor,
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_attendance_prefix, data.count),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-
-                    if (hoursLabel != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                imageVector = LiquidIcons.Time,
-                                contentDescription = null,
-                                tint = accentColor,
-                                modifier = Modifier.size(13.dp),
-                            )
-                            Text(
-                                text = hoursLabel,
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontFeatureSettings = "tnum",
-                                ),
-                                color = colorScheme.onSurface,
-                                maxLines = 1,
-                            )
-                        }
+                if (hoursLabel != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = LiquidIcons.Time,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(
+                            text = hoursLabel,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontFeatureSettings = "tnum",
+                            ),
+                            color = colorScheme.onSurface,
+                            maxLines = 1,
+                        )
                     }
                 }
             }
 
-            if (hasRecords) {
-                LiquidExpandableContent(
-                    visible = expanded,
-                    label = "AttendanceRecords",
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    ) {
-                        LiquidHorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = colorScheme.onSurface.copy(alpha = 0.08f),
-                        )
+            LiquidLinearProgressIndicator(
+                progress = progress,
+                progressColor = accentColor,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-                        Text(
-                            text = stringResource(Res.string.ui_attendance_lessons_recorded, data.records.size).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
-                        )
+            if (data.records.isNotEmpty()) {
+                LiquidHorizontalDivider(
+                    color = colorScheme.onSurface.copy(alpha = 0.08f),
+                )
 
-                        data.records.forEachIndexed { index, record ->
-                            SingleAttendanceRow(
-                                record = record,
-                                accentColor = accentColor,
-                                showDivider = index < data.records.lastIndex,
-                            )
-                        }
+                Text(
+                    text = stringResource(Res.string.ui_attendance_lessons_recorded, data.records.size).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurfaceVariant,
+                )
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    data.records.forEachIndexed { index, record ->
+                        SingleAttendanceRow(
+                            record = record,
+                            accentColor = accentColor,
+                            showDivider = index < data.records.lastIndex,
+                        )
                     }
                 }
             }
@@ -245,7 +160,7 @@ private fun SingleAttendanceRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -300,7 +215,7 @@ private fun SingleAttendanceRow(
 
         if (showDivider) {
             LiquidHorizontalDivider(
-                modifier = Modifier.padding(start = 60.dp, end = 16.dp),
+                modifier = Modifier.padding(start = 44.dp),
                 color = colorScheme.onSurface.copy(alpha = 0.06f),
             )
         }
