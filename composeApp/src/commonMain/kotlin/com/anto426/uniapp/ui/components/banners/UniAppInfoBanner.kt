@@ -47,11 +47,12 @@ fun UniAppInfoBanner(
         else -> 92
     }
     val glassColors = LiquidGlassTheme.colors
+    val coolAccent = remember(palette) { palette.cool.heroTextAccent() }
     val warmAccent = remember(palette) { palette.warm.heroTextAccent() }
     val statusDotColor = when {
         statusIsMandatory -> glassColors.warning
         statusIsHighlight -> warmAccent
-        else -> glassColors.success
+        else -> coolAccent
     }
 
     UniHeroGlassCard(

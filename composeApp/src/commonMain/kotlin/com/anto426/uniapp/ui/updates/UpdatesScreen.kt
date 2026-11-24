@@ -69,13 +69,13 @@ fun UpdatesScreen(
                 title = stringResource(Res.string.ui_update_installed_version),
                 subtitle = "${uiState.installedVersion} • $channel",
                 icon = LiquidIcons.Check,
-                iconTint = if (isUpToDate) glassColors.success else colorScheme.primary,
+                iconTint = colorScheme.primary,
                 showDivider = true,
                 titleMaxLines = 1,
                 subtitleMaxLines = 1,
                 minHeight = 64.dp,
                 trailingContent = {
-                    val accent = if (isUpToDate) glassColors.success else colorScheme.primary
+                    val accent = colorScheme.primary
                     LiquidBadge(
                         text = stringResource(
                             if (isUpToDate) Res.string.ui_update_up_to_date_badge

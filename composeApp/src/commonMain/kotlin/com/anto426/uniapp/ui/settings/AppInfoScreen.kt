@@ -46,7 +46,6 @@ fun AppInfoScreen(
             else Res.string.ui_update_news,
         )
         updateUiState?.bannerState == UpdateState.RESTART_REQUIRED -> stringResource(Res.string.ui_update_ready)
-        updateUiState != null -> stringResource(Res.string.ui_update_up_to_date_badge)
         else -> null
     }
 

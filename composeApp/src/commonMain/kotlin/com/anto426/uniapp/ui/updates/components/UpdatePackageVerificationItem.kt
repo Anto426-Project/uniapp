@@ -1,12 +1,12 @@
 package com.anto426.uniapp.ui.updates.components
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidCircularProgressIndicator
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.model.updates.UpdateState
@@ -48,10 +48,10 @@ internal fun UpdatePackageVerificationItem(
         minHeight = 64.dp,
         trailingContent = {
             when (status) {
-                PackageVerificationStatus.Checking -> CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
+                PackageVerificationStatus.Checking -> LiquidCircularProgressIndicator(
+                    indicatorSize = 18.dp,
                     strokeWidth = 2.dp,
-                    color = colorScheme.primary,
+                    progressColor = colorScheme.primary,
                 )
                 PackageVerificationStatus.Passed -> Icon(
                     imageVector = LiquidIcons.Check,

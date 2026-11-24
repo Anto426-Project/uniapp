@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
+import com.anto426.liquidmonet.components.feedback.progressbar.LiquidCircularProgressIndicator
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
@@ -158,13 +159,17 @@ private fun UpdateBannerFrontFace(
                 targetState = state,
                 modifier = Modifier.fillMaxWidth(),
             ) { currentState ->
-                UpdateBannerMinimalStatusLine(
-                    state = currentState,
-                    channelLabel = channelLabel,
-                    isMandatory = isMandatory,
-                    accent = accent,
-                    warmAccent = warmAccent,
-                )
+                if (currentState == UpdateState.UP_TO_DATE) {
+                    Spacer(Modifier.height(16.dp))
+                } else {
+                    UpdateBannerMinimalStatusLine(
+                        state = currentState,
+                        channelLabel = channelLabel,
+                        isMandatory = isMandatory,
+                        accent = accent,
+                        warmAccent = warmAccent,
+                    )
+                }
             }
 
             // 2. Identità tipografica centrale
@@ -190,11 +195,14 @@ private fun UpdateBannerFrontFace(
                         UpdateState.CHECKING -> UpdateBannerMinimalCaption(
                             text = stringResource(Res.string.ui_update_checking),
                             leading = {
-                                UpdateBannerOosSpinner(
-                                    color = accent,
-                                    size = 15.dp,
-                                    strokeWidth = 2.dp,
-                                )
+                                MaterialTheme(colorScheme = appColorScheme) {
+                                    LiquidCircularProgressIndicator(
+                                        indicatorSize = 16.dp,
+                                        strokeWidth = 2.dp,
+                                        progressColor = accent,
+                                        trackColor = accent.copy(alpha = 0.22f),
+                                    )
+                                }
                             },
                         )
 
@@ -281,11 +289,10 @@ private fun UpdateBannerMinimalStatusLine(
     }
 
     val dotColor = when (state) {
-        UpdateState.UP_TO_DATE,
-        UpdateState.RESTART_REQUIRED,
-        -> glassColors.success
+        UpdateState.RESTART_REQUIRED -> glassColors.success
         UpdateState.AVAILABLE -> if (isMandatory) glassColors.warning else warmAccent
         UpdateState.ERROR -> Color(0xFFFFB4AB)
+        UpdateState.UP_TO_DATE,
         UpdateState.CHECKING,
         UpdateState.DOWNLOADING,
         UpdateState.VERIFYING,
@@ -293,7 +300,8 @@ private fun UpdateBannerMinimalStatusLine(
         -> accent
     }
 
-    val isPulsing = state == UpdateState.AVAILABLE ||
+    val isPulsing = state == UpdateState.CHECKING ||
+        state == UpdateState.AVAILABLE ||
         state == UpdateState.DOWNLOADING ||
         state == UpdateState.VERIFYING ||
         state == UpdateState.INSTALLING ||
@@ -303,7 +311,6 @@ private fun UpdateBannerMinimalStatusLine(
     MinimalStatusIndicatorRow(
         text = fullText,
         dotColor = dotColor,
-        isBusy = state == UpdateState.CHECKING,
         isPulsing = isPulsing,
     )
 }
@@ -312,7 +319,6 @@ private fun UpdateBannerMinimalStatusLine(
 internal fun MinimalStatusIndicatorRow(
     text: String,
     dotColor: Color,
-    isBusy: Boolean = false,
     isPulsing: Boolean = false,
 ) {
     Row(
@@ -322,7 +328,6 @@ internal fun MinimalStatusIndicatorRow(
     ) {
         UpdateBannerStatusDot(
             dotColor = dotColor,
-            isBusy = isBusy,
             isPulsing = isPulsing,
         )
         Text(

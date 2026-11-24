@@ -7,7 +7,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -32,15 +31,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.anto426.uniapp.model.updates.UpdateState
 import kotlinx.coroutines.delay
@@ -69,11 +64,6 @@ internal object UpdateBannerMotionTokens {
     /** OxygenOS OTA "new_version" rising wave curve (54 frames @ 60fps = 900ms). */
     val NewVersionRiseEase: Easing = CubicBezierEasing(0.001f, 0.0f, 0.05f, 1.0f)
 
-    /** OxygenOS COUI rotating arc trim-path curves (76 frames @ 60fps = 1267ms). */
-    val SpinnerTrimShrinkEase: Easing = CubicBezierEasing(0.167f, 0.167f, 0.833f, 1.0f)
-    val SpinnerTrimExpandEase: Easing = CubicBezierEasing(0.167f, 0.0f, 0.833f, 0.833f)
-    val SpinnerOffsetEase: Easing = CubicBezierEasing(0.167f, 0.167f, 0.833f, 0.833f)
-
     const val StatusEnterMs = 280
     const val StatusExitMs = 150
     const val FooterEnterMs = 300
@@ -84,7 +74,6 @@ internal object UpdateBannerMotionTokens {
     const val VersionExitMs = 190
     const val NewVersionWaveMs = 900
     const val NewVersionStaggerMs = 83
-    const val SpinnerCycleMs = 1267
 }
 
 private fun UpdateState.motionStage(): Int = when (this) {
@@ -297,87 +286,12 @@ internal fun UpdateBannerFooterSwitcher(
 }
 
 /**
- * OxygenOS / COUI rotating loading arc derived from `coui_rotating_loading.json`
- * (76 frames @ 60fps = 1267ms; arc sweep breathes 273.6° -> 50.4° -> 273.6° with continuous spin).
- */
-@Composable
-internal fun UpdateBannerOosSpinner(
-    color: Color,
-    size: Dp = 15.dp,
-    strokeWidth: Dp = 2.dp,
-    modifier: Modifier = Modifier,
-) {
-    val transition = rememberInfiniteTransition(label = "UpdateBannerOosSpinner")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = UpdateBannerMotionTokens.SpinnerCycleMs,
-                easing = LinearEasing,
-            ),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "UpdateBannerSpinnerPhase",
-    )
-
-    val trackColor = remember(color) { color.copy(alpha = 0.20f) }
-
-    Canvas(modifier = modifier.size(size)) {
-        val strokePx = strokeWidth.toPx()
-        val inset = strokePx * 0.5f
-        val arcSize = Size(
-            width = (this.size.width - strokePx).coerceAtLeast(1f),
-            height = (this.size.height - strokePx).coerceAtLeast(1f),
-        )
-        val topLeft = Offset(inset, inset)
-        val split = 37f / 75f
-
-        val baseRotation = 90f + phase * 360f
-        val trimStart: Float
-        val trimOffset: Float
-        if (phase < split) {
-            val u = phase / split
-            trimStart = lerpFloat(24f, 86f, UpdateBannerMotionTokens.SpinnerTrimShrinkEase.transform(u))
-            trimOffset = lerpFloat(-90f, -41f, UpdateBannerMotionTokens.SpinnerOffsetEase.transform(u))
-        } else {
-            val u = (phase - split) / (1f - split)
-            trimStart = lerpFloat(86f, 24f, UpdateBannerMotionTokens.SpinnerTrimExpandEase.transform(u))
-            trimOffset = lerpFloat(-41f, 270f, UpdateBannerMotionTokens.SpinnerOffsetEase.transform(u))
-        }
-
-        val sweepAngle = ((100f - trimStart) / 100f) * 360f
-        val startAngle = (baseRotation + trimOffset + (trimStart / 100f) * 360f) % 360f
-
-        drawArc(
-            color = trackColor,
-            startAngle = 0f,
-            sweepAngle = 360f,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = strokePx, cap = StrokeCap.Round),
-        )
-        drawArc(
-            color = color,
-            startAngle = startAngle,
-            sweepAngle = sweepAngle,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = strokePx, cap = StrokeCap.Round),
-        )
-    }
-}
-
-/**
- * Animated status indicator dot/spinner with smooth color transitions and an optional
+ * Animated status indicator dot with smooth color transitions and an optional
  * OxygenOS breathing pulse ring for live update states.
  */
 @Composable
 internal fun UpdateBannerStatusDot(
     dotColor: Color,
-    isBusy: Boolean,
     isPulsing: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -390,62 +304,41 @@ internal fun UpdateBannerStatusDot(
         label = "UpdateBannerStatusDotColor",
     )
 
-    AnimatedContent(
-        targetState = isBusy,
-        modifier = modifier,
-        contentAlignment = Alignment.Center,
-        transitionSpec = {
-            (fadeIn(tween(220, easing = UpdateBannerMotionTokens.OpacityEase)) +
-                scaleIn(tween(240, easing = UpdateBannerMotionTokens.MoveEase), initialScale = 0.65f)) togetherWith
-                (fadeOut(tween(140, easing = UpdateBannerMotionTokens.InEase)) +
-                    scaleOut(tween(140, easing = UpdateBannerMotionTokens.InEase), targetScale = 0.65f))
-        },
-        label = "UpdateBannerStatusDotMode",
-    ) { busy ->
-        if (busy) {
-            UpdateBannerOosSpinner(
-                color = animatedColor,
-                size = 12.dp,
-                strokeWidth = 1.75.dp,
-            )
-        } else {
-            val pulseProgress = if (isPulsing) {
-                val pulseTransition = rememberInfiniteTransition(label = "UpdateBannerDotPulse")
-                val value by pulseTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(
-                            durationMillis = 1800,
-                            easing = UpdateBannerMotionTokens.OutEase,
-                        ),
-                        repeatMode = RepeatMode.Restart,
-                    ),
-                    label = "UpdateBannerDotPulseProgress",
-                )
-                value
-            } else {
-                0f
-            }
+    val pulseProgress = if (isPulsing) {
+        val pulseTransition = rememberInfiniteTransition(label = "UpdateBannerDotPulse")
+        val value by pulseTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 1800,
+                    easing = UpdateBannerMotionTokens.OutEase,
+                ),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "UpdateBannerDotPulseProgress",
+        )
+        value
+    } else {
+        0f
+    }
 
-            Canvas(modifier = Modifier.size(12.dp)) {
-                val coreRadius = 3.5.dp.toPx()
-                if (isPulsing) {
-                    val haloRadius = lerpFloat(coreRadius, size.minDimension * 0.56f, pulseProgress)
-                    val haloAlpha = (1f - pulseProgress) * 0.45f
-                    drawCircle(
-                        color = animatedColor.copy(alpha = haloAlpha),
-                        radius = haloRadius,
-                        center = center,
-                    )
-                }
-                drawCircle(
-                    color = animatedColor,
-                    radius = coreRadius,
-                    center = center,
-                )
-            }
+    Canvas(modifier = modifier.size(12.dp)) {
+        val coreRadius = 3.5.dp.toPx()
+        if (isPulsing) {
+            val haloRadius = lerpFloat(coreRadius, size.minDimension * 0.56f, pulseProgress)
+            val haloAlpha = (1f - pulseProgress) * 0.45f
+            drawCircle(
+                color = animatedColor.copy(alpha = haloAlpha),
+                radius = haloRadius,
+                center = center,
+            )
         }
+        drawCircle(
+            color = animatedColor,
+            radius = coreRadius,
+            center = center,
+        )
     }
 }
 
