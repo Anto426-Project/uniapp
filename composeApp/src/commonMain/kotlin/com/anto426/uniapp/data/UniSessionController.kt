@@ -1,6 +1,7 @@
 package com.anto426.uniapp.data
 
 import com.anto426.uniapp.account.data.AccountAvatarStore
+import com.anto426.uniapp.account.model.MissingAccountCredentialsException
 import com.anto426.uniapp.account.model.UniAccountCredentials
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.model.UniLoginProfileOption
@@ -19,13 +20,16 @@ import com.anto426.uniapp.session.model.AppSessionState
 import com.anto426.unisdk.backend.UniBackendService
 import com.anto426.unisdk.errors.UniSdkErrorCode
 import com.anto426.unisdk.errors.UniSdkException
+import com.anto426.unisdk.errors.uniSdkErrorCode
 import com.anto426.unisdk.library.LibraryService
 import com.anto426.unisdk.library.LibrarySession
 import com.anto426.unisdk.library.RemoteLibraryService
 import com.anto426.unisdk.model.Career
 import com.anto426.unisdk.model.LoginCareerOption
 import com.anto426.unisdk.platform.ProjectInfo
+import com.anto426.unisdk.platform.currentEpochMillis
 import com.anto426.unisdk.session.AuthenticationResult
+import com.anto426.unisdk.session.InvalidUniSessionTicketException
 import com.anto426.unisdk.session.SessionResumeResult
 import com.anto426.unisdk.session.UniCareerProfile
 import com.anto426.unisdk.session.UniCredentials
@@ -39,15 +43,18 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.io.IOException
 import uniapp.composeapp.generated.resources.*
 
 enum class PasswordUnlockResult { Unlocked, Invalid, RetryLater }
@@ -60,10 +67,12 @@ class UniSessionController internal constructor(
     private val accountStore: UniAccountStore,
     private val localDataStore: UniLocalDataStore,
     private val libraryService: LibraryService = RemoteLibraryService(),
+    private val nowMillis: () -> Long = ::currentEpochMillis,
     private val prepareNotificationOwner: suspend (String?) -> Unit = {},
 ) {
     val avatars = AccountAvatarStore(accountStore)
     private val lock = Mutex()
+    private val onlineResumeLock = Mutex()
     private val libraryLock = Mutex()
     private var activeSession: ActiveSessionContext? = null
     private var activeLibrarySession: LibrarySessionContext? = null
@@ -418,13 +427,16 @@ class UniSessionController internal constructor(
         if (current != null) {
             activeSession = null
             closeLibrarySessionForOwner(accountId)
-            val revoked = withTimeoutOrNull(8_000L) {
-                runCatching { backend.revokeSession(current.session) }.isSuccess
-            } == true
-            if (!revoked) {
-                runCatching { backend.closeSession(current.session) }
+            val liveSession = current.session
+            if (liveSession != null) {
+                val revoked = withTimeoutOrNull(8_000L) {
+                    runCatching { backend.revokeSession(liveSession) }.isSuccess
+                } == true
+                if (!revoked) {
+                    runCatching { backend.closeSession(liveSession) }
+                }
+                return
             }
-            return
         }
         val storedTicket = runCatching { accountStore.loadSessionTicket(accountId) }.getOrNull()
         if (storedTicket != null) {
@@ -482,38 +494,79 @@ class UniSessionController internal constructor(
             accountStore.setActiveAccount(account.accountId)
             return AppSessionState.Authenticated(it.account)
         }
-        val ticket = accountStore.loadSessionTicket(account.accountId)
-            ?: return reauthenticationState(account)
-        return accountStore.withCredentials(account.accountId) { credentials ->
-            when (val result = backend.resumeSession(ticket, credentials)) {
-                SessionResumeResult.ReauthenticationRequired -> {
-                    accountStore.clearSessionTicket(account.accountId)
-                    reauthenticationState(account)
+        val ticket = try {
+            accountStore.loadSessionTicket(account.accountId)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: InvalidUniSessionTicketException) {
+            accountStore.clearSessionTicket(account.accountId)
+            return reauthenticationState(account)
+        } ?: return reauthenticationState(account)
+
+        return try {
+            accountStore.withCredentials(account.accountId) { credentials ->
+                val result = try {
+                    withTimeout(ONLINE_RESUME_TIMEOUT_MILLIS) {
+                        backend.resumeSession(ticket, credentials)
+                    }
+                } catch (timeout: TimeoutCancellationException) {
+                    if (!currentCoroutineContext().isActive) throw timeout
+                    throw UniSdkException(UniSdkErrorCode.NETWORK_TIMEOUT, timeout)
                 }
-                is SessionResumeResult.Resumed -> {
-                    val selected = account.profiles.firstOrNull { it.profileId == account.activeProfileId }
-                        ?.toSdkLoginCareerOption()
-                    if (result.profile.id != account.serverUserId ||
-                        (account.activeProfileId != null && selected == null) ||
-                        !result.profile.matchesSelectedCareer(selected)
-                    ) {
-                        runCatching { backend.closeSession(result.session) }
+                when (result) {
+                    SessionResumeResult.ReauthenticationRequired -> {
                         accountStore.clearSessionTicket(account.accountId)
-                        return@withCredentials reauthenticationState(account)
+                        reauthenticationState(account)
                     }
-                    val profile = result.profile.withProfileCatalog(account.profiles.map { it.toSdkLoginCareerOption() }, selected)
-                    val updated = try {
-                        accountStore.updateSession(account.accountId, profile, result.ticket).also {
-                            accountStore.setActiveAccount(account.accountId)
+                    is SessionResumeResult.Resumed -> {
+                        val selected = account.profiles.firstOrNull { it.profileId == account.activeProfileId }
+                            ?.toSdkLoginCareerOption()
+                        if (result.profile.id != account.serverUserId ||
+                            (account.activeProfileId != null && selected == null) ||
+                            !result.profile.matchesSelectedCareer(selected)
+                        ) {
+                            runCatching { backend.closeSession(result.session) }
+                            accountStore.clearSessionTicket(account.accountId)
+                            return@withCredentials reauthenticationState(account)
                         }
-                    } catch (error: Throwable) {
-                        runCatching { backend.closeSession(result.session) }
-                        throw error
+                        val profile = result.profile.withProfileCatalog(account.profiles.map { it.toSdkLoginCareerOption() }, selected)
+                        val updated = try {
+                            accountStore.updateSession(account.accountId, profile, result.ticket).also {
+                                accountStore.setActiveAccount(account.accountId)
+                            }
+                        } catch (error: Throwable) {
+                            runCatching { backend.closeSession(result.session) }
+                            throw error
+                        }
+                        installSessionLocked(ActiveSessionContext(updated, profile, result.session))
+                        AppSessionState.Authenticated(updated)
                     }
-                    installSessionLocked(ActiveSessionContext(updated, profile, result.session))
-                    AppSessionState.Authenticated(updated)
                 }
             }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: MissingAccountCredentialsException) {
+            accountStore.clearSessionTicket(account.accountId)
+            reauthenticationState(account)
+        } catch (_: InvalidUniSessionTicketException) {
+            accountStore.clearSessionTicket(account.accountId)
+            reauthenticationState(account)
+        } catch (error: Throwable) {
+            if ((error as? UniSdkException)?.rejectsPrimarySession() == true) {
+                accountStore.clearSessionTicket(account.accountId)
+                return reauthenticationState(account)
+            }
+            if (!error.isRecoverableOfflineResumeError()) throw error
+            accountStore.setActiveAccount(account.accountId)
+            val offlineContext = ActiveSessionContext(
+                account = account,
+                profile = account.toSdkUserProfile(),
+                session = null,
+                offlineFailureAtMillis = nowMillis(),
+                lastOfflineError = error.asOfflineSdkException(),
+            )
+            installSessionLocked(offlineContext)
+            AppSessionState.Authenticated(account)
         }
     }
 
@@ -554,8 +607,9 @@ class UniSessionController internal constructor(
             ) {
                 closeLibrarySessionForOwner(previous.account.accountId)
             }
-            if (previous.session !== next.session) {
-                runCatching { backend.closeSession(previous.session) }
+            val previousLive = previous.session
+            if (previousLive != null && previousLive !== next.session) {
+                runCatching { backend.closeSession(previousLive) }
             }
         }
     }
@@ -565,7 +619,7 @@ class UniSessionController internal constructor(
         if (accountId != null && current.account.accountId != accountId) return
         activeSession = null
         closeLibrarySessionForOwner(current.account.accountId)
-        backend.closeSession(current.session)
+        current.session?.let { backend.closeSession(it) }
     }
 
     private suspend fun closeLibrarySessionForOwner(accountId: String? = null) {
@@ -588,12 +642,13 @@ class UniSessionController internal constructor(
         profileId: String?,
         block: suspend UniBackendService.(UniSession, UniCredentials) -> T,
     ): T {
-        val active = activeContextFor(accountId, profileId)
+        val active = ensureLiveSession(accountId, profileId)
+        val liveSession = checkNotNull(active.session)
         val value = accountStore.withCredentials(accountId) { credentials ->
             try {
-                backend.block(active.session, credentials)
+                backend.block(liveSession, credentials)
             } catch (error: UniSdkException) {
-                if (error.rejectsPrimarySession() && isConfirmedInactive(active, credentials)) {
+                if (error.rejectsPrimarySession() && isConfirmedInactive(active, liveSession, credentials)) {
                     forgetInactiveSession(active)
                 }
                 throw error
@@ -601,6 +656,124 @@ class UniSessionController internal constructor(
         }
         ensureActiveContext(active)
         return value
+    }
+
+    private suspend fun ensureLiveSession(accountId: String, profileId: String?): ActiveSessionContext {
+        val initial = activeContextFor(accountId, profileId)
+        if (initial.session != null) return initial
+
+        return onlineResumeLock.withLock {
+            val current = activeContextFor(accountId, profileId)
+            if (current.session != null) return@withLock current
+
+            val failureAt = current.offlineFailureAtMillis
+            if (failureAt != null && nowMillis() - failureAt in 0 until OFFLINE_RESUME_COOLDOWN_MILLIS) {
+                throw (current.lastOfflineError ?: UniSdkException(UniSdkErrorCode.NETWORK_REQUEST_FAILED))
+            }
+
+            val ticket = try {
+                accountStore.loadSessionTicket(accountId)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: InvalidUniSessionTicketException) {
+                null
+            }
+            if (ticket == null) {
+                forgetInactiveSession(current)
+                throw UniSdkException(UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN)
+            }
+
+            try {
+                accountStore.withCredentials(accountId) { credentials ->
+                    val resumed = try {
+                        withTimeout(ONLINE_RESUME_TIMEOUT_MILLIS) {
+                            backend.resumeSession(ticket, credentials)
+                        }
+                    } catch (timeout: TimeoutCancellationException) {
+                        if (!currentCoroutineContext().isActive) throw timeout
+                        throw UniSdkException(UniSdkErrorCode.NETWORK_TIMEOUT, timeout)
+                    }
+                    when (resumed) {
+                        SessionResumeResult.ReauthenticationRequired -> {
+                            forgetInactiveSession(current)
+                            throw UniSdkException(UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN)
+                        }
+                        is SessionResumeResult.Resumed -> {
+                            val selected = current.account.profiles
+                                .firstOrNull { it.profileId == current.account.activeProfileId }
+                                ?.toSdkLoginCareerOption()
+                            if (resumed.profile.id != current.account.serverUserId ||
+                                (current.account.activeProfileId != null && selected == null) ||
+                                !resumed.profile.matchesSelectedCareer(selected)
+                            ) {
+                                runCatching { backend.closeSession(resumed.session) }
+                                forgetInactiveSession(current)
+                                throw UniSdkException(UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN)
+                            }
+                            val catalog = current.account.profiles.map { it.toSdkLoginCareerOption() }
+                            val profile = resumed.profile.withProfileCatalog(catalog, selected)
+                            try {
+                                accountStore.updateSession(accountId, profile, resumed.ticket)
+                            } catch (error: Throwable) {
+                                runCatching { backend.closeSession(resumed.session) }
+                                throw error
+                            }
+                            lock.withLock {
+                                if (activeSession !== current || mutableState.value !is AppSessionState.Authenticated) {
+                                    withContext(NonCancellable) {
+                                        runCatching { backend.closeSession(resumed.session) }
+                                    }
+                                    throw CancellationException("The account or career changed while resuming session")
+                                }
+                                // Keep the current Authenticated instance reference intact so in-flight
+                                // PortalUniGateway requests pass ensureCurrent() without spurious cancellation.
+                                val upgraded = current.copy(
+                                    profile = profile,
+                                    session = resumed.session,
+                                    offlineFailureAtMillis = null,
+                                    lastOfflineError = null,
+                                )
+                                activeSession = upgraded
+                                upgraded
+                            }
+                        }
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: MissingAccountCredentialsException) {
+                forgetInactiveSession(current)
+                throw UniSdkException(UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN)
+            } catch (_: InvalidUniSessionTicketException) {
+                forgetInactiveSession(current)
+                throw UniSdkException(UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN)
+            } catch (error: UniSdkException) {
+                if (error.rejectsPrimarySession()) {
+                    forgetInactiveSession(current)
+                } else if (error.isRecoverableOfflineResumeError()) {
+                    recordOfflineResumeFailure(current, error)
+                }
+                throw error
+            } catch (error: Throwable) {
+                if (error.isRecoverableOfflineResumeError()) {
+                    val mapped = error.asOfflineSdkException()
+                    recordOfflineResumeFailure(current, mapped)
+                    throw mapped
+                }
+                throw error
+            }
+        }
+    }
+
+    private suspend fun recordOfflineResumeFailure(expected: ActiveSessionContext, error: UniSdkException) {
+        lock.withLock {
+            if (activeSession === expected) {
+                activeSession = expected.copy(
+                    offlineFailureAtMillis = nowMillis(),
+                    lastOfflineError = error,
+                )
+            }
+        }
     }
 
     internal suspend fun <T> withTransportSession(
@@ -618,9 +791,13 @@ class UniSessionController internal constructor(
         }
     }
 
-    private suspend fun isConfirmedInactive(active: ActiveSessionContext, credentials: UniCredentials): Boolean =
+    private suspend fun isConfirmedInactive(
+        active: ActiveSessionContext,
+        liveSession: UniSession,
+        credentials: UniCredentials,
+    ): Boolean =
         try {
-            !backend.isSessionValid(active.session, credentials)
+            !backend.isSessionValid(liveSession, credentials)
         } catch (error: UniSdkException) {
             error.rejectsPrimarySession()
         }
@@ -758,12 +935,19 @@ class UniSessionController internal constructor(
 
     private suspend fun requiresBiometricUnlock(accountId: String): Boolean =
         localDataStore.read(LocalDataScope.Account(accountId), UniAppDataKeys.BiometricUnlock)
+
+    private companion object {
+        const val ONLINE_RESUME_TIMEOUT_MILLIS = 10_000L
+        const val OFFLINE_RESUME_COOLDOWN_MILLIS = 2_000L
+    }
 }
 
 private data class ActiveSessionContext(
     val account: UniAccountSummary,
     val profile: UniUserProfile,
-    val session: UniSession,
+    val session: UniSession?,
+    val offlineFailureAtMillis: Long? = null,
+    val lastOfflineError: UniSdkException? = null,
 )
 
 private data class LibrarySessionContext(
@@ -777,9 +961,64 @@ private fun UniSdkException.rejectsPrimarySession(): Boolean =
         UniSdkErrorCode.SESSION_INVALID,
         UniSdkErrorCode.SESSION_EXPIRED_LOGIN_AGAIN,
         UniSdkErrorCode.PASSWORD_INVALID,
+        UniSdkErrorCode.AUTH_INVALID_CREDENTIALS,
+        UniSdkErrorCode.ACCOUNT_INVALID,
         -> true
         else -> false
     }
+
+private fun Throwable.isRecoverableOfflineResumeError(): Boolean {
+    if (this is IOException) return true
+    val code = uniSdkErrorCode() ?: return false
+    return when (code) {
+        UniSdkErrorCode.NETWORK_REQUEST_FAILED,
+        UniSdkErrorCode.NETWORK_TIMEOUT,
+        UniSdkErrorCode.NETWORK_HTTP_ERROR,
+        UniSdkErrorCode.REMOTE_REQUEST_FAILED,
+        UniSdkErrorCode.APP_BACKEND_UNAVAILABLE,
+        UniSdkErrorCode.CINECA_UNAVAILABLE,
+        UniSdkErrorCode.CINECA_REQUEST_FAILED,
+        UniSdkErrorCode.SERVICE_UNAVAILABLE,
+        UniSdkErrorCode.SESSION_NOT_AVAILABLE,
+        UniSdkErrorCode.SYNC_ERROR,
+        UniSdkErrorCode.FEATURE_LOAD_TIMEOUT,
+        -> true
+        else -> false
+    }
+}
+
+private fun Throwable.asOfflineSdkException(): UniSdkException =
+    (this as? UniSdkException)
+        ?: UniSdkException(uniSdkErrorCode() ?: UniSdkErrorCode.NETWORK_REQUEST_FAILED, this)
+
+private fun UniAccountSummary.toSdkUserProfile(): UniUserProfile =
+    UniUserProfile(
+        id = serverUserId,
+        displayName = displayName,
+        degreeName = degreeName,
+        matricola = matricola,
+        email = email,
+        photoUrl = photoUrl,
+        isGuest = isGuest,
+        activeProfileId = activeProfileId,
+        profiles = profiles.map { profile ->
+            UniCareerProfile(
+                profileId = profile.profileId,
+                displayName = profile.displayName,
+                degreeName = profile.degreeName,
+                matricola = profile.matricola,
+                matId = profile.matId,
+                stuId = profile.stuId,
+                anaId = profile.anaId,
+                cdsId = profile.cdsId,
+                dipId = profile.dipId,
+                departmentName = profile.departmentName,
+                teacherId = profile.teacherId,
+                type = profile.type.toSdkCareerType(),
+            )
+        },
+        activeProfileType = activeProfileType.toSdkCareerType(),
+    )
 
 internal fun UniUserProfile.matchesSelectedCareer(selected: LoginCareerOption?): Boolean =
     selected == null || activeProfileId == selected.profileId
