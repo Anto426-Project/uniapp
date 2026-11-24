@@ -9,6 +9,8 @@ import com.anto426.uniapp.data.attendanceContract
 import com.anto426.uniapp.data.contract.AttendanceData
 import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.presentation.FeatureLoadState
+import com.anto426.uniapp.presentation.onRefresh
+import com.anto426.uniapp.presentation.onRefreshFailure
 import com.anto426.uniapp.presentation.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,7 +47,7 @@ class AttendanceViewModel(private val dataSource: UniGateway) : ViewModel() {
     private val dataRequests = listOf(UniDatasets.Attendance)
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
         mutableUiState.value = mutableUiState.value.copy(
-            loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Loading else mutableUiState.value.loadState,
+            loadState = mutableUiState.value.loadState.onRefresh(),
             errorMessage = null,
         )
         try {
@@ -60,7 +62,7 @@ class AttendanceViewModel(private val dataSource: UniGateway) : ViewModel() {
             throw error
         } catch (error: Throwable) {
             mutableUiState.value = mutableUiState.value.copy(
-                loadState = if (mutableUiState.value.records.isEmpty()) FeatureLoadState.Error else FeatureLoadState.Content,
+                loadState = mutableUiState.value.loadState.onRefreshFailure(),
                 errorMessage = error.userMessage { readAppString(Res.string.msg_impossibile_caricare_le_presenze) },
             )
         }
