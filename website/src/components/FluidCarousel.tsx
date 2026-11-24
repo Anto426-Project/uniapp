@@ -30,6 +30,8 @@ export function FluidCarousel({
   onOpen,
 }: FluidCarouselProps) {
   const [selected, setSelected] = useState(0);
+  const [isInViewport, setIsInViewport] = useState(false);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
   const innerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const plugins = useMemo(() => {
@@ -37,6 +39,7 @@ export function FluidCarousel({
     return [
       Autoplay({
         delay: 4600,
+        playOnInit: false,
         stopOnInteraction: true,
         stopOnMouseEnter: true,
       }),
@@ -53,15 +56,31 @@ export function FluidCarousel({
     plugins
   );
 
-  // Pause autoplay cleanly when Lightbox opens
+  // Keep autoplay limited to the visible carousel and pause it for the lightbox.
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInViewport(entry.isIntersecting),
+      { threshold: 0.2 }
+    );
+    observer.observe(carousel);
+
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!emblaApi || reducedMotion) return;
     const autoplay = emblaApi.plugins()?.autoplay;
     if (!autoplay) return;
-    if (paused) {
+
+    if (paused || !isInViewport) {
       autoplay.stop();
+    } else {
+      autoplay.play();
     }
-  }, [emblaApi, paused, reducedMotion]);
+  }, [emblaApi, isInViewport, paused, reducedMotion]);
 
   const applySlideStyles = useCallback(() => {
     if (!emblaApi) return;
@@ -146,6 +165,7 @@ export function FluidCarousel({
 
   return (
     <div
+      ref={carouselRef}
       className="screenshot-carousel"
       role="region"
       aria-roledescription="carosello"
