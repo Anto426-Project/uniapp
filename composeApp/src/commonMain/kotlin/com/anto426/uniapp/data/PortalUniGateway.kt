@@ -155,6 +155,20 @@ class PortalUniGateway(
             ensureCurrent(context)
             return cached?.let { CachedValue(it.savedAtMillis, it.bytes as T) }
         }
+        if (request.id.startsWith("ticket-image/")) {
+            val bookingId = request.id.removePrefix("ticket-image/")
+            if (bookingId.isEmpty() || bookingId.length > 256) return null
+            val key = context.profileScopedKey(ticketImageCacheKey(bookingId))
+            val bytes = try {
+                accounts.readCachedData(context.accountId, key)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                null
+            }
+            ensureCurrent(context)
+            return bytes?.let { CachedValue(nowMillis(), it as T) }
+        }
         val key = request.cacheKey ?: return null
         val serializer = request.serializer ?: return null
         val value = try {

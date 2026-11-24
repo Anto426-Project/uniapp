@@ -186,6 +186,79 @@ class InactiveSessionTest {
         }
     }
 
+    @Test
+    fun offlineRestartRestoresStoredAccountServesEncryptedCacheAndResumesWhenOnline() = runTest {
+        withFixture {
+            val savedAccountId = accountId
+            var now = 10_000L
+            val initialGateway = com.anto426.uniapp.data.PortalUniGateway(
+                sessions = sessions,
+                accounts = store,
+                fixedAccountId = savedAccountId,
+                fixedProfileId = null,
+                nowMillis = { now },
+                fallbackToStaleCache = false,
+            )
+            backend.taxesLoader = { com.anto426.unisdk.model.Taxes("150.00", emptyList()) }
+            assertEquals("150.00", initialGateway.loadTaxes().dueAmount)
+
+            // Cold start while completely offline: session must restore locally instead of signing out.
+            var online = false
+            val offlineResumedSession = UniSession::class.java.getDeclaredConstructor().newInstance()
+            backend.resume = {
+                if (!online) throw UniSdkException(UniSdkErrorCode.NETWORK_REQUEST_FAILED)
+                SessionResumeResult.Resumed(
+                    session = offlineResumedSession,
+                    ticket = UniSessionTicket.restore(byteArrayOf(9)),
+                    profile = UniUserProfile(
+                        id = "student-id",
+                        displayName = "Student",
+                        degreeName = "Informatica",
+                        matricola = "1234",
+                        email = null,
+                        photoUrl = null,
+                        isGuest = false,
+                    ),
+                )
+            }
+            val restarted = sessionManager(nowMillis = { now })
+            try {
+                restarted.initialize()
+                val restored = assertIs<AppSessionState.Authenticated>(restarted.state.value)
+                assertEquals(savedAccountId, restored.account.accountId)
+                assertContentEquals(byteArrayOf(1), store.loadSessionTicket(savedAccountId)?.export())
+
+                // Advance past TTL so disk cache is stale while still offline: engine must still serve cached data.
+                now += com.anto426.uniapp.data.UniCachePolicies.Taxes.maxAgeMillis + 5_000L
+                val offlineGateway = com.anto426.uniapp.data.PortalUniGateway(
+                    sessions = restarted,
+                    accounts = store,
+                    fixedAccountId = savedAccountId,
+                    fixedProfileId = restored.account.activeProfileId,
+                    nowMillis = { now },
+                    fallbackToStaleCache = false,
+                )
+                val engineScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default)
+                val engine = com.anto426.uniapp.data.UniCacheEngine(offlineGateway, engineScope, nowMillis = { now })
+                try {
+                    assertEquals("150.00", withContext(Dispatchers.Default) { engine.loadTaxes().dueAmount })
+
+                    // Reconnect online after cooldown: lazy session resume upgrades session and fetches fresh data.
+                    now += 5_000L
+                    online = true
+                    backend.taxesLoader = { com.anto426.unisdk.model.Taxes("0.00", emptyList()) }
+                    assertEquals("0.00", withContext(Dispatchers.Default) { engine.loadTaxes(forceRefresh = true).dueAmount })
+                    assertContentEquals(byteArrayOf(9), store.loadSessionTicket(savedAccountId)?.export())
+                } finally {
+                    engine.close()
+                    engineScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
+                }
+            } finally {
+                restarted.shutdown()
+            }
+        }
+    }
+
     private suspend fun withFixture(block: suspend Fixture.() -> Unit) {
         val client = HttpClient(MockEngine { error("Unexpected HTTP request") })
         val fixture = Fixture(TestBackend(RemoteUniBackendService(client)))
@@ -209,9 +282,10 @@ class InactiveSessionTest {
         val accountId: String
             get() = assertIs<AppSessionState.Authenticated>(sessions.state.value).account.accountId
 
-        fun sessionManager() = UniSessionController(backend, store, localDataStore) { owner ->
-            notificationOwner = owner
-        }
+        fun sessionManager(nowMillis: () -> Long = { com.anto426.unisdk.platform.currentEpochMillis() }) =
+            UniSessionController(backend, store, localDataStore, nowMillis = nowMillis) { owner ->
+                notificationOwner = owner
+            }
 
         suspend fun saveSecondAccount(): String {
             val previous = accountId
@@ -246,6 +320,7 @@ class InactiveSessionTest {
     private class TestBackend(delegate: UniBackendService) : UniBackendService by delegate {
         var validate: suspend () -> Boolean = { error("Unexpected session validation") }
         var resume: suspend () -> SessionResumeResult = { error("An inactive session ticket must not be restored") }
+        var taxesLoader: suspend () -> com.anto426.unisdk.model.Taxes = { error("Unexpected loadTaxes") }
         var validationCalls = 0
             private set
         val closedSessions = mutableListOf<UniSession>()
@@ -280,6 +355,9 @@ class InactiveSessionTest {
 
         override suspend fun resumeSession(ticket: UniSessionTicket, credentials: UniCredentials): SessionResumeResult =
             resume()
+
+        override suspend fun loadTaxes(session: UniSession, credentials: UniCredentials): com.anto426.unisdk.model.Taxes =
+            taxesLoader()
 
         override suspend fun closeSession(session: UniSession) {
             closedSessions += session

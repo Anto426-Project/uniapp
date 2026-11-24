@@ -671,6 +671,7 @@ class UniCacheEngine(
         entry.job = completion
         scope.launch {
             try {
+                var hydratedFreshCache = false
                 if (entry.state.value.value == null && source is PortalUniGateway) {
                     val initialCache = try {
                         source.readCached(entry.request)
@@ -685,9 +686,24 @@ class UniCacheEngine(
                             if (closed) throw CancellationException("Data owner closed")
                             entry.state.value = entry.state.value.copy(value = cached.value, revision = entry.state.value.revision + 1)
                             entry.savedAt = cached.savedAtMillis
+                            if (!effectiveForce && !entry.forcePending && !entry.invalidated && dueIn(entry) > 0) {
+                                entry.state.value = entry.state.value.copy(
+                                    refreshing = false,
+                                    error = null,
+                                    revision = entry.state.value.revision + 1,
+                                )
+                                entry.job = null
+                                entry.forcing = false
+                                entry.retryAt = null
+                                completion.complete(cached.value)
+                                trimIdleEntries()
+                                scheduleRevision.value += 1
+                                hydratedFreshCache = true
+                            }
                         }
                     }
                 }
+                if (hydratedFreshCache) return@launch
                 var mustRefresh = effectiveForce
                 var currentPriority = priority
                 while (true) {
@@ -829,7 +845,17 @@ class UniCacheEngine(
         val entry = acquire(request)
         return try {
             val job = start(entry, force)
-            job?.await() ?: entry.state.value.let { it.value ?: throw checkNotNull(it.error) }
+            if (job != null) {
+                try {
+                    job.await()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Throwable) {
+                    if (!force) entry.state.value.value ?: throw error else throw error
+                }
+            } else {
+                entry.state.value.let { it.value ?: throw checkNotNull(it.error) }
+            }
         } finally { release(entry) }
     }
 
