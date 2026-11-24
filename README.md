@@ -115,7 +115,7 @@ UniApp separa le fondamenta tecniche in **SDK precompilati indipendenti**, risol
 | SDK | Versione | Responsabilità | Repository |
 | --- | --- | --- | --- |
 | **`liquid-monet`** | `2.0.56` | Componenti Compose, tema Monet, fisica e superfici optical glass | [Anto426-Project/Liquid-Monet](https://github.com/Anto426-Project/Liquid-Monet) |
-| **`uni-sdk`** | `2.0.37` | Client KMP per API Cineca, backend UniApp, trasporti e aggiornamenti | Modulo privato |
+| **`uni-sdk`** | `2.0.38` | Client KMP per API Cineca, backend UniApp, trasporti e aggiornamenti | Modulo privato |
 | **`secure-storage-sdk`** | `1.0.17` | Persistenza sicura multipiattaforma per credenziali e token | Modulo privato |
 | **`firebase-connector-sdk`** | `1.0.11` | Push notification e integrazione Firebase / FCM | Modulo privato |
 
