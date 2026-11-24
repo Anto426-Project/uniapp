@@ -32,6 +32,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
@@ -166,11 +167,16 @@ fun RichMarkdownDocument(
     markdown: String,
     modifier: Modifier = Modifier,
     accentColor: Color = MaterialTheme.colorScheme.primary,
+    localeList: LocaleList? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
     val linkColor = accentColor
     val blocks = remember(markdown) { DocumentMarkdownParser.parseMarkdownBlocks(markdown) }
+    val titleMediumStyle = MaterialTheme.typography.titleMedium.let { if (localeList != null) it.copy(localeList = localeList) else it }
+    val bodyMediumStyle = MaterialTheme.typography.bodyMedium.let { if (localeList != null) it.copy(localeList = localeList) else it }
+    val bodySmallStyle = MaterialTheme.typography.bodySmall.let { if (localeList != null) it.copy(localeList = localeList) else it }
+    val labelMediumStyle = MaterialTheme.typography.labelMedium.let { if (localeList != null) it.copy(localeList = localeList) else it }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -188,7 +194,7 @@ fun RichMarkdownDocument(
                     }
                     Text(
                         text = parseInlineMarkdown(block.text, linkColor),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = titleMediumStyle,
                         fontWeight = FontWeight.Bold,
                         color = color,
                         fontSize = fontSize,
@@ -239,7 +245,7 @@ fun RichMarkdownDocument(
                             }
                             Text(
                                 text = parseInlineMarkdown(block.text, linkColor),
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = bodyMediumStyle,
                                 fontSize = 14.sp,
                                 lineHeight = 21.sp,
                                 fontStyle = if (block.alertKind == null) FontStyle.Italic else FontStyle.Normal,
@@ -266,7 +272,7 @@ fun RichMarkdownDocument(
                         )
                         Text(
                             text = parseInlineMarkdown(block.text, linkColor),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = bodyMediumStyle,
                             fontSize = 14.5.sp,
                             lineHeight = 22.sp,
                             color = colorScheme.onSurface.copy(alpha = 0.90f),
@@ -291,7 +297,7 @@ fun RichMarkdownDocument(
                         )
                         Text(
                             text = parseInlineMarkdown(block.text, linkColor),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = bodyMediumStyle,
                             fontSize = 14.5.sp,
                             lineHeight = 22.sp,
                             color = colorScheme.onSurface.copy(alpha = if (block.checked) 0.72f else 0.90f),
@@ -319,7 +325,7 @@ fun RichMarkdownDocument(
                         }
                         Text(
                             text = block.code,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = bodySmallStyle,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 12.5.sp,
                             lineHeight = 18.sp,
@@ -346,7 +352,7 @@ fun RichMarkdownDocument(
                             block.headers.forEach { header ->
                                 Text(
                                     text = parseInlineMarkdown(header, linkColor),
-                                    style = MaterialTheme.typography.labelMedium,
+                                    style = labelMediumStyle,
                                     fontWeight = FontWeight.Bold,
                                     color = colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
@@ -364,7 +370,7 @@ fun RichMarkdownDocument(
                                 block.headers.indices.forEach { idx ->
                                     Text(
                                         text = parseInlineMarkdown(row.getOrElse(idx) { "" }, linkColor),
-                                        style = MaterialTheme.typography.bodySmall,
+                                        style = bodySmallStyle,
                                         color = colorScheme.onSurface.copy(alpha = 0.88f),
                                         modifier = Modifier.weight(1f),
                                     )
@@ -377,7 +383,7 @@ fun RichMarkdownDocument(
                 is MarkdownBlock.Paragraph -> {
                     Text(
                         text = parseInlineMarkdown(block.text, linkColor),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = bodyMediumStyle,
                         fontSize = 14.5.sp,
                         lineHeight = 22.sp,
                         color = colorScheme.onSurface.copy(alpha = 0.90f),

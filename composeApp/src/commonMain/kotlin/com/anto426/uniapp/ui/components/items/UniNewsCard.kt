@@ -27,6 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.intl.LocaleList
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -43,6 +47,8 @@ import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
+
+internal val ItalianNewsLocaleList = LocaleList(Locale("it"))
 
 internal data class NewsCategoryVisuals(
     val label: String,
@@ -131,10 +137,11 @@ fun UniNewsCard(
         publishedAt = news.publishedAt,
         categoryLabel = categoryLabel,
     )
-    val plainSummary = remember(news.title, news.description, news.fullContent) {
+    val displayTitle = remember(news.title) { NewsContentFormatter.formatTitle(news.title) }
+    val plainSummary = remember(displayTitle, news.description, news.fullContent) {
         NewsContentFormatter.toPlainText(news.description)
             .takeIf { desc ->
-                desc.isNotBlank() && !desc.startsWith(news.title.trim().take(24), ignoreCase = true)
+                desc.isNotBlank() && !desc.startsWith(displayTitle.take(24), ignoreCase = true)
             }
             .orEmpty()
     }
@@ -158,7 +165,7 @@ fun UniNewsCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .defaultMinSize(minHeight = 92.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -178,7 +185,7 @@ fun UniNewsCard(
                         )
                         Text(
                             text = visuals.label,
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelMedium.copy(localeList = ItalianNewsLocaleList),
                             fontWeight = FontWeight.SemiBold,
                             color = visuals.color,
                             maxLines = 1,
@@ -196,27 +203,35 @@ fun UniNewsCard(
                     )
                 }
 
-                Spacer(Modifier.height(8.dp))
-
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = news.title,
-                        style = MaterialTheme.typography.titleMedium,
+                        text = displayTitle,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            localeList = ItalianNewsLocaleList,
+                            lineBreak = LineBreak.Simple,
+                            hyphens = Hyphens.None,
+                        ),
                         fontWeight = FontWeight.SemiBold,
                         color = colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     if (showSummary) {
                         Text(
                             text = plainSummary,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                localeList = ItalianNewsLocaleList,
+                                lineBreak = LineBreak.Simple,
+                                hyphens = Hyphens.None,
+                            ),
                             color = colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -294,21 +309,31 @@ fun UniNewsCard(
                 }
 
                 Text(
-                    text = news.title,
-                    style = MaterialTheme.typography.titleLarge,
+                    text = displayTitle,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        localeList = ItalianNewsLocaleList,
+                        lineBreak = LineBreak.Simple,
+                        hyphens = Hyphens.None,
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 if (showSummary) {
                     Text(
                         text = plainSummary,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            localeList = ItalianNewsLocaleList,
+                            lineBreak = LineBreak.Simple,
+                            hyphens = Hyphens.None,
+                        ),
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
 
@@ -391,21 +416,31 @@ fun UniNewsCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = news.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    text = displayTitle,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        localeList = ItalianNewsLocaleList,
+                        lineBreak = LineBreak.Simple,
+                        hyphens = Hyphens.None,
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 if (showSummary) {
                     Text(
                         text = plainSummary,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            localeList = ItalianNewsLocaleList,
+                            lineBreak = LineBreak.Simple,
+                            hyphens = Hyphens.None,
+                        ),
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }

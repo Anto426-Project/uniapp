@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +30,7 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.navigation.ui.NewsDetailActionHost
 import com.anto426.uniapp.navigation.ui.NewsDetailActions
+import com.anto426.uniapp.ui.components.items.ItalianNewsLocaleList
 import com.anto426.uniapp.ui.components.items.resolveNewsCategoryVisuals
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -145,11 +148,16 @@ internal fun NewsDetailScreen(
                     if (title.isNotBlank()) {
                         Text(
                             text = NewsContentFormatter.formatTitle(title),
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                localeList = ItalianNewsLocaleList,
+                                lineBreak = LineBreak.Simple,
+                                hyphens = Hyphens.None,
+                            ),
                             fontWeight = FontWeight.Bold,
                             fontSize = 26.sp,
                             lineHeight = 33.sp,
                             color = colorScheme.onSurface,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -163,6 +171,7 @@ internal fun NewsDetailScreen(
                 UniAnimatedEntrance(order = 1) {
                     RichMarkdownDocument(
                         markdown = bodyMarkdown,
+                        localeList = ItalianNewsLocaleList,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 4.dp),
