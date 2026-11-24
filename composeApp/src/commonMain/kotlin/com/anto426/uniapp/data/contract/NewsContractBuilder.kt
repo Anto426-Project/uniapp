@@ -139,7 +139,23 @@ object NewsContentFormatter {
     private val excessBlankLinesRegex =
         Regex("""\n{3,}""")
     private val horizontalSpacesRegex =
-        Regex("""[ \t\u00A0]{2,}""")
+        Regex("""[\t \u00A0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]+""")
+    private val unicodeLineBreakRegex =
+        Regex("""\r\n|[\r\n\u000B\u000C\u0085\u2028\u2029]""")
+    private val invisibleBreakFormattingRegex =
+        Regex("""[\u00AD\u034F\u200B-\u200D\u2060-\u2064\uFEFF]""")
+    private val nonBreakingHyphenRegex =
+        Regex("""\u2011""")
+    private val softHyphenWrappedLineRegex =
+        Regex("""(?:\u00AD|&shy;|&#173;|&#xad;)\s*(?:\\r\\n|\\n|\r\n|[\r\n\u0085\u2028\u2029])\s*""", setOf(RegexOption.IGNORE_CASE))
+    private val markdownTitleSyntaxRegex =
+        Regex("""[*_`#>]""")
+    private val markdownInlineBoldRegex =
+        Regex("""\*\*([^*]+)\*\*|__([^_]+)__""")
+    private val markdownInlineItalicOrCodeRegex =
+        Regex("""\*([^*\n]+)\*|`([^`\n]+)`""")
+    private val markdownBlockPrefixRegex =
+        Regex("""^(?:#{1,6}\s+|>\s+|[-*+]\s+)""")
     private val trailingHashClusterRegex =
         Regex("""(?:_[0-9a-fA-F]{6,16})+$""")
     private val sentenceSplitBoundaryRegex =
@@ -153,11 +169,18 @@ object NewsContentFormatter {
     )
 
     fun formatTitle(rawTitle: String): String =
-        toPlainText(rawTitle).lineSequence().joinToString(" ").trim()
+        toPlainText(rawTitle)
+            .replace(markdownTitleSyntaxRegex, "")
+            .replace(unicodeLineBreakRegex, " ")
+            .replace(horizontalSpacesRegex, " ")
+            .trim()
 
     fun toPlainText(raw: String): String {
         if (raw.isBlank()) return ""
         val withoutNoise = raw
+            .replace(softHyphenWrappedLineRegex, "")
+            .replace("\\r\\n", "\n")
+            .replace("\\n", "\n")
             .replace(scriptOrStyleRegex, " ")
             .replace(imageTagRegex, " ")
             .replace(markdownImageRegex, " ")
@@ -168,11 +191,26 @@ object NewsContentFormatter {
             .replace(remainingHtmlTagRegex, " ")
 
         val decoded = decodeHtmlEntities(withoutNoise)
+            .replace(lineBreakRegex, "\n")
+            .replace(blockCloseRegex, "\n")
+            .replace(blockOpenRegex, " ")
+            .replace(remainingHtmlTagRegex, " ")
             .replace(markdownLinkRegex) { match -> match.groupValues[1] }
+            .replace(markdownInlineBoldRegex) { match -> match.groupValues[1].ifEmpty { match.groupValues[2] } }
+            .replace(markdownInlineItalicOrCodeRegex) { match -> match.groupValues[1].ifEmpty { match.groupValues[2] } }
+            .replace("**", "")
+            .replace(nonBreakingHyphenRegex, "-")
+            .replace(invisibleBreakFormattingRegex, "")
+            .replace(unicodeLineBreakRegex, "\n")
 
         return decoded
             .lineSequence()
-            .map { line -> line.replace(horizontalSpacesRegex, " ").trim() }
+            .map { line ->
+                line.replace(horizontalSpacesRegex, " ")
+                    .trim()
+                    .replace(markdownBlockPrefixRegex, "")
+                    .trim()
+            }
             .filter(String::isNotBlank)
             .joinToString("\n")
     }
@@ -379,6 +417,8 @@ object NewsContentFormatter {
             .replace(remainingHtmlTagRegex, "")
 
         text = decodeHtmlEntities(text)
+            .replace(invisibleBreakFormattingRegex, "")
+            .replace(unicodeLineBreakRegex, "\n")
 
         rawUrlRegex.findAll(text).forEach { match ->
             val start = match.range.first
@@ -536,54 +576,83 @@ object NewsContentFormatter {
         return if (ext.isNotBlank() && ext.length <= 5) "$baseName ($ext)" else baseName
     }
 
-    internal fun decodeHtmlEntities(input: String): String {
-        if (!input.contains('&')) return input
-        val namedEntities = mapOf(
-            "nbsp" to " ",
-            "amp" to "&",
-            "lt" to "<",
-            "gt" to ">",
-            "quot" to "\"",
-            "apos" to "'",
-            "rsquo" to "’",
-            "lsquo" to "‘",
-            "rdquo" to "”",
-            "ldquo" to "“",
-            "ndash" to "–",
-            "mdash" to "—",
-            "hellip" to "…",
-            "bull" to "•",
-            "middot" to "·",
-            "laquo" to "«",
-            "raquo" to "»",
-            "euro" to "€",
-            "deg" to "°",
-            "ordm" to "º",
-            "ordf" to "ª",
-            "agrave" to "à",
-            "egrave" to "è",
-            "eacute" to "é",
-            "igrave" to "ì",
-            "ograve" to "ò",
-            "ugrave" to "ù",
-            "Agrave" to "À",
-            "Egrave" to "È",
-            "Eacute" to "É",
-            "Igrave" to "Ì",
-            "Ograve" to "Ò",
-            "Ugrave" to "Ù",
-        )
-        return htmlEntityRegex.replace(input) { match ->
+    private val namedEntities = mapOf(
+        "nbsp" to " ",
+        "ensp" to " ",
+        "emsp" to " ",
+        "thinsp" to " ",
+        "shy" to "",
+        "amp" to "&",
+        "lt" to "<",
+        "gt" to ">",
+        "quot" to "\"",
+        "apos" to "'",
+        "rsquo" to "’",
+        "lsquo" to "‘",
+        "rdquo" to "”",
+        "ldquo" to "“",
+        "ndash" to "–",
+        "mdash" to "—",
+        "hellip" to "…",
+        "bull" to "•",
+        "middot" to "·",
+        "laquo" to "«",
+        "raquo" to "»",
+        "euro" to "€",
+        "deg" to "°",
+        "ordm" to "º",
+        "ordf" to "ª",
+        "agrave" to "à",
+        "egrave" to "è",
+        "eacute" to "é",
+        "igrave" to "ì",
+        "ograve" to "ò",
+        "ugrave" to "ù",
+        "Agrave" to "À",
+        "Egrave" to "È",
+        "Eacute" to "É",
+        "Igrave" to "Ì",
+        "Ograve" to "Ò",
+        "Ugrave" to "Ù",
+    )
+
+    private fun codePointToString(code: Int): String =
+        if (code <= 0xFFFF) {
+            Char(code).toString()
+        } else {
+            val offset = code - 0x10000
+            charArrayOf(
+                Char(0xD800 + (offset ushr 10)),
+                Char(0xDC00 + (offset and 0x3FF)),
+            ).concatToString()
+        }
+
+    private fun mapDecodedCodePoint(code: Int): String =
+        when (code) {
+            0x00A0, 0x1680, 0x180E, in 0x2000..0x200A, 0x202F, 0x205F, 0x3000 -> " "
+            0x00AD, 0x034F, in 0x200B..0x200D, in 0x2060..0x2064, 0xFEFF -> ""
+            0x2011 -> "-"
+            0x000B, 0x000C, 0x0085, 0x2028, 0x2029 -> "\n"
+            else -> codePointToString(code)
+        }
+
+    private fun decodeHtmlEntitiesOnce(input: String): String =
+        htmlEntityRegex.replace(input) { match ->
             val entity = match.groupValues[1]
             when {
                 entity.startsWith("#x", ignoreCase = true) ->
-                    entity.drop(2).toIntOrNull(16)?.takeIf { it in 1..0x10FFFF }?.let { Char(it).toString() }
+                    entity.drop(2).toIntOrNull(16)?.takeIf { it in 1..0x10FFFF }?.let(::mapDecodedCodePoint)
                         ?: match.value
                 entity.startsWith("#") ->
-                    entity.drop(1).toIntOrNull()?.takeIf { it in 1..0x10FFFF }?.let { Char(it).toString() }
+                    entity.drop(1).toIntOrNull()?.takeIf { it in 1..0x10FFFF }?.let(::mapDecodedCodePoint)
                         ?: match.value
                 else -> namedEntities[entity] ?: namedEntities[entity.lowercase()] ?: match.value
             }
         }
+
+    internal fun decodeHtmlEntities(input: String): String {
+        if (!input.contains('&')) return input
+        val first = decodeHtmlEntitiesOnce(input)
+        return if (first != input && first.contains('&')) decodeHtmlEntitiesOnce(first) else first
     }
 }

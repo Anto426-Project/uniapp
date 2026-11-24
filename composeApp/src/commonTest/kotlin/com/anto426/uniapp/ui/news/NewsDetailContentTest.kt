@@ -169,4 +169,37 @@ class NewsDetailContentTest {
         )
         assertEquals("Dettagli evento.", formatted.articleMarkdown)
     }
+
+    @Test
+    fun titleFormatterReplacesSingleNonBreakingSpacesUnicodeLineSeparatorsAndSoftHyphens() {
+        val rawTitle =
+            "Avviso\u00A0pubblicazione&#160;graduatorie\u202Fborse\u2028di\u2029stu\u00AD\ndio&amp;nbsp;A.A.&lt;br&gt;2026\u20112027\u2060\u034F&ensp;online"
+        val clean = NewsContentFormatter.formatTitle(rawTitle)
+
+        assertEquals("Avviso pubblicazione graduatorie borse di studio A.A. 2026-2027 online", clean)
+        assertFalse(
+            clean.any {
+                it == '\u00A0' || it == '\u2028' || it == '\u2029' ||
+                    it == '\u00AD' || it == '\u2060' || it == '\u2011' || it == '\u034F'
+            },
+        )
+    }
+
+    @Test
+    fun plainTextPreviewStripsInlineMarkdownAndBlockPrefixes() {
+        val rawSummary = """
+            ### Titolo sezione
+            - **Avviso importante** per gli *studenti* del corso `LM-18`
+            > Scadenza __improrogabile__
+        """.trimIndent()
+
+        val plain = NewsContentFormatter.toPlainText(rawSummary)
+
+        assertEquals(
+            "Titolo sezione\nAvviso importante per gli studenti del corso LM-18\nScadenza improrogabile",
+            plain,
+        )
+        assertFalse(plain.contains("**"))
+        assertFalse(plain.contains("__"))
+    }
 }
