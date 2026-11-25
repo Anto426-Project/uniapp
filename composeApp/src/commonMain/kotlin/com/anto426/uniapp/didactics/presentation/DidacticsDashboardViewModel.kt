@@ -14,9 +14,7 @@ import com.anto426.uniapp.data.observeIn
 import com.anto426.uniapp.data.professorContract
 import com.anto426.uniapp.data.surveysContract
 import com.anto426.uniapp.presentation.FeatureLoadState
-import com.anto426.uniapp.presentation.onRefresh
 import com.anto426.uniapp.presentation.userMessage
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +48,16 @@ class DidacticsDashboardViewModel(
     private val dataSource: UniGateway,
     private val account: UniAccountSummary? = null,
 ) : ViewModel() {
-    private val mutableUiState = MutableStateFlow(DidacticsDashboardUiState())
+    private val mutableUiState = MutableStateFlow(
+        DidacticsDashboardUiState(
+            isProfessor = account?.isProfessor == true,
+            degreeName = if (account?.isProfessor == true) {
+                account.displayName
+            } else {
+                account?.degreeName.orEmpty()
+            },
+        ),
+    )
     val uiState: StateFlow<DidacticsDashboardUiState> = mutableUiState.asStateFlow()
 
     private val repository = dataSource.asUniRepository(viewModelScope)
@@ -67,63 +74,84 @@ class DidacticsDashboardViewModel(
         )
     }
     private val dataObservation = sharedData.observeIn(viewModelScope, dataRequests, partial = true, subscriptions = mutableUiState.subscriptionCount) { snapshot ->
-        mutableUiState.update { it.copy(loadState = mutableUiState.value.loadState.onRefresh(), errorMessage = null) }
-        try {
+        val failure = snapshot.firstError?.userMessage { getString(Res.string.msg_impossibile_caricare_la_panoramica_didattica) }
+        val professorWarning = if (account?.isProfessor == true && snapshot.value(UniDatasets.Professor) != null) {
+            snapshot.professorContract().unavailableSections
+                .takeIf { it.isNotEmpty() }
+                ?.let { getString(Res.string.msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili) }
+        } else {
+            null
+        }
+        mutableUiState.update { current ->
+            var next = current.copy(errorMessage = professorWarning ?: failure)
             if (account?.isProfessor == true) {
-                val professorState = snapshot.state(UniDatasets.Professor)
-                if (!professorState.resolved) return@observeIn
                 val identity = snapshot.identityContract(account)
-                val professor = snapshot.professorContract(requireDashboard = true)
-                mutableUiState.value = DidacticsDashboardUiState(
+                next = next.copy(
                     isProfessor = true,
                     degreeName = identity.fullName,
                     degreeDetails = identity.departmentName,
-                    openExamRounds = professor.openExamRoundsCount,
-                    teachingCount = professor.teachingCount,
-                    thesisCount = professor.thesisCount,
-                    reportCount = professor.reportCount,
-                    loadState = FeatureLoadState.Content,
-                    errorMessage = professor.unavailableSections.takeIf { it.isNotEmpty() }
-                        ?.let { getString(Res.string.msg_alcune_sezioni_docente_non_sono_momentaneamente_disponibili) },
                 )
-                snapshot.throwIfFailed()
-                return@observeIn
-            }
-
-            val coreReady =
-                snapshot.state(UniDatasets.Student).resolved &&
-                    snapshot.state(UniDatasets.Career).resolved &&
-                    snapshot.state(UniDatasets.StudyPlan).resolved
-            if (!coreReady) return@observeIn
-
-            val identity = snapshot.identityContract(account, requireStudent = true)
-            val academic = snapshot.academicContract(requireCareer = true, requireStudyPlan = true, defaultTargetCfu = 180)
-            val exams = snapshot.examsContract()
-            val surveys = snapshot.surveysContract(requireSurveys = false)
-
-            mutableUiState.value = DidacticsDashboardUiState(
-                degreeName = identity.degreeName.ifBlank { academic.statusLabel },
-                degreeDetails = identity.degreeSummary,
-                completedExams = academic.completedExamsCount,
-                plannedActivities = academic.plannedActivitiesCount,
-                currentYear = academic.currentYear,
-                totalYears = academic.totalYears,
-                average = academic.averageLabel,
-                acquiredCfu = academic.acquiredCfu,
-                targetCfu = academic.targetCfu,
-                progress = academic.progress,
-                openExamRounds = exams.openBookableCount,
-                pendingQuestionnaires = surveys.pendingCount,
-                loadState = FeatureLoadState.Content,
-            )
-            snapshot.throwIfFailed()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Throwable) {
-            mutableUiState.update {
-                it.copy(
-                    loadState = if (it.degreeName.isBlank()) FeatureLoadState.Error else FeatureLoadState.Content,
-                    errorMessage = error.userMessage { getString(Res.string.msg_impossibile_caricare_la_panoramica_didattica) },
+                if (snapshot.value(UniDatasets.Professor) != null) {
+                    val professor = snapshot.professorContract()
+                    next = next.copy(
+                        openExamRounds = professor.openExamRoundsCount,
+                        teachingCount = professor.teachingCount,
+                        thesisCount = professor.thesisCount,
+                        reportCount = professor.reportCount,
+                        loadState = FeatureLoadState.Content,
+                        errorMessage = professorWarning,
+                    )
+                }
+                val hasProfessorContent = next.loadState == FeatureLoadState.Content
+                next.copy(
+                    loadState = when {
+                        hasProfessorContent -> FeatureLoadState.Content
+                        snapshot.resolved && failure != null -> FeatureLoadState.Error
+                        snapshot.resolved -> FeatureLoadState.Content
+                        else -> FeatureLoadState.Loading
+                    },
+                )
+            } else {
+                if (snapshot.value(UniDatasets.Student) != null || account != null) {
+                    val identity = snapshot.identityContract(account)
+                    next = next.copy(
+                        degreeName = identity.degreeName.ifBlank { next.degreeName },
+                        degreeDetails = identity.degreeSummary.ifBlank { next.degreeDetails },
+                        loadState = if (snapshot.value(UniDatasets.Student) != null) FeatureLoadState.Content else next.loadState,
+                    )
+                }
+                if (snapshot.value(UniDatasets.Career) != null || snapshot.value(UniDatasets.StudyPlan) != null) {
+                    val academic = snapshot.academicContract(defaultTargetCfu = 180)
+                    next = next.copy(
+                        degreeName = next.degreeName.ifBlank { academic.statusLabel },
+                        completedExams = academic.completedExamsCount,
+                        plannedActivities = academic.plannedActivitiesCount,
+                        currentYear = academic.currentYear,
+                        totalYears = academic.totalYears,
+                        average = academic.averageLabel,
+                        acquiredCfu = academic.acquiredCfu,
+                        targetCfu = academic.targetCfu,
+                        progress = academic.progress,
+                        loadState = FeatureLoadState.Content,
+                    )
+                }
+                if (snapshot.value(UniDatasets.Exams) != null) {
+                    val exams = snapshot.examsContract()
+                    next = next.copy(openExamRounds = exams.openBookableCount)
+                }
+                if (snapshot.value(UniDatasets.Surveys) != null) {
+                    val surveys = snapshot.surveysContract(requireSurveys = false)
+                    next = next.copy(pendingQuestionnaires = surveys.pendingCount)
+                }
+                val hasContent = next.loadState == FeatureLoadState.Content
+                next.copy(
+                    loadState = when {
+                        hasContent -> FeatureLoadState.Content
+                        snapshot.resolved && failure != null -> FeatureLoadState.Error
+                        snapshot.resolved -> FeatureLoadState.Content
+                        else -> FeatureLoadState.Loading
+                    },
+                    errorMessage = if (hasContent) null else failure,
                 )
             }
         }

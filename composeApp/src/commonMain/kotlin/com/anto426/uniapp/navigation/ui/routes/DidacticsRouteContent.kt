@@ -64,27 +64,22 @@ internal fun DidacticsRouteContent(context: AppRouteContext) {
     val didacticsViewModel =
         viewModel(key = context.viewModelKey) { DidacticsDashboardViewModel(context.dataSource, account) }
     val didacticsUiState by didacticsViewModel.uiState.collectAsStateWithLifecycle()
-    FeatureStateContent(
-        state = didacticsUiState.loadState,
-        errorMessage = didacticsUiState.errorMessage,
-        onRetry = { didacticsViewModel.refresh(force = true) },
-    ) {
-        DidacticsScreen(
-            uiState = didacticsUiState,
-            onOpenTaxes = { context.navigator.navigate(AppRoute.Taxes) },
-            onOpenGrades = { context.navigator.navigate(AppRoute.Grades) },
-            onOpenTranscripts = { context.navigator.navigate(AppRoute.Transcripts()) },
-            onOpenExams = { context.navigator.navigate(AppRoute.Exams()) },
-            onOpenQuestionnaires = { context.navigator.navigate(AppRoute.Questionnaires) },
-            onOpenBadge = { context.navigator.navigate(AppRoute.Badge) },
-            onOpenAttendance = { context.navigator.navigate(AppRoute.Attendance) },
-            onOpenTeachings = { context.navigator.navigate(AppRoute.Teachings) },
-            onOpenTheses = { context.navigator.navigate(AppRoute.Theses) },
-            onOpenReports = { context.navigator.navigate(AppRoute.Reports) },
-            onOpenNews = { context.navigator.navigate(AppRoute.News) },
-            onOpenSettings = { context.navigator.selectTopLevel(AppRoute.Settings) },
-        )
-    }
+    DidacticsScreen(
+        uiState = didacticsUiState,
+        onRefresh = { didacticsViewModel.refresh(force = true) },
+        onOpenTaxes = { context.navigator.navigate(AppRoute.Taxes) },
+        onOpenGrades = { context.navigator.navigate(AppRoute.Grades) },
+        onOpenTranscripts = { context.navigator.navigate(AppRoute.Transcripts()) },
+        onOpenExams = { context.navigator.navigate(AppRoute.Exams()) },
+        onOpenQuestionnaires = { context.navigator.navigate(AppRoute.Questionnaires) },
+        onOpenBadge = { context.navigator.navigate(AppRoute.Badge) },
+        onOpenAttendance = { context.navigator.navigate(AppRoute.Attendance) },
+        onOpenTeachings = { context.navigator.navigate(AppRoute.Teachings) },
+        onOpenTheses = { context.navigator.navigate(AppRoute.Theses) },
+        onOpenReports = { context.navigator.navigate(AppRoute.Reports) },
+        onOpenNews = { context.navigator.navigate(AppRoute.News) },
+        onOpenSettings = { context.navigator.selectTopLevel(AppRoute.Settings) },
+    )
 }
 
 @Composable

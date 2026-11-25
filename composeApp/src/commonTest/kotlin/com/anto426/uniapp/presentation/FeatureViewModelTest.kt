@@ -58,6 +58,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertNull
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -138,6 +139,39 @@ class FeatureViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
         assertEquals(3, state.currentYear)
         assertEquals(1, state.openExamRounds)
         assertEquals(1, state.pendingQuestionnaires)
+    }
+
+    @Test
+    fun didacticsDashboardStaysContentWithoutErrorWhenSecondaryDatasetsFail() = runViewModelTest {
+        val source = object : FakeUniAppDataSource() {
+            override suspend fun loadStudentDetails(forceRefresh: Boolean) =
+                StudentDetails(fullName = "Ada Lovelace", degreeName = "Informatica", matricola = "12345")
+
+            override suspend fun loadCareer(forceRefresh: Boolean) =
+                Career(
+                    average = "28.5",
+                    degreeBase = "104.5",
+                    cfu = "90 / 180",
+                    cfuTarget = 180,
+                    year = "2° anno",
+                    status = "Attiva",
+                    exams = listOf(CareerExam("Algoritmi", "30", "01/02/2026", 9, "A")),
+                )
+
+            override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlan = error("offline study plan")
+            override suspend fun loadExamRounds(forceRefresh: Boolean): List<ExamRound> = error("offline exams")
+            override suspend fun loadSurveyCourses(forceRefresh: Boolean): List<SurveyCourse> = error("offline surveys")
+        }
+
+        val viewModel = DidacticsDashboardViewModel(source.asUniRepository(backgroundScope))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(FeatureLoadState.Content, state.loadState)
+        assertNull(state.errorMessage)
+        assertEquals("Informatica", state.degreeName)
+        assertEquals(90, state.acquiredCfu)
+        assertEquals(1, state.completedExams)
     }
 
     @Test

@@ -29,6 +29,7 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
+import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
@@ -38,6 +39,7 @@ import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.ProfessorDidacticsContent
 import com.anto426.uniapp.ui.didactics.components.YearProgress
+import com.anto426.uniapp.ui.home.dashboard.components.HomeErrorRetryCard
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -45,6 +47,7 @@ import uniapp.composeapp.generated.resources.*
 @Composable
 fun DidacticsScreen(
     uiState: DidacticsDashboardUiState,
+    onRefresh: () -> Unit = {},
     onOpenTaxes: () -> Unit = {},
     onOpenGrades: () -> Unit = {},
     onOpenTranscripts: () -> Unit = {},
@@ -75,6 +78,13 @@ fun DidacticsScreen(
     }
 
     UniScreenColumn {
+        if (uiState.loadState == FeatureLoadState.Error && !uiState.errorMessage.isNullOrBlank()) {
+            HomeErrorRetryCard(
+                message = uiState.errorMessage,
+                onRetry = onRefresh,
+            )
+        }
+
         // 1. Academic Degree Summary Card (Liquid-Monet 2.0.39: card -> Statistiche, badge -> Carriera)
         UniAnimatedEntrance(order = 0) {
             LiquidCard(
