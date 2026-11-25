@@ -38,6 +38,7 @@ import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingStyle
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.feedback.runtime.LocalAppToastSink
 import com.anto426.uniapp.feedback.runtime.warning
+import com.anto426.uniapp.platform.LocalAppIsOffline
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
@@ -61,8 +62,9 @@ fun FeatureStateContent(
     content: @Composable () -> Unit,
 ) {
     val toastSink = LocalAppToastSink.current
-    LaunchedEffect(state, errorMessage) {
-        if (state == FeatureLoadState.Content && !errorMessage.isNullOrBlank()) {
+    val isOffline = LocalAppIsOffline.current
+    LaunchedEffect(state, errorMessage, isOffline) {
+        if (state == FeatureLoadState.Content && !errorMessage.isNullOrBlank() && !isOffline) {
             toastSink.warning(errorMessage)
         }
     }

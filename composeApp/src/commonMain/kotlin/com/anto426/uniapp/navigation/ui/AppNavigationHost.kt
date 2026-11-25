@@ -4,19 +4,30 @@ package com.anto426.uniapp.navigation.ui
 
 import androidx.lifecycle.repeatOnLifecycle
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import com.anto426.uniapp.settings.presentation.AppThemeMode
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import com.anto426.uniapp.settings.presentation.AppThemeMode
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +44,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +60,7 @@ import com.anto426.liquidmonet.components.layout.animatedswitcher.rememberLiquid
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.floatingactionbutton.LiquidFloatingActionButton
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoading
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoadingSize
@@ -59,6 +73,7 @@ import com.anto426.liquidmonet.glass.LiquidBackground
 import com.anto426.liquidmonet.glass.LiquidBackgroundEffect
 import com.anto426.liquidmonet.glass.LiquidGlassScene
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.kyant.shapes.Capsule
 import com.anto426.uniapp.UniBackHandler
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.presentation.AccountSwitcherViewModel
@@ -224,10 +239,20 @@ internal fun AppNavigationHost(
             }
         }
 
+    val deviceOffline by com.anto426.uniapp.platform.rememberIsDeviceOffline()
+    val engineOffline by accountRepository.engine.isOffline.collectAsStateWithLifecycle()
+    LaunchedEffect(deviceOffline, accountRepository) {
+        if (!deviceOffline) {
+            accountRepository.engine.markOnline()
+        }
+    }
+    val isOffline = deviceOffline || engineOffline
+
     // Shared above the scene so modal sheets see the same identity and image cache as screens.
     CompositionLocalProvider(
         com.anto426.uniapp.ui.components.account.LocalAccountAvatars provides accountAvatars,
         com.anto426.uniapp.ui.components.display.LocalApplicationImages provides runtime.applicationImages,
+        com.anto426.uniapp.platform.LocalAppIsOffline provides isOffline,
     ) {
     LiquidGlassScene(
         modifier = Modifier.fillMaxSize(),
@@ -278,6 +303,9 @@ internal fun AppNavigationHost(
                         account = authenticatedAccount,
                         onSelectProfile = accountSwitcherViewModel::selectProfile,
                     ),
+                    actions = {
+                        TopBarOfflineBadge(visible = isOffline)
+                    },
                 )
             }
         },
@@ -588,7 +616,7 @@ private fun topBarActions(
             listOfNotNull(
                 if (openOriginal != null) {
                     LiquidTopBarAction(
-                        icon = NewsOpenInNewIcon,
+                        icon = LiquidIcons.OpenInNew,
                         label = stringResource(Res.string.ui_news_open_original),
                         onClick = openOriginal,
                     )
@@ -674,4 +702,45 @@ private fun topBarActions(
         )
     } else emptyList()
     return contextualActions + careerAction
+}
+
+@Composable
+private fun TopBarOfflineBadge(
+    visible: Boolean,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn() + scaleIn(initialScale = 0.92f),
+        exit = fadeOut() + scaleOut(targetScale = 0.92f),
+    ) {
+        LiquidBadge(
+            shape = Capsule(),
+            modifier = Modifier.padding(end = 12.dp),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Icon(
+                    imageVector = LiquidIcons.WifiOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    text = stringResource(Res.string.ui_status_offline),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip,
+                )
+            }
+        }
+    }
 }

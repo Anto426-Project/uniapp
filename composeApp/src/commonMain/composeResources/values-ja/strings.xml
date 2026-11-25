@@ -1419,4 +1419,5 @@
     <string name="ui_course_open_catalogue_title">公式シラバスページ</string>
     <string name="ui_course_open_catalogue_sub">UniMol Course Catalogueで開く</string>
     <string name="ui_course_open_catalogue_badge">ポータル</string>
+    <string name="ui_status_offline">オフライン</string>
 </resources>

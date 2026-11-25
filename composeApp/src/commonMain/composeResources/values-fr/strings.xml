@@ -1419,4 +1419,5 @@
     <string name="ui_course_open_catalogue_title">Fiche officielle du cours</string>
     <string name="ui_course_open_catalogue_sub">Ouvrir sur UniMol Course Catalogue</string>
     <string name="ui_course_open_catalogue_badge">Portail</string>
+    <string name="ui_status_offline">Hors ligne</string>
 </resources>
