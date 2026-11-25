@@ -18,7 +18,7 @@ on:
 
 permissions:
   contents: read
-  actions: write
+  actions: read
 
 concurrency:
   group: uniapp-distribution
@@ -95,11 +95,3 @@ jobs:
             --deploy-directory deploy-repo --policy build-source/update-config.json \
             --source-repo "$GITHUB_REPOSITORY" --revision "$SOURCE_SHA" --run-id "$SOURCE_RUN_ID" \
             --platform "$SOURCE_PLATFORM"
-
-      - name: Refresh the distribution website after publication
-        uses: actions/github-script@v9.0.0
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              ...context.repo, workflow_id: 'build-website.yml', ref: 'main'
-            });

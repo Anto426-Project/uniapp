@@ -26,7 +26,7 @@ Gli asset già pubblicati devono avere gli stessi checksum: non vengono sostitui
 con file diversi. Il manifest di aggiornamento Android continua ad accettare
 soltanto APK firmati e impedisce downgrade.
 
-Dopo ogni pubblicazione riuscita viene avviato il workflow del sito.
+Il workflow del sito (`Build and publish website`) è scollegato dalle pubblicazioni dell'app e si avvia manualmente con `workflow_dispatch` solo quando serve aggiornare il sito.
 `release/builds.json` conserva la cronologia; `release/platforms.json` contiene
 gli ultimi download Android e iOS. `docs/` contiene le copie servite dal sito.
 
