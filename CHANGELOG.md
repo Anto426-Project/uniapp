@@ -1,3 +1,11 @@
+## [2.1.5] - 2026-11-25 (build set by CI)
+
+- **Caricamento a flusso e cache additiva.** Trasformati Notizie, Carriera, Appelli, Trasporti e Area Docente in flussi incrementali non bloccanti (`Flow`), con salvataggio progressivo e merge additivo su Notizie, Presenze e Rubrica così gli elementi già in cache non spariscono mai.
+- **Notizie aggiornate quasi in tempo reale.** Ridotto l’intervallo di aggiornamento automatico delle notizie a 2 minuti sulle 4 fonti live (con sincronizzazione periodica degli archivi) mantenendo sempre visibile lo storico salvato.
+- **Didattica uniformata alle altre schermate.** Allineata la panoramica Didattica al caricamento progressivo e non bloccante della Home, eliminando la schermata di errore bloccante «Impossibile caricare» quando uno dei dataset secondari fallisce o si è offline.
+- **Badge Offline nella barra superiore.** Eliminato il toast di avviso offline che riappariva a ogni cambio pagina e sostituito con un badge dedicato «Offline» con icona `WifiOff` nella barra azioni superiore, aggiornato in tempo reale allo stato della connessione.
+- **Avvisi e note informative uniformati.** Introdotto il componente condiviso `UniNotice` basato su `LiquidCard` e pod icona Liquid Glass, applicato in modo uniforme a tutte le schermate con avvisi o note informative (Lingua, Dispositivi connessi, Questionari, Biblioteca, Tasse, Laboratorio colori, Tema e Crediti).
+
 ## [2.1.4] - 2026-11-24 (build set by CI)
 
 - **Modalità offline e cache cifrata affidabili.** Ripristino offline della sessione salvata con riattivazione automatica al ritorno della rete, lettura diretta di dati e biglietti dallo storage cifrato e conservazione di dettaglio corsi e presenze in assenza di connessione.
