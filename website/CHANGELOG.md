@@ -18,3 +18,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Pause screenshot carousel autoplay when scrolled offscreen (8815b4d)
 - Optically centered Apple Spark U logo across website icons and assets (18a90a7)
 - Used a clean 2x2 segmented grid for the mobile theme switcher (30cc429)
+- Kept `FluidReveal` mounted as `<motion.div>` when `prefers-reduced-motion` hydrates, preventing carousel subtree remounts and E2E flakiness
