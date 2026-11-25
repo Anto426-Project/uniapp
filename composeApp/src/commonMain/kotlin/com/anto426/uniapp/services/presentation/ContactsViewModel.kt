@@ -76,7 +76,10 @@ class ContactsViewModel(
     private suspend fun updateCategories() {
         groupByCity = contacts.any { it.city.isNotBlank() }
         val values = contacts.map { categoryValue(it) }
-        val knownCategories = values.filter(String::isNotBlank).distinct().sorted()
+        val knownCategories = values
+            .filter(String::isNotBlank)
+            .distinctBy { it.lowercase() }
+            .sortedWith(String.CASE_INSENSITIVE_ORDER)
         unspecifiedCategory = readAppString(
             if (groupByCity) Res.string.ui_contact_location_unspecified
             else Res.string.ui_contact_department_unspecified,
@@ -85,8 +88,12 @@ class ContactsViewModel(
             knownCategories + if (values.any(String::isBlank)) listOf(unspecifiedCategory) else emptyList()
         }
         val currentName = selectedCategoryName
-        if (currentName != null && categories.contains(currentName)) {
-            selectedCategoryIndex = categories.indexOf(currentName)
+        val matchedIndex = currentName?.let { target ->
+            categories.indexOfFirst { it.equals(target, ignoreCase = true) }
+        } ?: -1
+        if (matchedIndex >= 0) {
+            selectedCategoryIndex = matchedIndex
+            selectedCategoryName = categories[matchedIndex]
         } else {
             selectedCategoryIndex = ContactsUiState.ALL_CATEGORIES_INDEX
             selectedCategoryName = null

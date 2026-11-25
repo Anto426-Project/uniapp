@@ -107,4 +107,78 @@ class ContactsViewModelTest : com.anto426.uniapp.testing.ResourceTest() {
             Dispatchers.resetMain()
         }
     }
+
+    @Test
+    fun mergesProvinceSuffixAndCaseVariantsIntoSingleCityChip() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val contacts = listOf(
+                UniversityContact(
+                    id = "c1",
+                    firstName = "Mario",
+                    lastName = "Rossi",
+                    displayName = "Mario Rossi",
+                    email = "mario@unimol.it",
+                    phones = emptyList(),
+                    organization = "Dip. 1",
+                    address = null,
+                    building = null,
+                    city = "Campobasso",
+                ),
+                UniversityContact(
+                    id = "c2",
+                    firstName = "Luca",
+                    lastName = "Bianchi",
+                    displayName = "Luca Bianchi",
+                    email = "luca@unimol.it",
+                    phones = emptyList(),
+                    organization = "Dip. 2",
+                    address = null,
+                    building = null,
+                    city = "Campobasso(CB)",
+                ),
+                UniversityContact(
+                    id = "c3",
+                    firstName = "Anna",
+                    lastName = "Verdi",
+                    displayName = "Anna Verdi",
+                    email = "anna@unimol.it",
+                    phones = emptyList(),
+                    organization = "Dip. 3",
+                    address = null,
+                    building = null,
+                    city = "CAMPOBASSO (CB)",
+                ),
+                UniversityContact(
+                    id = "c4",
+                    firstName = "Sara",
+                    lastName = "Conti",
+                    displayName = "Sara Conti",
+                    email = "sara@unimol.it",
+                    phones = emptyList(),
+                    organization = "Dip. 4",
+                    address = null,
+                    building = null,
+                    city = "Pesche (IS)",
+                ),
+            )
+
+            val source = object : FakeUniAppDataSource() {
+                override suspend fun loadUniversityContacts(forceRefresh: Boolean): List<UniversityContact> =
+                    contacts
+            }
+
+            val viewModel = ContactsViewModel(source)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(listOf("Campobasso", "Pesche"), state.categories)
+            assertEquals(listOf(3, 1), state.categoryCounts)
+
+            viewModel.selectCategory(0)
+            assertEquals(3, viewModel.uiState.value.visibleContacts.size)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
 }

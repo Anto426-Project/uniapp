@@ -1,6 +1,7 @@
 package com.anto426.uniapp.data
 
 import com.anto426.uniapp.data.contract.ContactData
+import com.anto426.uniapp.data.contract.normalizeContactCity
 import com.anto426.uniapp.data.contract.toContacts
 import com.anto426.unisdk.model.UniversityContact
 import kotlin.test.Test
@@ -121,5 +122,20 @@ class ContactMappingTest {
 
         assertEquals(original.detailKey, original.copy().detailKey)
         alternatives.forEach { assertNotEquals(original.detailKey, it.detailKey) }
+    }
+
+    @Test
+    fun normalizesContactCityVariants() {
+        assertEquals("Campobasso", normalizeContactCity("Campobasso"))
+        assertEquals("Campobasso", normalizeContactCity("Campobasso (CB)"))
+        assertEquals("Campobasso", normalizeContactCity("Campobasso(CB)"))
+        assertEquals("Campobasso", normalizeContactCity("CAMPOBASSO (CB)"))
+        assertEquals("Campobasso", normalizeContactCity("86100 Campobasso (CB)"))
+        assertEquals("Campobasso", normalizeContactCity("Campobasso - CB"))
+        assertEquals("Campobasso", normalizeContactCity("Campobasso, CB"))
+        assertEquals("Pesche", normalizeContactCity("Pesche (IS)"))
+        assertEquals("Sant'Elia a Pianisi", normalizeContactCity("SANT'ELIA A PIANISI (CB)"))
+        assertEquals("L'Aquila", normalizeContactCity("L'Aquila (AQ)"))
+        assertEquals("", normalizeContactCity("   "))
     }
 }

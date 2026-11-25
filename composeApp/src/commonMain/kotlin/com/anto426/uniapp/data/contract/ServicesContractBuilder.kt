@@ -264,7 +264,7 @@ internal fun List<UniversityContact>.toContacts(): List<ContactData> =
         val cleanEmail = contact.email?.trim().orEmpty()
         val cleanDepartment = contact.organization?.trim().orEmpty()
         val cleanRole = contact.role?.trim()?.takeIf(String::isNotBlank) ?: cleanDepartment
-        val cleanCity = contact.city?.trim().orEmpty()
+        val cleanCity = normalizeContactCity(contact.city)
         val cleanAddress = contact.address?.trim().orEmpty()
         val cleanBuilding = contact.building?.trim().orEmpty()
         val cleanOfficeHours = contact.officeHours?.trim().orEmpty()
@@ -304,3 +304,41 @@ internal fun List<UniversityContact>.toContacts(): List<ContactData> =
             building = cleanBuilding,
         )
     }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+
+private val leadingPostalCodeRegex = Regex("^\\d{5}\\s+")
+private val trailingProvinceParenRegex = Regex("\\s*\\(\\s*[A-Za-z]{2}\\s*\\)\\s*$")
+private val trailingProvinceSepRegex = Regex("\\s*[-,]\\s*[A-Za-z]{2}\\s*$")
+private val contactCityWhitespaceRegex = Regex("[\\s\\u00A0]+")
+private val lowercaseItalianCityParticles = setOf(
+    "a", "ad", "al", "da", "dal", "di", "del", "della", "delle", "degli", "dei", "in", "su", "sul", "sulla", "con", "per",
+)
+
+internal fun normalizeContactCity(raw: String?): String {
+    val collapsed = raw
+        ?.replace(contactCityWhitespaceRegex, " ")
+        ?.trim()
+        .orEmpty()
+    if (collapsed.isEmpty()) return ""
+
+    val stripped = collapsed
+        .replace(leadingPostalCodeRegex, "")
+        .replace(trailingProvinceParenRegex, "")
+        .replace(trailingProvinceSepRegex, "")
+        .trim()
+    if (stripped.isEmpty()) return ""
+
+    val hasLower = stripped.any { it.isLowerCase() }
+    val hasUpper = stripped.any { it.isUpperCase() }
+    if (hasLower && hasUpper) return stripped
+
+    return stripped.split(' ').mapIndexed { index, word ->
+        val lower = word.lowercase()
+        if (index > 0 && lower in lowercaseItalianCityParticles) {
+            lower
+        } else {
+            lower.split('\'').joinToString("'") { part ->
+                part.replaceFirstChar { ch -> ch.titlecase() }
+            }
+        }
+    }.joinToString(" ")
+}
