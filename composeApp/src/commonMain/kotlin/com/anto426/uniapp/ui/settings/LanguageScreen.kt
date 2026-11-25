@@ -30,7 +30,7 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.uniapp.settings.presentation.LanguageUiState
 import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
-import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.items.LanguageItem
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -228,6 +228,6 @@ fun LanguageScreen(
             }
         }
 
-        UniSecurityFooterNote(text = stringResource(Res.string.ui_language_restart))
+        UniNotice(text = stringResource(Res.string.ui_language_restart))
     }
 }

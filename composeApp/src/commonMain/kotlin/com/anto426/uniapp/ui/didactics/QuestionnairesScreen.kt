@@ -24,7 +24,7 @@ import com.anto426.uniapp.data.contract.QuestionnaireData
 import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
-import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.items.QuestionnaireItem
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -150,7 +150,7 @@ fun QuestionnairesScreen(
             }
         }
 
-        UniSecurityFooterNote(text = stringResource(Res.string.ui_questionnaire_note))
+        UniNotice(text = stringResource(Res.string.ui_questionnaire_note))
     }
 }
 

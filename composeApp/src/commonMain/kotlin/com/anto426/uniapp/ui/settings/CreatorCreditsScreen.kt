@@ -28,6 +28,8 @@ import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.project.presentation.ProjectInfoUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.display.UniNotice
+import com.anto426.uniapp.ui.components.display.UniNoticeTone
 import com.anto426.uniapp.ui.components.display.UniRemoteAvatar
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -57,31 +59,16 @@ internal fun CreatorCreditsScreen(
                 state.stale -> stringResource(Res.string.ui_project_cached)
                 else -> stringResource(Res.string.ui_project_load_failed)
             }
-            val statusTint = if (state.loading) colorScheme.primary else colorScheme.onSurfaceVariant
-            LiquidCard(
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedRectangle(16.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = statusIcon,
-                        contentDescription = null,
-                        tint = statusTint,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = statusTint,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
+            val statusTone = when {
+                state.loading -> UniNoticeTone.Primary
+                state.error -> UniNoticeTone.Warning
+                else -> UniNoticeTone.Info
             }
+            UniNotice(
+                text = statusText,
+                icon = statusIcon,
+                tone = statusTone,
+            )
         }
 
         // 1. Creatore & Lead Developer Hero Card

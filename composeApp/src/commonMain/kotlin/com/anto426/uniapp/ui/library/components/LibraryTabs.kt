@@ -51,7 +51,7 @@ import com.anto426.uniapp.data.contract.LibrarySpaceBooking
 import com.anto426.uniapp.library.presentation.LibraryUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
-import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.state.FeatureStateContent
@@ -349,7 +349,7 @@ internal fun LibraryCatalogTab(
             }
         }
 
-        UniSecurityFooterNote(text = stringResource(Res.string.ui_library_open_opac_note))
+        UniNotice(text = stringResource(Res.string.ui_library_open_opac_note))
     }
 }
 

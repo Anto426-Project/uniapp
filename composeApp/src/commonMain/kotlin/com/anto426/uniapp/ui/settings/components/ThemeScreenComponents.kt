@@ -73,6 +73,7 @@ import com.anto426.uniapp.settings.presentation.AppThemeMode
 import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.kyant.shapes.Capsule
@@ -619,11 +620,9 @@ internal fun ThemeAnimationsGroup(
             },
         )
         if (reducedMotion) {
-            Text(
+            UniNotice(
                 text = stringResource(Res.string.ui_theme_page_motion_reduced_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             )
         } else {
             ThemeDropdownRow(

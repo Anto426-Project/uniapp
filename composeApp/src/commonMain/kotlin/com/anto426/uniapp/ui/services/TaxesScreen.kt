@@ -28,6 +28,7 @@ import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.services.presentation.TaxesFilter
 import com.anto426.uniapp.services.presentation.TaxesUiState
 import com.anto426.uniapp.ui.components.display.UniCircularProgressRing
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.items.TaxPaymentList
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniContentHost
@@ -267,24 +268,6 @@ fun TaxesScreen(
         }
 
         // 4. Footer Note
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Info,
-                contentDescription = null,
-                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-                modifier = Modifier.size(14.dp),
-            )
-            Text(
-                text = stringResource(Res.string.ui_taxes_esse3_footer),
-                style = MaterialTheme.typography.labelSmall,
-                color = colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-            )
-        }
+        UniNotice(text = stringResource(Res.string.ui_taxes_esse3_footer))
     }
 }

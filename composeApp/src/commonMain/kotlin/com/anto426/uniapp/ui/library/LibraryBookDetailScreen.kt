@@ -36,6 +36,8 @@ import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.LibraryBookCopyAction
 import com.anto426.uniapp.library.presentation.LibraryBookDetailUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniNotice
+import com.anto426.uniapp.ui.components.display.UniNoticeTone
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -191,37 +193,15 @@ fun LibraryBookDetailScreen(
         }
 
         if (uiState.submissionResult != null) {
-            LiquidCard(
-                shape = RoundedRectangle(22.dp),
-                contentPadding = PaddingValues(16.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.Check,
-                        contentDescription = null,
-                        tint = glassColors.success,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = uiState.submissionResult.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = glassColors.success,
-                        )
-                        if (uiState.submissionResult.requiresVerification) {
-                            Text(
-                                text = stringResource(Res.string.ui_library_check_loans_note),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-            }
+            UniNotice(
+                title = uiState.submissionResult.description,
+                text = if (uiState.submissionResult.requiresVerification) {
+                    stringResource(Res.string.ui_library_check_loans_note)
+                } else {
+                    ""
+                },
+                tone = UniNoticeTone.Success,
+            )
         }
 
         LiquidSectionHeader(

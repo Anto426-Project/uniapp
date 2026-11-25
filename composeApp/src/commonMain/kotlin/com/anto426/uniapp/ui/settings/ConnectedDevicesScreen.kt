@@ -6,7 +6,7 @@ import com.anto426.uniapp.data.contract.DeviceInfo
 import com.anto426.uniapp.settings.presentation.ConnectedDevicesUiState
 import com.anto426.uniapp.settings.presentation.DeviceSessionsActionUiState
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
-import com.anto426.uniapp.ui.components.display.UniSecurityFooterNote
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.items.ConnectedDevicesSecurityHero
 import com.anto426.uniapp.ui.components.items.CurrentDeviceHero
 import com.anto426.uniapp.ui.components.items.DevicePreferenceItem
@@ -69,7 +69,7 @@ fun ConnectedDevicesScreen(
         }
 
         if (uiState.canDisconnectAll) {
-            UniSecurityFooterNote(text = stringResource(Res.string.ui_devices_security_note))
+            UniNotice(text = stringResource(Res.string.ui_devices_security_note))
         }
     }
 

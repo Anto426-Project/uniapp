@@ -2,13 +2,10 @@
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,14 +21,12 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.layout.animatedswitcher.LiquidSwitcherMode
 import com.anto426.liquidmonet.components.selection.chip.LiquidChip
-import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.motion.LiquidMotion
 import com.anto426.liquidmonet.motion.animateLiquidColorAsState
 import com.anto426.uniapp.settings.presentation.ColorLabUiState
+import com.anto426.uniapp.ui.components.display.UniNotice
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
@@ -43,7 +38,6 @@ import com.anto426.uniapp.ui.settings.components.ColorLabSpectrumCard
 import com.anto426.uniapp.ui.settings.components.ColorLabTab
 import com.anto426.uniapp.ui.settings.components.PresetCategory
 import com.anto426.uniapp.ui.settings.components.SliderChannelMode
-import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.Res
 import uniapp.composeapp.generated.resources.ui_colors_info
@@ -249,34 +243,7 @@ fun ColorLabScreen(
             },
         )
 
-        LiquidCard(
-            contentPadding = PaddingValues(16.dp),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedRectangle(20.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Info,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 32.dp,
-                        iconSize = 17.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                        shape = RoundedRectangle(9.dp),
-                    ),
-                )
-                Text(
-                    text = stringResource(Res.string.ui_colors_info),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
+        UniNotice(text = stringResource(Res.string.ui_colors_info))
     }
 }
 
