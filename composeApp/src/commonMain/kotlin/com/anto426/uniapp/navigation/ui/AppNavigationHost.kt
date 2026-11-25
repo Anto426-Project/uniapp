@@ -4,11 +4,6 @@ package com.anto426.uniapp.navigation.ui
 
 import androidx.lifecycle.repeatOnLifecycle
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -98,6 +93,7 @@ import com.anto426.uniapp.settings.presentation.ThemeUiState
 import com.anto426.uniapp.settings.presentation.ThemeViewModel
 import com.anto426.uniapp.ui.components.layout.LocalNavigationBarVisible
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.state.AppLoadingState
 import com.anto426.uniapp.ui.motion.LocalUniContentTransition
 import com.anto426.uniapp.ui.updates.ChangelogRoute
@@ -708,38 +704,40 @@ private fun topBarActions(
 private fun TopBarOfflineBadge(
     visible: Boolean,
 ) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + scaleIn(initialScale = 0.92f),
-        exit = fadeOut() + scaleOut(targetScale = 0.92f),
-    ) {
-        LiquidBadge(
-            shape = Capsule(),
-            modifier = Modifier.padding(end = 12.dp),
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+    UniContentHost(
+        targetState = visible,
+        contentAlignment = Alignment.CenterEnd,
+        label = "TopBarOfflineBadge",
+    ) { isVisible ->
+        if (isVisible) {
+            LiquidBadge(
+                shape = Capsule(),
+                modifier = Modifier.padding(end = 12.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
             ) {
-                Icon(
-                    imageVector = LiquidIcons.WifiOff,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-                Text(
-                    text = stringResource(Res.string.ui_status_offline),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Clip,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    Icon(
+                        imageVector = LiquidIcons.WifiOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        text = stringResource(Res.string.ui_status_offline),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Clip,
+                    )
+                }
             }
         }
     }
