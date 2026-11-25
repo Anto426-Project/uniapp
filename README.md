@@ -102,8 +102,8 @@ Il marchio **Apple Spark U** vive in [`assets/icon/`](./assets/icon/README.md) c
 | --- | --- |
 | **Linguaggio & Core** | Kotlin `2.4.21` · Coroutines `1.11.0` · Serialization `1.13.0` · DateTime `0.8.0` |
 | **UI & Navigazione** | Compose Multiplatform `1.12.2` · Material 3 · Navigation 3 `1.2.0` · Coil 3 `3.6.3` |
-| **Networking & Codici** | Ktor `3.6.1` (OkHttp / Darwin) · ZScanner · QRose · ZXing |
-| **Piattaforme** | Android (`minSdk 29`, `targetSdk 37`, AGP `9.5.2`) · iOS (`arm64`, `simulatorArm64`) |
+| **Networking & Codici** | Ktor `3.6.2` (OkHttp / Darwin) · ZScanner · QRose · ZXing |
+| **Piattaforme** | Android (`minSdk 29`, `targetSdk 37`, AGP `9.5.3`) · iOS (`arm64`, `simulatorArm64`) |
 | **Web & Distribuzione** | Next.js (`website/`) · GitHub Actions indipendenti per Android, iOS e Sito |
 
 ---
@@ -114,8 +114,8 @@ UniApp separa le fondamenta tecniche in **SDK precompilati indipendenti**, risol
 
 | SDK | Versione | Responsabilità | Repository |
 | --- | --- | --- | --- |
-| **`liquid-monet`** | `2.0.56` | Componenti Compose, tema Monet, fisica e superfici optical glass | [Anto426-Project/Liquid-Monet](https://github.com/Anto426-Project/Liquid-Monet) |
-| **`uni-sdk`** | `2.0.38` | Client KMP per API Cineca, backend UniApp, trasporti e aggiornamenti | Modulo privato |
+| **`liquid-monet`** | `2.0.57` | Componenti Compose, tema Monet, fisica e superfici optical glass | [Anto426-Project/Liquid-Monet](https://github.com/Anto426-Project/Liquid-Monet) |
+| **`uni-sdk`** | `2.0.39` | Client KMP per API Cineca, backend UniApp, trasporti e aggiornamenti | Modulo privato |
 | **`secure-storage-sdk`** | `1.0.17` | Persistenza sicura multipiattaforma per credenziali e token | Modulo privato |
 | **`firebase-connector-sdk`** | `1.0.11` | Push notification e integrazione Firebase / FCM | Modulo privato |
 
