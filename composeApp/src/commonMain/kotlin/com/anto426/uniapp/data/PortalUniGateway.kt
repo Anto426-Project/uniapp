@@ -52,6 +52,9 @@ import com.anto426.unisdk.transport.TransportData
 import com.anto426.unisdk.transport.TransportService
 import com.anto426.unisdk.transport.TransportSession
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.LocalDate
@@ -75,6 +78,7 @@ class PortalUniGateway(
     private val requestLocks = mutableMapOf<String, Mutex>()
     private val savedAtGuard = Mutex()
     private val savedAtByKey = mutableMapOf<String, Long>()
+    private val newsArchiveSyncedAtByKey = mutableMapOf<String, Long>()
 
     // Opaque token vault for Sebina library session objects
     private data class OwnedLibraryHandle<T>(
@@ -183,17 +187,36 @@ class PortalUniGateway(
     }
 
     override suspend fun loadCareer(forceRefresh: Boolean): Career =
-        cached("career-v2", UniCachePolicies.Career, Career.serializer(), forceRefresh) { context ->
-            context.backend { session, credentials -> loadCareer(session, credentials) }
+        streamCareer(forceRefresh).last()
+
+    override fun streamCareer(forceRefresh: Boolean): Flow<Career> =
+        cachedStream(
+            key = "career-v2",
+            policy = UniCachePolicies.Career,
+            serializer = Career.serializer(),
+            forceRefresh = forceRefresh,
+        ) { context, _, emitValue ->
+            context.backend { session, credentials ->
+                observeCareer(session, credentials).collect { emitValue(it) }
+            }
         }
 
     override suspend fun loadProfessorDashboard(forceRefresh: Boolean): ProfessorDashboard =
-        cached(
-            "professor-dashboard",
-            UniCachePolicies.ProfessorDashboard,
-            ProfessorDashboard.serializer(),
-            forceRefresh,
-        ) { context -> context.backend { session, credentials -> loadProfessorDashboard(session, credentials) } }
+        streamProfessorDashboard(forceRefresh).last()
+
+    override fun streamProfessorDashboard(forceRefresh: Boolean): Flow<ProfessorDashboard> =
+        cachedStream(
+            key = "professor-dashboard",
+            policy = UniCachePolicies.ProfessorDashboard,
+            serializer = ProfessorDashboard.serializer(),
+            forceRefresh = forceRefresh,
+            mergeIntermediate = { existing, incoming -> mergeProfessorDashboard(existing, incoming, isFinal = false) },
+            mergeFinal = { existing, incoming -> mergeProfessorDashboard(existing, incoming, isFinal = true) },
+        ) { context, _, emitValue ->
+            context.backend { session, credentials ->
+                observeProfessorDashboard(session, credentials).collect { emitValue(it) }
+            }
+        }
 
     override suspend fun loadStudyPlan(forceRefresh: Boolean): StudyPlan =
         cached("study-plan", UniCachePolicies.StudyPlan, StudyPlan.serializer(), forceRefresh) { context ->
@@ -201,8 +224,20 @@ class PortalUniGateway(
         }
 
     override suspend fun loadExamRounds(forceRefresh: Boolean): List<ExamRound> =
-        cached("exam-rounds", UniCachePolicies.ExamRounds, ListSerializer(ExamRound.serializer()), forceRefresh) { context ->
-            context.backend { session, credentials -> loadExamRounds(session, credentials) }
+        streamExamRounds(forceRefresh).last()
+
+    override fun streamExamRounds(forceRefresh: Boolean): Flow<List<ExamRound>> =
+        cachedStream(
+            key = "exam-rounds",
+            policy = UniCachePolicies.ExamRounds,
+            serializer = ListSerializer(ExamRound.serializer()),
+            forceRefresh = forceRefresh,
+            mergeIntermediate = { existing, incoming -> mergeExamRoundsProgress(existing, incoming) },
+            mergeFinal = { _, incoming -> incoming },
+        ) { context, _, emitValue ->
+            context.backend { session, credentials ->
+                observeExamRounds(session, credentials).collect { emitValue(it) }
+            }
         }
 
     override suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean): CourseSyllabus =
@@ -300,6 +335,7 @@ class PortalUniGateway(
             UniCachePolicies.Attendance,
             ListSerializer(AttendanceRecord.serializer()),
             forceRefresh,
+            mergeWithCached = { existing, incoming -> mergeAttendanceHistory(existing.orEmpty(), incoming) },
         ) { context -> context.backend { session, credentials -> loadAttendanceHistory(session, credentials) } }
 
     override suspend fun registerAttendance(
@@ -324,12 +360,35 @@ class PortalUniGateway(
     }
 
     override suspend fun loadUniversityNews(forceRefresh: Boolean): List<UniversityNews> =
-        cached(
-            "university-news-v3",
-            UniCachePolicies.News,
-            ListSerializer(UniversityNews.serializer()),
-            forceRefresh,
-        ) { context -> context.backend { session, credentials -> loadUniversityNews(session, credentials) } }
+        streamUniversityNews(forceRefresh).last()
+
+    override fun streamUniversityNews(forceRefresh: Boolean): Flow<List<UniversityNews>> =
+        cachedStream(
+            key = "university-news-v3",
+            policy = UniCachePolicies.News,
+            serializer = ListSerializer(UniversityNews.serializer()),
+            forceRefresh = forceRefresh,
+            mergeIntermediate = { existing, incoming -> mergeUniversityNews(existing.orEmpty(), incoming) },
+            mergeFinal = { existing, incoming -> mergeUniversityNews(existing.orEmpty(), incoming) },
+        ) { context, cached, emitValue ->
+            val archiveKey = "${context.accountId}|${context.profileScopedKey("university-news-v3")}"
+            val lastArchiveSync = savedAtGuard.withLock { newsArchiveSyncedAtByKey[archiveKey] }
+            val hasCachedHistory = !cached.isNullOrEmpty()
+            val needsArchives = forceRefresh ||
+                !hasCachedHistory ||
+                lastArchiveSync == null ||
+                (nowMillis() - lastArchiveSync) !in 0 until NEWS_ARCHIVE_SYNC_INTERVAL_MILLIS
+            context.backend { session, credentials ->
+                observeUniversityNews(
+                    session = session,
+                    credentials = credentials,
+                    includeArchives = needsArchives,
+                ).collect { emitValue(it) }
+            }
+            if (needsArchives) {
+                savedAtGuard.withLock { newsArchiveSyncedAtByKey[archiveKey] = nowMillis() }
+            }
+        }
 
     override suspend fun loadUniversityContacts(forceRefresh: Boolean): List<UniversityContact> =
         cached(
@@ -337,6 +396,7 @@ class PortalUniGateway(
             UniCachePolicies.Contacts,
             ListSerializer(UniversityContact.serializer()),
             forceRefresh,
+            mergeWithCached = { existing, incoming -> mergeUniversityContacts(existing.orEmpty(), incoming) },
         ) { context -> context.backend { session, credentials -> loadUniversityContacts(session, credentials) } }
 
     override suspend fun loadSurveyCourses(forceRefresh: Boolean): List<SurveyCourse> =
@@ -366,12 +426,17 @@ class PortalUniGateway(
         ) { context -> context.backend { session, credentials -> loadSurveyCompilationStatus(session, credentials, adCod) } }
 
     override suspend fun loadTransportData(forceRefresh: Boolean): TransportData =
-        cached(
-            "transport-data",
-            UniCachePolicies.Transport,
-            TransportData.serializer(),
-            forceRefresh,
+        streamTransportData(forceRefresh).last()
+
+    override fun streamTransportData(forceRefresh: Boolean): Flow<TransportData> =
+        cachedStream(
+            key = "transport-data",
+            policy = UniCachePolicies.Transport,
+            serializer = TransportData.serializer(),
+            forceRefresh = forceRefresh,
             requirePersistence = true,
+            mergeIntermediate = { existing, incoming -> mergeTransportProgress(existing, incoming) },
+            mergeFinal = { _, incoming -> incoming },
             onSaved = { context, previous, current ->
                 val activeIds = current.bookings.mapTo(mutableSetOf()) { it.id }
                 previous?.bookings.orEmpty().asSequence()
@@ -385,7 +450,11 @@ class PortalUniGateway(
                         }
                     }
             },
-        ) { context -> context.transport { session -> loadTransportData(session) } }
+        ) { context, _, emitValue ->
+            context.transport { session ->
+                observeTransportData(session).collect { emitValue(it) }
+            }
+        }
 
     override suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean): ByteArray {
         val context = activeContext()
@@ -784,6 +853,7 @@ class PortalUniGateway(
         serializer: KSerializer<T>,
         forceRefresh: Boolean,
         requirePersistence: Boolean = false,
+        mergeWithCached: (existing: T?, incoming: T) -> T = { _, incoming -> incoming },
         onSaved: suspend (ActiveAccountContext, T?, T) -> Unit = { _, _, _ -> },
         fetch: suspend (ActiveAccountContext) -> T,
     ): T {
@@ -803,8 +873,9 @@ class PortalUniGateway(
                 return@withLock cached.value
             }
             try {
-                val value = fetch(context)
+                val rawValue = fetch(context)
                 ensureCurrent(context)
+                val value = mergeWithCached(cached?.value, rawValue)
                 var saved = false
                 try {
                     writeEntry(accountId, scopedKey, serializer, value)
@@ -826,6 +897,99 @@ class PortalUniGateway(
             } catch (error: Throwable) {
                 ensureCurrent(context)
                 if (fallbackToStaleCache) cached?.value ?: throw error else throw error
+            }
+        }
+    }
+
+    private fun <T> cachedStream(
+        key: String,
+        policy: UniCachePolicy,
+        serializer: KSerializer<T>,
+        forceRefresh: Boolean,
+        requirePersistence: Boolean = false,
+        mergeIntermediate: (existing: T?, incoming: T) -> T = { _, incoming -> incoming },
+        mergeFinal: (existing: T?, incoming: T) -> T = mergeIntermediate,
+        onSaved: suspend (ActiveAccountContext, T?, T) -> Unit = { _, _, _ -> },
+        stream: suspend (ActiveAccountContext, T?, suspend (T) -> Unit) -> Unit,
+    ): Flow<T> = flow {
+        val requestStartedAt = nowMillis()
+        val context = activeContext()
+        val accountId = context.accountId
+        val scopedKey = context.profileScopedKey(key)
+        requestLock(accountId, scopedKey).withLock {
+            ensureCurrent(context)
+            val cached = try { readEntry(accountId, scopedKey, serializer) }
+                catch (error: CancellationException) { throw error }
+                catch (_: Exception) { null }
+            ensureCurrent(context)
+            if (cached != null && nowMillis() - cached.savedAtMillis in 0 until policy.maxAgeMillis &&
+                (!forceRefresh || cached.savedAtMillis > requestStartedAt)
+            ) {
+                emit(cached.value)
+                return@withLock
+            }
+            var latestMerged: T? = cached?.value
+            var lastRawNetwork: T? = null
+            var emittedAnyFromNetwork = false
+            try {
+                stream(context, cached?.value) { incoming ->
+                    ensureCurrent(context)
+                    lastRawNetwork = incoming
+                    val merged = mergeIntermediate(latestMerged, incoming)
+                    latestMerged = merged
+                    emittedAnyFromNetwork = true
+                    try {
+                        writeEntry(
+                            accountId = accountId,
+                            key = scopedKey,
+                            serializer = serializer,
+                            value = merged,
+                            savedAtMillis = cached?.savedAtMillis ?: nowMillis(),
+                        )
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        // Best-effort intermediate cache checkpoint.
+                    }
+                    emit(merged)
+                }
+                ensureCurrent(context)
+                val finalRaw = lastRawNetwork
+                if (finalRaw != null) {
+                    val finalValue = mergeFinal(cached?.value, finalRaw)
+                    var saved = false
+                    try {
+                        writeEntry(accountId, scopedKey, serializer, finalValue)
+                        saved = true
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (error: Exception) {
+                        if (requirePersistence) throw error
+                    }
+                    if (saved) {
+                        try { onSaved(context, cached?.value, finalValue) }
+                        catch (error: CancellationException) { throw error }
+                        catch (_: Exception) {}
+                    }
+                    ensureCurrent(context)
+                    if (finalValue != latestMerged) {
+                        emit(finalValue)
+                    }
+                } else if (cached != null) {
+                    emit(cached.value)
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                ensureCurrent(context)
+                if (emittedAnyFromNetwork && latestMerged != null) {
+                    return@withLock
+                }
+                if (fallbackToStaleCache && cached != null) {
+                    emit(cached.value)
+                } else {
+                    throw error
+                }
             }
         }
     }
@@ -903,5 +1067,6 @@ class PortalUniGateway(
 
     private companion object {
         const val CACHE_SCHEMA_VERSION = 3
+        const val NEWS_ARCHIVE_SYNC_INTERVAL_MILLIS = 6L * 60L * 60_000L
     }
 }

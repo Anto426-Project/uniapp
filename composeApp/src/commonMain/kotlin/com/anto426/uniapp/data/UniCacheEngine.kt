@@ -123,7 +123,7 @@ object UniCachePolicies {
     val Attendance = UniCachePolicy(minutes(30))
     val SurveyPage = UniCachePolicy(minutes(30))
     val SurveyStatus = UniCachePolicy(minutes(30))
-    val News = UniCachePolicy(hours(1))
+    val News = UniCachePolicy(minutes(2), retryDelayMillis = 30_000L)
     val Taxes = UniCachePolicy(hours(2))
     val StudyPlan = UniCachePolicy(hours(6))
     val Career = UniCachePolicy(hours(6))
@@ -176,34 +176,35 @@ class UniDatasetKey<T : Any> internal constructor(
     internal val cacheKey: String? = null,
     internal val serializer: KSerializer<T>? = null,
     internal val policy: UniCachePolicy? = null,
+    internal val stream: (UniGateway.(Boolean) -> Flow<T>)? = null,
     internal val load: suspend UniGateway.(Boolean) -> T,
 )
 
 object UniDatasets {
     val Career: UniDatasetKey<com.anto426.unisdk.model.Career> =
-        UniDatasetKey("career", "career-v2", com.anto426.unisdk.model.Career.serializer(), UniCachePolicies.Career, UniGateway::loadCareer)
+        UniDatasetKey("career", "career-v2", com.anto426.unisdk.model.Career.serializer(), UniCachePolicies.Career, UniGateway::streamCareer, UniGateway::loadCareer)
     val Professor: UniDatasetKey<ProfessorDashboard> =
-        UniDatasetKey("professor", "professor-dashboard", ProfessorDashboard.serializer(), UniCachePolicies.ProfessorDashboard, UniGateway::loadProfessorDashboard)
+        UniDatasetKey("professor", "professor-dashboard", ProfessorDashboard.serializer(), UniCachePolicies.ProfessorDashboard, UniGateway::streamProfessorDashboard, UniGateway::loadProfessorDashboard)
     val StudyPlan: UniDatasetKey<com.anto426.unisdk.model.StudyPlan> =
-        UniDatasetKey("study-plan", "study-plan", com.anto426.unisdk.model.StudyPlan.serializer(), UniCachePolicies.StudyPlan, UniGateway::loadStudyPlan)
+        UniDatasetKey("study-plan", "study-plan", com.anto426.unisdk.model.StudyPlan.serializer(), UniCachePolicies.StudyPlan, load = UniGateway::loadStudyPlan)
     val Exams: UniDatasetKey<List<ExamRound>> =
-        UniDatasetKey("exam-rounds", "exam-rounds", ListSerializer(ExamRound.serializer()), UniCachePolicies.ExamRounds, UniGateway::loadExamRounds)
+        UniDatasetKey("exam-rounds", "exam-rounds", ListSerializer(ExamRound.serializer()), UniCachePolicies.ExamRounds, UniGateway::streamExamRounds, UniGateway::loadExamRounds)
     val Taxes: UniDatasetKey<com.anto426.unisdk.model.Taxes> =
-        UniDatasetKey("taxes", "taxes", com.anto426.unisdk.model.Taxes.serializer(), UniCachePolicies.Taxes, UniGateway::loadTaxes)
+        UniDatasetKey("taxes", "taxes", com.anto426.unisdk.model.Taxes.serializer(), UniCachePolicies.Taxes, load = UniGateway::loadTaxes)
     val Student: UniDatasetKey<StudentDetails> =
-        UniDatasetKey("student", "student-details-v2", StudentDetails.serializer(), UniCachePolicies.StudentDetails, UniGateway::loadStudentDetails)
+        UniDatasetKey("student", "student-details-v2", StudentDetails.serializer(), UniCachePolicies.StudentDetails, load = UniGateway::loadStudentDetails)
     val Devices: UniDatasetKey<List<ConnectedDevice>> =
-        UniDatasetKey("devices", "connected-devices", ListSerializer(ConnectedDevice.serializer()), UniCachePolicies.ConnectedDevices, UniGateway::loadConnectedDevices)
+        UniDatasetKey("devices", "connected-devices", ListSerializer(ConnectedDevice.serializer()), UniCachePolicies.ConnectedDevices, load = UniGateway::loadConnectedDevices)
     val Attendance: UniDatasetKey<List<AttendanceRecord>> =
-        UniDatasetKey("attendance", "attendance", ListSerializer(AttendanceRecord.serializer()), UniCachePolicies.Attendance, UniGateway::loadAttendanceHistory)
+        UniDatasetKey("attendance", "attendance", ListSerializer(AttendanceRecord.serializer()), UniCachePolicies.Attendance, load = UniGateway::loadAttendanceHistory)
     val News: UniDatasetKey<List<UniversityNews>> =
-        UniDatasetKey("news", "university-news-v3", ListSerializer(UniversityNews.serializer()), UniCachePolicies.News, UniGateway::loadUniversityNews)
+        UniDatasetKey("news", "university-news-v3", ListSerializer(UniversityNews.serializer()), UniCachePolicies.News, UniGateway::streamUniversityNews, UniGateway::loadUniversityNews)
     val Contacts: UniDatasetKey<List<UniversityContact>> =
-        UniDatasetKey("contacts", "university-contacts-v2", ListSerializer(UniversityContact.serializer()), UniCachePolicies.Contacts, UniGateway::loadUniversityContacts)
+        UniDatasetKey("contacts", "university-contacts-v2", ListSerializer(UniversityContact.serializer()), UniCachePolicies.Contacts, load = UniGateway::loadUniversityContacts)
     val Surveys: UniDatasetKey<List<SurveyCourse>> =
-        UniDatasetKey("surveys", "survey-courses", ListSerializer(SurveyCourse.serializer()), UniCachePolicies.SurveyCourses, UniGateway::loadSurveyCourses)
+        UniDatasetKey("surveys", "survey-courses", ListSerializer(SurveyCourse.serializer()), UniCachePolicies.SurveyCourses, load = UniGateway::loadSurveyCourses)
     val Transport: UniDatasetKey<TransportData> =
-        UniDatasetKey("transport", "transport-data", TransportData.serializer(), UniCachePolicies.Transport, UniGateway::loadTransportData)
+        UniDatasetKey("transport", "transport-data", TransportData.serializer(), UniCachePolicies.Transport, UniGateway::streamTransportData, UniGateway::loadTransportData)
     val LibraryMovements: UniDatasetKey<List<LibraryMovementItem>> =
         UniDatasetKey("library-movements", policy = UniCachePolicies.LibraryMovements) { force -> loadLibraryMovements(force) }
     val LibrarySpaces: UniDatasetKey<LibraryBookingOverview> =
@@ -568,8 +569,14 @@ class UniCacheEngine(
 
     private val mutablePortrait = MutableStateFlow<ByteArray?>(null)
     val portrait = mutablePortrait.asStateFlow()
+    private val mutableIsOffline = MutableStateFlow(false)
+    val isOffline: StateFlow<Boolean> = mutableIsOffline.asStateFlow()
     private var portraitStarted = false
     private var portraitSource: String? = null
+
+    fun markOnline() {
+        mutableIsOffline.value = false
+    }
 
     fun startPortrait(account: UniAccountSummary?) {
         scope.launch {
@@ -720,7 +727,28 @@ class UniCacheEngine(
                             lane.withPermit {
                                 val timeoutMillis = if (entry.request.id.startsWith("library-")) 95_000L else 45_000L
                                 withTimeout(timeoutMillis) {
-                                    entry.request.load(source, mustRefresh)
+                                    val streamLoader = entry.request.stream
+                                    if (streamLoader != null) {
+                                        var lastValue: T? = null
+                                        streamLoader(source, mustRefresh).collect { emitted ->
+                                            lastValue = emitted
+                                            guard.withLock {
+                                                currentCoroutineContext().ensureActive()
+                                                if (closed) throw CancellationException("Data owner closed")
+                                                if (!entry.forcePending && !entry.invalidated && entry.state.value.value != emitted) {
+                                                    entry.state.value = entry.state.value.copy(
+                                                        value = emitted,
+                                                        error = null,
+                                                        refreshing = true,
+                                                        revision = entry.state.value.revision + 1,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        lastValue ?: entry.request.load(source, mustRefresh)
+                                    } else {
+                                        entry.request.load(source, mustRefresh)
+                                    }
                                 }
                             },
                         )
@@ -748,6 +776,11 @@ class UniCacheEngine(
                             mustRefresh = true
                             true
                         } else {
+                            if (result.isSuccess) {
+                                mutableIsOffline.value = false
+                            } else if (result.exceptionOrNull()?.isOfflineNetworkFailure() == true) {
+                                mutableIsOffline.value = true
+                            }
                             entry.state.value = entry.state.value.copy(
                                 value = result.getOrNull() ?: entry.state.value.value,
                                 error = result.exceptionOrNull(),
@@ -830,6 +863,9 @@ class UniCacheEngine(
     ) {
         guard.withLock {
             if (!closed && entry.job === completion) {
+                if (error.isOfflineNetworkFailure()) {
+                    mutableIsOffline.value = true
+                }
                 entry.state.value = entry.state.value.copy(
                     error = error,
                     refreshing = false,
@@ -839,6 +875,31 @@ class UniCacheEngine(
             }
         }
         completion.completeExceptionally(error)
+    }
+
+    private fun Throwable.isOfflineNetworkFailure(): Boolean {
+        val sdkError = this as? com.anto426.unisdk.errors.UniSdkException
+        if (sdkError != null) {
+            return when (sdkError.errorCode) {
+                com.anto426.unisdk.errors.UniSdkErrorCode.NETWORK_REQUEST_FAILED,
+                com.anto426.unisdk.errors.UniSdkErrorCode.NETWORK_TIMEOUT,
+                com.anto426.unisdk.errors.UniSdkErrorCode.FEATURE_LOAD_TIMEOUT,
+                com.anto426.unisdk.errors.UniSdkErrorCode.SERVICE_UNAVAILABLE,
+                com.anto426.unisdk.errors.UniSdkErrorCode.APP_BACKEND_UNAVAILABLE,
+                com.anto426.unisdk.errors.UniSdkErrorCode.CINECA_UNAVAILABLE,
+                com.anto426.unisdk.errors.UniSdkErrorCode.REMOTE_REQUEST_FAILED,
+                com.anto426.unisdk.errors.UniSdkErrorCode.SESSION_NOT_AVAILABLE,
+                -> true
+                else -> false
+            }
+        }
+        val name = this::class.simpleName.orEmpty()
+        return name.contains("IOException", ignoreCase = true) ||
+            name.contains("ConnectException", ignoreCase = true) ||
+            name.contains("UnknownHost", ignoreCase = true) ||
+            name.contains("UnresolvedAddress", ignoreCase = true) ||
+            name.contains("Timeout", ignoreCase = true) ||
+            (cause != null && cause !== this && cause!!.isOfflineNetworkFailure())
     }
 
     internal suspend fun <T : Any> get(request: UniDatasetKey<T>, force: Boolean): T {

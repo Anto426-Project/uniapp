@@ -27,14 +27,23 @@ import com.anto426.unisdk.model.UniversityNews
 import com.anto426.unisdk.transport.TransportActionResult
 import com.anto426.unisdk.transport.TransportBookingRequest
 import com.anto426.unisdk.transport.TransportData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.LocalDate
 
 /** Account-aware, encrypted and policy-driven data boundary used by UniCacheEngine and UniRepository. */
 interface UniGateway {
     suspend fun loadCareer(forceRefresh: Boolean = false): Career
+    fun streamCareer(forceRefresh: Boolean = false): Flow<Career> = flow { emit(loadCareer(forceRefresh)) }
     suspend fun loadProfessorDashboard(forceRefresh: Boolean = false): ProfessorDashboard
+    fun streamProfessorDashboard(forceRefresh: Boolean = false): Flow<ProfessorDashboard> = flow {
+        emit(loadProfessorDashboard(forceRefresh))
+    }
     suspend fun loadStudyPlan(forceRefresh: Boolean = false): StudyPlan
     suspend fun loadExamRounds(forceRefresh: Boolean = false): List<ExamRound>
+    fun streamExamRounds(forceRefresh: Boolean = false): Flow<List<ExamRound>> = flow {
+        emit(loadExamRounds(forceRefresh))
+    }
     suspend fun loadCourseSyllabus(adsceId: String, forceRefresh: Boolean = false): CourseSyllabus
     suspend fun bookExamRound(round: ExamRound): String
     suspend fun cancelExamRound(round: ExamRound): String
@@ -52,12 +61,18 @@ interface UniGateway {
         deviceAccuracyMeters: Double? = null,
     ): String
     suspend fun loadUniversityNews(forceRefresh: Boolean = false): List<UniversityNews>
+    fun streamUniversityNews(forceRefresh: Boolean = false): Flow<List<UniversityNews>> = flow {
+        emit(loadUniversityNews(forceRefresh))
+    }
     suspend fun loadUniversityContacts(forceRefresh: Boolean = false): List<UniversityContact>
     suspend fun loadSurveyCourses(forceRefresh: Boolean = false): List<SurveyCourse>
     suspend fun loadSurveyFirstPage(courseId: String, tagList: String): SurveyForm
     suspend fun saveSurvey(courseId: String, request: SurveySaveRequest): String
     suspend fun loadSurveyCompilationStatus(adCod: String, forceRefresh: Boolean = false): Boolean
     suspend fun loadTransportData(forceRefresh: Boolean = false): TransportData
+    fun streamTransportData(forceRefresh: Boolean = false): Flow<TransportData> = flow {
+        emit(loadTransportData(forceRefresh))
+    }
     suspend fun loadTransportTicketImage(bookingId: String, source: String, forceRefresh: Boolean = false): ByteArray {
         throw UnsupportedOperationException("Ticket image download is unavailable")
     }
