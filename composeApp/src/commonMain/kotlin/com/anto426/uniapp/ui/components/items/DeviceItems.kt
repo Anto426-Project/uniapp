@@ -17,128 +17,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
 import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButtonVariant
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
+import com.anto426.liquidmonet.components.display.emptystate.LiquidExpressiveHeroFrame
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.DeviceInfo
 import com.anto426.uniapp.data.contract.DeviceType
-import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 
-private object DeviceIcons {
-    val Smartphone: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "Smartphone",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(
-                fill = SolidColor(Color.Black),
-                pathFillType = PathFillType.EvenOdd,
-            ) {
-                // Outer body
-                moveTo(7f, 1.5f)
-                lineTo(17f, 1.5f)
-                curveTo(18.1f, 1.5f, 19f, 2.4f, 19f, 3.5f)
-                lineTo(19f, 20.5f)
-                curveTo(19f, 21.6f, 18.1f, 22.5f, 17f, 22.5f)
-                lineTo(7f, 22.5f)
-                curveTo(5.9f, 22.5f, 5f, 21.6f, 5f, 20.5f)
-                lineTo(5f, 3.5f)
-                curveTo(5f, 2.4f, 5.9f, 1.5f, 7f, 1.5f)
-                close()
-                // Inner display cutout
-                moveTo(7f, 5f)
-                lineTo(7f, 18.5f)
-                lineTo(17f, 18.5f)
-                lineTo(17f, 5f)
-                close()
-            }
-        }.build()
-    }
-
-    val Computer: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "Computer",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(
-                fill = SolidColor(Color.Black),
-                pathFillType = PathFillType.EvenOdd,
-            ) {
-                moveTo(20f, 18f)
-                curveTo(21.1f, 18f, 22f, 17.1f, 22f, 16f)
-                lineTo(22f, 6f)
-                curveTo(22f, 4.9f, 21.1f, 4f, 20f, 4f)
-                lineTo(4f, 4f)
-                curveTo(2.9f, 4f, 2f, 4.9f, 2f, 6f)
-                lineTo(2f, 16f)
-                curveTo(2f, 17.1f, 2.9f, 18f, 4f, 18f)
-                lineTo(0f, 18f)
-                curveTo(0f, 19.1f, 0.9f, 20f, 2f, 20f)
-                lineTo(22f, 20f)
-                curveTo(23.1f, 20f, 24f, 19.1f, 24f, 18f)
-                close()
-                moveTo(4f, 6f)
-                lineTo(20f, 6f)
-                lineTo(20f, 16f)
-                lineTo(4f, 16f)
-                close()
-            }
-        }.build()
-    }
-
-    val Tablet: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "Tablet",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(
-                fill = SolidColor(Color.Black),
-                pathFillType = PathFillType.EvenOdd,
-            ) {
-                moveTo(18.5f, 2f)
-                lineTo(5.5f, 2f)
-                curveTo(4.12f, 2f, 3f, 3.12f, 3f, 4.5f)
-                lineTo(3f, 19.5f)
-                curveTo(3f, 20.88f, 4.12f, 22f, 5.5f, 22f)
-                lineTo(18.5f, 22f)
-                curveTo(19.88f, 22f, 21f, 20.88f, 21f, 19.5f)
-                lineTo(21f, 4.5f)
-                curveTo(21f, 3.12f, 19.88f, 2f, 18.5f, 2f)
-                close()
-                moveTo(18.5f, 18f)
-                lineTo(5.5f, 18f)
-                lineTo(5.5f, 5.5f)
-                lineTo(18.5f, 5.5f)
-                close()
-            }
-        }.build()
-    }
-}
-
 private fun DeviceType.iconVector(): ImageVector = when (this) {
-    DeviceType.PHONE -> DeviceIcons.Smartphone
-    DeviceType.PC -> DeviceIcons.Computer
-    DeviceType.TABLET -> DeviceIcons.Tablet
+    DeviceType.PHONE -> LiquidIcons.Smartphone
+    DeviceType.PC -> LiquidIcons.Computer
+    DeviceType.TABLET -> LiquidIcons.Tablet
 }
 
 @Composable
@@ -148,7 +45,7 @@ fun ConnectedDevicesSecurityHero(
     val colorScheme = MaterialTheme.colorScheme
     val iconTint = colorScheme.primary
 
-    UniExpressiveHeroFrame(
+    LiquidExpressiveHeroFrame(
         modifier = modifier,
         mainContent = {
             Box(
@@ -159,7 +56,7 @@ fun ConnectedDevicesSecurityHero(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = DeviceIcons.Smartphone,
+                    imageVector = LiquidIcons.Smartphone,
                     contentDescription = null,
                     tint = iconTint,
                     modifier = Modifier.size(20.dp),
@@ -167,7 +64,7 @@ fun ConnectedDevicesSecurityHero(
             }
 
             Icon(
-                imageVector = DeviceIcons.Computer,
+                imageVector = LiquidIcons.Computer,
                 contentDescription = null,
                 tint = iconTint.copy(alpha = 0.90f),
                 modifier = Modifier
@@ -176,7 +73,7 @@ fun ConnectedDevicesSecurityHero(
             )
 
             Icon(
-                imageVector = DeviceIcons.Tablet,
+                imageVector = LiquidIcons.Tablet,
                 contentDescription = null,
                 tint = iconTint.copy(alpha = 0.78f),
                 modifier = Modifier

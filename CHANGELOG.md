@@ -1,3 +1,8 @@
+## [Unreleased]
+
+- **Sedi duplicate unificate in Rubrica.** Normalizzati i nomi delle città dei contatti rimuovendo sigle provincia (`(CB)`, `(IS)`), CAP iniziali e differenze di maiuscole, così varianti come «Campobasso» e «Campobasso (CB)» vengono raggruppate in una sola chip con il conteggio corretto.
+- **Icone vettoriali e stati vuoti Expressive migrati in Liquid Monet.** Spostate le ultime 17 icone vettoriali locali (Tema, Dispositivi connessi, Scanner QR e Lingua) dentro `LiquidIcons` e promossi `LiquidExpressiveHeroFrame` e `LiquidEmptyState` allo standard Material 3 Expressive direttamente nell’SDK, rimuovendo i componenti duplicati dall’app.
+
 ## [2.1.5] - 2026-11-25 (build set by CI)
 
 - **Caricamento a flusso e cache additiva.** Trasformati Notizie, Carriera, Appelli, Trasporti e Area Docente in flussi incrementali non bloccanti (`Flow`), con salvataggio progressivo e merge additivo su Notizie, Presenze e Rubrica così gli elementi già in cache non spariscono mai.

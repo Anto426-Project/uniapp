@@ -17,11 +17,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import com.anto426.liquidmonet.components.display.emptystate.LiquidExpressiveHeroFrame
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.didactics.presentation.QuestionnairesUiState
 import com.anto426.uniapp.data.contract.QuestionnaireData
-import com.anto426.uniapp.ui.components.display.UniExpressiveHeroFrame
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
 import com.anto426.uniapp.ui.components.display.UniNotice
@@ -35,7 +35,7 @@ import uniapp.composeapp.generated.resources.*
 @Composable
 private fun QuestionnairesExpressiveHero() {
     val iconTint = MaterialTheme.colorScheme.primary
-    UniExpressiveHeroFrame(
+    LiquidExpressiveHeroFrame(
         mainContent = {
             Box(
                 modifier = Modifier

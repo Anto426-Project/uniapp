@@ -38,7 +38,6 @@ import com.anto426.uniapp.ui.settings.components.ThemeAnimationsGroup
 import com.anto426.uniapp.ui.settings.components.ThemeBackgroundGroup
 import com.anto426.uniapp.ui.settings.components.ThemeColorGroup
 import com.anto426.uniapp.ui.settings.components.ThemeGlassCustomizationGroup
-import com.anto426.uniapp.ui.settings.components.ThemeIcons
 import com.anto426.uniapp.ui.settings.components.ThemeModeVisualSection
 import com.anto426.uniapp.ui.settings.components.ThemeNavigationBarGroup
 import com.anto426.uniapp.ui.settings.components.ThemeOptionChoice
@@ -174,11 +173,11 @@ fun ThemeScreen(
         ),
         LiquidNavigationItem(
             label = stringResource(Res.string.ui_theme_tab_effects),
-            icon = ThemeIcons.Sparkles,
+            icon = LiquidIcons.Sparkles,
         ),
         LiquidNavigationItem(
             label = stringResource(Res.string.ui_theme_tab_interface),
-            icon = ThemeIcons.NavigationBar,
+            icon = LiquidIcons.NavigationBar,
         ),
     )
 

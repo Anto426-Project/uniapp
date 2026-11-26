@@ -39,13 +39,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -228,7 +226,7 @@ private fun ZScannerCameraScope.UniQrCameraOverlay(
 
             if (torchAvailable) {
                 ScannerGlassCircleButton(
-                    icon = if (torchEnabled) ScannerIcons.FlashOn else ScannerIcons.FlashOff,
+                    icon = if (torchEnabled) LiquidIcons.FlashOn else LiquidIcons.FlashOff,
                     contentDescription = stringResource(
                         if (torchEnabled) Res.string.ui_qr_scanner_torch_on else Res.string.ui_qr_scanner_torch_off,
                     ),
@@ -640,7 +638,7 @@ private fun ZScannerPermissionScope.UniQrPermissionOverlay(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = if (isDeniedAlways) LiquidIcons.Lock else ScannerIcons.Camera,
+                            imageVector = if (isDeniedAlways) LiquidIcons.Lock else LiquidIcons.Camera,
                             contentDescription = null,
                             tint = accent,
                             modifier = Modifier.size(30.dp),
@@ -676,7 +674,7 @@ private fun ZScannerPermissionScope.UniQrPermissionOverlay(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Icon(
-                            imageVector = if (isDeniedAlways) LiquidIcons.Settings else ScannerIcons.Camera,
+                            imageVector = if (isDeniedAlways) LiquidIcons.Settings else LiquidIcons.Camera,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
@@ -752,99 +750,5 @@ fun UniQrScannerDialog(
             onClose = onDismiss,
             onManualInput = onManualInput,
         )
-    }
-}
-
-private object ScannerIcons {
-    val FlashOn: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "FlashOn",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(7f, 2f)
-                verticalLineToRelative(11f)
-                horizontalLineToRelative(3f)
-                verticalLineToRelative(9f)
-                lineToRelative(7f, -12f)
-                horizontalLineToRelative(-4f)
-                lineToRelative(4f, -8f)
-                close()
-            }
-        }.build()
-    }
-
-    val FlashOff: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "FlashOff",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(3.27f, 3f)
-                lineTo(2f, 4.27f)
-                lineToRelative(5f, 5f)
-                verticalLineTo(13f)
-                horizontalLineToRelative(3f)
-                verticalLineToRelative(9f)
-                lineToRelative(3.58f, -6.14f)
-                lineTo(17.73f, 20f)
-                lineTo(19f, 18.73f)
-                lineTo(3.27f, 3f)
-                close()
-                moveTo(17f, 10f)
-                horizontalLineToRelative(-4f)
-                lineToRelative(4f, -8f)
-                horizontalLineTo(7f)
-                verticalLineToRelative(2.18f)
-                lineToRelative(8.46f, 8.46f)
-                lineTo(17f, 10f)
-                close()
-            }
-        }.build()
-    }
-
-    val Camera: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "Camera",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(12f, 9f)
-                curveToRelative(-1.66f, 0f, -3f, 1.34f, -3f, 3f)
-                reflectiveCurveToRelative(1.34f, 3f, 3f, 3f)
-                reflectiveCurveToRelative(3f, -1.34f, 3f, -3f)
-                reflectiveCurveToRelative(-1.34f, -3f, -3f, -3f)
-                close()
-                moveTo(9f, 2f)
-                lineTo(7.17f, 4f)
-                horizontalLineTo(4f)
-                curveToRelative(-1.1f, 0f, -2f, 0.9f, -2f, 2f)
-                verticalLineToRelative(12f)
-                curveToRelative(0f, 1.1f, 0.9f, 2f, 2f, 2f)
-                horizontalLineToRelative(16f)
-                curveToRelative(1.1f, 0f, 2f, -0.9f, 2f, -2f)
-                verticalLineTo(6f)
-                curveToRelative(0f, -1.1f, -0.9f, -2f, -2f, -2f)
-                horizontalLineToRelative(-3.17f)
-                lineTo(15f, 2f)
-                horizontalLineTo(9f)
-                close()
-                moveTo(12f, 17f)
-                curveToRelative(-2.76f, 0f, -5f, -2.24f, -5f, -5f)
-                reflectiveCurveToRelative(2.24f, -5f, 5f, -5f)
-                reflectiveCurveToRelative(5f, 2.24f, 5f, 5f)
-                reflectiveCurveToRelative(-2.24f, 5f, -5f, 5f)
-                close()
-            }
-        }.build()
     }
 }

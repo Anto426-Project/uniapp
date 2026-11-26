@@ -220,9 +220,9 @@ internal fun ThemeModeVisualSection(
     val haptics = LocalHapticFeedback.current
     val tileShape = remember { RoundedRectangle(20.dp) }
     val modes = listOf(
-        Triple(AppThemeMode.System, stringResource(Res.string.ui_theme_mode_system), ThemeIcons.AutoMode),
-        Triple(AppThemeMode.Light, stringResource(Res.string.ui_theme_mode_light), ThemeIcons.LightMode),
-        Triple(AppThemeMode.Dark, stringResource(Res.string.ui_theme_mode_dark), ThemeIcons.DarkMode),
+        Triple(AppThemeMode.System, stringResource(Res.string.ui_theme_mode_system), LiquidIcons.AutoMode),
+        Triple(AppThemeMode.Light, stringResource(Res.string.ui_theme_mode_light), LiquidIcons.LightMode),
+        Triple(AppThemeMode.Dark, stringResource(Res.string.ui_theme_mode_dark), LiquidIcons.DarkMode),
     )
 
     Column(
@@ -325,7 +325,7 @@ internal fun ThemeColorGroup(
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_material_you_title),
             subtitle = stringResource(Res.string.ui_theme_material_you_sub),
-            icon = ThemeIcons.Sparkles,
+            icon = LiquidIcons.Sparkles,
             iconTint = colorScheme.primary,
             showDivider = true,
             trailingContent = {
@@ -416,7 +416,7 @@ internal fun ThemeBackgroundGroup(
             title = stringResource(Res.string.ui_theme_engine_group),
             selected = selectedBackground,
             items = backgroundChoices,
-            icon = ThemeIcons.Wallpaper,
+            icon = LiquidIcons.Wallpaper,
             iconTint = colorScheme.primary,
             onItemSelected = onBackgroundStyleSelected,
             showDivider = true,
@@ -439,7 +439,7 @@ internal fun ThemeBackgroundGroup(
                 value = backgroundSpeedFactor,
                 onValueChange = onBackgroundSpeedChanged,
                 valueRange = 0.25f..2.0f,
-                icon = ThemeIcons.SlowMotion,
+                icon = LiquidIcons.SlowMotion,
                 iconTint = colorScheme.secondary,
                 showDivider = true,
             )
@@ -447,7 +447,7 @@ internal fun ThemeBackgroundGroup(
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_vignette_title),
             subtitle = stringResource(Res.string.ui_theme_vignette_sub),
-            icon = ThemeIcons.Wallpaper,
+            icon = LiquidIcons.Wallpaper,
             iconTint = colorScheme.tertiary,
             showDivider = false,
             trailingContent = {
@@ -493,7 +493,7 @@ internal fun ThemeGlassCustomizationGroup(
             value = liquidIntensity,
             onValueChange = onLiquidIntensityChanged,
             valueRange = 0f..1f,
-            icon = ThemeIcons.Sparkles,
+            icon = LiquidIcons.Sparkles,
             iconTint = colorScheme.secondary,
             showDivider = false,
         )
@@ -574,7 +574,7 @@ internal fun ThemeNavigationBarGroup(
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_navbar_labels_title),
             subtitle = stringResource(Res.string.ui_theme_navbar_labels_sub),
-            icon = ThemeIcons.NavigationBar,
+            icon = LiquidIcons.NavigationBar,
             iconTint = colorScheme.primary,
             showDivider = true,
             trailingContent = {
@@ -584,7 +584,7 @@ internal fun ThemeNavigationBarGroup(
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_navbar_autohide_title),
             subtitle = stringResource(Res.string.ui_theme_navbar_autohide_sub),
-            icon = ThemeIcons.SlowMotion,
+            icon = LiquidIcons.SlowMotion,
             iconTint = colorScheme.secondary,
             showDivider = false,
             trailingContent = {
@@ -612,7 +612,7 @@ internal fun ThemeAnimationsGroup(
         UniInsetRow(
             title = stringResource(Res.string.ui_theme_reduced_motion_title),
             subtitle = stringResource(Res.string.ui_theme_reduced_motion_sub),
-            icon = ThemeIcons.SlowMotion,
+            icon = LiquidIcons.SlowMotion,
             iconTint = colorScheme.tertiary,
             showDivider = true,
             trailingContent = {
@@ -629,7 +629,7 @@ internal fun ThemeAnimationsGroup(
                 title = stringResource(Res.string.ui_theme_page_motion_style),
                 selected = selectedMotion,
                 items = motionChoices,
-                icon = ThemeIcons.PageTransition,
+                icon = LiquidIcons.PageTransition,
                 iconTint = colorScheme.primary,
                 onItemSelected = onTransitionSelected,
                 showDivider = false,
@@ -647,7 +647,7 @@ internal fun ThemeAnimationsGroup(
                 title = stringResource(Res.string.ui_theme_element_entrance_title),
                 selected = selectedEntrance,
                 items = entranceChoices,
-                icon = ThemeIcons.ElementEntrance,
+                icon = LiquidIcons.ElementEntrance,
                 iconTint = colorScheme.secondary,
                 onItemSelected = onEntranceSelected,
                 showDivider = false,
