@@ -128,7 +128,7 @@ internal fun TransportTicketActions(
 
     LiquidCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedRectangle(22.dp),
+        shape = RoundedRectangle(24.dp),
         contentPadding = 18.dp,
     ) {
         Column(
@@ -229,8 +229,8 @@ internal fun TransportTicketActions(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedRectangle(20.dp))
+                        .height(260.dp)
+                        .clip(RoundedRectangle(24.dp))
                         .background(colorScheme.surfaceVariant.copy(alpha = 0.35f))
                         .clipToBounds()
                         .pointerInput(Unit) {

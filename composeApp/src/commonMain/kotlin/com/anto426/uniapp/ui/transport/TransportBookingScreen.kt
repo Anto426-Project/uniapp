@@ -2,6 +2,7 @@ package com.anto426.uniapp.ui.transport
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,7 +35,6 @@ import com.anto426.uniapp.transport.presentation.transportBookingWindow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.transport.components.TransportBookingSummaryCard
-import com.anto426.uniapp.ui.transport.components.TransportRouteStopsPreviewCard
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -176,13 +176,8 @@ fun TransportBookingScreen(
                     selectedItem = uiState.selectedRoute.takeIf(String::isNotBlank),
                     onItemSelected = onRouteSelected,
                     label = stringResource(Res.string.ui_trip_route),
-                    leadingIcon = LiquidIcons.Star,
+                    leadingIcon = LiquidIcons.ArrowForward,
                     modifier = Modifier.fillMaxWidth(),
-                )
-
-                TransportRouteStopsPreviewCard(
-                    selectedRoute = uiState.selectedRoute,
-                    selectedDirection = selectedDirection,
                 )
             }
         }
@@ -262,11 +257,14 @@ fun TransportBookingScreen(
         LiquidButton(
             text = buttonText,
             onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                 onBook(availableSelectedDates.toList().sorted(), selectedDirection)
             },
             enabled = availableSelectedDates.isNotEmpty() && uiState.selectedRoute.isNotBlank(),
             isLoading = uiState.isSubmitting,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 52.dp),
             variant = LiquidButtonVariant.Primary,
             size = LiquidButtonSize.Medium,
         )

@@ -30,19 +30,26 @@ fun ReservationDetailScreen(
     val colorScheme = MaterialTheme.colorScheme
     val isAndata = reservation.direction == TripDirection.ANDATA
 
+    val routeDisplayLabel = when {
+        reservation.departureStop.isNotBlank() && reservation.arrivalStop.isNotBlank() ->
+            "${reservation.departureStop} → ${reservation.arrivalStop}"
+        reservation.departureStop.isNotBlank() -> reservation.departureStop
+        else -> reservation.route
+    }
+
     val detailRows = buildList {
         add(
             Triple(
                 stringResource(Res.string.ui_trip_route),
-                reservation.route,
-                LiquidIcons.Star to colorScheme.primary,
+                routeDisplayLabel,
+                LiquidIcons.NavigationBar to colorScheme.primary,
             ),
         )
         add(
             Triple(
                 stringResource(Res.string.ui_transport_trip_date),
                 reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) } +
-                    reservation.time.takeIf(String::isNotBlank)?.let { " • $it" }.orEmpty(),
+                    reservation.time.takeIf(String::isNotBlank)?.let { " · $it" }.orEmpty(),
                 LiquidIcons.Calendar to colorScheme.primary,
             ),
         )
@@ -57,30 +64,12 @@ fun ReservationDetailScreen(
                 (if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack) to colorScheme.secondary,
             ),
         )
-        if (reservation.departureStop.isNotBlank()) {
-            add(
-                Triple(
-                    stringResource(Res.string.ui_trip_departure_stop),
-                    reservation.departureStop,
-                    LiquidIcons.Home to colorScheme.tertiary,
-                ),
-            )
-        }
-        if (reservation.arrivalStop.isNotBlank()) {
-            add(
-                Triple(
-                    stringResource(Res.string.ui_trip_arrival_stop),
-                    reservation.arrivalStop,
-                    LiquidIcons.Home to colorScheme.tertiary,
-                ),
-            )
-        }
         if (reservation.busNumber.isNotBlank()) {
             add(
                 Triple(
                     stringResource(Res.string.ui_trip_bus_assigned),
                     stringResource(Res.string.ui_transport_navetta_number, reservation.busNumber),
-                    LiquidIcons.Info to colorScheme.primary,
+                    LiquidIcons.Badge to colorScheme.primary,
                 ),
             )
         }

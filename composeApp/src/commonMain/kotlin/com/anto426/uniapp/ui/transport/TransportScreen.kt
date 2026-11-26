@@ -57,28 +57,16 @@ fun TransportScreen(
         } else {
             if (outboundCount > 0 && returnCount > 0) {
                 val filterOptions = listOf(
-                    Triple(
-                        TransportDirectionFilter.ALL,
-                        stringResource(Res.string.ui_transport_all_filter),
-                        allReservations.size,
-                    ),
-                    Triple(
-                        TransportDirectionFilter.OUTBOUND,
-                        stringResource(Res.string.ui_transport_outbound_short),
-                        outboundCount,
-                    ),
-                    Triple(
-                        TransportDirectionFilter.RETURN,
-                        stringResource(Res.string.ui_transport_return_short),
-                        returnCount,
-                    ),
+                    TransportDirectionFilter.ALL to stringResource(Res.string.ui_transport_all_filter),
+                    TransportDirectionFilter.OUTBOUND to stringResource(Res.string.ui_transport_outbound_short),
+                    TransportDirectionFilter.RETURN to stringResource(Res.string.ui_transport_return_short),
                 )
                 UniHorizontalChipRow {
-                    filterOptions.forEach { (option, label, count) ->
+                    filterOptions.forEach { (option, label) ->
                         key(option) {
                             val selected = directionFilter == option
                             LiquidChip(
-                                label = "$label ($count)",
+                                label = label,
                                 selected = selected,
                                 leadingIcon = if (selected) LiquidIcons.Check else null,
                                 onClick = { directionFilter = option },
@@ -105,7 +93,7 @@ fun TransportScreen(
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     if (activeFilteredDays.isEmpty()) {
                         LiquidEmptyState(
@@ -120,21 +108,29 @@ fun TransportScreen(
                                 val filteredSummary = buildList {
                                     if (outgoing > 0) add("$outgoing ${stringResource(Res.string.ui_transport_outbound_short)}")
                                     if (returning > 0) add("$returning ${stringResource(Res.string.ui_transport_return_short)}")
-                                }.joinToString(" • ").ifBlank { day.directionSummary }
+                                }.joinToString(" · ").ifBlank { day.directionSummary }
 
-                                LiquidSectionHeader(
-                                    title = day.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) },
-                                    subtitle = filteredSummary,
-                                )
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    LiquidSectionHeader(
+                                        title = day.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) },
+                                        subtitle = filteredSummary,
+                                    )
 
-                                UniInsetGroup(entranceOrder = uniListEntranceOrder(dayIndex)) {
-                                    day.reservations.forEachIndexed { index, reservation ->
-                                        key(reservation.id, reservation.direction, reservation.time, reservation.route) {
-                                            TransportReservationItem(
-                                                reservation = reservation,
-                                                onClick = onReservationClick?.let { open -> { open(reservation) } },
-                                                showDivider = index < day.reservations.lastIndex,
-                                            )
+                                    UniInsetGroup(
+                                        cornerRadius = 24.dp,
+                                        entranceOrder = uniListEntranceOrder(dayIndex),
+                                    ) {
+                                        day.reservations.forEachIndexed { index, reservation ->
+                                            key(reservation.id, reservation.direction, reservation.time, reservation.route) {
+                                                TransportReservationItem(
+                                                    reservation = reservation,
+                                                    onClick = onReservationClick?.let { open -> { open(reservation) } },
+                                                    showDivider = index < day.reservations.lastIndex,
+                                                )
+                                            }
                                         }
                                     }
                                 }

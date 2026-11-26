@@ -2,6 +2,7 @@ package com.anto426.uniapp.ui.transport.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.TripBookingDirection
 import com.anto426.uniapp.transport.presentation.transportRouteStopsFor
 import com.kyant.shapes.RoundedRectangle
@@ -33,59 +36,6 @@ import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
 @Composable
-internal fun TransportRouteStopsPreviewCard(
-    selectedRoute: String,
-    selectedDirection: TripBookingDirection,
-) {
-    if (selectedRoute.isBlank()) return
-    val outbound = transportRouteStopsFor(selectedRoute, TripBookingDirection.OUTBOUND)
-    val returning = transportRouteStopsFor(selectedRoute, TripBookingDirection.RETURN)
-    if (outbound.departureStop.isBlank() || outbound.arrivalStop.isBlank()) return
-
-    val colorScheme = MaterialTheme.colorScheme
-    LiquidCard(
-        shape = RoundedRectangle(18.dp),
-        contentPadding = 14.dp,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Time,
-                contentDescription = null,
-                tint = colorScheme.primary,
-                modifier = Modifier.liquidIconContainer(
-                    containerSize = 36.dp,
-                    iconSize = 18.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                    shape = RoundedRectangle(11.dp),
-                ),
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = when (selectedDirection) {
-                        TripBookingDirection.OUTBOUND -> "${outbound.departureStop} → ${outbound.arrivalStop}"
-                        TripBookingDirection.RETURN -> "${returning.departureStop} → ${returning.arrivalStop}"
-                        TripBookingDirection.ROUND_TRIP -> "${outbound.departureStop} ⇄ ${outbound.arrivalStop}"
-                    },
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorScheme.onSurface,
-                )
-                Text(
-                    text = selectedRoute,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 internal fun TransportBookingSummaryCard(
     selectedRoute: String,
     selectedDirection: TripBookingDirection,
@@ -93,11 +43,12 @@ internal fun TransportBookingSummaryCard(
     monthNamesShort: List<String>,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val glassColors = LiquidGlassTheme.colors
     val totalRides = availableSelectedDates.size * (if (selectedDirection == TripBookingDirection.ROUND_TRIP) 2 else 1)
 
     LiquidCard(
-        shape = RoundedRectangle(24.dp),
-        contentPadding = 18.dp,
+        shape = RoundedRectangle(28.dp),
+        contentPadding = PaddingValues(20.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -109,6 +60,7 @@ internal fun TransportBookingSummaryCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f),
                 ) {
                     Icon(
                         imageVector = LiquidIcons.Badge,
@@ -125,9 +77,14 @@ internal fun TransportBookingSummaryCard(
                         text = stringResource(Res.string.ui_transport_summary_ride),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.25).sp,
                         color = colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
+
+                Spacer(Modifier.width(8.dp))
 
                 LiquidBadge(
                     text = when (selectedDirection) {
@@ -146,110 +103,77 @@ internal fun TransportBookingSummaryCard(
                 listOf(selectedDirection)
             }
 
-            directions.forEach { direction ->
-                val display = transportRouteStopsFor(selectedRoute, direction)
-                if (directions.size > 1) {
-                    Text(
-                        text = stringResource(
-                            if (direction == TripBookingDirection.OUTBOUND) Res.string.ui_trip_outbound
-                            else Res.string.ui_trip_return,
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                    )
-                }
-
-                if (display.arrivalStop.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                directions.forEach { direction ->
+                    val display = transportRouteStopsFor(selectedRoute, direction)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (directions.size > 1) {
                             Text(
-                                text = display.departureStop,
-                                style = MaterialTheme.typography.titleSmall,
+                                text = stringResource(
+                                    if (direction == TripBookingDirection.OUTBOUND) Res.string.ui_trip_outbound
+                                    else Res.string.ui_trip_return,
+                                ).uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                letterSpacing = 0.5.sp,
+                                color = colorScheme.primary,
                             )
                         }
 
-                        Icon(
-                            imageVector = LiquidIcons.ArrowForward,
-                            contentDescription = null,
-                            tint = colorScheme.primary,
-                            modifier = Modifier
-                                .padding(horizontal = 10.dp)
-                                .liquidIconContainer(
-                                    containerSize = 30.dp,
-                                    iconSize = 16.dp,
-                                    containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                                    shape = CircleShape,
-                                ),
-                        )
+                        if (display.arrivalStop.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(
+                                    text = display.departureStop,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
 
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.End,
-                        ) {
+                                Icon(
+                                    imageVector = LiquidIcons.ArrowForward,
+                                    contentDescription = null,
+                                    tint = colorScheme.primary,
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp)
+                                        .liquidIconContainer(
+                                            containerSize = 28.dp,
+                                            iconSize = 15.dp,
+                                            containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                                            shape = CircleShape,
+                                        ),
+                                )
+
+                                Text(
+                                    text = display.arrivalStop,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                                )
+                            }
+                        } else {
                             Text(
-                                text = display.arrivalStop,
+                                text = display.label,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                color = colorScheme.primary,
                             )
                         }
                     }
-                } else {
-                    Text(
-                        text = display.label,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                    )
                 }
             }
 
-            LiquidHorizontalDivider()
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = LiquidIcons.Check,
-                    contentDescription = null,
-                    tint = colorScheme.primary,
-                    modifier = Modifier.liquidIconContainer(
-                        containerSize = 34.dp,
-                        iconSize = 18.dp,
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                        shape = CircleShape,
-                    ),
-                )
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = stringResource(Res.string.ui_transport_seat_reserved_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onSurface,
-                    )
-                    Text(
-                        text = stringResource(Res.string.ui_transport_seat_reserved_desc),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            LiquidHorizontalDivider()
+            LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -265,7 +189,7 @@ internal fun TransportBookingSummaryCard(
                         imageVector = LiquidIcons.Calendar,
                         contentDescription = null,
                         tint = colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                     )
                     val formattedDateSummary = remember(availableSelectedDates, monthNamesShort) {
                         if (availableSelectedDates.size == 1) {
@@ -279,10 +203,11 @@ internal fun TransportBookingSummaryCard(
                     }
                     Text(
                         text = formattedDateSummary,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"),
                         fontWeight = FontWeight.SemiBold,
                         color = colorScheme.onSurface,
                         maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
 
@@ -296,6 +221,26 @@ internal fun TransportBookingSummaryCard(
                     ),
                     containerColor = colorScheme.primary.copy(alpha = 0.14f),
                     contentColor = colorScheme.primary,
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    imageVector = LiquidIcons.Check,
+                    contentDescription = null,
+                    tint = glassColors.success,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = stringResource(Res.string.ui_transport_seat_reserved_title),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = glassColors.success,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

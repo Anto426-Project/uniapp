@@ -35,10 +35,16 @@ internal fun TransportRouteContent(context: AppRouteContext) {
         TransportScreen(
             uiState = transportUiState,
             onReservationClick = { reservation ->
+                val cleanTitle = when {
+                    reservation.departureStop.isNotBlank() && reservation.arrivalStop.isNotBlank() ->
+                        "${reservation.departureStop} → ${reservation.arrivalStop}"
+                    reservation.departureStop.isNotBlank() -> reservation.departureStop
+                    else -> reservation.route
+                }
                 context.navigator.navigate(
                     AppRoute.ReservationDetail(
                         reservationId = reservation.id,
-                        title = reservation.route,
+                        title = cleanTitle,
                     ),
                 )
             },

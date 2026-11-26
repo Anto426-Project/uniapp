@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import com.kyant.shapes.RoundedRectangle
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,22 +21,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.glass.LiquidGlassRole
-import com.anto426.liquidmonet.glass.liquidGlass
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.uniapp.codes.CodeFormat
+import com.anto426.uniapp.codes.DecodedCode
 import com.anto426.uniapp.data.contract.TransportReservation
 import com.anto426.uniapp.data.contract.TripDirection
-import com.anto426.uniapp.codes.DecodedCode
-import com.anto426.uniapp.codes.CodeFormat
 import com.anto426.uniapp.ui.didactics.components.UniAppBrandLogo
 import com.kyant.shapes.Capsule
 import org.jetbrains.compose.resources.stringResource
@@ -73,40 +70,51 @@ fun ReservationHeroFrontFace(
             pillText = stringResource(Res.string.ui_transport_quick_qr),
         )
 
-        // Center Content
+        // Center Content (flat tonal emblem — zero nested .liquidGlass inside UniHeroGlassCard)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Box(
                 modifier = Modifier
-                    .size(76.dp)
-                    .liquidGlass(
-                        shape = Capsule(),
-                        role = LiquidGlassRole.Control,
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f)
-                    ),
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(colorScheme.primary.copy(alpha = 0.14f), CircleShape)
+                    .border(1.dp, colorScheme.primary.copy(alpha = 0.24f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
                     contentDescription = null,
                     tint = colorScheme.primary,
-                    modifier = Modifier.size(38.dp),
+                    modifier = Modifier.size(34.dp),
                 )
             }
 
-            Text(
-                text = reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black,
-                color = colorScheme.onSurface,
-                letterSpacing = (-0.5).sp,
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) },
+                    style = MaterialTheme.typography.headlineMedium.copy(fontFeatureSettings = "tnum"),
+                    fontWeight = FontWeight.Black,
+                    color = colorScheme.onSurface,
+                    letterSpacing = (-0.6).sp,
+                )
+                if (reservation.time.isNotBlank()) {
+                    Text(
+                        text = reservation.time,
+                        style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"),
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.primary,
+                    )
+                }
+            }
 
             LiquidBadge(
                 text = if (isAndata) stringResource(Res.string.ui_trip_outbound) else stringResource(Res.string.ui_trip_return),
-                containerColor = colorScheme.primaryContainer,
+                containerColor = colorScheme.primary.copy(alpha = 0.14f),
                 contentColor = colorScheme.primary,
             )
 
@@ -301,12 +309,12 @@ private fun ReservationHeroHeader(
 
         Box(
             modifier = Modifier
-                .clip(RoundedRectangle(16.dp))
-                .background(color = colorScheme.surface.copy(alpha = 0.24f))
+                .clip(Capsule())
+                .background(color = colorScheme.primary.copy(alpha = 0.12f))
                 .border(
-                    width = 0.6.dp,
-                    color = Color.White.copy(alpha = 0.22f),
-                    shape = RoundedRectangle(16.dp),
+                    width = 1.dp,
+                    color = colorScheme.primary.copy(alpha = 0.22f),
+                    shape = Capsule(),
                 )
                 .padding(horizontal = 10.dp, vertical = 5.dp),
             contentAlignment = Alignment.Center,
