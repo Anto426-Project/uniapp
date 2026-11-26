@@ -63,7 +63,7 @@ export function FluidSegmentedControl<T extends string>({
                 transition={
                   reducedMotion
                     ? { duration: 0.12 }
-                    : { type: 'spring', bounce: 0.12, duration: 0.38 }
+                    : { type: 'spring', bounce: 0, duration: 0.34 }
                 }
               />
             )}

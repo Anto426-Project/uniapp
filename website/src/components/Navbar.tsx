@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Download, Menu, Moon, Sun, X } from 'lucide-react';
 import { MONET_THEMES } from '@/data/screenshots';
 import { withBasePath } from '@/utils/basePath';
-import { hapticSnap } from '@/lib/fluid-physics';
+import { hapticSnap, project } from '@/lib/fluid-physics';
 import { useSite } from './SiteShell';
 import { FluidSegmentedControl } from './FluidSegmentedControl';
 
@@ -24,7 +24,7 @@ const SECTIONS: readonly NavSection[] = [
 ];
 
 export function Navbar() {
-  const { theme, setTheme, appearance, toggleAppearance, reducedMotion } = useSite();
+  const { theme, setTheme, appearance, toggleAppearance, reducedMotion, setModalDepth } = useSite();
   const pathname = usePathname() || '/';
   const isIosPage = pathname === '/ios' || pathname.startsWith('/ios/');
   const homePrefix = isIosPage ? withBasePath('/') : '';
@@ -60,7 +60,11 @@ export function Navbar() {
   }, [isIosPage]);
 
   useEffect(() => {
-    if (!sheetOpen) return;
+    if (!sheetOpen) {
+      setModalDepth(0);
+      return;
+    }
+    setModalDepth(1);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
@@ -68,14 +72,15 @@ export function Navbar() {
     };
     window.addEventListener('keydown', onKey);
     return () => {
+      setModalDepth(0);
       document.body.style.overflow = prevOverflow;
       window.removeEventListener('keydown', onKey);
     };
-  }, [sheetOpen]);
+  }, [sheetOpen, setModalDepth]);
 
   return (
     <>
-      <header className="nav-island-wrap">
+      <header className="nav-island-wrap" data-scrolled={scrolled}>
         <nav
           className="nav-island"
           data-scrolled={scrolled}
@@ -110,7 +115,7 @@ export function Navbar() {
                       transition={
                         reducedMotion
                           ? { duration: 0.12 }
-                          : { type: 'spring', bounce: 0.14, duration: 0.4 }
+                          : { type: 'spring', bounce: 0, duration: 0.34 }
                       }
                     />
                   )}
@@ -131,11 +136,26 @@ export function Navbar() {
               aria-label={appearance === 'dark' ? 'Attiva aspetto chiaro' : 'Attiva aspetto scuro'}
               title={appearance === 'dark' ? 'Passa a tema chiaro' : 'Passa a tema scuro'}
             >
-              {appearance === 'dark' ? (
-                <Sun className="w-4 h-4" aria-hidden="true" />
-              ) : (
-                <Moon className="w-4 h-4" aria-hidden="true" />
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={appearance}
+                  className="inline-flex items-center justify-center"
+                  initial={reducedMotion ? false : { opacity: 0, rotate: -40, scale: 0.72 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={reducedMotion ? undefined : { opacity: 0, rotate: 40, scale: 0.72 }}
+                  transition={
+                    reducedMotion
+                      ? { duration: 0.1 }
+                      : { type: 'spring', bounce: 0, duration: 0.28 }
+                  }
+                >
+                  {appearance === 'dark' ? (
+                    <Sun className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Moon className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </motion.span>
+              </AnimatePresence>
             </button>
 
             <a href={`${homePrefix}#download`} className="nav-download-cta">
@@ -196,10 +216,17 @@ export function Navbar() {
                 drag={reducedMotion ? false : 'y'}
                 dragConstraints={{ top: 0, bottom: 0 }}
                 dragElastic={{ top: 0.08, bottom: 0.6 }}
+                onDrag={(_, info) => {
+                  const dismissProgress = Math.max(0, Math.min(1, info.offset.y / 260));
+                  setModalDepth(1 - dismissProgress);
+                }}
                 onDragEnd={(_, info) => {
-                  if (info.offset.y > 90 || info.velocity.y > 420) {
+                  const projectedY = info.offset.y + project(info.velocity.y, 0.992);
+                  if (projectedY > 110) {
                     hapticSnap(5);
                     setSheetOpen(false);
+                  } else {
+                    setModalDepth(1);
                   }
                 }}
               >

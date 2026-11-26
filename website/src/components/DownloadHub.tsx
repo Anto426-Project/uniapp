@@ -1,20 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { motion, useScroll, useSpring, useTransform } from 'motion/react';
 import { Check, Copy, Download, ExternalLink, FileText, ShieldCheck, Smartphone, Zap } from 'lucide-react';
-import type { MonetThemeId } from '@/data/types';
 import { withBasePath } from '@/utils/basePath';
 import { hapticSnap } from '@/lib/fluid-physics';
 import { useSite } from './SiteShell';
 import { FluidReveal } from './FluidReveal';
-import SpotlightCard from './reactbits/SpotlightCard';
-
-const SPOTLIGHT_HEX: Record<MonetThemeId, string> = {
-  sapphire: '#5AA4F0',
-  emerald: '#3BD67F',
-  sunset: '#F09038',
-  violet: '#B074D4',
-};
+import Magnet from './Magnet';
 
 const FALLBACK_CHANGELOG: string[] = [
   '**Liquid Monet 2**: superfici optical glass, palette dinamiche Material You e varianti Dark e Light.',
@@ -42,7 +35,7 @@ function renderInlineMarkdown(text: string): React.ReactNode[] {
   return parts.map((part, idx) => {
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
       return (
-        <strong key={idx} style={{ fontWeight: 600, color: 'var(--label-primary)' }}>
+        <strong key={idx} className="changelog-strong">
           {part.slice(2, -2)}
         </strong>
       );
@@ -66,18 +59,20 @@ function AppleLogo({ className }: { className?: string }) {
   );
 }
 
-/**
- * Full-Width Apple Bento Download & Changelog Showcase:
- * - Uses 100% of `.container-shell` (`76rem`), aligned pixel-for-pixel with Features & Architecture grids
- * - Top row: 2 symmetrical SpotlightCard platform tiles (Android | iOS)
- * - Bottom row: Always-visible full-width SpotlightCard `#changelog` with bounded internal scroll
- */
 export function DownloadHub() {
-  const { theme, appearance, release, platforms } = useSite();
+  const { reducedMotion, release, platforms } = useSite();
   const [copied, setCopied] = useState(false);
+  const lockupRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: lockupRef,
+    offset: ['start end', 'center center'],
+  });
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 150, damping: 26, mass: 0.4 });
+  const squircleScale = useTransform(smoothScroll, [0, 1], [0.88, 1]);
+  const squircleY = useTransform(smoothScroll, [0, 1], [16, 0]);
 
   const iosRelease = platforms.platforms.ios;
-  const spotColor = SPOTLIGHT_HEX[theme];
 
   const hasAndroidVersion = Boolean(release?.latestVersion);
   const version = release?.latestVersion
@@ -115,193 +110,194 @@ export function DownloadHub() {
 
   return (
     <section id="download" className="section-block download-showcase">
-      <div className="download-ambient-glow" aria-hidden="true" />
-
       <div className="container-shell relative z-10">
-        <FluidReveal>
-          <div className="download-lockup">
-            <div className="download-squircle">
-              <img
-                src={withBasePath('/assets/uniapp-icon.webp')}
-                alt="Icona UniApp"
-                width={72}
-                height={72}
-              />
-            </div>
+        <FluidReveal materialize>
+          <div ref={lockupRef} className="download-lockup">
+            <motion.div
+              style={reducedMotion ? undefined : { scale: squircleScale, y: squircleY }}
+            >
+              <Magnet padding={36} magnetStrength={6} maxOffset={5} disabled={reducedMotion}>
+                <div className="download-squircle">
+                  <img
+                    src={withBasePath('/assets/uniapp-icon.webp')}
+                    alt="Icona UniApp"
+                    width={76}
+                    height={76}
+                  />
+                </div>
+              </Magnet>
+            </motion.div>
             <h2 className="type-title-1">Scarica UniApp.</h2>
             <p className="type-body download-lockup-sub">
-              Gratuita, open source e senza tracciamento per Android e iOS.
+              Gratuita, open source e verificabile su Android e iOS.
             </p>
           </div>
         </FluidReveal>
 
-        {/* Full-Width 2-Column Platform Grid (100% of container-shell) */}
-        <FluidReveal delayMs={50}>
-          <div className="download-platform-grid">
-            {/* Tile 1: Android */}
-            <SpotlightCard
-              theme={appearance}
-              spotlightColor={spotColor}
-              intensity={0.15}
-              spotlightSize={320}
-              borderGlow={0.65}
-              className="download-platform-card"
-            >
-              <div className="download-card-inner">
-                <div className="download-card-head">
-                  <div className="download-platform-brand">
-                    <span className="download-os-icon download-os-icon--accent" aria-hidden="true">
-                      <Smartphone className="w-4 h-4" />
-                    </span>
-                    <span className="download-os-name">Android</span>
-                  </div>
-                  <span className="ver-text">
-                    {hasAndroidVersion ? version : 'ARM64 · 64 bit'}
+        {/* Symmetrical 2-Column Platform Cards */}
+        <div className="download-platform-grid">
+          {/* Android Card (div — preserving <article> strictly for iOS) */}
+          <FluidReveal delayMs={40} materialize className="flex">
+            <div className="dl-card w-full">
+              <div className="dl-card-head">
+                <div className="dl-brand">
+                  <span className="dl-os-icon dl-os-icon--accent" aria-hidden="true">
+                    <Smartphone className="w-4 h-4" />
                   </span>
+                  <span className="dl-os-name">Android</span>
                 </div>
+                <span className="ver-text">
+                  {hasAndroidVersion ? version : 'ARM64 · 64 bit'}
+                </span>
+              </div>
 
-                <p id="android-release-hint" className="download-card-desc">
-                  Android 10 o successivo · Pacchetto APK firmato a 64 bit pronto da installare, con aggiornamenti rapidi integrati.
-                </p>
+              <p id="android-release-hint" className="dl-card-desc">
+                Android 10 o successivo · Pacchetto APK firmato a 64 bit pronto da installare, con aggiornamenti rapidi integrati.
+              </p>
 
-                <div className="download-card-actions">
+              <div className="dl-card-actions">
+                <Magnet
+                  padding={34}
+                  magnetStrength={6}
+                  maxOffset={5}
+                  disabled={reducedMotion}
+                  wrapperClassName="dl-primary-magnet"
+                  innerClassName="w-full"
+                >
                   <a
                     href={androidHref}
                     download={hasDirectApk ? true : undefined}
                     target={hasDirectApk ? undefined : '_blank'}
                     rel={hasDirectApk ? undefined : 'noopener noreferrer'}
-                    className="btn-primary download-cta-btn"
+                    className="btn-primary w-full"
                   >
                     <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
                     <span>Scarica APK ARM64</span>
                   </a>
+                </Magnet>
 
-                  {hasDirectApk && (
-                    <button
-                      type="button"
-                      className="copy-icon-btn"
-                      onClick={copyDownloadUrl}
-                      title={copied ? 'Link copiato' : 'Copia link APK ARM64'}
-                      aria-label={copied ? 'Link APK copiato negli appunti' : 'Copia link APK ARM64'}
-                    >
-                      {copied ? (
-                        <Check className="w-3.5 h-3.5" style={{ color: 'var(--status-green)' }} aria-hidden="true" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </SpotlightCard>
-
-            {/* Tile 2: iOS (the sole <article> inside #download) */}
-            <article aria-label="Download iOS" className="download-article-wrap">
-              <SpotlightCard
-                theme={appearance}
-                spotlightColor={spotColor}
-                intensity={0.14}
-                spotlightSize={320}
-                borderGlow={0.6}
-                className="download-platform-card"
-              >
-                <div className="download-card-inner">
-                  <div className="download-card-head">
-                    <div className="download-platform-brand">
-                      <span className="download-os-icon" aria-hidden="true">
-                        <AppleLogo className="w-4 h-4" />
-                      </span>
-                      <span className="download-os-name">iOS</span>
-                    </div>
-                    <span className="download-os-pill">
-                      {iosRelease ? `Versione ${iosRelease.version}` : 'iPhone · KMP'}
-                    </span>
-                  </div>
-
-                  <p className="download-card-desc">
-                    L’IPA richiede firma e provisioning: firmalo nel browser col tuo Apple ID via WebUSB o SideStore; il bundle simulatore è separato.
-                  </p>
-
-                  <div className="download-card-actions">
-                    <a href={withBasePath('/ios/')} className="btn-primary download-cta-btn">
-                      <Zap className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                      <span>Sideload Web</span>
-                    </a>
-                    {iosDownloads.length > 0 ? (
-                      iosDownloads.map((file) => (
-                        <a key={file.name} className="btn-material download-secondary-btn" href={file.url}>
-                          <Download className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                          <span>{file.name.endsWith('.ipa') ? 'IPA iOS' : 'Bundle simulatore'}</span>
-                        </a>
-                      ))
-                    ) : (
-                      <a
-                        href={iosRelease?.url || 'https://github.com/Anto426-Project/uniapp-upstream/releases'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-material download-secondary-btn"
-                      >
-                        <span>Rilasci su GitHub</span>
-                        <ExternalLink className="w-3.5 h-3.5 opacity-65" aria-hidden="true" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </SpotlightCard>
-            </article>
-          </div>
-        </FluidReveal>
-
-        {/* Full-Width Bounded Changelog Card (100% of container-shell, always visible) */}
-        <FluidReveal delayMs={80}>
-          <SpotlightCard
-            theme={appearance}
-            spotlightColor={spotColor}
-            intensity={0.12}
-            spotlightSize={360}
-            borderGlow={0.55}
-            className="changelog-card"
-          >
-            <div id="changelog" className="changelog-card-inner">
-              <div className="changelog-drawer-head">
-                <div className="changelog-head-left">
-                  <span className="changelog-head-icon" aria-hidden="true">
-                    <FileText className="w-3.5 h-3.5" />
-                  </span>
-                  <span className="changelog-drawer-title">
-                    {parsedNotes.length > 0 && version
-                      ? `Note di rilascio · ${version}`
-                      : 'Note di rilascio'}
-                  </span>
-                </div>
-
-                <div className="changelog-head-links">
-                  <a
-                    href="https://github.com/Anto426-Project/uniapp-upstream/releases"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-link"
+                {hasDirectApk && (
+                  <button
+                    type="button"
+                    className="copy-icon-btn"
+                    data-copied={copied}
+                    onClick={copyDownloadUrl}
+                    title={copied ? 'Link copiato' : 'Copia link APK ARM64'}
+                    aria-label={copied ? 'Link APK copiato negli appunti' : 'Copia link APK ARM64'}
                   >
-                    <ShieldCheck className="w-3.5 h-3.5 opacity-75" style={{ color: 'var(--accent)' }} aria-hidden="true" />
-                    <span>SHA-256 e storico rilasci</span>
-                    <ExternalLink className="w-3 h-3 opacity-60" aria-hidden="true" />
-                  </a>
-                </div>
-              </div>
-
-              <div
-                className="changelog-scroll-region"
-                tabIndex={0}
-                aria-label="Elenco delle note di rilascio"
-              >
-                <ul className="changelog-minimal-list">
-                  {changelogEntries.map((entry, idx) => (
-                    <li key={idx}>{renderInlineMarkdown(entry)}</li>
-                  ))}
-                </ul>
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--status-green)' }} aria-hidden="true" />
+                        <span className="copy-btn-feedback">Copiato</span>
+                      </>
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    )}
+                  </button>
+                )}
+                <span className="sr-only" role="status" aria-live="polite">
+                  {copied ? 'Link APK copiato negli appunti.' : ''}
+                </span>
               </div>
             </div>
-          </SpotlightCard>
+          </FluidReveal>
+
+          {/* iOS Card (sole <article> inside #download) */}
+          <FluidReveal delayMs={105} materialize className="flex">
+            <article aria-label="Download iOS" className="dl-card w-full">
+              <div className="dl-card-head">
+                <div className="dl-brand">
+                  <span className="dl-os-icon" aria-hidden="true">
+                    <AppleLogo className="w-4 h-4" />
+                  </span>
+                  <span className="dl-os-name">iOS</span>
+                </div>
+                <span className="dl-version-pill">
+                  {iosRelease ? `Versione ${iosRelease.version}` : 'iPhone · KMP'}
+                </span>
+              </div>
+
+              <p className="dl-card-desc">
+                L&apos;IPA richiede firma e provisioning: firmalo nel browser col tuo Apple ID via WebUSB o SideStore; il bundle simulatore è separato.
+              </p>
+
+              <div className="dl-card-actions">
+                <Magnet
+                  padding={34}
+                  magnetStrength={6}
+                  maxOffset={5}
+                  disabled={reducedMotion}
+                  wrapperClassName="dl-primary-magnet"
+                  innerClassName="w-full"
+                >
+                  <a href={withBasePath('/ios/')} className="btn-primary w-full">
+                    <Zap className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    <span>Sideload Web</span>
+                  </a>
+                </Magnet>
+
+                {iosDownloads.length > 0 ? (
+                  iosDownloads.map((file) => (
+                    <a key={file.name} className="btn-material dl-secondary-btn" href={file.url}>
+                      <Download className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                      <span>{file.name.endsWith('.ipa') ? 'IPA iOS' : 'Bundle simulatore'}</span>
+                    </a>
+                  ))
+                ) : (
+                  <a
+                    href={iosRelease?.url || 'https://github.com/Anto426-Project/uniapp-upstream/releases'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-material dl-secondary-btn"
+                  >
+                    <span>Rilasci su GitHub</span>
+                    <ExternalLink className="w-3.5 h-3.5 opacity-65" aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </article>
+          </FluidReveal>
+        </div>
+
+        {/* Bounded Inset-Grouped Release Notes Sheet */}
+        <FluidReveal delayMs={110} materialize>
+          <div id="changelog" className="changelog-sheet">
+            <div className="changelog-sheet-head">
+              <div className="changelog-head-left">
+                <span className="changelog-head-icon" aria-hidden="true">
+                  <FileText className="w-3.5 h-3.5" />
+                </span>
+                <span className="changelog-sheet-title">
+                  {parsedNotes.length > 0 && version
+                    ? `Note di rilascio · ${version}`
+                    : 'Note di rilascio'}
+                </span>
+              </div>
+
+              <a
+                href="https://github.com/Anto426-Project/uniapp-upstream/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-link"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} aria-hidden="true" />
+                <span>SHA-256 e storico rilasci</span>
+                <ExternalLink className="w-3 h-3 opacity-60" aria-hidden="true" />
+              </a>
+            </div>
+
+            <div
+              className="changelog-scroll-region"
+              tabIndex={0}
+              aria-label="Elenco delle note di rilascio"
+            >
+              <ul className="changelog-list">
+                {changelogEntries.map((entry, idx) => (
+                  <li key={idx}>{renderInlineMarkdown(entry)}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </FluidReveal>
       </div>
     </section>

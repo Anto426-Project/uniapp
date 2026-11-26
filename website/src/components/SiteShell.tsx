@@ -10,6 +10,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { motion, useScroll, useSpring } from 'motion/react';
 import type {
   AppearanceMode,
   MonetThemeId,
@@ -76,6 +77,12 @@ export function SiteShell({
   }>({ open: false, index: 0, openedIndex: 0, stepped: false, originRect: null });
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll();
+  const scrollScaleX = useSpring(scrollYProgress, {
+    stiffness: 180,
+    damping: 30,
+    restDelta: 0.001,
+  });
 
   // Sync prefers-reduced-motion live
   useEffect(() => {
@@ -263,6 +270,18 @@ export function SiteShell({
 
   return (
     <SiteContext.Provider value={contextValue}>
+      <a href="#main-content" className="skip-link">
+        Vai al contenuto principale
+      </a>
+
+      {!reducedMotion && (
+        <motion.div
+          className="scroll-progress-bar"
+          style={{ scaleX: scrollScaleX }}
+          aria-hidden="true"
+        />
+      )}
+
       <div className="ambient-backdrop" aria-hidden="true">
         <div className="ambient-wash-top" />
         <div className="ambient-wash-bottom" />

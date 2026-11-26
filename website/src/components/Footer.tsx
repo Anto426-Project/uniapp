@@ -23,7 +23,7 @@ export function Footer() {
       <div className="container-shell">
         <div className="footer-top-strip">
           <div className="footer-brand-row">
-            <a href="#" className="nav-brand">
+            <a href={isHome(homePrefix) ? '#' : homePrefix} className="nav-brand">
               <img
                 src={withBasePath('/assets/uniapp-icon.webp')}
                 alt="UniApp"
@@ -222,4 +222,8 @@ export function Footer() {
       </div>
     </footer>
   );
+}
+
+function isHome(prefix: string): boolean {
+  return prefix === '';
 }

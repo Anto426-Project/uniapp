@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
@@ -102,13 +103,18 @@ export function FluidCarousel({
         });
       }
 
-      const unitDist = Math.abs(diff) * Math.max(snaps.length, 1);
-      const scale = reducedMotion ? 1 : clamp(1 - unitDist * 0.085, 0.88, 1);
-      const opacity = clamp(1 - unitDist * 0.42, 0.32, 1);
+      const signedDist = diff * Math.max(snaps.length, 1);
+      const unitDist = Math.abs(signedDist);
+      const scale = reducedMotion ? 1 : clamp(1 - unitDist * 0.095, 0.84, 1);
+      const opacity = clamp(1 - unitDist * 0.38, 0.28, 1);
+      const rotateY = reducedMotion ? 0 : clamp(signedDist * -6.5, -12, 12);
+      const translateY = reducedMotion ? 0 : clamp(unitDist * 9, 0, 18);
 
       const node = innerRefs.current[snapIndex];
       if (node) {
-        node.style.transform = `scale3d(${scale.toFixed(4)}, ${scale.toFixed(4)}, 1)`;
+        node.style.transform = reducedMotion
+          ? 'none'
+          : `perspective(1200px) translate3d(0, ${translateY.toFixed(2)}px, 0) rotateY(${rotateY.toFixed(2)}deg) scale3d(${scale.toFixed(4)}, ${scale.toFixed(4)}, 1)`;
         node.style.opacity = opacity.toFixed(3);
       }
     });
@@ -277,7 +283,22 @@ export function FluidCarousel({
       {/* Active Screen Caption + Quiet iOS Page Dots */}
       <div className="screenshot-carousel__meta">
         <div className="screenshot-carousel__meta-head">
-          <h3 className="type-headline">{activeItem.title}</h3>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.h3
+              key={`title-${activeItem.id}`}
+              className="type-headline"
+              initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reducedMotion ? undefined : { opacity: 0, y: -5 }}
+              transition={
+                reducedMotion
+                  ? { duration: 0.08 }
+                  : { type: 'spring', bounce: 0, duration: 0.26 }
+              }
+            >
+              {activeItem.title}
+            </motion.h3>
+          </AnimatePresence>
           <span
             className="screenshot-carousel__position"
             aria-live="polite"
@@ -286,7 +307,22 @@ export function FluidCarousel({
             {safeSelected + 1} / {count}
           </span>
         </div>
-        <p className="type-callout">{activeItem.description}</p>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p
+            key={`desc-${activeItem.id}`}
+            className="type-callout"
+            initial={reducedMotion ? false : { opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: -4 }}
+            transition={
+              reducedMotion
+                ? { duration: 0.08 }
+                : { type: 'spring', bounce: 0, duration: 0.28, delay: 0.02 }
+            }
+          >
+            {activeItem.description}
+          </motion.p>
+        </AnimatePresence>
 
         {count > 1 && (
           <div className="screenshot-carousel__dots" role="tablist" aria-label="Scegli schermata">

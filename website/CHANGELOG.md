@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Refreshed site visual styling, hero/download hub, and interactive ReactBits accents (14750de)
 - Streamlined download section into a unified hairline sheet (54840c6)
+- Rebuilt the homepage from scratch with Apple Design & Liquid Glass craft: clean glow-free surfaces, scroll-linked parallax across Hero triptych, Bento/Architecture devices, and Download squircle, hairline scroll-progress bar, `BlurText` headline reveal, `Magnet` CTAs, single-row mobile Liquid Glass theme pill, uncropped `1440:3008` Bento/Architecture phone framing, side-faded `FluidCarousel` with 3D proximity depth, compact mobile 2×2 highlights & 2-column footer, and full reduced-motion / reduced-transparency / high-contrast support
 
 ### Fixed
 - Pause screenshot carousel autoplay when scrolled offscreen (8815b4d)

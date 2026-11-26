@@ -19,9 +19,9 @@ export function ScreenshotsGallery() {
         <FluidReveal>
           <div className="section-header-center">
             <span className="type-eyebrow">Design Liquid Monet</span>
-            <h2 className="type-title-1">Vetro ottico, luce e colore che seguono il tuo stile.</h2>
-            <p className="type-body">
-              Motore dinamico Material You, quattro preset curati e Color Lab su misura, con sfondi animati Orbital Pulse, Aurora, Mesh Glow e Radiant Beam.
+            <h2 className="type-title-1">Vetro ottico, luce e colore su misura.</h2>
+            <p className="type-body section-center-sub">
+              Motore dinamico Material You, quattro preset curati e Color Lab personalizzabile con sfondi Orbital Pulse, Aurora, Mesh Glow e Radiant Beam.
             </p>
             <div className="gallery-controls-row">
               <FluidSegmentedControl
@@ -32,7 +32,7 @@ export function ScreenshotsGallery() {
               />
               <button
                 type="button"
-                className="gallery-appearance-btn"
+                className="dock-appearance-pill"
                 onClick={() => {
                   hapticSnap(4);
                   toggleAppearance();
@@ -60,7 +60,7 @@ export function ScreenshotsGallery() {
           </div>
         </FluidReveal>
 
-        <FluidReveal delayMs={70}>
+        <FluidReveal delayMs={70} materialize>
           <FluidCarousel
             items={screenshots}
             paused={isLightboxOpen}
