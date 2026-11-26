@@ -1,5 +1,6 @@
 package com.anto426.uniapp.ui.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,47 +10,42 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.stringResource
-import uniapp.composeapp.generated.resources.*
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.feedback.dialog.LiquidDialog
 import com.anto426.liquidmonet.components.selection.switch.LiquidSwitch
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
+import com.anto426.uniapp.security.biometric.BiometricAvailability
+import com.anto426.uniapp.settings.presentation.SettingsUiState
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.UniSavedAccountsSheet
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
 import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.anto426.uniapp.ui.components.display.UniInsetRow
-import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
-import com.anto426.uniapp.settings.presentation.SettingsUiState
-import com.anto426.uniapp.security.biometric.BiometricAvailability
+import com.kyant.shapes.Capsule
+import org.jetbrains.compose.resources.stringResource
+import uniapp.composeapp.generated.resources.*
 
 @Composable
 fun SettingsScreen(
@@ -98,9 +94,15 @@ fun SettingsScreen(
     val effectiveUpdateSubtitle = stringResource(Res.string.ui_version_number, realVersion)
 
     UniScreenColumn {
-        // 0. Active Account Hero Card (pieno spazio al nome completo + cambio account rapido)
+        // 0. Active Account Block (shared UniInsetGroup + UniInsetRow)
         activeAccount?.let { account ->
-            val initials = account.displayName.split(' ').filter(String::isNotBlank).take(2).map { it.first() }.joinToString("")
+            val initials = remember(account.displayName) {
+                account.displayName.split(' ')
+                    .filter(String::isNotBlank)
+                    .take(2)
+                    .map { it.first() }
+                    .joinToString("")
+            }
             val identity = accountDisplayIdentity(
                 account.displayName,
                 initials,
@@ -118,86 +120,76 @@ fun SettingsScreen(
             }
             val matricolaLabel = account.matricola?.takeIf { it.isNotBlank() }?.let {
                 stringResource(Res.string.ui_matricola_prefix, it)
-            }
-            val accountMeta = listOfNotNull(degreeLabel, matricolaLabel).joinToString(" • ")
+            } ?: account.email?.takeIf { it.isNotBlank() && account.isProfessor }
+            val accountMeta = listOfNotNull(
+                degreeLabel.takeIf { it.isNotBlank() },
+                matricolaLabel?.takeIf { it.isNotBlank() },
+            ).joinToString(" • ")
 
-            UniAnimatedEntrance(order = 0) {
-                LiquidCard(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics(mergeDescendants = true) {}
-                        .graphicsLayer(clip = false),
-                    shape = RoundedRectangle(24.dp),
+            UniInsetGroup(entranceOrder = 0) {
+                UniInsetRow(
+                    title = displayName.ifBlank { stringResource(Res.string.ui_student_name_fallback) },
+                    subtitle = accountMeta.ifBlank { null },
                     onClick = { isAccountSheetVisible = true },
-                ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    UniAccountAvatar(
-                        imageData = identity.photo,
-                        initials = if (identity.initials.isNotBlank()) identity.initials else stringResource(Res.string.msg_un),
-                        size = 48.dp,
-                        contentDescription = stringResource(Res.string.ui_profile_picture),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .border(
-                                width = 1.5.dp,
-                                color = colorScheme.primary.copy(alpha = 0.40f),
-                                shape = CircleShape,
-                            )
-                            .padding(2.dp),
-                    )
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            text = displayName.ifBlank { stringResource(Res.string.ui_student_name_fallback) },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                    showDivider = false,
+                    leadingContent = {
+                        UniAccountAvatar(
+                            imageData = identity.photo,
+                            initials = if (identity.initials.isNotBlank()) {
+                                identity.initials
+                            } else {
+                                stringResource(Res.string.msg_un)
+                            },
+                            size = 40.dp,
+                            contentDescription = stringResource(Res.string.ui_profile_picture),
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .border(
+                                    width = 1.5.dp,
+                                    color = colorScheme.primary.copy(alpha = 0.42f),
+                                    shape = CircleShape,
+                                )
+                                .padding(2.dp),
                         )
-                        Text(
-                            text = accountMeta,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        if (accountUiState.accounts.size > 1) {
-                            LiquidBadge(
-                                text = "${accountUiState.accounts.size}",
-                                containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
-                                contentColor = colorScheme.primary,
+                    },
+                    trailingContent = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(Capsule())
+                                    .background(colorScheme.primary.copy(alpha = 0.12f), Capsule())
+                                    .border(1.dp, colorScheme.primary.copy(alpha = 0.20f), Capsule())
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            ) {
+                                Icon(
+                                    imageVector = LiquidIcons.SwitchAccount,
+                                    contentDescription = stringResource(Res.string.ui_switch_account),
+                                    tint = colorScheme.primary,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                if (accountUiState.accounts.size > 1) {
+                                    Text(
+                                        text = "${accountUiState.accounts.size}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = colorScheme.primary,
+                                    )
+                                }
+                            }
+                            Icon(
+                                imageVector = LiquidIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.48f),
+                                modifier = Modifier.size(16.dp),
                             )
                         }
-                        Icon(
-                            imageVector = LiquidIcons.SwitchAccount,
-                            contentDescription = stringResource(Res.string.ui_switch_account),
-                            tint = colorScheme.primary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Icon(
-                            imageVector = LiquidIcons.ChevronRight,
-                            contentDescription = null,
-                            tint = colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
-            }
+                    },
+                )
             }
         }
 
@@ -206,15 +198,15 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_security),
             entranceOrder = 1,
         ) {
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_connected_devices),
                 subtitle = stringResource(Res.string.ui_active_sessions),
-                icon = LiquidIcons.Lock,
+                icon = LiquidIcons.Smartphone,
                 iconTint = colorScheme.primary,
                 onClick = onOpenDevices,
                 showDivider = true,
             )
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_biometric_security),
                 subtitle = when {
                     uiState.isBiometricAuthenticating -> stringResource(Res.string.ui_biometric_authenticating)
@@ -224,8 +216,8 @@ fun SettingsScreen(
                         stringResource(Res.string.ui_biometric_unavailable)
                     else -> stringResource(Res.string.ui_biometric_unlock)
                 },
-                icon = LiquidIcons.Check,
-                iconTint = colorScheme.tertiary,
+                icon = LiquidIcons.Lock,
+                iconTint = glassColors.success,
                 showDivider = false,
                 trailingContent = {
                     key(uiState.biometricEnabled, uiState.isPasswordSetupVisible, uiState.isBiometricAuthenticating) {
@@ -246,7 +238,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_appearance),
             entranceOrder = 2,
         ) {
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_theme_colors),
                 subtitle = stringResource(Res.string.ui_theme_subtitle),
                 icon = LiquidIcons.Palette,
@@ -254,7 +246,7 @@ fun SettingsScreen(
                 onClick = onOpenTheme,
                 showDivider = true,
             )
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_push_notifications),
                 subtitle = stringResource(Res.string.ui_academic_alerts),
                 icon = LiquidIcons.Notifications,
@@ -267,10 +259,10 @@ fun SettingsScreen(
                     )
                 },
             )
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_language_title),
                 subtitle = stringResource(Res.string.ui_language_current),
-                icon = LiquidIcons.Info,
+                icon = LiquidIcons.Globe,
                 iconTint = colorScheme.primary,
                 onClick = onOpenLanguage,
                 showDivider = false,
@@ -282,7 +274,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_system_and_info),
             entranceOrder = 3,
         ) {
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_updates),
                 subtitle = effectiveUpdateSubtitle,
                 icon = LiquidIcons.Refresh,
@@ -297,20 +289,22 @@ fun SettingsScreen(
                         ) {
                             LiquidBadge(
                                 text = stringResource(Res.string.ui_new_badge),
-                                containerColor = glassColors.warning.copy(alpha = 0.18f),
+                                containerColor = glassColors.warning.copy(alpha = 0.16f),
                                 contentColor = glassColors.warning,
                             )
                             Icon(
                                 imageVector = LiquidIcons.ChevronRight,
                                 contentDescription = null,
-                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
+                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.48f),
                                 modifier = Modifier.size(16.dp),
                             )
                         }
                     }
-                } else null,
+                } else {
+                    null
+                },
             )
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_app_information),
                 subtitle = stringResource(Res.string.ui_app_information_subtitle),
                 icon = LiquidIcons.Info,
@@ -325,7 +319,7 @@ fun SettingsScreen(
             title = stringResource(Res.string.ui_project_contribute_group),
             entranceOrder = 4,
         ) {
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.msg_diventa_un_collaboratore),
                 subtitle = stringResource(Res.string.msg_invia_una_pull_request_con_correzioni_traduzioni_o),
                 icon = LiquidIcons.Star,
@@ -333,7 +327,7 @@ fun SettingsScreen(
                 onClick = onOpenContribute,
                 showDivider = true,
             )
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_project_report_ideas),
                 subtitle = stringResource(Res.string.msg_aiuta_a_migliorare_l_esperienza_utente_aprendo_una),
                 icon = LiquidIcons.Feedback,
@@ -343,15 +337,26 @@ fun SettingsScreen(
             )
         }
 
+        // 5. Sessione (azione distruttiva con gerarchia semantica chiara)
         UniInsetGroup(
             title = stringResource(Res.string.ui_session_title),
             entranceOrder = 5,
         ) {
-            SettingsOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_sign_out),
                 icon = LiquidIcons.Close,
+                iconTint = glassColors.error,
+                titleColor = glassColors.error,
                 onClick = onRequestSignOut,
                 showDivider = false,
+                trailingContent = {
+                    Icon(
+                        imageVector = LiquidIcons.ChevronRight,
+                        contentDescription = null,
+                        tint = glassColors.error.copy(alpha = 0.65f),
+                        modifier = Modifier.size(16.dp),
+                    )
+                },
             )
         }
     }
@@ -372,6 +377,8 @@ fun SettingsScreen(
                             onDismissSignOut()
                             onSignOut()
                         },
+                        containerColor = colorScheme.error,
+                        contentColor = colorScheme.onError,
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
@@ -408,14 +415,26 @@ fun SettingsScreen(
                                 .take(2)
                                 .joinToString("") { it.first().toString() }
                         }
+                        val formattedName = remember(sessionAccount.displayName) {
+                            formatSmartDisplayName(sessionAccount.displayName).ifBlank { sessionAccount.displayName }
+                        }
                         UniAccountAvatar(
                             imageData = accountUiState.profileImages[sessionAccount.accountId],
                             initials = initials,
-                            size = 48.dp,
+                            size = 52.dp,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .border(
+                                    width = 1.5.dp,
+                                    color = colorScheme.error.copy(alpha = 0.35f),
+                                    shape = CircleShape,
+                                )
+                                .padding(2.dp),
                         )
                         Text(
-                            text = sessionAccount.displayName,
+                            text = formattedName,
                             style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
                             color = colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                         )
@@ -423,7 +442,7 @@ fun SettingsScreen(
                         Icon(
                             imageVector = LiquidIcons.AccountCircle,
                             contentDescription = null,
-                            tint = colorScheme.primary,
+                            tint = colorScheme.error,
                             modifier = Modifier.size(44.dp),
                         )
                     }
@@ -456,28 +475,4 @@ fun SettingsScreen(
             },
         )
     }
-}
-
-@Composable
-private fun SettingsOptionRow(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    subtitle: String? = null,
-    iconTint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
-    onClick: (() -> Unit)? = null,
-    showDivider: Boolean = true,
-    trailingContent: (@Composable () -> Unit)? = null,
-) {
-    UniInsetRow(
-        title = title,
-        subtitle = subtitle,
-        icon = icon,
-        iconTint = iconTint,
-        onClick = onClick,
-        showDivider = showDivider,
-        titleMaxLines = 1,
-        subtitleMaxLines = 1,
-        minHeight = 64.dp,
-        trailingContent = trailingContent,
-    )
 }

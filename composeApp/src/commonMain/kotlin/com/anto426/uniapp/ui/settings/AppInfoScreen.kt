@@ -75,7 +75,7 @@ fun AppInfoScreen(
             title = stringResource(Res.string.ui_app_info_group),
             entranceOrder = 1,
         ) {
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_info_about_project),
                 subtitle = stringResource(Res.string.ui_info_independent),
                 icon = LiquidIcons.Info,
@@ -83,7 +83,7 @@ fun AppInfoScreen(
                 onClick = onOpenAboutUniApp,
                 showDivider = true,
             )
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_creator_credits),
                 subtitle = stringResource(Res.string.ui_creator_credits_subtitle),
                 icon = LiquidIcons.AccountCircle,
@@ -91,7 +91,7 @@ fun AppInfoScreen(
                 onClick = onOpenCreatorCredits,
                 showDivider = true,
             )
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_source),
                 subtitle = stringResource(Res.string.ui_source_subtitle),
                 icon = LiquidIcons.Share,
@@ -99,7 +99,7 @@ fun AppInfoScreen(
                 onClick = onOpenSource,
                 showDivider = true,
             )
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_report_bug_github),
                 subtitle = stringResource(Res.string.ui_info_public_issue),
                 icon = LiquidIcons.Feedback,
@@ -130,7 +130,7 @@ fun AppInfoScreen(
                     "firebase-connector-sdk" -> glassColors.warning
                     else -> colorScheme.secondary
                 }
-                InfoOptionRow(
+                UniInsetRow(
                     title = when (module.name) {
                         "liquid-monet" -> "Liquid Monet"
                         "uni-sdk" -> "Uni SDK"
@@ -170,7 +170,7 @@ fun AppInfoScreen(
             title = stringResource(Res.string.ui_legal_notes),
             entranceOrder = 3,
         ) {
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_privacy),
                 subtitle = stringResource(Res.string.ui_app_info_gdpr),
                 icon = LiquidIcons.Lock,
@@ -178,7 +178,7 @@ fun AppInfoScreen(
                 onClick = onOpenPrivacy,
                 showDivider = true,
             )
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_terms),
                 subtitle = stringResource(Res.string.ui_app_info_academic_use),
                 icon = LiquidIcons.Assignment,
@@ -186,7 +186,7 @@ fun AppInfoScreen(
                 onClick = onOpenTerms,
                 showDivider = true,
             )
-            InfoOptionRow(
+            UniInsetRow(
                 title = stringResource(Res.string.ui_cookies),
                 subtitle = stringResource(Res.string.ui_app_info_tech_cookies),
                 icon = LiquidIcons.Settings,
@@ -196,28 +196,4 @@ fun AppInfoScreen(
             )
         }
     }
-}
-
-@Composable
-private fun InfoOptionRow(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    subtitle: String? = null,
-    iconTint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
-    onClick: (() -> Unit)? = null,
-    showDivider: Boolean = true,
-    trailingContent: (@Composable () -> Unit)? = null,
-) {
-    UniInsetRow(
-        title = title,
-        subtitle = subtitle,
-        icon = icon,
-        iconTint = iconTint,
-        onClick = onClick,
-        showDivider = showDivider,
-        titleMaxLines = 1,
-        subtitleMaxLines = 1,
-        minHeight = 64.dp,
-        trailingContent = trailingContent,
-    )
 }

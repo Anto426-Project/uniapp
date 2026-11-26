@@ -32,17 +32,14 @@ fun ContactsScreen(
                 UniHorizontalChipRow {
                     LiquidChip(
                         label = stringResource(Res.string.ui_contacts_all_categories),
-                        badge = uiState.totalContactsCount.toString(),
                         selected = isAllSelected,
                         leadingIcon = if (isAllSelected) LiquidIcons.Check else null,
                         onClick = { onCategorySelected(ContactsUiState.ALL_CATEGORIES_INDEX) },
                     )
                     uiState.categories.forEachIndexed { index, categoryName ->
                         val selected = index == uiState.selectedCategoryIndex
-                        val count = uiState.categoryCounts.getOrNull(index)
                         LiquidChip(
                             label = categoryName,
-                            badge = count?.toString(),
                             selected = selected,
                             leadingIcon = if (selected) LiquidIcons.Check else null,
                             onClick = { onCategorySelected(index) },

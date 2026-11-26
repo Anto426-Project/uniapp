@@ -148,7 +148,7 @@ fun TaxesScreen(
                         progress = uiState.paidProgress,
                         centerText = "${(uiState.paidProgress * 100f).roundToInt()}%",
                         subtitleText = "${uiState.paidPayments.size}/$totalInstallments",
-                        size = 74.dp,
+                        size = 76.dp,
                         strokeWidth = 7.dp,
                         primaryColor = statusColor,
                         secondaryColor = statusColor.copy(alpha = 0.65f),
@@ -193,18 +193,17 @@ fun TaxesScreen(
 
         // 2. Filter Chips (unclipped)
         val filterOptions = listOf(
-            Triple(TaxesFilter.ALL, stringResource(Res.string.ui_taxes_all_filter), totalInstallments),
-            Triple(TaxesFilter.PENDING, stringResource(Res.string.ui_pending_section), uiState.pendingPayments.size),
-            Triple(TaxesFilter.PAID, stringResource(Res.string.ui_paid_section), uiState.paidPayments.size),
+            TaxesFilter.ALL to stringResource(Res.string.ui_taxes_all_filter),
+            TaxesFilter.PENDING to stringResource(Res.string.ui_pending_section),
+            TaxesFilter.PAID to stringResource(Res.string.ui_paid_section),
         )
         UniHorizontalChipRow {
-            filterOptions.forEach { (filterOption, label, count) ->
+            filterOptions.forEach { (filterOption, label) ->
                 key(filterOption) {
                     val selected = uiState.filter == filterOption
                     LiquidChip(
                         label = label,
                         selected = selected,
-                        badge = count.toString(),
                         leadingIcon = if (selected) LiquidIcons.Check else null,
                         onClick = { onFilterSelected(filterOption) },
                     )

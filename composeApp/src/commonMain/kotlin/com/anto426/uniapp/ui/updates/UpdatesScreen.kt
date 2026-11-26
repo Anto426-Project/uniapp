@@ -71,9 +71,6 @@ fun UpdatesScreen(
                 icon = LiquidIcons.Check,
                 iconTint = colorScheme.primary,
                 showDivider = true,
-                titleMaxLines = 1,
-                subtitleMaxLines = 1,
-                minHeight = 64.dp,
                 trailingContent = {
                     val accent = colorScheme.primary
                     LiquidBadge(
@@ -105,9 +102,6 @@ fun UpdatesScreen(
                     icon = LiquidIcons.Lock,
                     iconTint = if (uiState.isDebugMandatorySimulated) glassColors.warning else colorScheme.primary,
                     showDivider = false,
-                    titleMaxLines = 1,
-                    subtitleMaxLines = 1,
-                    minHeight = 64.dp,
                     onClick = { onToggleDebugMandatory(!uiState.isDebugMandatorySimulated) },
                     trailingContent = {
                         LiquidSwitch(

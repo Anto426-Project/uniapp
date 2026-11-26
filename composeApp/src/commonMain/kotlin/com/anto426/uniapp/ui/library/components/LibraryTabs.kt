@@ -235,7 +235,7 @@ internal fun LibraryCatalogTab(
                             title = stringResource(Res.string.ui_library_branches_title),
                             subtitle = stringResource(Res.string.ui_library_branches_subtitle),
                         )
-                        UniInsetGroup(cornerRadius = 22.dp) {
+                        UniInsetGroup {
                             UniInsetRow(
                                 title = stringResource(Res.string.ui_library_branch_campobasso),
                                 subtitle = stringResource(Res.string.ui_library_branch_campobasso_sub),
@@ -297,15 +297,13 @@ internal fun LibraryCatalogTab(
                             }",
                         )
 
-                        UniInsetGroup(cornerRadius = 22.dp) {
+                        UniInsetGroup {
                             uiState.books.forEachIndexed { index, book ->
                                 LibraryBookListRow(
                                     book = book,
+                                    showDivider = index < uiState.books.lastIndex,
                                     onClick = { onBookClick(book) },
                                 )
-                                if (index < uiState.books.lastIndex) {
-                                    LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
-                                }
                             }
                         }
 
@@ -357,52 +355,23 @@ internal fun LibraryCatalogTab(
 @Composable
 private fun LibraryBookListRow(
     book: LibraryCatalogBook,
+    showDivider: Boolean,
     onClick: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = LiquidIcons.MenuBook,
-            contentDescription = null,
-            tint = colorScheme.primary,
-            modifier = Modifier.liquidIconContainer(
-                containerSize = 40.dp,
-                iconSize = 20.dp,
-                containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                shape = RoundedRectangle(12.dp),
-            ),
-        )
-        Spacer(Modifier.width(14.dp))
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = book.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val line = listOf(book.subtitle, book.metadata).filter { it.isNotBlank() }.joinToString(" · ")
-            if (line.isNotBlank()) {
-                Text(
-                    text = line,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (book.branches.isNotEmpty()) {
+    val line = listOf(book.subtitle, book.metadata).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { null }
+    UniInsetRow(
+        title = book.title,
+        subtitle = line,
+        icon = LiquidIcons.MenuBook,
+        iconTint = colorScheme.primary,
+        onClick = onClick,
+        showDivider = showDivider,
+        titleMaxLines = 2,
+        subtitleContent = if (book.branches.isNotEmpty()) {
+            {
                 FlowRow(
+                    modifier = Modifier.padding(top = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
@@ -415,15 +384,10 @@ private fun LibraryBookListRow(
                     }
                 }
             }
-        }
-        Spacer(Modifier.width(8.dp))
-        Icon(
-            imageVector = LiquidIcons.ChevronRight,
-            contentDescription = null,
-            tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(18.dp),
-        )
-    }
+        } else {
+            null
+        },
+    )
 }
 
 @Composable
