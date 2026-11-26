@@ -118,9 +118,7 @@ fun AttendanceItem(data: AttendanceData) {
             )
 
             if (data.records.isNotEmpty()) {
-                LiquidHorizontalDivider(
-                    color = colorScheme.onSurface.copy(alpha = 0.08f),
-                )
+                LiquidHorizontalDivider()
 
                 Text(
                     text = stringResource(Res.string.ui_attendance_lessons_recorded, data.records.size).uppercase(),
@@ -214,10 +212,7 @@ private fun SingleAttendanceRow(
         }
 
         if (showDivider) {
-            LiquidHorizontalDivider(
-                modifier = Modifier.padding(start = 44.dp),
-                color = colorScheme.onSurface.copy(alpha = 0.06f),
-            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(start = 44.dp))
         }
     }
 }

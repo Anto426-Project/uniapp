@@ -132,6 +132,7 @@ fun DevicePreferenceItem(
         iconTint = if (device.isCurrent) glassColors.success else colorScheme.primary,
         showDivider = showDivider,
         titleMaxLines = 2,
+        subtitleMaxLines = 2,
         trailingContent = when {
             device.isCurrent -> ({
                 Text(

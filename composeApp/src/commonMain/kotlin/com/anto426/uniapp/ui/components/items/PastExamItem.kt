@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,17 +15,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.accordion.LiquidAccordionItem
+import com.anto426.liquidmonet.components.cards.accordion.LiquidExpandableCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.PastExam
 import com.anto426.uniapp.data.contract.PastExamStatus
+import com.anto426.uniapp.ui.components.display.UniDetailMetaRow
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -57,12 +54,13 @@ fun PastExamItem(exam: PastExam) {
         exam.cfu?.let { add("$it CFU") }
     }.joinToString(" • ")
 
-    LiquidAccordionItem(
+    LiquidExpandableCard(
         title = exam.name,
         subtitle = subtitle,
         leadingIcon = if (isVerbalized) LiquidIcons.Check else LiquidIcons.Calendar,
         isExpanded = isExpanded,
         onExpandedChange = { isExpanded = it },
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             FlowRow(
@@ -126,7 +124,7 @@ fun PastExamItem(exam: PastExam) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (exam.professor.isNullOrBlank()) {
                     exam.code?.takeIf(String::isNotBlank)?.let { code ->
-                        PastExamDetailRow(
+                        UniDetailMetaRow(
                             value = "${stringResource(Res.string.ui_exam_code)}: $code",
                             icon = LiquidIcons.Assignment,
                         )
@@ -134,14 +132,14 @@ fun PastExamItem(exam: PastExam) {
                 }
 
                 exam.type?.takeIf(String::isNotBlank)?.let { type ->
-                    PastExamDetailRow(
+                    UniDetailMetaRow(
                         value = "${stringResource(Res.string.ui_exam_type)}: $type",
                         icon = LiquidIcons.Edit,
                     )
                 }
 
                 exam.room?.takeIf(String::isNotBlank)?.let { room ->
-                    PastExamDetailRow(value = room, icon = LiquidIcons.Home)
+                    UniDetailMetaRow(value = room, icon = LiquidIcons.Home)
                 }
 
                 val bookingWindow = listOfNotNull(
@@ -149,7 +147,7 @@ fun PastExamItem(exam: PastExam) {
                     exam.bookingCloseDate?.takeIf(String::isNotBlank),
                 ).joinToString(" – ")
                 if (bookingWindow.isNotBlank()) {
-                    PastExamDetailRow(
+                    UniDetailMetaRow(
                         value = "${stringResource(Res.string.ui_booking_window)}: $bookingWindow",
                         icon = LiquidIcons.Time,
                     )
@@ -159,39 +157,16 @@ fun PastExamItem(exam: PastExam) {
                     val slotSuffix = exam.availableSlots?.let { slots ->
                         " • ${stringResource(Res.string.ui_available_slots)}: $slots"
                     }.orEmpty()
-                    PastExamDetailRow(
+                    UniDetailMetaRow(
                         value = "${stringResource(Res.string.ui_booked_students)} $count$slotSuffix",
                         icon = LiquidIcons.AccountCircle,
                     )
                 }
 
                 exam.notes?.takeIf(String::isNotBlank)?.let { notes ->
-                    PastExamDetailRow(notes, LiquidIcons.Info)
+                    UniDetailMetaRow(value = notes, icon = LiquidIcons.Info)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun PastExamDetailRow(value: String, icon: ImageVector) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.78f),
-            modifier = Modifier.size(16.dp),
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }

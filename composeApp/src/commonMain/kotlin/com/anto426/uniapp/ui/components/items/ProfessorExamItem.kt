@@ -1,28 +1,18 @@
 package com.anto426.uniapp.ui.components.items
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
-import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.data.contract.AcademicContentItem
-import com.kyant.shapes.RoundedRectangle
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
+import com.anto426.uniapp.ui.components.display.UniInsetRow
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -47,52 +37,20 @@ fun ProfessorExamItem(
         stringResource(Res.string.ui_professor_exam_session_fallback)
     }
 
-    LiquidCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedRectangle(22.dp),
-        contentPadding = PaddingValues(16.dp),
-        onClick = onClickDetail,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Icon(
-                imageVector = LiquidIcons.Calendar,
-                contentDescription = null,
-                tint = colorScheme.primary,
-                modifier = Modifier.liquidIconContainer(
-                    containerSize = 42.dp,
-                    iconSize = 20.dp,
-                    containerColor = colorScheme.primary.copy(alpha = 0.12f),
-                    shape = RoundedRectangle(12.dp),
-                ),
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = exam.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                if (!exam.code.isNullOrBlank() || bookingsCount != null) {
+    UniInsetGroup(animateEntrance = false) {
+        UniInsetRow(
+            title = exam.title,
+            subtitle = subtitle,
+            icon = LiquidIcons.Calendar,
+            iconTint = colorScheme.primary,
+            onClick = onClickDetail,
+            showDivider = false,
+            titleMaxLines = 2,
+            subtitleMaxLines = 2,
+            subtitleContent = if (!exam.code.isNullOrBlank() || bookingsCount != null) {
+                {
                     FlowRow(
+                        modifier = Modifier.padding(top = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
@@ -112,14 +70,9 @@ fun ProfessorExamItem(
                         }
                     }
                 }
-            }
-
-            Icon(
-                imageVector = LiquidIcons.ChevronRight,
-                contentDescription = null,
-                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-                modifier = Modifier.size(18.dp),
-            )
-        }
+            } else {
+                null
+            },
+        )
     }
 }

@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +33,7 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.cards.statuscard.LiquidStatusType
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
@@ -41,8 +41,8 @@ import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivide
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
-import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.data.contract.NewsContentFormatter
+import com.anto426.uniapp.data.contract.NewsItem
 import com.kyant.shapes.RoundedRectangle
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource
@@ -119,7 +119,6 @@ internal fun resolveNewsCategoryVisuals(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UniNewsCard(
     news: NewsItem,
@@ -146,100 +145,6 @@ fun UniNewsCard(
             .orEmpty()
     }
     val showSummary = plainSummary.isNotBlank()
-
-    if (homeCard) {
-        val shortDate = remember(news.publishedAt) {
-            formatCompactNewsDate(news.publishedAt, includeTime = false)
-                .ifBlank { visuals.subtitle }
-        }
-        LiquidCard(
-            modifier = modifier
-                .fillMaxWidth()
-                .semantics(mergeDescendants = true) {}
-                .then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier),
-            shape = RoundedRectangle(22.dp),
-            contentPadding = 16.dp,
-            onClick = onClick,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 92.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.weight(1f, fill = false),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(7.dp)
-                                .clip(CircleShape)
-                                .background(visuals.color),
-                        )
-                        Text(
-                            text = visuals.label,
-                            style = MaterialTheme.typography.labelMedium.copy(localeList = ItalianNewsLocaleList),
-                            fontWeight = FontWeight.SemiBold,
-                            color = visuals.color,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-
-                    Spacer(Modifier.width(8.dp))
-
-                    Text(
-                        text = shortDate,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        text = displayTitle,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            localeList = ItalianNewsLocaleList,
-                            lineBreak = LineBreak.Simple,
-                            hyphens = Hyphens.None,
-                        ),
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (showSummary) {
-                        Text(
-                            text = plainSummary,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                localeList = ItalianNewsLocaleList,
-                                lineBreak = LineBreak.Simple,
-                                hyphens = Hyphens.None,
-                            ),
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-        }
-        return
-    }
-
     val sourceHost = remember(news.sourceUrl) {
         news.sourceUrl
             ?.trim()
@@ -248,18 +153,128 @@ fun UniNewsCard(
             ?.takeIf { it.isNotBlank() }
     }
 
+    // 1. Apple News Editorial Home Carousel Card — uniform height, clear footer affordance
+    if (homeCard) {
+        val shortDate = remember(news.publishedAt) {
+            formatCompactNewsDate(news.publishedAt, includeTime = false)
+                .ifBlank { visuals.subtitle }
+        }
+        LiquidCard(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(fixedHeight ?: 168.dp)
+                .graphicsLayer(clip = false)
+                .semantics(mergeDescendants = true) {},
+            shape = RoundedRectangle(24.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+            onClick = onClick,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 140.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        LiquidBadge(
+                            text = visuals.label,
+                            containerColor = visuals.color.copy(alpha = 0.14f),
+                            contentColor = visuals.color,
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = shortDate,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = displayTitle,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                localeList = ItalianNewsLocaleList,
+                                lineBreak = LineBreak.Simple,
+                                hyphens = Hyphens.None,
+                            ),
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.2).sp,
+                            color = colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        if (showSummary) {
+                            Text(
+                                text = plainSummary,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    localeList = ItalianNewsLocaleList,
+                                    lineBreak = LineBreak.Simple,
+                                    hyphens = Hyphens.None,
+                                ),
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = sourceHost ?: stringResource(Res.string.ui_news_read_more),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = visuals.color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(
+                        imageVector = LiquidIcons.ChevronRight,
+                        contentDescription = stringResource(Res.string.ui_details),
+                        tint = visuals.color,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    // 2. Featured Hero Editorial News Card (NewsScreen lead)
     if (featured) {
         LiquidCard(
             modifier = modifier
                 .fillMaxWidth()
+                .graphicsLayer(clip = false)
                 .semantics(mergeDescendants = true) {},
-            shape = RoundedRectangle(24.dp),
+            shape = RoundedRectangle(28.dp),
             contentPadding = PaddingValues(18.dp),
             onClick = onClick,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -287,6 +302,7 @@ fun UniNewsCard(
                                 text = visuals.label.uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.4.sp,
                                 color = visuals.color,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -301,6 +317,8 @@ fun UniNewsCard(
                         }
                     }
 
+                    Spacer(Modifier.width(8.dp))
+
                     LiquidBadge(
                         text = stringResource(Res.string.ui_news_featured_badge),
                         containerColor = visuals.color.copy(alpha = 0.14f),
@@ -308,36 +326,42 @@ fun UniNewsCard(
                     )
                 }
 
-                Text(
-                    text = displayTitle,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        localeList = ItalianNewsLocaleList,
-                        lineBreak = LineBreak.Simple,
-                        hyphens = Hyphens.None,
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                )
-
-                if (showSummary) {
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     Text(
-                        text = plainSummary,
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        text = displayTitle,
+                        style = MaterialTheme.typography.titleLarge.copy(
                             localeList = ItalianNewsLocaleList,
                             lineBreak = LineBreak.Simple,
                             hyphens = Hyphens.None,
                         ),
-                        color = colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.3).sp,
+                        color = colorScheme.onSurface,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth(),
                     )
+
+                    if (showSummary) {
+                        Text(
+                            text = plainSummary,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                localeList = ItalianNewsLocaleList,
+                                lineBreak = LineBreak.Simple,
+                                hyphens = Hyphens.None,
+                            ),
+                            color = colorScheme.onSurfaceVariant,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
 
-                LiquidHorizontalDivider(color = colorScheme.outlineVariant.copy(alpha = 0.25f))
+                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -357,7 +381,7 @@ fun UniNewsCard(
                         imageVector = LiquidIcons.ChevronRight,
                         contentDescription = stringResource(Res.string.ui_details),
                         tint = visuals.color,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
@@ -365,28 +389,32 @@ fun UniNewsCard(
         return
     }
 
+    // 3. Standard News List Card (clean single-line metadata header, crisp hierarchy)
     LiquidCard(
         modifier = modifier
             .fillMaxWidth()
+            .graphicsLayer(clip = false)
             .semantics(mergeDescendants = true) {}
             .then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier),
-        shape = RoundedRectangle(20.dp),
-        contentPadding = PaddingValues(16.dp),
+        shape = RoundedRectangle(24.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         onClick = onClick,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 108.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                FlowRow(
+                Row(
                     modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     LiquidBadge(
                         text = visuals.label,
@@ -399,15 +427,16 @@ fun UniNewsCard(
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.align(Alignment.CenterVertically),
                     )
                 }
+
+                Spacer(Modifier.width(8.dp))
 
                 Icon(
                     imageVector = LiquidIcons.ChevronRight,
                     contentDescription = stringResource(Res.string.ui_details),
                     tint = colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                 )
             }
 
@@ -423,6 +452,7 @@ fun UniNewsCard(
                         hyphens = Hyphens.None,
                     ),
                     fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.2).sp,
                     color = colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -446,14 +476,25 @@ fun UniNewsCard(
             }
 
             if (sourceHost != null) {
-                Text(
-                    text = sourceHost,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = visuals.color,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .clip(CircleShape)
+                            .background(visuals.color),
+                    )
+                    Text(
+                        text = sourceHost,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = visuals.color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

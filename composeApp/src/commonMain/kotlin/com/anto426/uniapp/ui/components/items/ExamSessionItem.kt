@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,20 +15,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonSize
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
-import com.anto426.liquidmonet.components.cards.accordion.LiquidAccordionItem
+import com.anto426.liquidmonet.components.cards.accordion.LiquidExpandableCard
 import com.anto426.liquidmonet.components.display.avatar.LiquidAvatar
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.data.contract.ExamSession
+import com.anto426.uniapp.ui.components.display.UniDetailMetaRow
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -80,12 +77,13 @@ fun ExamSessionItem(
         exam.room.takeIf(String::isNotBlank)?.let(::add)
     }.joinToString(" • ")
 
-    LiquidAccordionItem(
+    LiquidExpandableCard(
         title = exam.name,
         subtitle = accordionSubtitle,
         leadingIcon = leadingIcon,
         isExpanded = isExpanded,
         onExpandedChange = { isExpanded = it },
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             FlowRow(
@@ -134,14 +132,14 @@ fun ExamSessionItem(
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (exam.room.isNotBlank()) {
-                    ExamDetailRow(value = exam.room, icon = LiquidIcons.Home)
+                    UniDetailMetaRow(value = exam.room, icon = LiquidIcons.Home)
                 }
 
                 val bookingWindow = listOf(exam.bookingOpenDate, exam.bookingCloseDate)
                     .filter(String::isNotBlank)
                     .joinToString(" – ")
                 if (bookingWindow.isNotBlank()) {
-                    ExamDetailRow(
+                    UniDetailMetaRow(
                         value = "${stringResource(Res.string.ui_booking_window)}: $bookingWindow",
                         icon = LiquidIcons.Time,
                     )
@@ -156,10 +154,10 @@ fun ExamSessionItem(
                 } else {
                     stringResource(Res.string.ui_exams_booked_count_only, exam.bookedUsersCount)
                 }
-                ExamDetailRow(value = slotsSummary, icon = LiquidIcons.AccountCircle)
+                UniDetailMetaRow(value = slotsSummary, icon = LiquidIcons.AccountCircle)
 
                 if (exam.notes.isNotBlank()) {
-                    ExamDetailRow(value = exam.notes, icon = LiquidIcons.Info)
+                    UniDetailMetaRow(value = exam.notes, icon = LiquidIcons.Info)
                 }
             }
 
@@ -196,32 +194,5 @@ fun ExamSessionItem(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ExamDetailRow(
-    value: String,
-    icon: ImageVector,
-    tint: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.78f),
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(16.dp),
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }

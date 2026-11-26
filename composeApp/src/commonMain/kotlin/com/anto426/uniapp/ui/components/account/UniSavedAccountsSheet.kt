@@ -3,7 +3,6 @@ package com.anto426.uniapp.ui.components.account
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,7 +29,6 @@ import com.anto426.liquidmonet.components.buttons.button.LiquidButton
 import com.anto426.liquidmonet.components.buttons.button.LiquidButtonVariant
 import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButton
 import com.anto426.liquidmonet.components.buttons.iconbutton.LiquidIconButtonVariant
-import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.emptystate.LiquidEmptyState
 import com.anto426.liquidmonet.components.feedback.loading.LiquidLoading
@@ -40,6 +38,8 @@ import com.anto426.liquidmonet.components.interaction.liquidClickable
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.account.model.UniAccountSummary
 import com.anto426.uniapp.account.presentation.AccountSwitcherUiState
+import com.anto426.uniapp.ui.components.display.UniBlockDefaults
+import com.anto426.uniapp.ui.components.display.UniInsetGroup
 import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -84,25 +84,19 @@ internal fun UniSavedAccountsSheet(
                         onActionClick = onAddAccount,
                     )
                 } else {
-                    LiquidCard(
-                        contentPadding = PaddingValues(0.dp),
-                        shape = RoundedRectangle(22.dp),
-                        clipContent = false,
-                    ) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            state.accounts.forEachIndexed { index, account ->
-                                key(account.accountId) {
-                                    SavedAccountRow(
-                                        account = account,
-                                        isActive = account.accountId == activeAccountId,
-                                        isActivating = account.accountId == state.activatingAccountId,
-                                        profileImage = state.profileImages[account.accountId],
-                                        enabled = !isBusy,
-                                        showDivider = index != state.accounts.lastIndex,
-                                        onSelect = { onSelectAccount(account.accountId) },
-                                        onRemove = { onRemoveAccount(account.accountId) },
-                                    )
-                                }
+                    UniInsetGroup(animateEntrance = false) {
+                        state.accounts.forEachIndexed { index, account ->
+                            key(account.accountId) {
+                                SavedAccountRow(
+                                    account = account,
+                                    isActive = account.accountId == activeAccountId,
+                                    isActivating = account.accountId == state.activatingAccountId,
+                                    profileImage = state.profileImages[account.accountId],
+                                    enabled = !isBusy,
+                                    showDivider = index != state.accounts.lastIndex,
+                                    onSelect = { onSelectAccount(account.accountId) },
+                                    onRemove = { onRemoveAccount(account.accountId) },
+                                )
                             }
                         }
                     }
@@ -171,7 +165,7 @@ private fun SavedAccountRow(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .defaultMinSize(minHeight = 60.dp)
+                .defaultMinSize(minHeight = UniBlockDefaults.RowMinHeight)
                 .liquidClickable(
                     shape = rowShape,
                     enabled = enabled,
@@ -181,7 +175,12 @@ private fun SavedAccountRow(
                     selected = isActive
                     if (status != null) stateDescription = status
                 }
-                .padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+                .padding(
+                    start = UniBlockDefaults.RowHorizontalPadding,
+                    end = 8.dp,
+                    top = UniBlockDefaults.RowVerticalPadding,
+                    bottom = UniBlockDefaults.RowVerticalPadding,
+                ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -207,7 +206,7 @@ private fun SavedAccountRow(
                     text = details,
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -240,8 +239,7 @@ private fun SavedAccountRow(
 
     if (showDivider) {
         LiquidHorizontalDivider(
-            modifier = Modifier.padding(start = 68.dp, end = 16.dp),
-            color = colorScheme.onSurface.copy(alpha = 0.08f),
+            modifier = Modifier.padding(start = 68.dp, end = UniBlockDefaults.DividerEndInset),
         )
     }
 }

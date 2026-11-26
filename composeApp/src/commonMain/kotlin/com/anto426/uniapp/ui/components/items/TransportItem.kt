@@ -1,14 +1,10 @@
 package com.anto426.uniapp.ui.components.items
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.data.contract.TransportReservation
@@ -33,48 +29,46 @@ internal fun TransportReservationItem(
         reservation.departureStop.isNotBlank() -> reservation.departureStop
         else -> null
     }
+    val primaryTitle = stopsLabel ?: reservation.route
 
-    val metaText = buildList {
+    val scheduleMeta = buildList {
         reservation.time.takeIf(String::isNotBlank)?.let(::add)
-        stopsLabel?.let(::add)
         reservation.busNumber.takeIf(String::isNotBlank)?.let { bus ->
             add(stringResource(Res.string.ui_transport_navetta_number, bus))
         }
-        if (isEmpty()) {
-            add(reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) })
-        }
-    }.joinToString(" • ")
+    }.joinToString(" · ")
+    val secondarySubtitle = scheduleMeta.ifBlank {
+        reservation.date.ifBlank { stringResource(Res.string.ui_transport_date_unavailable) }
+    }
 
     UniInsetRow(
-        title = reservation.route,
-        subtitle = metaText,
+        title = primaryTitle,
         icon = if (isAndata) LiquidIcons.ArrowForward else LiquidIcons.ArrowBack,
         iconTint = accentColor,
         onClick = onClick,
         showDivider = showDivider,
-        titleMaxLines = 2,
+        showTrailingChevron = onClick != null,
+        subtitleContent = {
+            Text(
+                text = secondarySubtitle,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = if (scheduleMeta.isNotBlank()) FontWeight.SemiBold else FontWeight.Medium,
+                    fontFeatureSettings = "tnum",
+                ),
+                color = if (scheduleMeta.isNotBlank()) accentColor else colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         trailingContent = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                LiquidBadge(
-                    text = stringResource(
-                        if (isAndata) Res.string.ui_transport_outbound_short
-                        else Res.string.ui_transport_return_short,
-                    ),
-                    containerColor = accentColor.copy(alpha = 0.14f),
-                    contentColor = accentColor,
-                )
-                if (onClick != null) {
-                    Icon(
-                        imageVector = LiquidIcons.ChevronRight,
-                        contentDescription = null,
-                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-            }
+            LiquidBadge(
+                text = stringResource(
+                    if (isAndata) Res.string.ui_transport_outbound_short
+                    else Res.string.ui_transport_return_short,
+                ),
+                containerColor = accentColor.copy(alpha = 0.14f),
+                contentColor = accentColor,
+            )
         },
     )
 }
