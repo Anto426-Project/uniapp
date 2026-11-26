@@ -1,6 +1,8 @@
 package com.anto426.uniapp.ui.components.banners
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
@@ -9,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.scale
@@ -40,6 +43,7 @@ import com.anto426.uniapp.ui.components.cards.UniHeroFlipTrigger
 import com.anto426.uniapp.ui.components.cards.UniHeroGlassCard
 import com.anto426.uniapp.ui.components.cards.heroTextAccent
 import com.anto426.uniapp.ui.components.cards.rememberUniHeroCardPalette
+import com.kyant.shapes.Capsule
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -719,64 +723,88 @@ internal fun VersionText(
     val strongAccent = palette.accent
     val density = LocalDensity.current
     val baseStyle = MaterialTheme.typography.displayLarge
-    val styledVersion = remember(version, strongAccent) {
-        val firstDigitIndex = version.indexOfFirst { it.isDigit() }
+    val (baseVersion, prereleaseTag) = remember(version) {
+        val dashIdx = version.indexOf('-')
+        if (dashIdx > 0 && dashIdx < version.lastIndex) {
+            version.substring(0, dashIdx) to version.substring(dashIdx + 1).trim().takeIf(String::isNotEmpty)
+        } else {
+            version to null
+        }
+    }
+    val styledVersion = remember(baseVersion, strongAccent) {
+        val firstDigitIndex = baseVersion.indexOfFirst { it.isDigit() }
         buildAnnotatedString {
             if (firstDigitIndex < 0) {
-                withStyle(SpanStyle(color = Color.White)) { append(version) }
+                withStyle(SpanStyle(color = Color.White)) { append(baseVersion) }
             } else {
                 if (firstDigitIndex > 0) {
                     withStyle(SpanStyle(color = Color.White.copy(alpha = 0.94f))) {
-                        append(version.substring(0, firstDigitIndex))
+                        append(baseVersion.substring(0, firstDigitIndex))
                     }
                 }
                 withStyle(SpanStyle(color = strongAccent)) {
-                    append(version[firstDigitIndex])
+                    append(baseVersion[firstDigitIndex])
                 }
-                if (firstDigitIndex + 1 < version.length) {
+                if (firstDigitIndex + 1 < baseVersion.length) {
                     withStyle(SpanStyle(color = Color.White.copy(alpha = 0.96f))) {
-                        append(version.substring(firstDigitIndex + 1))
+                        append(baseVersion.substring(firstDigitIndex + 1))
                     }
                 }
             }
         }
     }
 
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center,
-    ) {
-        val maxWidthPx = constraints.maxWidth.toFloat()
-        val maxHeightPx = if (maxHeight != Dp.Unspecified) {
-            with(density) { maxHeight.toPx() }
-        } else {
-            Float.POSITIVE_INFINITY
-        }
-        val fittedSp = rememberFittedSingleLineSp(
-            text = version,
-            targetSp = fontSize.toFloat(),
-            minSp = 28f,
-            maxWidthPx = maxWidthPx,
-            maxHeightPx = maxHeightPx,
+    val badgeShape = remember { Capsule() }
+    val badgeLabel = remember(prereleaseTag) { prereleaseTag?.uppercase() }
+    val badgeTextStyle = remember {
+        TextStyle(
+            fontSize = 11.sp,
+            lineHeight = 14.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = -(fontSize * 0.035f),
-            baseStyle = baseStyle,
+            letterSpacing = 1.0.sp,
         )
-        val letterSpacingSp = -(fittedSp * 0.035f)
+    }
 
-        Text(
-            text = styledVersion,
-            fontSize = fittedSp.sp,
-            lineHeight = (fittedSp * 1.02f).sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = letterSpacingSp.sp,
-            style = baseStyle,
-            maxLines = 1,
-            softWrap = false,
-            textAlign = TextAlign.Center,
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        BoxWithConstraints(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 2.dp)
-                .drawBehind {
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 2.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val maxWidthPx = constraints.maxWidth.toFloat()
+            val maxHeightPx = if (maxHeight != Dp.Unspecified) {
+                with(density) { maxHeight.toPx() }
+            } else {
+                Float.POSITIVE_INFINITY
+            }
+            val fittedSp = rememberFittedSingleLineSp(
+                text = baseVersion,
+                targetSp = fontSize.toFloat(),
+                minSp = 18f,
+                maxWidthPx = maxWidthPx,
+                maxHeightPx = maxHeightPx,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = -(fontSize * 0.035f),
+                baseStyle = baseStyle,
+            )
+            val letterSpacingSp = -(fittedSp * 0.035f)
+
+            Text(
+                text = styledVersion,
+                fontSize = fittedSp.sp,
+                lineHeight = (fittedSp * 1.02f).sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = letterSpacingSp.sp,
+                style = baseStyle,
+                maxLines = 1,
+                softWrap = false,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.drawBehind {
                     scale(scaleX = 1.45f, scaleY = 0.9f) {
                         drawCircle(
                             brush = Brush.radialGradient(
@@ -790,7 +818,28 @@ internal fun VersionText(
                         )
                     }
                 },
-        )
+            )
+        }
+
+        if (badgeLabel != null) {
+            Box(
+                modifier = Modifier
+                    .widthIn(max = 160.dp)
+                    .clip(badgeShape)
+                    .background(strongAccent.copy(alpha = 0.22f))
+                    .border(1.dp, strongAccent.copy(alpha = 0.55f), badgeShape)
+                    .padding(horizontal = 10.dp, vertical = 3.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = badgeLabel,
+                    color = Color.White.copy(alpha = 0.94f),
+                    style = badgeTextStyle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 

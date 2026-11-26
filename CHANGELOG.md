@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- **Foto profilo preservata nel Badge digitale.** Risolta la race condition in `AcademicIdentityViewModel` (aggiornamenti non atomici dello stato che azzeravano `photoData` all’apertura) e aggiunto fallback immediato alla cache di `AccountAvatarStore`, così la foto resta sempre visibile nel tesserino anche offline.
+- **Versione banner aggiornamenti mai tagliata.** Spostato il padding nel contenitore di misura di `VersionText` e separato il suffisso pre-release (`-debug`, `-beta`, ecc.) in un badge capsule centrato sotto il numero di versione, così la versione hero resta centrata e leggibile senza troncamenti sia nel banner Aggiornamenti che in Info app.
 - **Sedi duplicate unificate in Rubrica.** Normalizzati i nomi delle città dei contatti rimuovendo sigle provincia (`(CB)`, `(IS)`), CAP iniziali e differenze di maiuscole, così varianti come «Campobasso» e «Campobasso (CB)» vengono raggruppate in una sola chip con il conteggio corretto.
 - **Icone vettoriali e stati vuoti Expressive migrati in Liquid Monet.** Spostate le ultime 17 icone vettoriali locali (Tema, Dispositivi connessi, Scanner QR e Lingua) dentro `LiquidIcons` e promossi `LiquidExpressiveHeroFrame` e `LiquidEmptyState` allo standard Material 3 Expressive direttamente nell’SDK, rimuovendo i componenti duplicati dall’app.
 
