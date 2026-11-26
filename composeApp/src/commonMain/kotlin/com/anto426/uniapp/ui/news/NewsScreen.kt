@@ -41,9 +41,6 @@ fun NewsScreen(
         }
     }
 
-    val showFeaturedLead = trimmedQuery.isBlank() && filteredNews.size >= 2
-    val featuredNews = if (showFeaturedLead) filteredNews.first() else null
-    val listNews = if (showFeaturedLead) filteredNews.drop(1) else filteredNews
     val activeFilter = uiState.filters.getOrNull(uiState.selectedTab)
 
     UniScreenLazyColumn {
@@ -59,12 +56,8 @@ fun NewsScreen(
                                 NewsFilter.Department -> stringResource(Res.string.ui_news_department)
                                 NewsFilter.Course -> stringResource(Res.string.ui_news_course)
                             }
-                            val count = filter.category?.let { category ->
-                                uiState.feed.byCategory[category.lowercase()]?.size ?: 0
-                            } ?: uiState.news.size
                             LiquidChip(
                                 label = label,
-                                badge = count.toString(),
                                 selected = selected,
                                 leadingIcon = if (selected) LiquidIcons.Check else null,
                                 onClick = { onTabSelected(index) },
@@ -89,54 +82,40 @@ fun NewsScreen(
                 )
             }
         } else {
-            if (featuredNews != null) {
-                item(key = "news-featured-${uiState.selectedTab}-${featuredNews.key}", contentType = "featured-news") {
-                    UniAnimatedEntrance(order = 0) {
-                        UniNewsCard(
-                            news = featuredNews,
-                            onClick = { onNewsSelected(featuredNews) },
-                            featured = true,
-                        )
-                    }
+            item(key = "news-section-header-${uiState.selectedTab}", contentType = "section-header") {
+                val activeLabel = when (activeFilter) {
+                    NewsFilter.University -> stringResource(Res.string.ui_news_university)
+                    NewsFilter.Department -> stringResource(Res.string.ui_news_department)
+                    NewsFilter.Course -> stringResource(Res.string.ui_news_course)
+                    NewsFilter.All, null -> stringResource(Res.string.ui_news_latest_header)
+                }
+                val countLabel = if (filteredNews.size == 1) {
+                    stringResource(Res.string.ui_news_count_one)
+                } else {
+                    stringResource(Res.string.ui_news_count_format, filteredNews.size)
+                }
+                UniAnimatedEntrance(order = 0) {
+                    LiquidSectionHeader(
+                        title = activeLabel,
+                        subtitle = countLabel,
+                    )
                 }
             }
 
-            if (listNews.isNotEmpty()) {
-                item(key = "news-section-header-${uiState.selectedTab}-$showFeaturedLead", contentType = "section-header") {
-                    val activeLabel = when (activeFilter) {
-                        NewsFilter.University -> stringResource(Res.string.ui_news_university)
-                        NewsFilter.Department -> stringResource(Res.string.ui_news_department)
-                        NewsFilter.Course -> stringResource(Res.string.ui_news_course)
-                        NewsFilter.All, null -> stringResource(Res.string.ui_news_latest_header)
-                    }
-                    val countLabel = if (filteredNews.size == 1) {
-                        stringResource(Res.string.ui_news_count_one)
-                    } else {
-                        stringResource(Res.string.ui_news_count_format, filteredNews.size)
-                    }
-                    UniAnimatedEntrance(order = if (featuredNews != null) 1 else 0) {
-                        LiquidSectionHeader(
-                            title = activeLabel,
-                            subtitle = countLabel,
-                        )
-                    }
-                }
-
-                itemsIndexed(
-                    items = listNews,
-                    contentType = { _, _ -> "news-card" },
-                    key = { index, news -> "${uiState.selectedTab}|${news.key.ifBlank { news.title }}|$index" },
-                ) { index, news ->
-                    UniAnimatedEntrance(
-                        order = uniListEntranceOrder(index, offset = if (featuredNews != null) 1 else 0),
-                    ) {
-                        UniNewsCard(
-                            news = news,
-                            onClick = { onNewsSelected(news) },
-                            homeCard = false,
-                            featured = false,
-                        )
-                    }
+            itemsIndexed(
+                items = filteredNews,
+                contentType = { _, _ -> "news-card" },
+                key = { index, news -> "${uiState.selectedTab}|${news.key.ifBlank { news.title }}|$index" },
+            ) { index, news ->
+                UniAnimatedEntrance(
+                    order = uniListEntranceOrder(index, offset = 0),
+                ) {
+                    UniNewsCard(
+                        news = news,
+                        onClick = { onNewsSelected(news) },
+                        homeCard = false,
+                        featured = false,
+                    )
                 }
             }
         }

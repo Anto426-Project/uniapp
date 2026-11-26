@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.anto426.uniapp.home.presentation.HomeDashboardUiState
 import com.anto426.uniapp.data.contract.NewsItem
+import com.anto426.uniapp.home.presentation.HomeDashboardUiState
 import com.anto426.uniapp.presentation.FeatureLoadState
 import com.anto426.uniapp.ui.components.layout.LocalUniScreenPadding
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
@@ -39,23 +39,24 @@ fun HomeScreen(
     onQuickActionClick: (String) -> Unit,
 ) {
     val screenPadding = LocalUniScreenPadding.current
+    val horizontalInset = 16.dp
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer(clip = false),
         contentPadding = PaddingValues(
-            top = screenPadding.calculateTopPadding(),
+            top = screenPadding.calculateTopPadding() + 4.dp,
             bottom = screenPadding.calculateBottomPadding() + 24.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         if (uiState.loadState == FeatureLoadState.Error && !uiState.errorMessage.isNullOrBlank()) {
             item(key = "home-error", contentType = "home-error") {
                 HomeErrorRetryCard(
                     message = uiState.errorMessage,
                     onRetry = onRefresh,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = horizontalInset),
                 )
             }
         }
@@ -67,7 +68,7 @@ fun HomeScreen(
                     uiState = uiState,
                     onOpenBadge = onOpenBadge,
                     onOpenStatistics = onOpenStatistics,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = horizontalInset),
                 )
             }
         }
@@ -80,12 +81,12 @@ fun HomeScreen(
                     onOpenExams = onOpenExams,
                     onOpenTaxes = onOpenTaxes,
                     onOpenTheses = { onQuickActionClick("tesi") },
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = horizontalInset),
                 )
             }
         }
 
-        // 3. Accesso rapido compatto (sopra le notizie)
+        // 3. Apple Control Center / Shortcuts 2-Column Bento Quick Access
         item(key = "home-quick-access", contentType = "home-quick-access") {
             UniAnimatedEntrance(order = 2) {
                 HomeQuickAccessGroup(
@@ -98,7 +99,7 @@ fun HomeScreen(
             }
         }
 
-        // 4. Notizie > stile Apple News / App Store (peek orizzontale edge-to-edge)
+        // 4. Apple News / App Store Edge-to-Edge Peek Pager
         item(key = "home-news", contentType = "home-news") {
             UniAnimatedEntrance(order = 3) {
                 HomeNewsSection(

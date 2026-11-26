@@ -30,14 +30,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
-import com.anto426.liquidmonet.motion.LiquidMotion
-import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
-import com.anto426.uniapp.ui.components.layout.UniContentHost
-import com.anto426.uniapp.ui.motion.UniMotion
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.LayerOutsets
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -55,18 +50,24 @@ import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.iconcontainer.liquidIconContainer
 import com.anto426.liquidmonet.components.feedback.progressbar.LiquidLinearProgressIndicator
+import com.anto426.liquidmonet.glass.runtime.LocalLiquidGlassPerformance
 import com.anto426.liquidmonet.icons.LiquidIcons
+import com.anto426.liquidmonet.motion.LiquidMotion
+import com.anto426.liquidmonet.motion.animateLiquidFloatAsState
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
+import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.home.presentation.HomeDashboardUiState
 import com.anto426.uniapp.model.home.QuickActionItem
-import com.anto426.uniapp.data.contract.NewsItem
 import com.anto426.uniapp.ui.components.account.UniAccountAvatar
 import com.anto426.uniapp.ui.components.account.accountDisplayIdentity
 import com.anto426.uniapp.ui.components.account.formatSmartDisplayName
 import com.anto426.uniapp.ui.components.items.UniNewsCard
+import com.anto426.uniapp.ui.components.layout.UniContentHost
 import com.anto426.uniapp.ui.components.state.UniExpressiveStatusState
+import com.anto426.uniapp.ui.motion.UniMotion
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
+import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.stringResource
@@ -169,81 +170,77 @@ fun HomeSummarySection(
                 shape = RoundedRectangle(24.dp),
                 onClick = onOpenBadge,
             ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 48.dp)
-                    .semantics(mergeDescendants = true) {}
-                    .padding(horizontal = 18.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
                 Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 48.dp)
+                        .semantics(mergeDescendants = true) {}
+                        .padding(horizontal = 18.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    UniAccountAvatar(
-                        imageData = identity.photo,
-                        initials = identity.initials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
-                        size = 44.dp,
-                        contentDescription = stringResource(Res.string.ui_profile_picture),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .border(
-                                width = 1.5.dp,
-                                color = colorScheme.primary.copy(alpha = 0.40f),
-                                shape = CircleShape,
-                            )
-                            .padding(2.dp),
-                    )
-
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = displayName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        UniAccountAvatar(
+                            imageData = identity.photo,
+                            initials = identity.initials.ifBlank { if (uiState.isProfessor) "DO" else "ST" },
+                            size = 44.dp,
+                            contentDescription = stringResource(Res.string.ui_profile_picture),
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .border(
+                                    width = 1.5.dp,
+                                    color = colorScheme.primary.copy(alpha = 0.40f),
+                                    shape = CircleShape,
+                                )
+                                .padding(2.dp),
                         )
-                        Text(
-                            text = secondaryLine,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = displayName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = secondaryLine,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.width(8.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = LiquidIcons.QrCode,
+                            contentDescription = stringResource(Res.string.ui_badge),
+                            tint = colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Icon(
+                            imageVector = LiquidIcons.ChevronRight,
+                            contentDescription = null,
+                            tint = colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp),
                         )
                     }
                 }
-
-                Spacer(Modifier.width(8.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Icon(
-                        imageVector = LiquidIcons.QrCode,
-                        contentDescription = stringResource(Res.string.ui_badge),
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Icon(
-                        imageVector = LiquidIcons.ChevronRight,
-                        contentDescription = null,
-                        tint = colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
             }
 
-            }
-
-            LiquidHorizontalDivider(
-                modifier = Modifier.padding(horizontal = 18.dp),
-                color = colorScheme.onSurface.copy(alpha = 0.08f),
-            )
+            LiquidHorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp))
 
             if (uiState.isProfessor) {
                 Column(
@@ -642,118 +639,8 @@ private fun formatSpotlightSubtitle(raw: String): String {
 }
 
 /**
- * Sezione 3 — "Notizie >" in stile Apple News / App Store:
- * Target touch >= 48dp sull'intestazione cliccabile, contatore discreto (niente stati nascosti),
- * e carosello edge-to-edge con peek naturale.
- */
-@Composable
-fun HomeNewsSection(
-    homeNews: List<NewsItem>,
-    activeNewsIndex: Int,
-    onOpenNews: () -> Unit,
-    onShowNews: (NewsItem) -> Unit,
-    onSelectNews: (Int) -> Unit = {},
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    val safeActiveIndex = activeNewsIndex.coerceIn(0, homeNews.lastIndex.coerceAtLeast(0))
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer(clip = false),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 48.dp)
-                .clickable(role = Role.Button, onClick = onOpenNews)
-                .semantics(mergeDescendants = true) {}
-                .padding(horizontal = 18.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = stringResource(Res.string.nav_route_news_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
-                )
-                Icon(
-                    imageVector = LiquidIcons.ChevronRight,
-                    contentDescription = stringResource(Res.string.ui_home_news_all),
-                    tint = colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-
-            if (homeNews.size > 1) {
-                Text(
-                    text = "${safeActiveIndex + 1} / ${homeNews.size}",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-
-        if (homeNews.isEmpty()) {
-            UniExpressiveStatusState(
-                title = stringResource(Res.string.ui_news_empty_title),
-                description = stringResource(Res.string.ui_news_empty_desc),
-                inline = true,
-                mainIcon = LiquidIcons.Notifications,
-            )
-        } else {
-            val pagerState = rememberPagerState(
-                initialPage = safeActiveIndex,
-                pageCount = { homeNews.size },
-            )
-
-            LaunchedEffect(safeActiveIndex, homeNews.size) {
-                if (pagerState.currentPage != safeActiveIndex && !pagerState.isScrollInProgress) {
-                    pagerState.animateScrollToPage(safeActiveIndex)
-                }
-            }
-
-            LaunchedEffect(pagerState) {
-                snapshotFlow { pagerState.settledPage }
-                    .distinctUntilChanged()
-                    .collect { page ->
-                        if (page != safeActiveIndex) {
-                            onSelectNews(page)
-                        }
-                    }
-            }
-
-            HorizontalPager(
-                state = pagerState,
-                contentPadding = PaddingValues(
-                    start = 18.dp,
-                    end = if (homeNews.size > 1) 44.dp else 18.dp,
-                ),
-                pageSpacing = 12.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer(clip = false),
-            ) { page ->
-                val newsItem = homeNews[page]
-                UniNewsCard(
-                    news = newsItem,
-                    onClick = { onShowNews(newsItem) },
-                    homeCard = true,
-                )
-            }
-        }
-    }
-}
-
-/**
- * Sezione "Accesso rapido" con griglia Bento compatta a 2 colonne e modifica inline in-place.
+ * Sezione 4 — "Accesso rapido" in griglia Bento compatta 2×N con azione compatta Personalizza/Fatto
+ * e modifica inline fluida governata da UniContentHost (SDK motion ownership).
  */
 @Composable
 fun HomeQuickAccessGroup(
@@ -770,16 +657,19 @@ fun HomeQuickAccessGroup(
     val isCustomizing = uiState.isCustomizing
     val selectedCount = uiState.selectedActionIds.size
     val displayActions = if (isCustomizing) allActions else visibleActions
-    val horizontalPadding = 18.dp
+    val horizontalPadding = 16.dp
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer(clip = false),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 44.dp)
+                .padding(horizontal = horizontalPadding),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -791,12 +681,13 @@ fun HomeQuickAccessGroup(
                     text = stringResource(Res.string.ui_home_quick_access_eyebrow),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.3).sp,
                     color = colorScheme.onSurface,
                 )
                 if (isCustomizing) {
                     Text(
                         text = stringResource(Res.string.ui_home_customize_title),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
                     )
                 }
@@ -816,17 +707,19 @@ fun HomeQuickAccessGroup(
 
                 LiquidButton(
                     onClick = if (isCustomizing) onFinishCustomization else onToggleCustomization,
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
-                    minimumHeight = 48.dp,
+                    contentPadding = PaddingValues(horizontal = 13.dp, vertical = 6.dp),
+                    minimumHeight = 36.dp,
                     shape = Capsule(),
-                    containerColor = if (isCustomizing) colorScheme.primary else Color.Transparent,
+                    containerColor = if (isCustomizing) colorScheme.primary else colorScheme.primaryContainer.copy(alpha = 0.45f),
                     contentColor = if (isCustomizing) colorScheme.onPrimary else colorScheme.primary,
                     border = null,
                 ) {
-                    if (isCustomizing) Icon(LiquidIcons.Check, null, Modifier.size(14.dp))
+                    if (isCustomizing) {
+                        Icon(LiquidIcons.Check, null, Modifier.size(14.dp))
+                    }
                     Text(
                         text = stringResource(if (isCustomizing) Res.string.ui_done else Res.string.ui_customize),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
@@ -902,16 +795,16 @@ private fun QuickAccessBentoTile(
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val tileShape = RoundedRectangle(18.dp)
+    val tileShape = RoundedRectangle(20.dp)
     val isActive = !editing || selected
     val tileBorder = when {
-        editing && selected -> BorderStroke(1.2.dp, colorScheme.primary.copy(alpha = 0.6f))
+        editing && selected -> BorderStroke(1.4.dp, colorScheme.primary.copy(alpha = 0.65f))
         editing && !selected -> BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.45f))
         else -> null
     }
     val performance = LocalLiquidGlassPerformance.current
     val tileAlpha by animateLiquidFloatAsState(
-        targetValue = if (isActive) 1f else 0.62f,
+        targetValue = if (isActive) 1f else 0.58f,
         animationSpec = remember(performance) { LiquidMotion.spatialSpring(performance) },
         label = "quickAccessTileAlpha",
     )
@@ -926,7 +819,7 @@ private fun QuickAccessBentoTile(
         }
 
     LiquidCard(
-        contentPadding = PaddingValues(11.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
         modifier = tileModifier,
         shape = tileShape,
         border = tileBorder,
@@ -935,9 +828,9 @@ private fun QuickAccessBentoTile(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = 40.dp),
+                .defaultMinSize(minHeight = 44.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(9.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             val resolvedAccent = if (isActive) accent else colorScheme.onSurfaceVariant
             Icon(
@@ -945,8 +838,8 @@ private fun QuickAccessBentoTile(
                 contentDescription = null,
                 tint = resolvedAccent,
                 modifier = Modifier.liquidIconContainer(
-                    containerSize = 32.dp,
-                    iconSize = 17.dp,
+                    containerSize = 34.dp,
+                    iconSize = 18.dp,
                     containerColor = resolvedAccent.copy(alpha = if (isActive) 0.14f else 0.10f),
                     shape = RoundedRectangle(10.dp),
                 ),
@@ -1001,6 +894,129 @@ private fun QuickAccessBentoTile(
                         modifier = Modifier.size(13.dp),
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Sezione 5 — "Notizie >" in stile Apple News / App Store:
+ * intestazione cliccabile (>= 48dp), badge contatore discreto e pager edge-to-edge
+ * con scala/opacità 1:1 reattiva al dito (Apple §2 Direct Manipulation).
+ */
+@Composable
+fun HomeNewsSection(
+    homeNews: List<NewsItem>,
+    activeNewsIndex: Int,
+    onOpenNews: () -> Unit,
+    onShowNews: (NewsItem) -> Unit,
+    onSelectNews: (Int) -> Unit = {},
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val safeActiveIndex = activeNewsIndex.coerceIn(0, homeNews.lastIndex.coerceAtLeast(0))
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer(clip = false),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 48.dp)
+                .clickable(role = Role.Button, onClick = onOpenNews)
+                .semantics(mergeDescendants = true) {}
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.nav_route_news_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.3).sp,
+                    color = colorScheme.onSurface,
+                )
+                Icon(
+                    imageVector = LiquidIcons.ChevronRight,
+                    contentDescription = stringResource(Res.string.ui_home_news_all),
+                    tint = colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
+            if (homeNews.size > 1) {
+                LiquidBadge(
+                    text = "${safeActiveIndex + 1} / ${homeNews.size}",
+                    containerColor = colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                    contentColor = colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        if (homeNews.isEmpty()) {
+            UniExpressiveStatusState(
+                title = stringResource(Res.string.ui_news_empty_title),
+                description = stringResource(Res.string.ui_news_empty_desc),
+                inline = true,
+                mainIcon = LiquidIcons.Notifications,
+            )
+        } else {
+            val pagerState = rememberPagerState(
+                initialPage = safeActiveIndex,
+                pageCount = { homeNews.size },
+            )
+
+            LaunchedEffect(safeActiveIndex, homeNews.size) {
+                if (pagerState.currentPage != safeActiveIndex && !pagerState.isScrollInProgress) {
+                    pagerState.animateScrollToPage(safeActiveIndex)
+                }
+            }
+
+            LaunchedEffect(pagerState) {
+                snapshotFlow { pagerState.settledPage }
+                    .distinctUntilChanged()
+                    .collect { page ->
+                        if (page != safeActiveIndex) {
+                            onSelectNews(page)
+                        }
+                    }
+            }
+
+            HorizontalPager(
+                state = pagerState,
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = if (homeNews.size > 1) 42.dp else 16.dp,
+                ),
+                pageSpacing = 12.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
+            ) { page ->
+                val newsItem = homeNews[page]
+                val pageOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
+                    .absoluteValue
+                    .coerceIn(0f, 1f)
+                val scale = 1f - (pageOffset * 0.035f)
+                val cardAlpha = 1f - (pageOffset * 0.14f)
+
+                UniNewsCard(
+                    news = newsItem,
+                    onClick = { onShowNews(newsItem) },
+                    homeCard = true,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = cardAlpha
+                        clip = false
+                    },
+                )
             }
         }
     }
