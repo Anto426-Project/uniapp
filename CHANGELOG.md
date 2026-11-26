@@ -1,9 +1,11 @@
-## [Unreleased]
+## [2.1.6] - 2026-11-26 (build set by CI)
 
+- **Statistiche e analisi carriera completamente riprogettate.** Nuova pagina Statistiche modulare con schede **Andamento**, **Simula** e **Obiettivo**, grafici Liquid Monet frameless interattivi (linea, ciambella e barre) e tre sottopagine dedicate per l’andamento temporale esame per esame, la distribuzione dei voti per fascia e l’analisi del peso CFU.
+- **Blocchi, righe e card espandibili uniformati in tutta l’app.** Standardizzati altezze, spaziature e componenti condivisi (`UniInsetGroup`, `UniInsetRow`, `UniBentoTile`) su Home, Didattica, Trasporti, Servizi, Biblioteca, Impostazioni e Aggiornamenti, utilizzando direttamente il componente nativo `LiquidExpandableCard` di Liquid Monet.
 - **Foto profilo preservata nel Badge digitale.** Risolta la race condition in `AcademicIdentityViewModel` (aggiornamenti non atomici dello stato che azzeravano `photoData` all’apertura) e aggiunto fallback immediato alla cache di `AccountAvatarStore`, così la foto resta sempre visibile nel tesserino anche offline.
 - **Versione banner aggiornamenti mai tagliata.** Spostato il padding nel contenitore di misura di `VersionText` e separato il suffisso pre-release (`-debug`, `-beta`, ecc.) in un badge capsule centrato sotto il numero di versione, così la versione hero resta centrata e leggibile senza troncamenti sia nel banner Aggiornamenti che in Info app.
 - **Sedi duplicate unificate in Rubrica.** Normalizzati i nomi delle città dei contatti rimuovendo sigle provincia (`(CB)`, `(IS)`), CAP iniziali e differenze di maiuscole, così varianti come «Campobasso» e «Campobasso (CB)» vengono raggruppate in una sola chip con il conteggio corretto.
-- **Icone vettoriali e stati vuoti Expressive migrati in Liquid Monet.** Spostate le ultime 17 icone vettoriali locali (Tema, Dispositivi connessi, Scanner QR e Lingua) dentro `LiquidIcons` e promossi `LiquidExpressiveHeroFrame` e `LiquidEmptyState` allo standard Material 3 Expressive direttamente nell’SDK, rimuovendo i componenti duplicati dall’app.
+- **Liquid Monet SDK aggiornato alla versione 2.0.61.** Migrazione delle ultime 17 icone vettoriali locali in `LiquidIcons`, promozione di `LiquidExpressiveHeroFrame` e `LiquidEmptyState` allo standard Material 3 Expressive nell’SDK, nuovi grafici frameless personalizzabili e altezze normalizzate per `LiquidExpandableCard`.
 
 ## [2.1.5] - 2026-11-25 (build set by CI)
 
