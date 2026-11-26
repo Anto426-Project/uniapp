@@ -39,8 +39,8 @@ internal fun AttendanceSummaryHeroCard(
 
     LiquidCard(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedRectangle(24.dp),
-        contentPadding = PaddingValues(18.dp),
+        shape = RoundedRectangle(28.dp),
+        contentPadding = PaddingValues(20.dp),
         border = BorderStroke(1.dp, accentColor.copy(alpha = 0.22f)),
     ) {
         Column(
@@ -85,8 +85,7 @@ internal fun AttendanceSummaryHeroCard(
                 UniCircularProgressRing(
                     progress = progress,
                     centerText = "$average%",
-                    subtitleText = stringResource(Res.string.ui_attendance_kpi_average_sub),
-                    size = 74.dp,
+                    size = 76.dp,
                     strokeWidth = 7.dp,
                     primaryColor = accentColor,
                     secondaryColor = colorScheme.tertiary,

@@ -72,37 +72,22 @@ fun StudentExamsTabContent(
     onAddToCalendar: (String) -> Unit,
 ) {
     val tabExams = uiState.exams.filter { it.isBooked == (tabIndex == 1) }
-    val openNowExamsCount = uiState.exams.count { !it.isBooked && it.canBook }
-    val openingSoonExamsCount = uiState.exams.count { !it.isBooked && !it.canBook }
-
     Column(
         modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (tabIndex == 0 && tabExams.isNotEmpty()) {
             val filterOptions = listOf(
-                Triple(
-                    ExamBookableFilter.ALL,
-                    stringResource(Res.string.ui_exams_all_filter),
-                    tabExams.size,
-                ),
-                Triple(
-                    ExamBookableFilter.OPEN_NOW,
-                    stringResource(Res.string.ui_exams_open_filter),
-                    openNowExamsCount,
-                ),
-                Triple(
-                    ExamBookableFilter.OPENING_SOON,
-                    stringResource(Res.string.ui_exams_opening_soon_filter),
-                    openingSoonExamsCount,
-                ),
+                ExamBookableFilter.ALL to stringResource(Res.string.ui_exams_all_filter),
+                ExamBookableFilter.OPEN_NOW to stringResource(Res.string.ui_exams_open_filter),
+                ExamBookableFilter.OPENING_SOON to stringResource(Res.string.ui_exams_opening_soon_filter),
             )
             UniHorizontalChipRow {
-                filterOptions.forEach { (filterOption, label, count) ->
+                filterOptions.forEach { (filterOption, label) ->
                     key(filterOption) {
                         val selected = bookableFilter == filterOption
                         LiquidChip(
-                            label = "$label ($count)",
+                            label = label,
                             selected = selected,
                             leadingIcon = if (selected) LiquidIcons.Check else null,
                             onClick = { onBookableFilterChange(filterOption) },

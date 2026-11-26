@@ -1,5 +1,6 @@
 package com.anto426.uniapp.ui.didactics
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,21 +10,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import com.kyant.shapes.Capsule
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
-import com.anto426.liquidmonet.components.cards.card.LiquidCardDefaults
+import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
 import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHeader
 import com.anto426.liquidmonet.icons.LiquidIcons
@@ -40,6 +41,8 @@ import com.anto426.uniapp.ui.components.layout.UniScreenColumn
 import com.anto426.uniapp.ui.didactics.components.ProfessorDidacticsContent
 import com.anto426.uniapp.ui.didactics.components.YearProgress
 import com.anto426.uniapp.ui.home.dashboard.components.HomeErrorRetryCard
+import com.kyant.shapes.Capsule
+import com.kyant.shapes.RoundedRectangle
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -85,180 +88,179 @@ fun DidacticsScreen(
             )
         }
 
-        // 1. Academic Degree Summary Card (Liquid-Monet 2.0.39: card -> Statistiche, badge -> Carriera)
+        // 1. Apple Fitness / Activity Ring Career Summary Card (28dp, zero nested LiquidCard)
         UniAnimatedEntrance(order = 0) {
+            val cfuPercent = (uiState.progress * 100f).roundToInt().coerceIn(0, 100)
+            val targetCfuLabel = uiState.targetCfu.takeIf { it > 0 }?.toString() ?: "—"
+
             LiquidCard(
                 contentPadding = PaddingValues(18.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer(clip = false),
-                shape = RoundedRectangle(24.dp),
+                shape = RoundedRectangle(28.dp),
                 onClick = onOpenGrades,
             ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top,
                     ) {
-                        Text(
-                            text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_didactics_degree_fallback) },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = colorScheme.onSurface,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_didactics_career_data_fallback) },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            Text(
+                                text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_didactics_degree_fallback) },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = (-0.25).sp,
+                                color = colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_didactics_career_data_fallback) },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
 
-                    Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(10.dp))
 
-                    LiquidCard(
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-                        shape = Capsule(),
-                        fillWidth = false,
-                        colors = LiquidCardDefaults.colors(
-                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
-                            contentColor = colorScheme.primary,
-                        ),
-                        onClick = onOpenTranscripts,
-                    ) {
-                        Text(
+                        LiquidBadge(
                             text = if (uiState.plannedActivities > 0) {
                                 stringResource(Res.string.ui_didactics_activities_badge, uiState.completedExams, uiState.plannedActivities)
                             } else {
                                 stringResource(Res.string.ui_didactics_exams_badge, uiState.completedExams)
                             },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
+                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
+                            contentColor = colorScheme.primary,
+                            modifier = Modifier
+                                .clip(Capsule())
+                                .clickable(role = Role.Button, onClick = onOpenTranscripts),
                         )
                     }
-                }
 
-                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
+                    LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = stringResource(Res.string.ui_weighted_average),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colorScheme.onSurfaceVariant,
-                        )
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Text(
-                                text = uiState.average,
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = (-1).sp,
-                                color = colorScheme.onSurface,
-                                maxLines = 1,
-                            )
-                            Text(
-                                text = "/ 30",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
+                                text = stringResource(Res.string.ui_weighted_average),
+                                style = MaterialTheme.typography.labelMedium,
                                 color = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 5.dp),
                             )
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            (1..uiState.totalYears.coerceIn(1, 4)).forEach { year ->
-                                YearProgress("$year°", year <= uiState.currentYear, colorScheme)
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Text(
+                                    text = uiState.average,
+                                    style = MaterialTheme.typography.displaySmall,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = (-1.3).sp,
+                                    color = colorScheme.onSurface,
+                                    maxLines = 1,
+                                )
+                                Text(
+                                    text = "/ 30",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 6.dp),
+                                )
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                (1..uiState.totalYears.coerceIn(1, 4)).forEach { year ->
+                                    YearProgress("$year°", year <= uiState.currentYear, colorScheme)
+                                }
                             }
                         }
+
+                        Spacer(Modifier.width(12.dp))
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            UniCircularProgressRing(
+                                progress = uiState.progress,
+                                centerText = "$cfuPercent%",
+                                subtitleText = "CFU",
+                                size = 76.dp,
+                                strokeWidth = 7.dp,
+                                primaryColor = colorScheme.primary,
+                                secondaryColor = colorScheme.tertiary,
+                            )
+                            Text(
+                                text = "${uiState.acquiredCfu} / $targetCfuLabel CFU",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        val cfuPercent = (uiState.progress * 100f).roundToInt().coerceIn(0, 100)
-                        UniCircularProgressRing(
-                            progress = uiState.progress,
-                            centerText = "$cfuPercent%",
-                            subtitleText = "CFU",
-                            size = 68.dp,
-                            strokeWidth = 6.dp,
-                            primaryColor = colorScheme.primary,
-                            secondaryColor = colorScheme.tertiary,
-                        )
-                        Text(
-                            text = "${uiState.acquiredCfu}/${uiState.targetCfu.takeIf { it > 0 } ?: "—"} CFU",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
+                    LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
-                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.ui_didactics_career_progress_percent, (uiState.progress * 100f).roundToInt().coerceIn(0, 100)),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colorScheme.onSurfaceVariant,
-                    )
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(
-                            text = stringResource(Res.string.ui_details),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
+                            text = stringResource(Res.string.ui_didactics_career_progress_percent, cfuPercent),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = colorScheme.onSurfaceVariant,
                         )
-                        Icon(
-                            imageVector = LiquidIcons.ChevronRight,
-                            contentDescription = null,
-                            tint = colorScheme.primary,
-                            modifier = Modifier.size(14.dp),
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.ui_details),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                            )
+                            Icon(
+                                imageVector = LiquidIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = colorScheme.primary,
+                                modifier = Modifier.size(15.dp),
+                            )
+                        }
                     }
                 }
             }
         }
-        }
 
-        // 2. Carriera e valutazioni in Apple Inset Grouped List (zero troncamenti)
+        // 2. Carriera e valutazioni in Apple Inset Grouped List (24dp coerente)
         UniAnimatedEntrance(order = 1) {
             Column(
-                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 LiquidSectionHeader(
@@ -267,7 +269,7 @@ fun DidacticsScreen(
                 )
 
                 UniInsetGroup(
-                    cornerRadius = 22.dp,
+                    cornerRadius = 24.dp,
                     animateEntrance = false,
                 ) {
                     UniInsetRow(
@@ -298,7 +300,7 @@ fun DidacticsScreen(
             }
         }
 
-        // 3. Esami e aula in griglia Bento compatta 2×2
+        // 3. Esami e aula in griglia Bento 2x2 simmetrica (12dp row & column gap)
         UniAnimatedEntrance(order = 2) {
             Column(
                 modifier = Modifier
@@ -332,31 +334,29 @@ fun DidacticsScreen(
                         )
                     },
                 )
-            }
-        }
 
-        UniAnimatedEntrance(order = 3) {
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_didactics_questionnaires_title),
-                        subtitle = stringResource(Res.string.ui_didactics_questionnaires_sub),
-                        icon = LiquidIcons.Feedback,
-                        badgeCount = uiState.pendingQuestionnaires.takeIf { it > 0 },
-                        iconColor = glassColors.warning,
-                        onClick = onOpenQuestionnaires,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_didactics_badge_title),
-                        subtitle = stringResource(Res.string.ui_didactics_badge_sub),
-                        icon = LiquidIcons.Badge,
-                        iconColor = colorScheme.secondary,
-                        onClick = onOpenBadge,
-                    )
-                },
-            )
+                DidacticRow(
+                    item1 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_didactics_questionnaires_title),
+                            subtitle = stringResource(Res.string.ui_didactics_questionnaires_sub),
+                            icon = LiquidIcons.Feedback,
+                            badgeCount = uiState.pendingQuestionnaires.takeIf { it > 0 },
+                            iconColor = glassColors.warning,
+                            onClick = onOpenQuestionnaires,
+                        )
+                    },
+                    item2 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_didactics_badge_title),
+                            subtitle = stringResource(Res.string.ui_didactics_badge_sub),
+                            icon = LiquidIcons.Badge,
+                            iconColor = colorScheme.secondary,
+                            onClick = onOpenBadge,
+                        )
+                    },
+                )
+            }
         }
     }
 }

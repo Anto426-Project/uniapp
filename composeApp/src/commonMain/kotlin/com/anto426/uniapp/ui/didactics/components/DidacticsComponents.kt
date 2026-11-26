@@ -1,13 +1,17 @@
 package com.anto426.uniapp.ui.didactics.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import com.kyant.shapes.RoundedRectangle
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -15,9 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anto426.liquidmonet.components.cards.card.LiquidCard
 import com.anto426.liquidmonet.components.display.badge.LiquidBadge
 import com.anto426.liquidmonet.components.display.divider.LiquidHorizontalDivider
@@ -25,11 +33,12 @@ import com.anto426.liquidmonet.components.display.sectionheader.LiquidSectionHea
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.liquidmonet.theme.LiquidGlassTheme
 import com.anto426.uniapp.didactics.presentation.DidacticsDashboardUiState
-import com.anto426.uniapp.ui.components.display.UniBentoStatTile
 import com.anto426.uniapp.ui.components.items.DidacticItem
 import com.anto426.uniapp.ui.components.items.DidacticRow
 import com.anto426.uniapp.ui.components.layout.UniAnimatedEntrance
 import com.anto426.uniapp.ui.components.layout.UniScreenColumn
+import com.kyant.shapes.Capsule
+import com.kyant.shapes.RoundedRectangle
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
 
@@ -46,82 +55,102 @@ fun ProfessorDidacticsContent(
     val colorScheme = MaterialTheme.colorScheme
     val glassColors = LiquidGlassTheme.colors
     UniScreenColumn {
+        // 1. Professor Summary Hero Card (28dp, clean 3-column architectural hairline strip)
         UniAnimatedEntrance(order = 0) {
             LiquidCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedRectangle(24.dp),
-                contentPadding = 18.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
+                shape = RoundedRectangle(28.dp),
+                contentPadding = PaddingValues(18.dp),
             ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top,
                     ) {
-                        Text(
-                            text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_professor_role) },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = colorScheme.onSurface,
-                        )
-                        Text(
-                            text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_university) },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colorScheme.onSurfaceVariant,
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                text = uiState.degreeName.ifBlank { stringResource(Res.string.ui_professor_role) },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = (-0.25).sp,
+                                color = colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = uiState.degreeDetails.ifBlank { stringResource(Res.string.ui_university) },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        LiquidBadge(
+                            text = stringResource(Res.string.ui_professor_area_title),
+                            containerColor = colorScheme.primaryContainer.copy(alpha = 0.55f),
+                            contentColor = colorScheme.primary,
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
 
-                    LiquidBadge(
-                        text = stringResource(Res.string.ui_professor_area_title),
-                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                        contentColor = colorScheme.primary,
-                    )
-                }
-
-                LiquidHorizontalDivider(color = colorScheme.onSurface.copy(alpha = 0.08f))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    UniBentoStatTile(
-                        label = stringResource(Res.string.ui_professor_teachings),
-                        value = "${uiState.teachingCount}",
-                        icon = LiquidIcons.MenuBook,
-                        accentColor = colorScheme.primary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    UniBentoStatTile(
-                        label = stringResource(Res.string.ui_exams),
-                        value = "${uiState.openExamRounds}",
-                        icon = LiquidIcons.Calendar,
-                        accentColor = colorScheme.tertiary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    UniBentoStatTile(
-                        label = stringResource(Res.string.ui_professor_theses),
-                        value = "${uiState.thesisCount}",
-                        icon = LiquidIcons.Assignment,
-                        accentColor = colorScheme.secondary,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ProfessorHeroStat(
+                            value = "${uiState.teachingCount}",
+                            label = stringResource(Res.string.ui_professor_teachings),
+                            accentColor = colorScheme.primary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(34.dp)
+                                .background(colorScheme.onSurface.copy(alpha = 0.09f)),
+                        )
+                        ProfessorHeroStat(
+                            value = "${uiState.openExamRounds}",
+                            label = stringResource(Res.string.ui_exams),
+                            accentColor = colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(34.dp)
+                                .background(colorScheme.onSurface.copy(alpha = 0.09f)),
+                        )
+                        ProfessorHeroStat(
+                            value = "${uiState.thesisCount}",
+                            label = stringResource(Res.string.ui_professor_theses),
+                            accentColor = colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }
-        }
 
+        // 2. Strumenti didattici in griglia Bento simmetrica (12dp row & column gap)
         UniAnimatedEntrance(order = 1) {
             Column(
-                modifier = Modifier.fillMaxWidth().graphicsLayer(clip = false),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(clip = false),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 LiquidSectionHeader(
@@ -151,76 +180,112 @@ fun ProfessorDidacticsContent(
                         )
                     },
                 )
+
+                DidacticRow(
+                    item1 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_professor_theses),
+                            subtitle = stringResource(Res.string.ui_professor_theses_subtitle),
+                            icon = LiquidIcons.Assignment,
+                            badgeCount = uiState.thesisCount.takeIf { it > 0 },
+                            iconColor = glassColors.warning,
+                            onClick = onOpenTheses,
+                        )
+                    },
+                    item2 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_professor_reports),
+                            subtitle = stringResource(Res.string.ui_professor_reports_subtitle),
+                            icon = LiquidIcons.Edit,
+                            badgeCount = uiState.reportCount.takeIf { it > 0 },
+                            iconColor = colorScheme.secondary,
+                            onClick = onOpenReports,
+                        )
+                    },
+                )
+
+                DidacticRow(
+                    item1 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.nav_route_news_title),
+                            subtitle = stringResource(Res.string.nav_route_news_subtitle),
+                            icon = LiquidIcons.Notifications,
+                            iconColor = colorScheme.primary,
+                            onClick = onOpenNews,
+                        )
+                    },
+                    item2 = {
+                        DidacticItem(
+                            title = stringResource(Res.string.ui_settings),
+                            subtitle = stringResource(Res.string.ui_professor_settings_subtitle),
+                            icon = LiquidIcons.Settings,
+                            iconColor = colorScheme.tertiary,
+                            onClick = onOpenSettings,
+                        )
+                    },
+                )
             }
-        }
-
-        UniAnimatedEntrance(order = 2) {
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_theses),
-                        subtitle = stringResource(Res.string.ui_professor_theses_subtitle),
-                        icon = LiquidIcons.Assignment,
-                        badgeCount = uiState.thesisCount.takeIf { it > 0 },
-                        iconColor = glassColors.warning,
-                        onClick = onOpenTheses,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_professor_reports),
-                        subtitle = stringResource(Res.string.ui_professor_reports_subtitle),
-                        icon = LiquidIcons.Edit,
-                        badgeCount = uiState.reportCount.takeIf { it > 0 },
-                        iconColor = colorScheme.secondary,
-                        onClick = onOpenReports,
-                    )
-                },
-            )
-        }
-
-        UniAnimatedEntrance(order = 3) {
-            DidacticRow(
-                item1 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.nav_route_news_title),
-                        subtitle = stringResource(Res.string.nav_route_news_subtitle),
-                        icon = LiquidIcons.Notifications,
-                        iconColor = colorScheme.primary,
-                        onClick = onOpenNews,
-                    )
-                },
-                item2 = {
-                    DidacticItem(
-                        title = stringResource(Res.string.ui_settings),
-                        subtitle = stringResource(Res.string.ui_professor_settings_subtitle),
-                        icon = LiquidIcons.Settings,
-                        iconColor = colorScheme.tertiary,
-                        onClick = onOpenSettings,
-                    )
-                },
-            )
         }
     }
 }
 
 @Composable
+private fun ProfessorHeroStat(
+    value: String,
+    label: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Black,
+            letterSpacing = (-0.6).sp,
+            color = accentColor,
+            maxLines = 1,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
 fun YearProgress(year: String, isCompleted: Boolean, colorScheme: ColorScheme) {
+    val containerColor = if (isCompleted) {
+        colorScheme.primaryContainer.copy(alpha = 0.45f)
+    } else {
+        colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    }
     Row(
+        modifier = Modifier
+            .clip(Capsule())
+            .background(containerColor)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Icon(
             imageVector = if (isCompleted) LiquidIcons.Check else LiquidIcons.Time,
             contentDescription = null,
-            tint = if (isCompleted) colorScheme.primary else colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(14.dp)
+            tint = if (isCompleted) colorScheme.primary else colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+            modifier = Modifier.size(12.dp),
         )
         Text(
             text = year,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Medium,
-            color = if (isCompleted) colorScheme.onSurface else colorScheme.onSurfaceVariant
+            color = if (isCompleted) colorScheme.onSurface else colorScheme.onSurfaceVariant,
         )
     }
 }

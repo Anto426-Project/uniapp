@@ -202,23 +202,13 @@ fun AcademicSectionScreen(
                             icon = sectionIcon,
                             onClick = { onItemClick(item) },
                             showDivider = index < visibleItems.lastIndex,
-                            trailingContent = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    item.code?.takeIf(String::isNotBlank)?.let { code ->
-                                        LiquidBadge(
-                                            text = code,
-                                            containerColor = colorScheme.primary.copy(alpha = 0.14f),
-                                            contentColor = colorScheme.primary,
-                                        )
-                                    }
-                                    Icon(
-                                        imageVector = LiquidIcons.ChevronRight,
-                                        contentDescription = null,
-                                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
-                                        modifier = Modifier.size(16.dp),
+                            showTrailingChevron = !item.code.isNullOrBlank(),
+                            trailingContent = item.code?.takeIf(String::isNotBlank)?.let { code ->
+                                {
+                                    LiquidBadge(
+                                        text = code,
+                                        containerColor = colorScheme.primary.copy(alpha = 0.14f),
+                                        contentColor = colorScheme.primary,
                                     )
                                 }
                             },

@@ -92,6 +92,7 @@ fun AcademicIdentityScreen(uiState: AcademicIdentityUiState) {
                     subtitle = value,
                     icon = iconPair.first,
                     iconTint = iconPair.second,
+                    subtitleMaxLines = 2,
                     showDivider = index < detailRows.lastIndex,
                 )
             }

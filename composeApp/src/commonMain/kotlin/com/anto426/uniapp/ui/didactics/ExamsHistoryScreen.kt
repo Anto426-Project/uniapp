@@ -51,16 +51,16 @@ fun ExamsHistoryTabContent(
         } else {
             if (verbalizedCount > 0 && pastBookedCount > 0) {
                 val options = listOf(
-                    Triple(ExamHistoryFilter.ALL, stringResource(Res.string.ui_exams_all_filter), uiState.exams.size),
-                    Triple(ExamHistoryFilter.VERBALIZED, stringResource(Res.string.ui_exams_history_verbalized_count), verbalizedCount),
-                    Triple(ExamHistoryFilter.BOOKED_PAST, stringResource(Res.string.ui_exams_history_past_bookings_count), pastBookedCount),
+                    ExamHistoryFilter.ALL to stringResource(Res.string.ui_exams_all_filter),
+                    ExamHistoryFilter.VERBALIZED to stringResource(Res.string.ui_exams_history_verbalized_count),
+                    ExamHistoryFilter.BOOKED_PAST to stringResource(Res.string.ui_exams_history_past_bookings_count),
                 )
                 UniHorizontalChipRow {
-                    options.forEach { (option, label, count) ->
+                    options.forEach { (option, label) ->
                         key(option) {
                             val selected = filter == option
                             LiquidChip(
-                                label = "$label ($count)",
+                                label = label,
                                 selected = selected,
                                 leadingIcon = if (selected) LiquidIcons.Check else null,
                                 onClick = { onFilterSelected(option) },
