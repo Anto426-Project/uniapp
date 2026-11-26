@@ -3,6 +3,13 @@ package com.anto426.uniapp.navigation.model
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
+@Serializable
+enum class GradesDetailSection {
+    EVOLUTION,
+    DISTRIBUTION,
+    CREDITS,
+}
+
 /**
  * Complete set of navigation keys owned by UniApp.
  *
@@ -68,6 +75,12 @@ sealed interface AppRoute : NavKey {
 
     @Serializable
     data object Grades : AppRoute
+
+    @Serializable
+    data class GradesDetail(
+        val section: GradesDetailSection,
+        val projected: Boolean = false,
+    ) : AppRoute
 
     @Serializable
     data object Contacts : AppRoute

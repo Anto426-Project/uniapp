@@ -33,6 +33,7 @@ internal val AppNavigationSavedStateConfiguration =
                     subclass(AppRoute.Colors::class, AppRoute.Colors.serializer())
                     subclass(AppRoute.Taxes::class, AppRoute.Taxes.serializer())
                     subclass(AppRoute.Grades::class, AppRoute.Grades.serializer())
+                    subclass(AppRoute.GradesDetail::class, AppRoute.GradesDetail.serializer())
                     subclass(AppRoute.Contacts::class, AppRoute.Contacts.serializer())
                     subclass(AppRoute.ContactDetail::class, AppRoute.ContactDetail.serializer())
                     subclass(AppRoute.Transport::class, AppRoute.Transport.serializer())

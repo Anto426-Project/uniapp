@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.anto426.liquidmonet.icons.LiquidIcons
 import com.anto426.uniapp.navigation.model.AppRoute
+import com.anto426.uniapp.navigation.model.GradesDetailSection
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import uniapp.composeapp.generated.resources.*
@@ -146,6 +147,23 @@ internal fun AppRoute.presentation(isProfessor: Boolean = false): AppRoutePresen
             subtitleRes = Res.string.nav_route_grades_subtitle,
             icon = LiquidIcons.Star,
         )
+        is AppRoute.GradesDetail -> when (section) {
+            GradesDetailSection.EVOLUTION -> AppRoutePresentation(
+                titleRes = Res.string.ui_stats_evolution_title,
+                subtitleRes = if (projected) Res.string.ui_grades_projection else Res.string.ui_grades_scope_real,
+                icon = LiquidIcons.Analytics,
+            )
+            GradesDetailSection.DISTRIBUTION -> AppRoutePresentation(
+                titleRes = Res.string.ui_stats_grade_tiers_title,
+                subtitleRes = if (projected) Res.string.ui_grades_projection else Res.string.ui_grades_scope_real,
+                icon = LiquidIcons.Star,
+            )
+            GradesDetailSection.CREDITS -> AppRoutePresentation(
+                titleRes = Res.string.ui_stats_cfu_distribution_title,
+                subtitleRes = if (projected) Res.string.ui_grades_projection else Res.string.ui_grades_scope_real,
+                icon = LiquidIcons.MenuBook,
+            )
+        }
         AppRoute.Contacts -> AppRoutePresentation(
             titleRes = Res.string.nav_route_contacts_title,
             subtitleRes = Res.string.nav_route_contacts_subtitle,

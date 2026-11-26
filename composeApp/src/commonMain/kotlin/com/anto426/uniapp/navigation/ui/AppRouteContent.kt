@@ -35,6 +35,7 @@ import com.anto426.uniapp.navigation.ui.routes.CourseDetailRouteContent
 import com.anto426.uniapp.navigation.ui.routes.DevicesRouteContent
 import com.anto426.uniapp.navigation.ui.routes.DidacticsRouteContent
 import com.anto426.uniapp.navigation.ui.routes.ExamsRouteContent
+import com.anto426.uniapp.navigation.ui.routes.GradesDetailRouteContent
 import com.anto426.uniapp.navigation.ui.routes.GradesRouteContent
 import com.anto426.uniapp.navigation.ui.routes.HomeRouteContent
 import com.anto426.uniapp.navigation.ui.routes.InfoRouteContent
@@ -196,6 +197,7 @@ internal fun AppRouteContent(
         is AppRoute.ReportDetail -> AcademicItemDetailRouteContent(AcademicSection.Reports, route.itemKey, viewModelKey, dataSource)
         is AppRoute.Transcripts -> TranscriptsRouteContent(route, context)
         AppRoute.Grades -> GradesRouteContent(context, gradeSimulations)
+        is AppRoute.GradesDetail -> GradesDetailRouteContent(route, context, gradeSimulations)
         is AppRoute.Exams -> ExamsRouteContent(route, context)
         is AppRoute.CourseDetail -> CourseDetailRouteContent(route, context)
         AppRoute.Questionnaires -> QuestionnairesRouteContent(context)

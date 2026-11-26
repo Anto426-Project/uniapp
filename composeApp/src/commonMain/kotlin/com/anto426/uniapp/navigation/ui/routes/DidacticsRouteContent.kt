@@ -49,6 +49,7 @@ import com.anto426.uniapp.ui.didactics.ExamBookableFilter
 import com.anto426.uniapp.ui.didactics.ExamHistoryFilter
 import com.anto426.uniapp.ui.didactics.ExamsHistoryTabContent
 import com.anto426.uniapp.ui.didactics.ExamsScreen
+import com.anto426.uniapp.ui.didactics.GradesDetailScreen
 import com.anto426.uniapp.ui.didactics.GradesScreen
 import com.anto426.uniapp.ui.didactics.QuestionnaireDetailScreen
 import com.anto426.uniapp.ui.didactics.QuestionnairesScreen
@@ -182,6 +183,36 @@ internal fun GradesRouteContent(
             onTargetDegreeChanged = gradesViewModel::updateTargetDegree,
             onThesisPointsChanged = gradesViewModel::updateThesisPoints,
             onBonusPointsChanged = gradesViewModel::updateBonusPoints,
+            onOpenDetail = { section, projected ->
+                context.navigator.navigate(AppRoute.GradesDetail(section, projected))
+            },
+        )
+    }
+}
+
+@Composable
+internal fun GradesDetailRouteContent(
+    route: AppRoute.GradesDetail,
+    context: AppRouteContext,
+    gradeSimulations: GradeSimulationRepository,
+) {
+    val account = (context.sessionState as? AppSessionState.Authenticated)?.account ?: return
+    val simulationOwner = account.activeProfileId?.let { profileId ->
+        LocalDataScope.Profile(account.accountId, profileId)
+    } ?: LocalDataScope.Account(account.accountId)
+    val gradesViewModel = viewModel(key = "${context.accountId}|${context.activeProfileId.orEmpty()}|grades-detail") {
+        GradesViewModel(context.dataSource, gradeSimulations, simulationOwner, context.toastSink)
+    }
+    val gradesUiState by gradesViewModel.uiState.collectAsStateWithLifecycle()
+    FeatureStateContent(
+        gradesUiState.loadState,
+        gradesUiState.errorMessage,
+        onRetry = { gradesViewModel.refresh(force = true) },
+    ) {
+        GradesDetailScreen(
+            uiState = gradesUiState,
+            section = route.section,
+            initialProjected = route.projected,
         )
     }
 }

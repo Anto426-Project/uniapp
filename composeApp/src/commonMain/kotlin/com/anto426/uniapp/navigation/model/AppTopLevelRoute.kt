@@ -39,6 +39,7 @@ fun AppRoute.topLevelParent(): AppRoute =
         is AppRoute.ThesisDetail,
         is AppRoute.ReportDetail,
         AppRoute.Grades,
+        is AppRoute.GradesDetail,
         is AppRoute.Transcripts,
         is AppRoute.Exams,
         is AppRoute.CourseDetail,
