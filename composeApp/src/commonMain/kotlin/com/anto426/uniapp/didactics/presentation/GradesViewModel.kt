@@ -40,6 +40,31 @@ data class GradeTierInfo(
     val percentage: Int,
 )
 
+data class GraduationScenario(
+    val averageGrade: Int?,
+    val projectedAverage: Double,
+    val projectedScore: Double,
+    val meetsTarget: Boolean,
+)
+
+data class ExamProgressionPoint(
+    val index: Int,
+    val name: String,
+    val grade: Int,
+    val cfu: Int,
+    val runningWeightedAverage: Double,
+    val deltaFromPrevious: Double?,
+    val isSimulated: Boolean,
+)
+
+data class ExamWeightImpact(
+    val name: String,
+    val grade: Int,
+    val cfu: Int,
+    val impactOnAverage: Double,
+    val cfuSharePercent: Int,
+)
+
 data class GradesUiState(
     val selectedTab: Int = 0,
     val officialAverage: Double? = null,
@@ -62,7 +87,7 @@ data class GradesUiState(
         copy(simulationItems = emptyList())
     } else {
         copy(
-            currentExams = currentExams + activeSimulatedItems.map { GradeExam("(Sim.) " + it.name, it.grade, it.cfu) },
+            currentExams = currentExams + activeSimulatedItems.map { GradeExam(it.name, it.grade, it.cfu) },
             simulationItems = emptyList(),
             acquiredCareerCfu = totalProjectedCfu,
             completedCareerExamsCount = totalPassedExamsCount + activeSimulatedCount,
@@ -73,13 +98,56 @@ data class GradesUiState(
         )
     }
 
-    val highestGradeCourses: String get() = currentExams.filter { it.grade == highestGrade }
-        .joinToString(limit = 2) { it.name }
-    val lowestGradeCourses: String get() = currentExams.filter { it.grade == lowestGrade }
-        .joinToString(limit = 2) { it.name }
+    val highestGradeCourses: String get() = currentExams.lastOrNull { it.grade == highestGrade }?.name.orEmpty()
+    val lowestGradeCourses: String get() = currentExams.lastOrNull { it.grade == lowestGrade }?.name.orEmpty()
+    val highestGradeCount: Int get() = if (highestGrade <= 0) 0 else currentExams.count { it.grade == highestGrade }
+    val lowestGradeCount: Int get() = if (lowestGrade <= 0) 0 else currentExams.count { it.grade == lowestGrade }
+    val weightedArithmeticSpread: Double?
+        get() = if (currentExams.isNotEmpty() && currentAverage > 0.0 && currentArithmeticAverage > 0.0) {
+            currentAverage - currentArithmeticAverage
+        } else {
+            null
+        }
     val recentTrend: Float get() {
         val entries = weightedAverageEntries
         return if (entries.size < 2) 0f else entries.last().value - entries[(entries.lastIndex - 3).coerceAtLeast(0)].value
+    }
+
+    fun projectWeightedAverageWith(addedCfu: Int, addedGrade: Int): Double {
+        val clampedGrade = addedGrade.coerceAtMost(30)
+        if (totalCurrentCfu <= 0 || currentAverage <= 0.0) return clampedGrade.toDouble()
+        val totalCfu = totalCurrentCfu + addedCfu
+        return if (totalCfu <= 0) currentAverage else ((currentAverage * totalCurrentCfu) + (clampedGrade * addedCfu)) / totalCfu
+    }
+
+    fun simulationItemImpact(item: SimulationItem): Double =
+        projectWeightedAverageWith(item.cfu, item.grade) - currentAverage
+
+    fun graduationScenarios(futureAverages: List<Int> = listOf(24, 27, 30)): List<GraduationScenario> {
+        val remaining = remainingDegreeCfu
+        if (remaining <= 0) return emptyList()
+        val addedPoints = thesisPoints + bonusPoints
+        val currentPace = currentAverage.takeIf { it > 0.0 }?.let { avg ->
+            val score = (currentGraduationBase + addedPoints).coerceAtMost(113.0)
+            GraduationScenario(
+                averageGrade = null,
+                projectedAverage = avg,
+                projectedScore = score,
+                meetsTarget = score >= targetScoreEffective,
+            )
+        }
+        val fixed = futureAverages.map { futureAvg ->
+            val projectedAvg = projectWeightedAverageWith(remaining, futureAvg)
+            val projectedBase = currentGraduationBase + (projectedAvg - currentAverage) * 110.0 / 30.0
+            val projectedScore = (projectedBase + addedPoints).coerceAtMost(113.0)
+            GraduationScenario(
+                averageGrade = futureAvg,
+                projectedAverage = projectedAvg,
+                projectedScore = projectedScore,
+                meetsTarget = projectedScore >= targetScoreEffective,
+            )
+        }
+        return listOfNotNull(currentPace) + fixed
     }
 
     val totalCurrentCfu: Int get() = currentExams.sumOf { it.cfu }
@@ -169,7 +237,7 @@ data class GradesUiState(
         }
 
     private val chartExams: List<GradeExam> get() = currentExams + activeSimulatedItems.map {
-        GradeExam("(Sim.) " + it.name, it.grade, it.cfu)
+        GradeExam(it.name, it.grade, it.cfu)
     }
 
     private val weightedChartValues: List<Float> get() {
@@ -187,12 +255,10 @@ data class GradesUiState(
         }
     }
 
-    val singleGradeEntries: List<LiquidChartEntry> get() {
-        val weighted = weightedChartValues
-        return chartExams.mapIndexed { index, exam ->
-            LiquidChartEntry(exam.name, exam.grade.coerceAtMost(30).toFloat(), weighted[index])
+    val singleGradeEntries: List<LiquidChartEntry> get() =
+        chartExams.map { exam ->
+            LiquidChartEntry(exam.name, exam.grade.coerceAtMost(30).toFloat())
         }
-    }
 
     val weightedAverageEntries: List<LiquidChartEntry> get() {
         val weighted = weightedChartValues
@@ -214,7 +280,7 @@ data class GradesUiState(
                 runningSum += item.grade.coerceAtMost(30)
                 count++
                 val avg = runningSum.toFloat() / count
-                list += LiquidChartEntry(label = "(Sim.) " + item.name, value = avg)
+                list += LiquidChartEntry(label = item.name, value = avg)
             }
             return list
         }
@@ -227,6 +293,54 @@ data class GradesUiState(
                 LiquidChartEntry(label = "$cfu CFU", value = list.size.toFloat())
             }
         }
+
+    val examProgression: List<ExamProgressionPoint>
+        get() {
+            val exams = chartExams
+            if (exams.isEmpty()) return emptyList()
+            val weighted = weightedChartValues
+            val baselineCount = chartBaselineCount ?: currentExams.size
+            return exams.mapIndexed { index, exam ->
+                val running = weighted[index].toDouble()
+                val delta = if (index == 0) null else running - weighted[index - 1].toDouble()
+                ExamProgressionPoint(
+                    index = index + 1,
+                    name = exam.name,
+                    grade = exam.grade,
+                    cfu = exam.cfu,
+                    runningWeightedAverage = running,
+                    deltaFromPrevious = delta,
+                    isSimulated = index >= baselineCount,
+                )
+            }
+        }
+
+    val examWeightImpacts: List<ExamWeightImpact>
+        get() {
+            val totalCfu = totalCurrentCfu
+            if (currentExams.isEmpty() || totalCfu <= 0 || currentAverage <= 0.0) return emptyList()
+            return currentExams.map { exam ->
+                val clamped = exam.grade.coerceAtMost(30).toDouble()
+                val impact = ((clamped - currentAverage) * exam.cfu.toDouble()) / totalCfu.toDouble()
+                val share = ((exam.cfu.toDouble() / totalCfu.toDouble()) * 100.0).toInt()
+                ExamWeightImpact(
+                    name = exam.name,
+                    grade = exam.grade,
+                    cfu = exam.cfu,
+                    impactOnAverage = impact,
+                    cfuSharePercent = share,
+                )
+            }.sortedByDescending { it.impactOnAverage }
+        }
+
+    fun examsInTier(tierLabel: String?): List<GradeExam> = when (tierLabel) {
+        null -> currentExams
+        "30 e 30L" -> currentExams.filter { it.grade >= 30 }
+        "27 - 29" -> currentExams.filter { it.grade in 27..29 }
+        "24 - 26" -> currentExams.filter { it.grade in 24..26 }
+        "18 - 23" -> currentExams.filter { it.grade in 18..23 }
+        else -> currentExams
+    }
 
     val gradeTiers: List<GradeTierInfo>
         get() {
@@ -306,7 +420,7 @@ internal class GradesViewModel(
     }
 
     fun selectTab(index: Int) {
-        mutableUiState.value = mutableUiState.value.copy(selectedTab = index.coerceIn(0, 3))
+        mutableUiState.update { it.copy(selectedTab = index.coerceIn(0, 2)) }
     }
 
     private fun editSimulation(transform: (List<SimulationItem>) -> List<SimulationItem>) {
