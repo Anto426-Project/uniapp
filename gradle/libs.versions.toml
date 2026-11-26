@@ -40,7 +40,7 @@ zxing-cpp = "3.2.0"
 robolectric = "4.18.1"
 
 # Published SDK versions. The binary downloader reads these exact versions.
-liquid-monet-sdk = "2.0.57"
+liquid-monet-sdk = "2.0.58"
 unisdk = "2.0.39"
 secure-storage-sdk = "1.0.17"
 firebase-connector-sdk = "1.0.11"
